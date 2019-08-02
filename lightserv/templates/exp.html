@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+	{% block content %}
+		<article class="media content-section">
+
+			<div class="media-body">
+				<div class="article-metadata">
+				<a class="mr-2" href="{{ url_for('experiments.exp',dataset_hex=exp.dataset_hex) }}">{{ exp.dataset_hex }}</a>
+					<a class="mr-2" href="{{ url_for('main.home') }}">{{ exp.author.username }}</a>
+					<small class="text-muted">{{ exp.date_run.strftime('%Y-%m-%d %H:%M:%S UTC') }}</small>
+				</div>
+				<h2 class="article-title"> {{ exp.title }} </h2>
+				<p class="article-content">{{ exp.description }}</p>
+			</div>
+		</article>
+	{% endblock content %}
