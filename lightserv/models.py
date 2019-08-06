@@ -9,12 +9,12 @@ def load_user(user_id):
 	return User.query.get(int(user_id))
 
 class User(db.Model, UserMixin): 
+	""" A table in the database containing the user info """
 	id = db.Column(db.Integer, primary_key=True) # the index of the user - also the user ID
 	username = db.Column(db.String(20), unique=True, nullable=False)
 	email = db.Column(db.String(120), unique=True, nullable=False)
 	image_file = db.Column(db.String(20), nullable=False, default='default-user.png')
 	password = db.Column(db.String(60), nullable=False)
-	# posts = db.relationship('Post', backref='author', lazy=True)
 	experiments = db.relationship('Experiment', backref='author', lazy=True)
 
 	def __repr__(self):

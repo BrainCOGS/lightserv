@@ -61,7 +61,7 @@ def init_database():
 
 @pytest.fixture(scope='function')
 def login_response(test_client):
-	""" """
+	""" Log the user in. Requires a test_client fixture to do this. """
 	print('----------Setup login response----------')
 	response = test_client.post(
 				'/login',

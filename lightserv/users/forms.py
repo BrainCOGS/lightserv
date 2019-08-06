@@ -6,6 +6,7 @@ from flask_login import current_user
 from lightserv.models import User
 
 class RegistrationForm(FlaskForm):
+	""" A form for new user registration """
 	username = StringField('Username',
 						   validators=[DataRequired(), Length(min=2, max=20)])
 	email = StringField('Email',
@@ -29,6 +30,7 @@ class RegistrationForm(FlaskForm):
 			raise ValidationError('Email is taken. Please choose a different one.')
 
 class LoginForm(FlaskForm):
+	""" A form for logging in """
 	email = StringField('Email',
 						validators=[DataRequired(), Email()])
 	password = PasswordField('Password', validators=[DataRequired()])
@@ -36,6 +38,7 @@ class LoginForm(FlaskForm):
 	submit = SubmitField('Login')
 
 class UpdateAccountForm(FlaskForm):
+	""" A form for updating a user account """
 	username = StringField('Username',
 						   validators=[DataRequired(), Length(min=2, max=20)])
 	email = StringField('Email',
@@ -56,6 +59,7 @@ class UpdateAccountForm(FlaskForm):
 				raise ValidationError('That email is taken. Please choose a different one.')
 
 class RequestResetForm(FlaskForm):
+	""" A form for requesting a password reset """
 	email = StringField('Email',
 						validators=[DataRequired(), Email()])
 	submit = SubmitField('Request Password Reset')	
@@ -68,6 +72,7 @@ class RequestResetForm(FlaskForm):
 
 
 class ResetPasswordForm(FlaskForm):
+	""" A form for resetting a user password """
 	password = PasswordField('Password', validators=[DataRequired()])
 	confirm_password = PasswordField('Confirm Password',
 									 validators=[DataRequired(), EqualTo('password')])

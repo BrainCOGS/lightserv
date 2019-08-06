@@ -4,6 +4,7 @@ from wtforms.validators import DataRequired, Length, InputRequired
 from lightserv.models import Experiment
 
 class ExpForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
 	dataset_hex = StringField('Dataset ID',validators=[Length(min=10,max=10,message='Dataset ID must be 10 characters long')])
 
 	title = StringField('Title',
@@ -13,7 +14,6 @@ class ExpForm(FlaskForm):
 	clearing_protocol = SelectField('Clearing Protocol:', choices=[('iDISCO+_immuno','iDISCO+ (immunostaining)'),
 	('iDISCO_abbreviated_clearing','iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
 	('uDISCO','uDISCO'),('iDISCO+','iDISCO+'),('iDISCO_EdU','Wang Lab iDISCO Protocol-EdU')],validators=[InputRequired()]) # for choices first element of tuple is the value of the option, the second is the displayed text
-	# print clearing_protocol
 	fluorophores = TextAreaField('Fluorophores/dyes involved (E.g. AlexaFluor 647 or Thy1-YFP mouse)',validators=[])
 	primary_antibody = TextAreaField('Primary antibody and concentrations desired (if doing immunostaining)',validators=[])
 	secondary_antibody = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',validators=[])
@@ -32,12 +32,11 @@ class ExpForm(FlaskForm):
 		exp = Experiment.query.filter_by(dataset_hex=dataset_hex.data).first()
 		if exp: 
 			raise ValidationError('dataset ID is already in use. \
-				Please enter a different one, or view the status of the existing dataset at its web page.')
+				Please enter a different one, or view the status of the existing dataset at its own page.')
 
 	def validate_primary_antibody(self,primary_antibody):
 		''' Makes sure that primary antibody is not blank if immunostaining clearing protocol
 		is chosen  '''
-		# if self.clearing_protocol == 'iDISCO+_immuno' and primary_antibody == '':
 		if self.clearing_protocol.data == 'iDISCO+_immuno' and primary_antibody.data == '':
 			raise ValidationError('Antibody must be specified because you selected \
 				an immunostaining clearing protocol')

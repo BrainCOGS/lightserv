@@ -6,6 +6,7 @@ from flask_mail import Message
 from lightserv import  mail
 
 def save_picture(form_picture):
+	""" Saves a thumbnail of user profile picture """
 	random_hex = secrets.token_hex(8)
 	_, f_ext = os.path.splitext(form_picture.filename)
 	picture_fn = random_hex + f_ext
@@ -20,6 +21,7 @@ def save_picture(form_picture):
 
 
 def send_reset_email(user):
+	""" Sends a reset password email to the user's email """
 	expires_sec = 1800
 	expires_min = int(float(expires_sec/60.))
 	token = user.get_reset_token(expires_sec=expires_sec)

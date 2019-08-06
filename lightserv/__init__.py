@@ -15,11 +15,12 @@ db = SQLAlchemy()
 bcrypt = Bcrypt()
 login_manager = LoginManager()
 login_manager.login_view = 'users.login' # function name - like the url_for() argument. 
-#This is how the login manager knows where to redirect us when a page requires a login
+# This is how the login manager knows where to redirect us when a page requires a login
 login_manager.login_message_category = 'info' # bootstrap class - a blue alert
 mail = Mail()
 
 def create_app(config_class=Config):
+	""" Create the flask app instance"""
 	app = Flask(__name__)
 	app.config.from_object(config_class)
 
@@ -40,6 +41,8 @@ def create_app(config_class=Config):
 
 
 def create_demo_app(config_class=config.DemoConfig):
+	""" Creates a demo app with static pages for demonstration purposes. 
+	Incomplete. """
 	app = Flask(__name__)
 	app.config.from_object(config_class)
 

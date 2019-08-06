@@ -13,7 +13,6 @@ def home():
 			Experiment.date_run.desc()).filter_by(
 			author=current_user).paginate(page=page,per_page=5)
 	else:
-		# form = LoginForm()
 		return redirect('login')
 	return render_template('home.html',experiments=experiments)
 
