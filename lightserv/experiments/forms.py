@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, SelectField, BooleanField
 from wtforms.validators import DataRequired, Length, InputRequired
-from lightserv.models import Experiment
+# from lightserv.models import Experiment
 
 class ExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """

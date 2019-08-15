@@ -1,7 +1,8 @@
 from flask import render_template, url_for, flash, redirect, request, Blueprint
 from flask_login import login_user, current_user, logout_user, login_required
-from lightserv import db, bcrypt
-from lightserv.models import User, Experiment
+from lightserv import bcrypt
+# from lightserv.models import User, Experiment
+from lightserv.schemata import db
 from lightserv.users.forms import (RegistrationForm, LoginForm, UpdateAccountForm,
                                    RequestResetForm, ResetPasswordForm)
 from lightserv.users.utils import save_picture, send_reset_email
@@ -15,13 +16,17 @@ def register():
 	form = RegistrationForm()
 	if form.validate_on_submit():
 		hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-		user = User(username=form.username.data, email=form.email.data, password=hashed_password)
-		db.session.add(user)
-		db.session.commit()
+		# user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+		user_entry = dict(username=form.username.data,email=form.email.data)
+		db.User.insert1(user_entry)
+		# db.session.add(user)
+		# db.session.commit()
 		flash('Your account has been created! You are now able to log in.', 'success')
 		return redirect(url_for('users.login'))
 	return render_template('register.html', title='Register', form=form)
 
+def new_route():
+	return None
 
 @users.route("/login", methods=['GET', 'POST'])
 def login():
@@ -29,9 +34,12 @@ def login():
 		return redirect(url_for('main.home'))
 	form = LoginForm()
 	if form.validate_on_submit():
-		user = User.query.filter_by(email=form.email.data).first()
-		if user and bcrypt.check_password_hash(user.password, form.password.data):
-			login_user(user, remember=form.remember.data)
+		user_contents = db.User() & f''' email="{form.email.data}" '''
+		# print(form.email.data)
+		# if len(user_contents)>0 and bcrypt.check_password_hash(user.password, form.password.data):
+		# skip password authentication for now
+		if len(user_contents) > 0:
+			login_user(user_contents, remember=form.remember.data)
 			next_page = request.args.get('next')
 			flash("Welcome to Lightserv, {}".format(current_user.username),'success')
 			return redirect(next_page) if next_page else redirect(url_for('main.home'))
