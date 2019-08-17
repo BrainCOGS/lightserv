@@ -4,12 +4,13 @@
 
 			<div class="media-body">
 				<div class="article-metadata">
-				<a class="mr-2" href="{{ url_for('experiments.exp',dataset_hex=exp.dataset_hex) }}">{{ exp.dataset_hex }}</a>
-					<a class="mr-2" href="{{ url_for('main.home') }}">{{ exp.author.username }}</a>
-					<small class="text-muted">{{ exp.date_run.strftime('%Y-%m-%d %H:%M:%S UTC') }}</small>
+				<a class="mr-2">Experiment {{ exp_contents.fetch1('experiment') }}</a>
+				
 				</div>
-				<h2 class="article-title"> {{ exp.title }} </h2>
-				<p class="article-content">{{ exp.description }}</p>
+			<a class="mr-2" href="{{ url_for('experiments.exp_rawdata',experiment=exp_contents.fetch1('experiment')) }}" target="_blank">View Your Data</a>
+			<a class="mr-2" href="{{ url_for('experiments.allenatlas')}}" target="_blank">View Allen Brain Atlas</a>
 			</div>
+
 		</article>
+		{{ exp_table }}
 	{% endblock content %}

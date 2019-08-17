@@ -1,5 +1,5 @@
-from flask import render_template, url_for, flash, redirect, request, Blueprint
-from flask_login import login_user, current_user, logout_user, login_required
+from flask import render_template, url_for, flash, redirect, request, Blueprint, session
+# from flask_login import login_user, current_user, logout_user, login_required
 from lightserv import bcrypt
 # from lightserv.models import User, Experiment
 from lightserv.schemata import db
@@ -11,7 +11,8 @@ users = Blueprint('users',__name__)
 
 @users.route("/register", methods=['GET', 'POST'])
 def register():
-	if current_user.is_authenticated:
+	# if current_user.is_authenticated:
+	if 'user' in session: 
 		return redirect(url_for('main.home'))
 	form = RegistrationForm()
 	if form.validate_on_submit():
@@ -30,7 +31,8 @@ def new_route():
 
 @users.route("/login", methods=['GET', 'POST'])
 def login():
-	if current_user.is_authenticated:
+	# if current_user.is_authenticated:
+	if 'user' in session:
 		return redirect(url_for('main.home'))
 	form = LoginForm()
 	if form.validate_on_submit():
@@ -39,10 +41,14 @@ def login():
 		# if len(user_contents)>0 and bcrypt.check_password_hash(user.password, form.password.data):
 		# skip password authentication for now
 		if len(user_contents) > 0:
-			login_user(user_contents, remember=form.remember.data)
+			# login_user(user_contents, remember=form.remember.data)
+			# find the username that corresponds to the email provided
+			username = user_contents.fetch1('username')
+			session['user'] = username
 			next_page = request.args.get('next')
-			flash("Welcome to Lightserv, {}".format(current_user.username),'success')
-			return redirect(next_page) if next_page else redirect(url_for('main.home'))
+			flash(f"Welcome to Lightserv, {session['user']}",'success')
+			# return redirect(next_page) if next_page else redirect(url_for('main.home'))
+			return redirect(url_for('main.home'))
 		else:
 			flash('Login unsuccessful. Please check email and password', 'danger')
 	return render_template('login.html', form=form)
@@ -50,28 +56,28 @@ def login():
 
 @users.route("/logout")
 def logout():
-	logout_user()
+	# logout_user()
+	session.pop('user')
 	return redirect(url_for('main.home'))
 
-@users.route("/account", methods=['GET', 'POST'])
-@login_required
-def account():
-	form = UpdateAccountForm()
-	if form.validate_on_submit():
-		if form.picture.data:
-			picture_file = save_picture(form.picture.data)
-			current_user.image_file = picture_file
-		current_user.username = form.username.data
-		current_user.email = form.email.data
-		db.session.commit()
-		flash('Your account has been updated!', 'success')
-		return redirect(url_for('users.account'))
-	elif request.method == 'GET': # auto-fills the current credentials when a logged in user goes to their account
-		form.username.data = current_user.username
-		form.email.data = current_user.email
-	image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
-	return render_template('account.html', title='Account',
-						   image_file=image_file, form=form)	
+# @users.route("/account", methods=['GET', 'POST'])
+# # @login_required
+# def account():
+# 	form = UpdateAccountForm()
+# 	if form.validate_on_submit():
+# 		# if form.picture.data:
+# 		# 	picture_file = save_picture(form.picture.data)
+# 		# 	current_user.image_file = picture_file
+
+		
+# 		flash('Your account has been updated!', 'success')
+# 		return redirect(url_for('users.account'))
+# 	elif request.method == 'GET': # auto-fills the current credentials when a logged in user goes to their account
+# 		form.username.data = current_user.username
+# 		form.email.data = current_user.email
+# 	image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
+# 	return render_template('account.html', title='Account',
+# 						   image_file=image_file, form=form)	
 
 
 @users.route("/reset_password", methods=['GET','POST'])
