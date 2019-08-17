@@ -1,17 +1,26 @@
 from flask import (render_template, url_for, flash,
-				   redirect, request, abort, Blueprint)
-from flask_login import current_user, login_required
+				   redirect, request, abort, Blueprint,session)
+# from flask_login import current_user, login_required
 # from lightserv import db
 # from lightserv.models import Experiment
 from lightserv.experiments.forms import ExpForm
+from lightserv.tables import ExpTable
+from lightserv.schemata import db
 
 import secrets
+
+import neuroglancer
+import cloudvolume
+import numpy as np
+
+neuroglancer.set_static_content_source(url='https://neuromancer-seung-import.appspot.com')
 
 experiments = Blueprint('experiments',__name__)
 
 @experiments.route("/exp/new",methods=['GET','POST'])
-@login_required
 def new_exp():
+	if 'user' not in session:
+		return redirect('users.login')
 	form = ExpForm()
 	if form.validate_on_submit():
 		''' Create a new entry in the Experiment table.
@@ -33,14 +42,79 @@ def new_exp():
 	return render_template('create_exp.html', title='new_experiment',
 		form=form,legend='New Request')	
 
-@experiments.route("/exp/<string:dataset_hex>",)
-def exp(dataset_hex):
-	exp = Experiment.query.filter_by(dataset_hex=dataset_hex).first() # give me the dataset with this hex string
+@experiments.route("/exp/<int:experiment>",)
+def exp(experiment):
+	# exp = Experiment.query.filter_by(dataset_hex=dataset_hex).first() # give me the dataset with this hex string
+	exp_contents = db.Experiment() & f'experiment="{experiment}"'
+	exp_table = ExpTable(exp_contents)
+
 	try:
-		if exp.author != current_user:
-			flash('You do not have permission to see dataset: {}'.format(dataset_hex),'danger')
+		if exp_contents.fetch1('username') != session['user']:
+			flash('You do not have permission to see dataset: {}'.format(experiment),'danger')
 			return redirect(url_for('main.home'))
 	except:
-		flash('Page does not exist for Dataset: {}'.format(dataset_hex[0:50]),'danger')
+		flash(f'Page does not exist for Dataset: "{experiment}"','danger')
 		return redirect(url_for('main.home'))
-	return render_template('exp.html',title=exp.title,exp=exp)
+	return render_template('exp.html',exp_contents=exp_contents,exp_table=exp_table)
+
+
+@experiments.route("/exp/<int:experiment>/rawdata_link",)
+def exp_rawdata(experiment):
+	# exp = Experiment.query.filter_by(dataset_hex=dataset_hex).first() # give me the dataset with this hex string
+	# Generate the neuroglancer viewer string and display it to the screen 
+	try: 
+		vol = cloudvolume.CloudVolume('file:///home/ahoag/ngdemo/demo_bucket/demo_dataset/190715_an31_devcno_03082019_1d3x_488_017na_1hfds_z10um_100msec_16-55-48/')
+		# vol = cloudvolume.CloudVolume('file:///home/ahoag/ngdemo/demo_bucket/demo_dataset/demo_layer_singletif/')
+		image_data = np.transpose(vol[:][...,0],(2,1,0)) # can take a few seconds
+		viewer = neuroglancer.Viewer()
+		# This volume handle can be used to notify the viewer that the data has changed.
+		volume = neuroglancer.LocalVolume(
+		         data=image_data, # need it in z,y,x order, strangely
+		         voxel_size=[40000,40000,40000],
+		         voxel_offset = [0, 0, 1], # x,y,z in nm not voxels
+		         volume_type='image'
+		         )
+		with viewer.txn() as s:
+		    s.layers['image'] = neuroglancer.ImageLayer(source=volume,
+		    shader = '''
+		    void main() {
+		  float v = toNormalized(getDataValue(0)) * 20.0;
+		  emitRGBA(vec4(v, 0.0, 0.0, v));
+		}
+		''')
+	
+	except:
+		flash('Something went wrong making viewer','danger')
+		return redirect(url_for('experiments.exp',experiment=experiment))
+	return render_template('datalink.html',viewer=viewer)
+
+@experiments.route("/allenatlas",)
+def allenatlas():
+	# exp = Experiment.query.filter_by(dataset_hex=dataset_hex).first() # give me the dataset with this hex string
+	# Generate the neuroglancer viewer string and display it to the screen 
+	try: 
+		vol = cloudvolume.CloudVolume('file:///home/ahoag/ngdemo/demo_bucket/atlas/allenatlas/')
+		# vol.viewer(port=133)
+		# vol = cloudvolume.CloudVolume('file:///home/ahoag/ngdemo/demo_bucket/demo_dataset/demo_layer_singletif/')
+		atlas_data = np.transpose(vol[:][...,0],(2,1,0)) # can take a few seconds
+		viewer = neuroglancer.Viewer()
+		# This volume handle can be used to notify the viewer that the data has changed.
+		volume = neuroglancer.LocalVolume(
+		         data=atlas_data, # need it in z,y,x order, strangely
+		         voxel_size=[40000,40000,40000],
+		         voxel_offset = [0, 0, 1], # x,y,z in nm not voxels
+		         volume_type='segmentation'
+		         )
+		with viewer.txn() as s:
+		    s.layers['segmentation'] = neuroglancer.SegmentationLayer(source=volume
+		    )
+	    # with viewer.txn() as s:
+		   #  s.layers[0]._json_data['skeletonRendering']=\
+		   #      OrderedDict([('mode2d', 'lines_and_points'), ('mode3d', 'lines')])
+		   #  s.layers[0]._json_data['segments']=unique_segments
+
+	
+	except:
+		flash('Something went wrong making viewer','danger')
+		return redirect(url_for('experiments.exp',experiment=experiment))
+	return render_template('datalink.html',viewer=viewer)

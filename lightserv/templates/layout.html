@@ -27,16 +27,15 @@
 					<div class="collapse navbar-collapse" id="navbarToggle">
 						
 							<div class="navbar-nav mr-auto">
-								{% if current_user.is_authenticated %}
+								{% if 'user' in session%}
 								<a class="nav-item nav-link" href="{{ url_for('main.home') }}">Home</a>
 								{% endif %}
 							</div>
 						
 						<!-- Navbar Right Side -->
 						<div class="navbar-nav">
-							{% if current_user.is_authenticated %}
+							{% if 'user' in session %}
 								<a class="nav-item nav-link" href="{{ url_for('experiments.new_exp') }}">New Request</a>
-								<a class="nav-item nav-link" href="{{ url_for('users.account') }}">Account</a>
 								<a class="nav-item nav-link" href="{{ url_for('users.logout') }}">Logout</a>
 							{% else %}
 								<a class="nav-item nav-link" href="{{ url_for('users.login') }}">Login</a>

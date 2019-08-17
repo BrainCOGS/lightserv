@@ -1,31 +1,7 @@
 {% extends "layout.html" %}
 	{% block content %}
-	<a class="text-muted">Logged in as: {{ current_user.username }}</a></br></br>
+	<a class="text-muted">Logged in as: {{ session['user'] }}</a></br></br>
+	<legend class="border-bottom mb-4 mt-4">Your Light Sheet Experiments:</legend>
 
-	<!-- <h2><a class="border-bottom mb-4"></a>Your Datasets:</h2> -->
-	<legend class="border-bottom mb-4">Your Datasets:</legend>
-
-		{% for exp in experiments.items %}
-			 <article class="media content-section">
-				<div class="media-body">
-					<div class="article-metadata">
-						<a class="mr-2" href="{{url_for('experiments.exp',dataset_hex=exp.dataset_hex)}}">{{ exp.dataset_hex }}</a>
-						<small class="text-muted">{{ exp.date_run.strftime('%Y-%m-%d, %H:%M:%S UTC') }}</small>
-					</div>
-					<h2><a class="article-title" href="{{ url_for('experiments.exp', dataset_hex=exp.dataset_hex) }}">{{ exp.title }}</a></h2>
-					<p class="article-content">{{ exp.description }}</p>
-				</div>
-			</article>
-		{% endfor %}
-		{% for page_num in experiments.iter_pages(left_edge=1,right_edge=1,left_current=1, right_current=2) %}
-			{% if page_num %}
-				{% if experiments.page == page_num %}
-					<a class="btn btn-info mb-4" href="{{ url_for('main.home',page=page_num) }}"> {{ page_num }}</a>
-				{% else %}
-					<a class="btn btn-outline-info mb-4" href="{{ url_for('main.home',page=page_num) }}"> {{ page_num }}</a>
-				{% endif %}
-			{% else %}
-				...
-			{% endif %}
-		{% endfor %}
+		{{ exp_table }}
 	{% endblock content %}
