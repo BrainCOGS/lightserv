@@ -11,7 +11,7 @@ from lightserv.schemata import db
 import secrets
 
 import neuroglancer
-# import cloudvolume
+import cloudvolume
 import numpy as np
 
 neuroglancer.set_static_content_source(url='https://neuromancer-seung-import.appspot.com')
@@ -46,6 +46,18 @@ def new_exp():
 	return render_template('create_exp.html', title='new_experiment',
 		form=form,legend='New Request')	
 
+@experiments.route("/exp/<int:experiment_id>/delete", methods=['POST'])
+def delete_exp(experiment_id):
+	# post = Post.query.get_or_404(post_id)
+	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
+
+	if exp_contents.fetch1('username') != session['user']:
+		abort(403)
+
+	exp_contents.delete_quick() # does not query user for confirmation like delete() does - that is handled in the form.
+	flash('Your experiment has been deleted!', 'success')
+	return redirect(url_for('main.home'))
+
 @experiments.route("/exp/<int:experiment_id>",)
 def exp(experiment_id):
 	# exp = Experiment.query.filter_by(dataset_hex=dataset_hex).first() # give me the dataset with this hex string
@@ -73,15 +85,15 @@ def exp_rawdata(experiment_id):
 		viewer = neuroglancer.Viewer()
 		# This volume handle can be used to notify the viewer that the data has changed.
 		volume = neuroglancer.LocalVolume(
-		         data=image_data, # need it in z,y,x order, strangely
-		         voxel_size=[40000,40000,40000],
-		         voxel_offset = [0, 0, 1], # x,y,z in nm not voxels
-		         volume_type='image'
-		         )
+				 data=image_data, # need it in z,y,x order, strangely
+				 voxel_size=[40000,40000,40000],
+				 voxel_offset = [0, 0, 1], # x,y,z in nm not voxels
+				 volume_type='image'
+				 )
 		with viewer.txn() as s:
-		    s.layers['image'] = neuroglancer.ImageLayer(source=volume,
-		    shader = '''
-		    void main() {
+			s.layers['image'] = neuroglancer.ImageLayer(source=volume,
+			shader = '''
+			void main() {
 		  float v = toNormalized(getDataValue(0)) * 20.0;
 		  emitRGBA(vec4(v, 0.0, 0.0, v));
 		}
@@ -104,15 +116,15 @@ def allenatlas():
 		viewer = neuroglancer.Viewer()
 		# This volume handle can be used to notify the viewer that the data has changed.
 		volume = neuroglancer.LocalVolume(
-		         data=atlas_data, # need it in z,y,x order, strangely
-		         voxel_size=[40000,40000,40000],
-		         voxel_offset = [0, 0, 1], # x,y,z in nm not voxels
-		         volume_type='segmentation'
-		         )
+				 data=atlas_data, # need it in z,y,x order, strangely
+				 voxel_size=[40000,40000,40000],
+				 voxel_offset = [0, 0, 1], # x,y,z in nm not voxels
+				 volume_type='segmentation'
+				 )
 		with viewer.txn() as s:
-		    s.layers['segmentation'] = neuroglancer.SegmentationLayer(source=volume
-		    )
-	    # with viewer.txn() as s:
+			s.layers['segmentation'] = neuroglancer.SegmentationLayer(source=volume
+			)
+		# with viewer.txn() as s:
 		   #  s.layers[0]._json_data['skeletonRendering']=\
 		   #      OrderedDict([('mode2d', 'lines_and_points'), ('mode3d', 'lines')])
 		   #  s.layers[0]._json_data['segments']=unique_segments

@@ -7,10 +7,33 @@
 				<a class="mr-2">Experiment: {{ exp_contents.fetch1('experiment_id') }}</a>
 				
 				</div>
-			<a class="mr-2" href="{{ url_for('experiments.exp_rawdata',experiment_id=exp_contents.fetch1('experiment_id')) }}" target="_blank">View Your Data</a>
-			<a class="mr-2" href="{{ url_for('experiments.allenatlas')}}" target="_blank">View Allen Brain Atlas</a>
+				<a class="mr-2" href="{{ url_for('experiments.exp_rawdata',experiment_id=exp_contents.fetch1('experiment_id')) }}" target="_blank">View Your Data</a>
+				<a class="mr-2" href="{{ url_for('experiments.allenatlas')}}" target="_blank">View Allen Brain Atlas</a>
 			</div>
-
+			{% if exp_contents.fetch1('username') == session['user'] %}
+		        <div>
+		            <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal" data-target="#deleteModal">Delete</button>
+	            </div>
+	        {% endif %}
 		</article>
 		{{ exp_table }}
+		<!-- Modal -->
+		  <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+		    <div class="modal-dialog" role="document">
+		      <div class="modal-content">
+		        <div class="modal-header">
+		          <h5 class="modal-title" id="deleteModalLabel">Delete Experiment?</h5>
+		          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		            <span aria-hidden="true">&times;</span>
+		          </button>
+		        </div>
+		        <div class="modal-footer">
+		          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+		          <form action="{{ url_for('experiments.delete_exp',experiment_id=exp_contents.fetch1('experiment_id')) }}" method="POST">
+		            <input class="btn btn-danger" type="submit" value="Delete">
+		          </form>
+		        </div>
+		      </div>
+		    </div>
+		  </div>
 	{% endblock content %}

@@ -29,7 +29,8 @@ class ExpTable(flask_table.Table):
     kwargs = {'experiment_id':'experiment_id',}
     anchor_attrs = {'target':"_blank"}
     
-    link = flask_table.LinkCol('View experiment', 'experiments.exp',url_kwargs=kwargs,anchor_attrs=anchor_attrs)
+    experiment_link = flask_table.LinkCol('View experiment', 'experiments.exp',url_kwargs=kwargs,anchor_attrs=anchor_attrs)
+    delete_experiment_button = flask_table.ButtonCol('Delete experiment', 'experiments.exp',url_kwargs=kwargs,anchor_attrs=anchor_attrs)
 
 
 class ExpTable_nolink(flask_table.Table):
