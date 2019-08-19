@@ -1,5 +1,6 @@
 from flask import (render_template, url_for, flash,
-				   redirect, request, abort, Blueprint,session)
+				   redirect, request, abort, Blueprint,session,
+				   Markup)
 # from flask_login import current_user, login_required
 # from lightserv import db
 # from lightserv.models import Experiment
@@ -10,7 +11,7 @@ from lightserv.schemata import db
 import secrets
 
 import neuroglancer
-import cloudvolume
+# import cloudvolume
 import numpy as np
 
 neuroglancer.set_static_content_source(url='https://neuromancer-seung-import.appspot.com')
@@ -23,43 +24,46 @@ def new_exp():
 		return redirect('users.login')
 	form = ExpForm()
 	if form.validate_on_submit():
-		''' Create a new entry in the Experiment table.
-		First create a dataset hex 
+		''' Create a new entry in the Experiment table based on form input.
 		'''
-		dataset_hex=secrets.token_hex(5)
-		exp = Experiment(dataset_hex=dataset_hex,title=form.title.data,
+		# dataset_hex=secrets.token_hex(5)
+		exp_dict = dict(title=form.title.data,
 		 description=form.description.data,species=form.species.data,clearing_protocol=form.clearing_protocol.data,
 		 fluorophores=form.fluorophores.data,primary_antibody=form.primary_antibody.data,
 		 secondary_antibody=form.secondary_antibody.data,image_resolution=form.image_resolution.data,
 		 cell_detection=form.cell_detection.data,registration=form.registration.data,
 		 probe_detection=form.probe_detection.data,injection_detection=form.injection_detection.data,
-		 author=current_user) # uses the author backref
-		db.session.add(exp)
-		db.session.commit()
-		flash('Your data set is being processed!\nYou will receive an email when it is finished','success')
+		 username=session['user']) 
+		db.Experiment().insert1(exp_dict)
+		# db.session.add(exp)
+		# db.session.commit()
+		exp_id = db.Experiment().fetch("KEY")[-1]['experiment_id'] # gets the most recently added key
+		# print(url_for(experiments.exp))
+		flash(Markup(f'Your experiment has started!\nCheck your new experiment page: <a href="{url_for("experiments.exp",experiment_id=exp_id)}" class="alert-link" target="_blank">here</a> for your data when it becomes available.'),'success')
+		# flash(f'Your experiment has started!\nCheck your new experiment page (Experiment_ID={exp_id}) for your data when it becomes available.','success')
 		return redirect(url_for('main.home'))
 
 	return render_template('create_exp.html', title='new_experiment',
 		form=form,legend='New Request')	
 
-@experiments.route("/exp/<int:experiment>",)
-def exp(experiment):
+@experiments.route("/exp/<int:experiment_id>",)
+def exp(experiment_id):
 	# exp = Experiment.query.filter_by(dataset_hex=dataset_hex).first() # give me the dataset with this hex string
-	exp_contents = db.Experiment() & f'experiment="{experiment}"'
+	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
 	exp_table = ExpTable(exp_contents)
 
 	try:
 		if exp_contents.fetch1('username') != session['user']:
-			flash('You do not have permission to see dataset: {}'.format(experiment),'danger')
+			flash('You do not have permission to see dataset: {}'.format(experiment_id),'danger')
 			return redirect(url_for('main.home'))
 	except:
-		flash(f'Page does not exist for Dataset: "{experiment}"','danger')
+		flash(f'Page does not exist for Dataset: "{experiment_id}"','danger')
 		return redirect(url_for('main.home'))
 	return render_template('exp.html',exp_contents=exp_contents,exp_table=exp_table)
 
 
-@experiments.route("/exp/<int:experiment>/rawdata_link",)
-def exp_rawdata(experiment):
+@experiments.route("/exp/<int:experiment_id>/rawdata_link",)
+def exp_rawdata(experiment_id):
 	# exp = Experiment.query.filter_by(dataset_hex=dataset_hex).first() # give me the dataset with this hex string
 	# Generate the neuroglancer viewer string and display it to the screen 
 	try: 
@@ -85,7 +89,7 @@ def exp_rawdata(experiment):
 	
 	except:
 		flash('Something went wrong making viewer','danger')
-		return redirect(url_for('experiments.exp',experiment=experiment))
+		return redirect(url_for('experiments.exp',experiment_id=experiment_id))
 	return render_template('datalink.html',viewer=viewer)
 
 @experiments.route("/allenatlas",)

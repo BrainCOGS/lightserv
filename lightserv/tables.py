@@ -7,16 +7,26 @@ class UserTable(flask_table.Table):
 
 class ExpTable(flask_table.Table):
     border = True
+    # classes = ["table-wrapper-scroll-x"]
+    # classes = ["table","table-striped","table-bordered","table-sm"]
+    classes = ["table-striped"]
+    html_attrs = {'width':'100%'}
     username = flask_table.Col('username')
-    experiment = flask_table.Col('experiment')
+    experiment_id = flask_table.Col('experiment_id')
+    title = flask_table.Col('title')
+    description = flask_table.Col('description')
     species = flask_table.Col('species')
     clearing_protocol = flask_table.Col('clearing_protocol')
     fluorophores = flask_table.Col('fluorophores')
     primary_antibody = flask_table.Col('primary_antibody')
     secondary_antibody = flask_table.Col('secondary_antibody')
     image_resolution = flask_table.Col('image_resolution')
+    cell_detection = flask_table.Col('cell_detection')
+    registration = flask_table.Col('registration')
+    probe_detection = flask_table.Col('probe_detection')
+    injection_detection = flask_table.Col('injection_detection')
     # kwargs = {'animal_id': 'animal_id', 'surgery_id': 'surgery_id'}
-    kwargs = {'experiment':'experiment',}
+    kwargs = {'experiment_id':'experiment_id',}
     anchor_attrs = {'target':"_blank"}
     
     link = flask_table.LinkCol('View experiment', 'experiments.exp',url_kwargs=kwargs,anchor_attrs=anchor_attrs)

@@ -4,10 +4,10 @@
 
 			<div class="media-body">
 				<div class="article-metadata">
-				<a class="mr-2">Experiment {{ exp_contents.fetch1('experiment') }}</a>
+				<a class="mr-2">Experiment: {{ exp_contents.fetch1('experiment_id') }}</a>
 				
 				</div>
-			<a class="mr-2" href="{{ url_for('experiments.exp_rawdata',experiment=exp_contents.fetch1('experiment')) }}" target="_blank">View Your Data</a>
+			<a class="mr-2" href="{{ url_for('experiments.exp_rawdata',experiment_id=exp_contents.fetch1('experiment_id')) }}" target="_blank">View Your Data</a>
 			<a class="mr-2" href="{{ url_for('experiments.allenatlas')}}" target="_blank">View Allen Brain Atlas</a>
 			</div>
 

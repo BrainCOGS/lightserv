@@ -82,7 +82,7 @@ def logout():
 
 @users.route("/reset_password", methods=['GET','POST'])
 def reset_request():
-	if current_user.is_authenticated:
+	if 'user' in session:
 		return redirect(url_for('main.home'))
 	form = RequestResetForm()
 	if form.validate_on_submit():
