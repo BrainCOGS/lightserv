@@ -1,6 +1,6 @@
-# lightserv_UI_demo
+# lightserv_dj_demo
 
-lightserv_UI_demo is a flask application to allow users to create light sheet microscopy data requests at the Princeton Neuroscience Institute U19 Core Facility. Users can view their current and past requests.
+lightserv_dj_demo is a flask application to allow users to create light sheet microscopy data requests at the Princeton Neuroscience Institute U19 Core Facility. Users can view their current and past requests.
 
 This is currently a demo, so submitting a new request only updates a database table but does not start an actual experiment.
 
