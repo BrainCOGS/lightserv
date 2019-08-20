@@ -34,11 +34,15 @@ class RegistrationForm(FlaskForm):
 
 class LoginForm(FlaskForm):
 	""" A form for logging in """
-	email = StringField('Email',
-						validators=[DataRequired(), Email()])
+	username = StringField('Username',validators=[DataRequired()])
 	password = PasswordField('Password', validators=[DataRequired()])
 	remember = BooleanField('Remember Me')
 	submit = SubmitField('Login')
+
+	def validate_username(self,username):
+		user_contents = db.User() & f''' username = "{username.data}" '''
+		if len(user_contents) == 0:
+			raise ValidationError('Username has not yet been created. Register that username first or correct your username.')
 
 class UpdateAccountForm(FlaskForm):
 	""" A form for updating a user account """

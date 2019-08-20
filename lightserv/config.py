@@ -26,7 +26,7 @@ class TestConfig(BaseConfig):
 	DEBUG = True
 	TESTING = True
 	WTF_CSRF_ENABLED = False
-	SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+	
 
 # The configuration for the lightserv demo for presentation purposes
 class DemoConfig(BaseConfig):

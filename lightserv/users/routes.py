@@ -17,11 +17,9 @@ def register():
 	form = RegistrationForm()
 	if form.validate_on_submit():
 		hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-		# user = User(username=form.username.data, email=form.email.data, password=hashed_password)
-		user_entry = dict(username=form.username.data,email=form.email.data)
+		user_entry = dict(username=form.username.data,password=hashed_password,email=form.email.data)
 		db.User.insert1(user_entry)
-		# db.session.add(user)
-		# db.session.commit()
+
 		flash('Your account has been created! You are now able to log in.', 'success')
 		return redirect(url_for('users.login'))
 	return render_template('register.html', title='Register', form=form)
@@ -36,12 +34,10 @@ def login():
 		return redirect(url_for('main.home'))
 	form = LoginForm()
 	if form.validate_on_submit():
-		user_contents = db.User() & f''' email="{form.email.data}" '''
+		user_contents = db.User() & f''' username="{form.username.data}" '''
+		fetched_password = user_contents.fetch1('password')
 		# print(form.email.data)
-		# if len(user_contents)>0 and bcrypt.check_password_hash(user.password, form.password.data):
-		# skip password authentication for now
-		if len(user_contents) > 0:
-			# login_user(user_contents, remember=form.remember.data)
+		if len(user_contents)>0 and bcrypt.check_password_hash(fetched_password, form.password.data):
 			# find the username that corresponds to the email provided
 			username = user_contents.fetch1('username')
 			session['user'] = username
@@ -50,7 +46,7 @@ def login():
 			# return redirect(next_page) if next_page else redirect(url_for('main.home'))
 			return redirect(url_for('main.home'))
 		else:
-			flash('Login unsuccessful. Please check email and password', 'danger')
+			flash('Login unsuccessful. Please check username and password', 'danger')
 	return render_template('login.html', form=form)
 
 
@@ -86,7 +82,8 @@ def reset_request():
 		return redirect(url_for('main.home'))
 	form = RequestResetForm()
 	if form.validate_on_submit():
-		user = User.query.filter_by(email=form.email.data).first()
+		# user = User.query.filter_by(email=form.email.data).first()
+		user_contents = db.User() & f''' email="{form.email.data}" '''
 		send_reset_email(user)
 		flash('An email has been sent with instructions to reset your password.','info')
 		return redirect(url_for('users.login'))

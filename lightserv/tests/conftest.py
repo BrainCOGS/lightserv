@@ -7,11 +7,14 @@ This file must have the name conftest.py
 """
 
 from flask_testing import TestCase
-from .. import create_app, db, bcrypt, config
-from ..models import User, Experiment
+from lightserv import create_app, bcrypt, config
+from lightserv.test_schemata import make_test_schema
+# from ..models import User, Experiment
 import secrets
 import pytest
 from flask import url_for
+
+import datajoint as dj
 
 @pytest.fixture(scope='session') 
 def test_client():
@@ -41,31 +44,24 @@ def test_client():
 	ctx.pop()
 
 @pytest.fixture(scope='session') 
-def init_database():
+def test_schema():
 	""" Create the database and the database tables """
-	print('----------Setup init database----------')
+	print('----------Setup test schema----------')
+	make_test_schema()
+	test_schema = dj.create_virtual_module('test_lightsheet','test_lightsheet')
+	
 
-	db.create_all()
-	hashed_password = bcrypt.generate_password_hash('admin').decode('utf-8')
-	db.session.add(User(username="admin",email="ad@min.com",password=hashed_password))
-	db.session.add(Experiment(dataset_hex=secrets.token_hex(5),title="Test Experiment",
-		description="This is a test experiment",clearing_protocol="A brand new protocol",
-		species="mouse",image_resolution=1.3,cell_detection=False,registration=False,
-		fluorophores="None",injection_detection=True,probe_detection=True,user_id=1))
-
-	db.session.commit()
-
-	yield db  # this is where the testing happens!
-	print('----------Teardown init database----------')
-	db.drop_all()
+	yield test_schema  # this is where the testing happens!
+	print('----------Teardown test schema----------')
+	test_schema.schema.drop(force=True)
 
 @pytest.fixture(scope='function')
-def login_response(test_client):
+def test_login(test_client):
 	""" Log the user in. Requires a test_client fixture to do this. """
 	print('----------Setup login response----------')
 	response = test_client.post(
 				'/login',
-				data=dict(email="ad@min.com", password="admin"),
+				data=dict(username="ahoag", password="testing"),
 				follow_redirects=True
 			)
 	yield response

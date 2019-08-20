@@ -1,6 +1,6 @@
-from ..models import User
+def test_tables_exist(test_client,test_schema):
+	user_contents = test_schema.User()
+	exp_contents = test_schema.Experiment()
+	assert len(user_contents) == 1
+	assert len(exp_contents) == 4
 
-def test_user_table_contents(test_client,init_database):
-	user = User.query.first()
-	assert user.username == "admin"
-	assert user.email == "ad@min.com"

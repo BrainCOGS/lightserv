@@ -7,6 +7,7 @@ class UserTable(flask_table.Table):
 
 class ExpTable(flask_table.Table):
     border = True
+    no_items = "No Experiments Yet"
     # classes = ["table-wrapper-scroll-x"]
     # classes = ["table","table-striped","table-bordered","table-sm"]
     classes = ["table-striped"]

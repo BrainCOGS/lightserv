@@ -28,3 +28,4 @@ db = dj.create_virtual_module('lightsheet_demo','ahoag_lightsheet_demo',create_s
 # dj.config['cache'] = os.path.expanduser('/mnt/data/dj-cache')
 
 
+test_schema = dj.schema('test_lightsheet','test_lightsheet')
