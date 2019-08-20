@@ -21,7 +21,7 @@ def home():
 		# 	author=current_user).paginate(page=page,per_page=5)
 	else:
 		return redirect(url_for('users.login'))
-	return render_template('home.html',exp_table=exp_table)
+	return render_template('home.html',exp_table=exp_table,)
 # @main.route("/home")
 # def home():
 # 	if current_user.is_authenticated:
