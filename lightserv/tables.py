@@ -28,11 +28,10 @@ class ExpTable(flask_table.Table):
     injection_detection = flask_table.Col('injection_detection')
     # kwargs = {'animal_id': 'animal_id', 'surgery_id': 'surgery_id'}
     kwargs = {'experiment_id':'experiment_id',}
-    anchor_attrs = {'target':"_blank"}
+    anchor_attrs = {'target':"_blank",}
+    # anchor_attrs = {'target':"_blank",'data-toggle':'modal','data-target':'#deleteModal'}
     
     experiment_link = flask_table.LinkCol('View experiment', 'experiments.exp',url_kwargs=kwargs,anchor_attrs=anchor_attrs)
-    delete_experiment_button = flask_table.ButtonCol('Delete experiment', 'experiments.exp',url_kwargs=kwargs,anchor_attrs=anchor_attrs)
-
 
 class ExpTable_nolink(flask_table.Table):
     border = True
