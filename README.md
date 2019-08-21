@@ -4,6 +4,7 @@ lightserv_dj_demo is a flask application to allow users to create light sheet mi
 
 This is currently a demo, so submitting a new request only updates a database table but does not start an actual experiment.
 
+
 ## Setup
 
 Create a new virtual environmet, e.g.:
@@ -24,10 +25,15 @@ pip install -r requirements.txt
 Set environment variables:
 ```
 SECRET_KEY # a random string hex string, for example
-SQLALCHEMY_DATABASE_URI # point to the database. For the demo, set this to "sqlite:///site.db"
 MAIL_USERNAME # The email account from which password reset info will be delivered to user
 MAIL_PASSWORD # The password to the above email account
 ```
+
+In order to connect to the MariaDB database, forward port 3306 from jtb3-dev.princeton.edu to localhost:3306:
+```
+ssh {username}@pni-192QMG3Y2.princeton.edu -L 3306:127.0.0.1:3306 -N
+```
+
 
 ## Run
 
