@@ -24,7 +24,7 @@ pip install -r requirements.txt
 
 Set environment variables:
 ```
-SECRET_KEY # a random string hex string, for example
+SECRET_KEY # a random hex string, for example
 MAIL_USERNAME # The email account from which password reset info will be delivered to user
 MAIL_PASSWORD # The password to the above email account
 ```
