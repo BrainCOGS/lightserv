@@ -29,9 +29,9 @@ MAIL_PASSWORD # The password to the above email account
 ```
 ### Database setup
 Forward to a MariaDB/MySQL database:
-```ssh
-
-## Run
+```bash
+ssh username@jtb3-dev.princeton.edu -L 3306:127.0.0.1:3306 -N
+```
 
 ```python
 python run.py
@@ -48,5 +48,5 @@ alias pytestflask="export FLASK_MODE='TEST';pytest"
 ```
 To test, simply run:
 ```bash
-pytestflask
+pytestflask --your_options_here
 ```
