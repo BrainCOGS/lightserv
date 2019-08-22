@@ -3,7 +3,7 @@ from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from flask_login import current_user
-from lightserv.schemata import db
+from lightserv import db
 # from lightserv.models import User
 
 class RegistrationForm(FlaskForm):

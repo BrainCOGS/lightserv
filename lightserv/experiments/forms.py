@@ -40,3 +40,7 @@ class ExpForm(FlaskForm):
 			raise ValidationError('Antibody must be specified because you selected \
 				an immunostaining clearing protocol')
 
+class UpdateNotesForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+	notes = TextAreaField('Notes',validators=[Length(max=250)])
+	submit = SubmitField('Submit Changes')	

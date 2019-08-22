@@ -4,9 +4,9 @@ from flask import (render_template, url_for, flash,
 # from flask_login import current_user, login_required
 # from lightserv import db
 # from lightserv.models import Experiment
-from lightserv.experiments.forms import ExpForm
+from lightserv.experiments.forms import ExpForm, UpdateNotesForm
 from lightserv.tables import ExpTable
-from lightserv.schemata import db
+from lightserv import db
 
 import secrets
 
@@ -73,6 +73,28 @@ def exp(experiment_id):
 		return redirect(url_for('main.home'))
 	return render_template('exp.html',exp_contents=exp_contents,exp_table=exp_table)
 
+@experiments.route("/exp/<int:experiment_id>/notes", methods=['GET','POST'])
+def update_notes(experiment_id):
+	# exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
+	if 'user' not in session:
+		return redirect('users.login')
+	form = UpdateNotesForm()
+	if form.validate_on_submit():
+		''' Enter the entered notes into this experiment's notes column'''
+		''' To update entry, need to first delete the entry and then add it 
+		again with the additional data '''
+
+		exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
+		update_insert_dict = exp_contents.fetch1()
+		update_insert_dict['notes']=form.notes.data
+		exp_contents.delete_quick()
+
+		db.Experiment().insert1(update_insert_dict)
+		flash(f"Your notes have been updated",'success')
+		# flash(Markup(f'Your experiment has started!\nCheck your new experiment page: <a href="{url_for("experiments.exp",experiment_id=exp_id)}" class="alert-link" target="_blank">here</a> for your data when it becomes available.'),'success')
+		return redirect(url_for('experiments.exp',experiment_id=experiment_id))
+
+	return render_template('update_notes.html',form=form)
 
 @experiments.route("/exp/<int:experiment_id>/rawdata_link",)
 def exp_rawdata(experiment_id):

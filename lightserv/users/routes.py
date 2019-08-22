@@ -2,7 +2,7 @@ from flask import render_template, url_for, flash, redirect, request, Blueprint,
 # from flask_login import login_user, current_user, logout_user, login_required
 from lightserv import bcrypt
 # from lightserv.models import User, Experiment
-from lightserv.schemata import db
+from lightserv import db
 from lightserv.users.forms import (RegistrationForm, LoginForm, UpdateAccountForm,
                                    RequestResetForm, ResetPasswordForm)
 from lightserv.users.utils import save_picture, send_reset_email
