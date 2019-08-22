@@ -42,5 +42,5 @@ class ExpForm(FlaskForm):
 
 class UpdateNotesForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
-	notes = TextAreaField('Notes',validators=[Length(max=250)])
+	notes = TextAreaField('Notes',validators=[Length(max=1000)])
 	submit = SubmitField('Submit Changes')	
