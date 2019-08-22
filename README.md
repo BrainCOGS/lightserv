@@ -24,7 +24,6 @@ pip install -r requirements.txt
 Set environment variables:
 ```
 SECRET_KEY # a random string hex string, for example
-SQLALCHEMY_DATABASE_URI # point to the database. For the demo, set this to "sqlite:///site.db"
 MAIL_USERNAME # The email account from which password reset info will be delivered to user
 MAIL_PASSWORD # The password to the above email account
 ```
