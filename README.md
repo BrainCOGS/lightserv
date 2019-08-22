@@ -1,6 +1,6 @@
 # lightserv_dj_demo
 
-lightserv_dj_demo is a flask application to allow users to create light sheet microscopy data requests at the Princeton Neuroscience Institute U19 Core Facility. Users can view their current and past requests. The application uses [datajoint](https://github.com/datajoint/datajoint-python) to connect to a MariaDB or MySQL database hosted on localhost:3306. One can forward a port (see ###database-setup below) to 3306 as a way to connect to an external database server.
+lightserv_dj_demo is a flask application to allow users to create light sheet microscopy data requests at the Princeton Neuroscience Institute U19 Core Facility. Users can view their current and past requests. The application uses [datajoint](https://github.com/datajoint/datajoint-python) to connect to a MariaDB or MySQL database hosted on localhost:3306. One can forward a port (see [Database Setup](#database-setup) below) to 3306 as a way to connect to an external database server.
 
 This is currently a demo, so submitting a new request only updates a database table but does not start an actual experiment.
 
