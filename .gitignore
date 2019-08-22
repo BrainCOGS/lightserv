@@ -4,3 +4,7 @@ lightserv/main/__pycache__
 lightserv/users/__pycache__
 lightserv/tests/__pycache__
 lightserv/demo.html
+demo.html
+docker
+notebooks/.ipynb_checkpoints
+startserver.sh
