@@ -73,9 +73,10 @@ class RequestResetForm(FlaskForm):
 
 	def validate_email(self,email):
 		''' Check to see if email does not exist in db '''
-		user = User.query.filter_by(email=email.data).first()
-		if user is None: 
-			raise ValidationError('There is no account with that email. You must register first.')
+		# user = User.query.filter_by(email=email.data).first()
+		user_contents = db.User & f'email="{email.data}"'
+		if len(user_contents) == 0: 
+			raise ValidationError('There is no account with that email. Try a different email or register a new account.')
 
 
 class ResetPasswordForm(FlaskForm):
