@@ -81,7 +81,6 @@ def create_test_schema():
                 username = email.split('@')[0].lower()
                 insert_exp_list = [username] + row[3:]
                 insert_dict = {column_names[ii]:insert_exp_list[ii] for ii in range(len(column_names))}
-                print(insert_dict)
                 Experiment().insert1(insert_dict,skip_duplicates=True)
     
     fill_user_table()
