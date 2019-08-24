@@ -1,0 +1,6 @@
+**/__pycache__
+**/demo.html
+**/*pyc
+docker
+**/.ipynb_checkpoints
+startserver.sh

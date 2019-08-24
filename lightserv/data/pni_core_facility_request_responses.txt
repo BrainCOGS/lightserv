@@ -1,0 +1,5 @@
+email,password,name,title,description,notes,species,clearing_protocol,fluorophores,primary_antibody,secondary_antibody,image_resolution,cell_detection,registration,probe_detection,injection_detection
+ahoag@princeton.edu,testing,Jess,20190507_Wanglab_exp,Image c-fos in whole brains at 1.3x.,,mouse,iDISCO+,None,Anti cfos 1:1000,Donkey antirabbit AF647,1.3x,1,0,0,0
+ahoag@princeton.edu,testing,Lindsay,20190304_LW_m340,Detect placement of optical fiber tip,,mouse,iDISCO abbreviated clearing,GCampxDat-Cre Double Transgentic Mouse,None,None,1.3x,0,0,1,0
+ahoag@princeton.edu,testing,Emily,201905_atlas00x where x=1:n,"Brody lab rat atlas, iDisco + 1.3x",,rat,iDISCO abbreviated clearing,None,None,None,1.3x,0,0,0,0
+ahoag@princeton.edu,testing,Jess,an1-31,Recover mcherry expression in cerebellum. Morphology analysis.,,mouse,iDISCO+,mcherry,rabbit anti-RFP 1:1000,Donkey antiRabbit 647 1:450,1.3x,0,0,0,1

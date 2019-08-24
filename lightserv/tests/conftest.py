@@ -6,15 +6,18 @@ tests in other test modules.
 This file must have the name conftest.py
 """
 
+import os, sys
+if os.environ.get('FLASK_MODE') != 'TEST':
+	raise KeyError("Must set environmental variable FLASK_MODE=TEST")
+
 from flask_testing import TestCase
 from lightserv import create_app, bcrypt, config
-from lightserv.test_schemata import make_test_schema
 # from ..models import User, Experiment
 import secrets
 import pytest
-from flask import url_for
-
+from flask import url_for, session
 import datajoint as dj
+
 
 @pytest.fixture(scope='session') 
 def test_client():
@@ -47,23 +50,24 @@ def test_client():
 def test_schema():
 	""" Create the database and the database tables """
 	print('----------Setup test schema----------')
-	make_test_schema()
-	test_schema = dj.create_virtual_module('test_lightsheet','test_lightsheet')
-	
-
-	yield test_schema  # this is where the testing happens!
+	# test_schema = dj.create_virtual_module('test_lightsheet','test_lightsheet')
+	from lightserv import db
+	yield db  # this is where the testing happens!
 	print('----------Teardown test schema----------')
-	test_schema.schema.drop(force=True)
+	db.schema.drop(force=True)
 
 @pytest.fixture(scope='function')
 def test_login(test_client):
 	""" Log the user in. Requires a test_client fixture to do this. """
 	print('----------Setup login response----------')
+	test_username = "testuser"
+	test_password = "testing"
 	response = test_client.post(
 				'/login',
-				data=dict(username="ahoag", password="testing"),
+				data=dict(username=test_username, password=test_password),
 				follow_redirects=True
 			)
+	session['user'] = test_username
 	yield response
 	print('----------Teardown login response----------')
 	pass
