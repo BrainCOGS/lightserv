@@ -1,0 +1,37 @@
+{
+ "id": 997,
+ "children": [
+  {
+   "id": 8,
+   "children": []},
+    {
+     "id": 567,
+     "children": [
+      {
+       "id": 688,
+       "atlas_id": 85,
+       "ontology_id": 1,
+       "acronym": "CTX",
+       "name": "Cerebral cortex",
+       "color_hex_triplet": "B0FFB8",
+       "graph_order": 3,
+       "st_level": 3,
+       "hemisphere_id": 3,
+       "parent_structure_id": 567,
+       "children": []},
+        {
+         "id": 695,
+         "atlas_id": 86,
+         "ontology_id": 1,
+         "acronym": "CTXpl",
+         "name": "Cortical plate",
+         "color_hex_triplet": "70FF70",
+         "graph_order": 4,
+         "st_level": 4,
+         "hemisphere_id": 3,
+         "parent_structure_id": 688,
+         "children": []}
+       ]
+   }
+   ]
+}
