@@ -1,14 +1,23 @@
 {
  "id": 997,
+ "name":"root",
+ "acronym":"root",
+ "parent_structure_id":"null",
  "children": [
   {
    "id": 8,
+  "name": "Basic cell groups and regions",
+  "acronym":"Grey",
+   "parent_structure_id": 997,
    "children": []},
     {
      "id": 567,
+     "name":"Cerebrum",
+     "acronym":"CH",
      "children": [
       {
        "id": 688,
+       "name": "Cerebral Cortex",
        "atlas_id": 85,
        "ontology_id": 1,
        "acronym": "CTX",

@@ -1,0 +1,12 @@
+{
+    "vehicle": {
+        "car": {
+            "bmw": true,
+            "audi": 1,
+            "ford": "also good"
+        },
+        "truck": {
+            "all": "cool"
+        }
+    }
+}

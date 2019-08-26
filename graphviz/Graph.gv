@@ -1,0 +1,7 @@
+graph {
+	node [shape=box]
+	root -- Grey
+	root -- CH
+	CH -- CTX
+	CH -- CTXpl
+}
