@@ -1,0 +1,6 @@
+digraph {
+	node [shape=box]
+	A [label="Raw Data"]
+	B [label="Preprocessed Raw Data"]
+	A -> B
+}
