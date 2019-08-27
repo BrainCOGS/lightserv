@@ -1,19 +1,23 @@
-digraph cluster_processing {
-	subgraph cluster_subprocessing {
-		label=Processing
-		node [shape=box]
-		A [label="Raw Data 
+digraph processing {
+	node [shape=box]
+	A [label="Raw data 
 __ ... __"]
-		B [label="Preprocessed Raw Data 
+	B [label="Preprocessed raw data 
 __ ... __"]
-		C [label="Blended (and/or stitched) data 
+	C [label="Blended (and/or stitched) data 
 __ ... __"]
-		D [label="Fully processed z stacks (.tif)
-__ 
+	D [label="Fully processed z stacks
+__
 ⋮
- __"]
-		A -> B [headlabel=Preprocessing labelangle=80 labeldistance=8 minlen=1]
-		B -> C [headlabel="Blending and Stitching" labelangle=80 labeldistance=10]
-		C -> D [headlabel="Stacking and Downsampling" labelangle=80 labeldistance=12]
-	}
+__"]
+	E [label="Registered volume
+__
+⋮
+__"]
+	F [label="Registration parameters"]
+	A -> B [headlabel=Preprocessing labelangle=70 labeldistance=6]
+	B -> C [headlabel="Blending/stitching" labelangle=75 labeldistance=8]
+	C -> D [headlabel="Stacking/downsampling" labelangle=80 labeldistance=10]
+	D -> E [headlabel=Registration labelangle=90 labeldistance=4]
+	D -> F
 }
