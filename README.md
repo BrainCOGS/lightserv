@@ -32,7 +32,7 @@ MAIL_PASSWORD # The password to the above email account
 
 In order to connect to the MariaDB database, forward port 3306 from jtb3-dev.princeton.edu to localhost:3306:
 ```
-ssh {username}@pni-192QMG3Y2.princeton.edu -L 3306:127.0.0.1:3306 -N
+ssh {username}@jtb3-dev.princeton.edu -L 3306:127.0.0.1:3306 -N
 ```
 
 
