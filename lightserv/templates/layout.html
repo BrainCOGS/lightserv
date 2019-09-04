@@ -29,6 +29,8 @@
 							<div class="navbar-nav mr-auto">
 								{% if 'user' in session%}
 								<a class="nav-item nav-link" href="{{ url_for('main.home') }}">Home</a>
+								<a class="nav-item nav-link" href="{{ url_for('main.allenatlas')}}" target="_blank">View Allen Brain Atlas</a>
+
 								{% endif %}
 							</div>
 						
@@ -64,7 +66,7 @@
 					<div class="col-md-4">
 						<div class="content-section">
 							<h3>Instructions</h3>
-							<p class='text'> First, copy and paste your dataset ID that was emailed to you. Then enter a title and description for your dataset. </br></br>Configure how you want to run the light sheet data processing pipeline by checking the desired boxes. For explanations of each of these steps, see the  <a href="#">tutorials</a>.
+							<p class='text'> Enter a title, description and species for your new experiment. </br></br>Then configure your clearing and imaging parameters. Finally, determine how you want to process your data once it is obtained by checking the desired boxes. For examples or further instructions see the  <a href="#">tutorials</a>. Your parameters will be saved and shown on your Home page once you submit this form.
 							</p>
 						</div>
 					</div>

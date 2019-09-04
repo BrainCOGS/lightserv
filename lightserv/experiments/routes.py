@@ -11,7 +11,7 @@ from lightserv import db
 import secrets
 
 import neuroglancer
-import cloudvolume
+# import cloudvolume
 import numpy as np
 
 neuroglancer.set_static_content_source(url='https://neuromancer-seung-import.appspot.com')
@@ -124,30 +124,4 @@ emitRGBA(vec4(v, 0.0, 0.0, v));
 	except:
 		flash('Something went wrong making viewer','danger')
 		return redirect(url_for('experiments.exp',experiment_id=experiment_id))
-	return render_template('datalink.html',viewer=viewer)
-
-@experiments.route("/allenatlas",)
-def allenatlas():
-	""" Makes a neuroglancer viewer for the allen brain atlas and then generates a link for the user to click 
-	to enter neuroglancer."""
-	try: 
-		vol = cloudvolume.CloudVolume('file:///jukebox/LightSheetData/atlas/neuroglancer/atlas/allenatlas')
-		# vol = cloudvolume.CloudVolume('file:///home/ahoag/ngdemo/demo_bucket/demo_dataset/demo_layer_singletif/')
-		atlas_data = np.transpose(vol[:][...,0],(2,1,0)) # can take a few seconds
-		viewer = neuroglancer.Viewer()
-		# This volume handle can be used to notify the viewer that the data has changed.
-		volume = neuroglancer.LocalVolume(
-				 data=atlas_data, # need it in z,y,x order, strangely
-				 voxel_size=[40000,40000,40000],
-				 voxel_offset = [0, 0, 0], # x,y,z in nm not voxels
-				 volume_type='segmentation'
-				 )
-		with viewer.txn() as s:
-			s.layers['segmentation'] = neuroglancer.SegmentationLayer(source=volume
-			)
-
-	
-	except:
-		flash('Something went wrong making Neuroglancer viewer','danger')
-		return redirect(url_for('experiments.exp',experiment=experiment))
 	return render_template('datalink.html',viewer=viewer)
