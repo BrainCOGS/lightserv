@@ -14,7 +14,7 @@ certifi==2019.6.16
 cffi==1.12.3
 chardet==3.0.4
 Click==7.0
--e git+git@github.com:seung-lab/cloud-volume.git@612868a04805e03ca542fb9b81e41d7faaf8e7b1#egg=cloud_volume
+#-e git+git@github.com:seung-lab/cloud-volume.git@612868a04805e03ca542fb9b81e41d7faaf8e7b1#egg=cloud_volume
 compressed-segmentation==1.0.0
 coverage==4.5.4
 cycler==0.10.0
