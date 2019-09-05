@@ -5,8 +5,7 @@ from lightserv.tables import ExpTable
 import pandas as pd
 from . import utils
 from functools import partial
-import neuroglancer
-import cloudvolume
+
 import numpy as np
 # from lightserv.experiments.routes import experiments
 
@@ -39,6 +38,8 @@ def home():
 def allenatlas():
     """ Makes a neuroglancer viewer for the allen brain atlas and then generates a link for the user to click 
     to enter neuroglancer."""
+    import neuroglancer
+    import cloudvolume
     try: 
         vol = cloudvolume.CloudVolume('file:///jukebox/LightSheetData/atlas/neuroglancer/atlas/allenatlas_2017')
         # vol = cloudvolume.CloudVolume('file:///home/ahoag/ngdemo/demo_bucket/demo_dataset/demo_layer_singletif/')
