@@ -1,6 +1,0 @@
-digraph {
-	root -> "Basic cell groups and regions"
-	root -> Cerebrum
-	Cerebrum -> "Cerebral cortex"
-	Cerebrum -> "Cortical plate"
-}
