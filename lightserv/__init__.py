@@ -45,10 +45,12 @@ def create_app(config_class=Config):
 	from lightserv.users.routes import users
 	from lightserv.experiments.routes import experiments
 	from lightserv.main.routes import main
+	from lightserv.ontology.routes import ontology
 	from lightserv.errors.handlers import errors
 
 	app.register_blueprint(users)
 	app.register_blueprint(experiments)
 	app.register_blueprint(main)
+	app.register_blueprint(ontology)
 	app.register_blueprint(errors)
 	return app
