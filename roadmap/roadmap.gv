@@ -1,5 +1,0 @@
-digraph G {
-1 -> 2 [ label="3" labelangle="35" ];
-1 -> 3 [ label="8" ];
-1 -> 5 [ label="-4" ];
-}
