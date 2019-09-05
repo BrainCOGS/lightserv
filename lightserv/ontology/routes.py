@@ -38,6 +38,24 @@ def test_graph_link():
 def test_ontology_int():
 	# G = graphviz.Digraph(format='svg')
 	nodename = request.args.get('nodename') # The node name which was clicked whose children you want to display
+	G = utils.test_expand_graph(input_nodename=nodename)
+	# G = graphviz.Digraph(format='svg')
+	# G.node('root')
+	# A = G.node('root',href='http://www.google.com')
+	# # A = G.node('Hello', label='''<a href="www.google.com">Does this work</a>''')
+	# B = G.node('World')
+	# G.edge('Hello','World')
+	# print(G)
+	G.attr(rankdir='LR')
+	G_output = G.pipe().decode("utf-8")
+	G_output = Markup(G_output)
+
+	return render_template('test_graph_alt.html', graph_output=G_output)
+
+@ontology.route("/interactive_ontology")
+def interactive_ontology():
+	# G = graphviz.Digraph(format='svg')
+	nodename = request.args.get('nodename') # The node name which was clicked whose children you want to display
 	G = utils.expand_graph(input_nodename=nodename)
 	# G = graphviz.Digraph(format='svg')
 	# G.node('root')
