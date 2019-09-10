@@ -55,8 +55,14 @@ def test_ontology_int():
 @ontology.route("/interactive_ontology")
 def interactive_ontology():
 	# G = graphviz.Digraph(format='svg')
-	nodename = request.args.get('nodename') # The node name which was clicked whose children you want to display
-	G = utils.expand_graph(input_nodename=nodename)
+	nodename = request.args.get('input_nodename',None) # The node name which was clicked whose children you want to display
+	contract = request.args.get('contract',False) 
+	print(nodename)
+	print(contract)
+	if contract:
+		G = utils.contract_graph(input_nodename=nodename)
+	else:
+		G = utils.expand_graph(input_nodename=nodename)
 	# G = graphviz.Digraph(format='svg')
 	# G.node('root')
 	# A = G.node('root',href='http://www.google.com')
