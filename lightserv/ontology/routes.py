@@ -8,57 +8,23 @@ from functools import partial
 
 import numpy as np
 import graphviz 
+
+from lightserv.ontology.forms import OntologySubmitForm
+
 # from lightserv.experiments.routes import experiments
 
 ontology = Blueprint('ontology',__name__)
 
-@ontology.route("/test_graph_alt")
-def test_graph_alt():
-	G = graphviz.Digraph(format='svg')
-	G.edge('Hello','World')
-	G_output = G.pipe().decode("utf-8")
-	G_output = Markup(G_output)
-
-	return render_template('test_graph_alt.html', graph_output=G_output)
-
-@ontology.route("/test_graph_link")
-def test_graph_link():
-	G = graphviz.Digraph(format='svg')
-	A = G.node('Hello',href='http://www.google.com')
-	# A = G.node('Hello', label='''<a href="www.google.com">Does this work</a>''')
-	B = G.node('World')
-	G.edge('Hello','World')
-	print(G)
-	G_output = G.pipe().decode("utf-8")
-	G_output = Markup(G_output)
-
-	return render_template('test_graph_alt.html', graph_output=G_output)
-
-@ontology.route("/test_ontology_int")
-def test_ontology_int():
-	# G = graphviz.Digraph(format='svg')
-	nodename = request.args.get('nodename') # The node name which was clicked whose children you want to display
-	G = utils.test_expand_graph(input_nodename=nodename)
-	# G = graphviz.Digraph(format='svg')
-	# G.node('root')
-	# A = G.node('root',href='http://www.google.com')
-	# # A = G.node('Hello', label='''<a href="www.google.com">Does this work</a>''')
-	# B = G.node('World')
-	# G.edge('Hello','World')
-	# print(G)
-	G.attr(rankdir='LR')
-	G_output = G.pipe().decode("utf-8")
-	G_output = Markup(G_output)
-
-	return render_template('test_graph_alt.html', graph_output=G_output)
-
-@ontology.route("/interactive_ontology")
+@ontology.route("/interactive_ontology",methods=['POST','GET'])
 def interactive_ontology():
 	# G = graphviz.Digraph(format='svg')
 	nodename = request.args.get('input_nodename',None) # The node name which was clicked whose children you want to display
 	contract = request.args.get('contract',False) 
-	print(nodename)
-	print(contract)
+	form = OntologySubmitForm()
+	if form.validate_on_submit():
+		G = utils.my_graph
+		print(G.body)
+		return redirect(url_for('main.home'))
 	if contract:
 		G = utils.contract_graph(input_nodename=nodename)
 	else:
@@ -74,4 +40,4 @@ def interactive_ontology():
 	G_output = G.pipe().decode("utf-8")
 	G_output = Markup(G_output)
 
-	return render_template('test_graph_alt.html', graph_output=G_output)
+	return render_template('interactive_graph.html', graph_output=G_output, form=form)
