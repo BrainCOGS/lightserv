@@ -29,7 +29,7 @@
 							<div class="navbar-nav mr-auto">
 								{% if 'user' in session%}
 								<a class="nav-item nav-link" href="{{ url_for('main.home') }}">Home</a>
-								<a class="nav-item nav-link" href="{{ url_for('main.allenatlas')}}" target="_blank">View Allen Brain Atlas</a>
+								<a class="nav-item nav-link" href="{{ url_for('ontology.interactive_ontology')}}" target="_blank">Interactive Ontology</a>
 
 								{% endif %}
 							</div>

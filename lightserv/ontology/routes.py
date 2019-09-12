@@ -17,7 +17,6 @@ ontology = Blueprint('ontology',__name__)
 
 @ontology.route("/interactive_ontology",methods=['POST','GET'])
 def interactive_ontology():
-	# G = graphviz.Digraph(format='svg')
 	nodename = request.args.get('input_nodename',None) # The node name which was clicked whose children you want to display
 	contract = request.args.get('contract',False) 
 	form = OntologySubmitForm()
@@ -29,13 +28,7 @@ def interactive_ontology():
 		G = utils.contract_graph(input_nodename=nodename)
 	else:
 		G = utils.expand_graph(input_nodename=nodename)
-	# G = graphviz.Digraph(format='svg')
-	# G.node('root')
-	# A = G.node('root',href='http://www.google.com')
-	# # A = G.node('Hello', label='''<a href="www.google.com">Does this work</a>''')
-	# B = G.node('World')
-	# G.edge('Hello','World')
-	# print(G)
+
 	G.attr(rankdir='LR')
 	G_output = G.pipe().decode("utf-8")
 	G_output = Markup(G_output)

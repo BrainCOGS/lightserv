@@ -6,4 +6,4 @@ from wtforms import StringField, SubmitField, TextAreaField, SelectField, Boolea
 class OntologySubmitForm(FlaskForm):
 	""" The form for submitting a graph to display a volume in neuroglancer """
 
-	submit = SubmitField('Launch 3D Viewer')	
+	submit = SubmitField('Launch 3D viewer with current ontology configuration')	
