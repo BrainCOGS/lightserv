@@ -139,3 +139,14 @@ format(child_label,table_border,child_name,contract_cell_border,tooltip)
                 
         
     return
+
+def ID_reassignment(annotation_volume,collapse_dict):
+    """
+    ---PURPOSE---
+    Assign child ids to parent ids in collapse_dict within an annotation volume
+    """
+    for parent_id in collapse_dict.keys():
+        child_ids = collapse_dict[parent_id]
+        for child_id in child_ids:
+            mask = annotation_volume == child_id
+            annotation_volume[mask] = parent_id
