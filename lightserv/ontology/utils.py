@@ -25,12 +25,12 @@ my_graph.attr('node',shape='box')
 table_border = 0
 contract_cell_border=1
 tooltip = ' ' # makes it so that nothing appears when mouse hovers over node
-root_body_str = f'\troot [label=<<TABLE BORDER="{0}">\
+root_body_str = '''\troot [label=<<TABLE BORDER="{0}">\
 <TR>\
 <TD href="/interactive_ontology?input_nodename=root">root</TD>\
 <TD BORDER="{1}" href="/interactive_ontology?input_nodename=root&amp;contract=True">-</TD>\
-</TR></TABLE>> tooltip={2}]'.format(table_border,contract_cell_border,tooltip)
-
+</TR></TABLE>> tooltip="{2}"]'''.format(table_border,contract_cell_border,tooltip)
+# print(root_body_str)
 def expand_graph(dic=ontology_dict,graph=my_graph,input_nodename='root'):
     """ 
     ---PURPOSE---
@@ -47,6 +47,7 @@ def expand_graph(dic=ontology_dict,graph=my_graph,input_nodename='root'):
     children = dic.get('children')
     if input_nodename == None and root_body_str not in graph.body: # second check is so that I don't keep remaking the root node
 #         print("here")
+
         href_expand = '/interactive_ontology?input_nodename=root'
         href_contract = '/interactive_ontology?input_nodename=root&amp;contract=True'
         graph.node('root',label='''<<TABLE BORDER="{0}"><TR><TD href="{1}">root</TD>\
@@ -99,3 +100,42 @@ format(child_label,table_border,child_name,contract_cell_border,tooltip)
     for child in children:
         contract_graph(child,graph,input_nodename=input_nodename)
     return graph
+
+def make_ID_reassignment_dict(ontology_dict,graph,output_dict):
+    """ 
+    ---PURPOSE---
+    Loop through an ontology dictionary and return a dictionary 
+    whose keys are parent ids at the highest level in the graph and values are a list
+    of descendent ids of each of these parents. 
+    ---INPUT---
+    ontology_dict        The dictionary containing the entire ontology dictionary
+    graph                The graph whose structure you want to capture
+    output_dict          The dictionary which will store the parent to descendents links
+    """
+    
+    ID = ontology_dict.get('id')
+    children = ontology_dict.get('children')
+
+    for child in children:
+        child_ID = child.get('id')
+        child_name = child.get('name')
+        child_label = f'"{child_name}"' if len(child_name.split())>1 else child_name
+        # child_str = f'\t{child_label}' 
+        child_body_str = '\t{0} [label=<<TABLE BORDER="{1}"><TR><TD href="/interactive_ontology?input_nodename={2}">{2}</TD>\
+<TD BORDER="{3}" href="/interactive_ontology?input_nodename={2}&amp;contract=True">-</TD></TR></TABLE>> tooltip="{4}"]'.\
+format(child_label,table_border,child_name,contract_cell_border,tooltip)
+        
+        if child_body_str in graph.body:
+#             print("%s is in graph" % child_name)
+            global current_parent
+            current_parent = child_ID
+        else:
+#             print("current parent is",current_parent)
+            if current_parent not in output_dict.keys():
+                output_dict[current_parent]=[]
+            output_dict[current_parent].append(child_ID)
+            
+        make_ID_reassignment_dict(child,graph,output_dict)
+                
+        
+    return

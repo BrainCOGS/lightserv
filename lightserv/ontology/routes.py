@@ -22,8 +22,8 @@ def interactive_ontology():
 	form = OntologySubmitForm()
 	if form.validate_on_submit():
 		G = utils.my_graph
-		print(G.body)
-		return redirect(url_for('main.home'))
+		reassignment_dict = {}
+		utils.make_ID_reassignment_dict(ontology_dict=utils.ontology_dict,graph=G,output_dict=reassignment_dict)
 	if contract:
 		G = utils.contract_graph(input_nodename=nodename)
 	else:
