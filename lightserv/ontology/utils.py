@@ -2,7 +2,7 @@ import pkg_resources
 import json
 
 from flask import url_for
-
+import numpy as np
 import graphviz
 
 DATA_PATH = pkg_resources.resource_filename('lightserv', 'data') # package name first then subdirectory next
@@ -46,8 +46,6 @@ def expand_graph(dic=ontology_dict,graph=my_graph,input_nodename='root'):
     name = dic.get('name')
     children = dic.get('children')
     if input_nodename == None and root_body_str not in graph.body: # second check is so that I don't keep remaking the root node
-#         print("here")
-
         href_expand = '/interactive_ontology?input_nodename=root'
         href_contract = '/interactive_ontology?input_nodename=root&amp;contract=True'
         graph.node('root',label='''<<TABLE BORDER="{0}"><TR><TD href="{1}">root</TD>\
@@ -126,27 +124,32 @@ def make_ID_reassignment_dict(ontology_dict,graph,output_dict):
 format(child_label,table_border,child_name,contract_cell_border,tooltip)
         
         if child_body_str in graph.body:
-#             print("%s is in graph" % child_name)
             global current_parent
             current_parent = child_ID
         else:
-#             print("current parent is",current_parent)
             if current_parent not in output_dict.keys():
                 output_dict[current_parent]=[]
             output_dict[current_parent].append(child_ID)
             
         make_ID_reassignment_dict(child,graph,output_dict)
-                
-        
     return
 
-def ID_reassignment(annotation_volume,collapse_dict):
-    """
+def make_tuple_input(ID_reassignment_dict,chunk_size):
+    '''
     ---PURPOSE---
-    Assign child ids to parent ids in collapse_dict within an annotation volume
-    """
-    for parent_id in collapse_dict.keys():
-        child_ids = collapse_dict[parent_id]
-        for child_id in child_ids:
-            mask = annotation_volume == child_id
-            annotation_volume[mask] = parent_id
+    Take the reassignment dictionary
+    and convert it to a list of lists of tuples [(input_val1,target_val1),(input_val2,target_val2),...]
+    to feed to id_reassignment_parallel, which takes a list of tuples as input
+    ---INPUT---
+    id_reassignment_dict     A reassignment dictionary, e.g. {0:[1,2,3,4],5:[6,7,8,9]}
+    chunk_size               Determines how many reassignments to 
+                             perform in a single call to id_reassignment_parallel     
+    '''
+    # First make flattened list of tuples, then chunk it later
+    flattened_list_of_tuples = []
+    for key in ID_reassignment_dict.keys():
+        for val in ID_reassignment_dict[key]:
+            flattened_list_of_tuples.append((key,val))
+    chunked_list_of_tuples = [flattened_list_of_tuples[i:i+chunk_size] \
+                              for i in range(0,len(flattened_list_of_tuples),chunk_size) ]
+    return chunked_list_of_tuples
