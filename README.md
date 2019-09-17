@@ -38,9 +38,7 @@ ssh {username}@jtb3-dev.princeton.edu -L 3306:127.0.0.1:3306 -N
 
 ## Run
 =======
-SECRET_KEY # a random string hex string, for example
-MAIL_USERNAME # The email account from which password reset info will be delivered to user
-MAIL_PASSWORD # The password to the above email account
+
 ```
 ### Database setup
 Forward to a MariaDB/MySQL database:
