@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, Blueprint, session, url_for, flash, Markup
+from flask import render_template, request, redirect, Blueprint, session, url_for, flash, Markup,Request
 # from lightserv.models import Experiment
 from lightserv import db
 from lightserv.tables import ExpTable
@@ -15,6 +15,7 @@ main = Blueprint('main',__name__)
 @main.route("/home")
 def home():
 	if 'user' in session:
+		print("REMOTE_USER is:",Request.remote_user)
 		# Get table of experiments by current user
 		username = session['user']
 		print(username)
