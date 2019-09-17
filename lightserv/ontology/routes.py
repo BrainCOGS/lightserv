@@ -26,6 +26,19 @@ ontology = Blueprint('ontology',__name__)
 def interactive_ontology():
 	nodename = request.args.get('input_nodename',None) # The node name which was clicked whose children you want to display
 	contract = request.args.get('contract',False) 
+	if contract:
+		G = utils.contract_graph(input_nodename=nodename)
+	else:
+		G = utils.expand_graph(input_nodename=nodename)
+
+	G.attr(rankdir='LR')
+	G_output = G.pipe().decode("utf-8")
+	G_output = Markup(G_output)
+	if nodename:
+		section = 'a_{}'.format('_'.join(nodename.split(' ')))
+	else:
+		section = None
+	print(section)
 	form = OntologySubmitForm()
 	if form.validate_on_submit():
 		G = utils.my_graph
@@ -41,21 +54,9 @@ def interactive_ontology():
 		with Pool() as p:
 		    res = p.map(ID_reassignment_parallel,chunked_list_of_tuples)
 		    result = np.ctypeslib.as_array(shared_array)
-		# print(np.array_equal(X,result))
-		print("Done")
-		# print(chunked_list_of_tuples)
-		# utils.ID_reassignment(annotation_volume=annotation_vol,collapse_dict=reassignment_dict)
-		# print("Reassigned IDs in volume")
-	if contract:
-		G = utils.contract_graph(input_nodename=nodename)
-	else:
-		G = utils.expand_graph(input_nodename=nodename)
 
-	G.attr(rankdir='LR')
-	G_output = G.pipe().decode("utf-8")
-	G_output = Markup(G_output)
 
-	return render_template('interactive_graph.html', graph_output=G_output, form=form)
+	return render_template('interactive_graph.html', graph_output=G_output, form=form,section=section)
 
 def ID_reassignment_parallel(list_of_tuples):
     '''

@@ -1,5 +1,23 @@
 {% extends "layout.html" %}
 {% block content %}
+{% if section %}
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script>
+	    // var myVar = "{{ var1 }}";
+		// console.log(myVar, "Hello, world!");
+		// var node_id = $( "{{ section }}" )
+		// console.log(node_id, "Node ID")
+		// var node_height = $( "g#{{ section }}" )
+		// console.log(node_height, "Node")
+		// var svg = document.getElementsByTagName('svg');
+		// console.log(svg,'svg object')
+		var window_height = $(window).height()
+		var window_width = $(window).width()
+	    $(document).ready(function(){
+	    window.scrollTo({ top: window_height, left: window_width, behavior: 'smooth' });
+	});
+	</script>
+{% endif %}
 		<div class="mb-0 content-section">
 			<h3>Instructions</h3>
 			<p class='text'> Click on text (e.g. "root") within a cell to expand to child regions. Click "-" to collapse all descendent regions. When done, click the "Launch 3D viewer..." button to open the Allen Brain Atlas in Neuroglancer with your displayed ontology loaded.</p>
@@ -11,4 +29,6 @@
 			</div>
 		</form>
 {{ graph_output }}
+
+
 {% endblock content %}

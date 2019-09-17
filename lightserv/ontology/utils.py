@@ -26,11 +26,11 @@ table_border = 0
 contract_cell_border=1
 tooltip = ' ' # makes it so that nothing appears when mouse hovers over node
 root_body_str = '''\troot [label=<<TABLE BORDER="{0}">\
-<TR>\
-<TD href="/interactive_ontology?input_nodename=root">root</TD>\
+<TR><TD id="root" href="/interactive_ontology?input_nodename=root">root</TD>\
 <TD BORDER="{1}" href="/interactive_ontology?input_nodename=root&amp;contract=True">-</TD>\
 </TR></TABLE>> tooltip="{2}"]'''.format(table_border,contract_cell_border,tooltip)
 # print(root_body_str)
+
 def expand_graph(dic=ontology_dict,graph=my_graph,input_nodename='root'):
     """ 
     ---PURPOSE---
@@ -44,21 +44,23 @@ def expand_graph(dic=ontology_dict,graph=my_graph,input_nodename='root'):
     input_nodename  The name of the node whose children you want to display
     """
     name = dic.get('name')
+
     children = dic.get('children')
     if input_nodename == None and root_body_str not in graph.body: # second check is so that I don't keep remaking the root node
         href_expand = '/interactive_ontology?input_nodename=root'
         href_contract = '/interactive_ontology?input_nodename=root&amp;contract=True'
-        graph.node('root',label='''<<TABLE BORDER="{0}"><TR><TD href="{1}">root</TD>\
+        graph.node('root',label='''<<TABLE BORDER="{0}"><TR><TD id="root" href="{1}">root</TD>\
 <TD BORDER="{2}" href="{3}">-</TD></TR></TABLE>>'''\
             .format(table_border,href_expand,contract_cell_border,href_contract),tooltip=tooltip)
     if name == input_nodename:
         for child in children: # child is a dict
             child_name = child.get('name')
-            href_expand = '/interactive_ontology?input_nodename={}'.format(child_name)
+            child_anchor_name = '_'.join(child_name.split(' '))
+            href_expand = '/interactive_ontology?input_nodename={0}'.format(child_name)
             href_contract = '/interactive_ontology?input_nodename={}&amp;contract=True'.format(child_name)
-            graph.node(child_name,label='''<<TABLE BORDER="{0}"><TR><TD href="{1}">{2}</TD>\
-<TD BORDER="{3}" href="{4}">-</TD></TR></TABLE>>'''\
-                       .format(table_border,href_expand,child_name,contract_cell_border,href_contract),tooltip=tooltip)
+            graph.node(child_name,label='''<<TABLE BORDER="{0}"><TR><TD id="{1}" href="{2}">{3}</TD>\
+<TD BORDER="{4}" href="{5}">-</TD></TR></TABLE>>'''\
+                       .format(table_border,child_anchor_name,href_expand,child_name,contract_cell_border,href_contract),tooltip=tooltip)
             graph.edge(name,child_name)
         return graph
      
@@ -84,12 +86,14 @@ def contract_graph(dic=ontology_dict,graph=my_graph,input_nodename='root'):
     if name == input_nodename:
         for child in children: # child is a dict
             child_name = child.get('name')
+            child_anchor_name = '_'.join(child_name.split(' '))
+
             child_label = f'"{child_name}"' if len(child_name.split())>1 else child_name
             edge_str = f'\t{name_label} -> {child_label}' 
 #             print(edge_st/r)
-            child_body_str = '\t{0} [label=<<TABLE BORDER="{1}"><TR><TD href="/interactive_ontology?input_nodename={2}">{2}</TD>\
-<TD BORDER="{3}" href="/interactive_ontology?input_nodename={2}&amp;contract=True">-</TD></TR></TABLE>> tooltip="{4}"]'.\
-format(child_label,table_border,child_name,contract_cell_border,tooltip)
+            child_body_str = '\t{0} [label=<<TABLE BORDER="{1}"><TR><TD id="{2}" href="/interactive_ontology?input_nodename={3}">{3}</TD>\
+<TD BORDER="{4}" href="/interactive_ontology?input_nodename={3}&amp;contract=True">-</TD></TR></TABLE>> tooltip="{5}"]'.\
+format(child_label,table_border,child_anchor_name,child_name,contract_cell_border,tooltip)
 
             if edge_str in graph.body:
                 del graph.body[graph.body.index(edge_str)]
