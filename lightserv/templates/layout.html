@@ -36,13 +36,7 @@
 						
 						<!-- Navbar Right Side -->
 						<div class="navbar-nav">
-							{% if 'user' in session %}
-								<a class="nav-item nav-link" href="{{ url_for('experiments.new_exp') }}">New Request</a>
-								<a class="nav-item nav-link" href="{{ url_for('users.logout') }}">Logout</a>
-							{% else %}
-								<a class="nav-item nav-link" href="{{ url_for('users.login') }}">Login</a>
-								<a class="nav-item nav-link" href="{{ url_for('users.register') }}">Register</a>
-							{% endif %}
+							<a class="nav-item nav-link" href="{{ url_for('experiments.new_exp') }}">New Request</a>
 						</div>
 					</div>
 				</div>
