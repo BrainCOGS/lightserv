@@ -27,10 +27,10 @@ def set_schema():
 db = set_schema()
 
 bcrypt = Bcrypt()
-login_manager = LoginManager()
-login_manager.login_view = 'users.login' # function name - like the url_for() argument. 
+# login_manager = LoginManager()
+# login_manager.login_view = 'users.login' # function name - like the url_for() argument. 
 # This is how the login manager knows where to redirect us when a page requires a login
-login_manager.login_message_category = 'info' # bootstrap class - a blue alert
+# login_manager.login_message_category = 'info' # bootstrap class - a blue alert
 mail = Mail()
 
 def create_app(config_class=Config):
@@ -40,15 +40,15 @@ def create_app(config_class=Config):
 
 	# db.init_app(app)
 	bcrypt.init_app(app)
-	login_manager.init_app(app)
+	# login_manager.init_app(app)
 	mail.init_app(app)
-	from lightserv.users.routes import users
+	# from lightserv.users.routes import users
 	from lightserv.experiments.routes import experiments
 	from lightserv.main.routes import main
 	from lightserv.ontology.routes import ontology
 	from lightserv.errors.handlers import errors
 
-	app.register_blueprint(users)
+	# app.register_blueprint(users)
 	app.register_blueprint(experiments)
 	app.register_blueprint(main)
 	app.register_blueprint(ontology)

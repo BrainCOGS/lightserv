@@ -14,21 +14,21 @@ main = Blueprint('main',__name__)
 @main.route("/")
 @main.route("/home")
 def home():
-	if 'user' in session:
-		print("REMOTE_USER is:",Request.remote_user)
-		# Get table of experiments by current user
-		username = session['user']
-		print(username)
-		exp_contents = db.Experiment() & f'username="{username}"'
-		sort = request.args.get('sort', 'experiment_id') # first is the variable name, second is default value
-		reverse = (request.args.get('direction', 'asc') == 'desc')
-		sorted_results = sorted(exp_contents.fetch(as_dict=True),
-			key=partial(utils.table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
+	if 'user' not in session:
+		session['user'] = 'ahoag'
 
-		table = ExpTable(sorted_results,sort_by=sort,
-						  sort_reverse=reverse)
-	else:
-		return redirect(url_for('users.login'))
+	# print(request.headers)
+	# print("REMOTE_USER is:",request.headers['X-Remote-User'])
+	# Get table of experiments by current user
+	username = session['user']
+	exp_contents = db.Experiment() & f'username="{username}"'
+	sort = request.args.get('sort', 'experiment_id') # first is the variable name, second is default value
+	reverse = (request.args.get('direction', 'asc') == 'desc')
+	sorted_results = sorted(exp_contents.fetch(as_dict=True),
+		key=partial(utils.table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
+
+	table = ExpTable(sorted_results,sort_by=sort,
+					  sort_reverse=reverse)
 	return render_template('home.html',exp_table=table,)
 
 @main.route("/allenatlas",)
