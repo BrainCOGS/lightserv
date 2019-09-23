@@ -1,26 +1,27 @@
 from flask import render_template, request, redirect, Blueprint, session, url_for, flash, Markup,Request
-# from lightserv.models import Experiment
 from lightserv import db
 from lightserv.tables import ExpTable
 import pandas as pd
 from . import utils
 from functools import partial
 
+import socket
 import numpy as np
 
 # from lightserv.experiments.routes import experiments
 
 main = Blueprint('main',__name__)
-@main.route("/")
+@main.route("/") # Where the app brings you when you pass CAS
 @main.route("/home")
 def home():
-	if 'user' not in session:
-		session['user'] = 'ahoag'
+	if 'user' not in session: # When the user has just logged into CAS 
+		hostname = socket.gethostname()
+		if hostname == 'braincogs00.pni.princeton.edu':
+			username = request.headers['X-Remote-User']
+		else:
+			username = 'ahoag'
+		session['user'] = username 
 
-	# print(request.headers)
-	# print("REMOTE_USER is:",request.headers['X-Remote-User'])
-	# Get table of experiments by current user
-	username = session['user']
 	exp_contents = db.Experiment() & f'username="{username}"'
 	sort = request.args.get('sort', 'experiment_id') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
