@@ -14,14 +14,14 @@ main = Blueprint('main',__name__)
 @main.route("/") # Where the app brings you when you pass CAS
 @main.route("/home")
 def home():
-	if 'user' not in session: # When the user has just logged into CAS 
-		hostname = socket.gethostname()
-		if hostname == 'braincogs00.pni.princeton.edu':
-			username = request.headers['X-Remote-User']
-		else:
-			username = 'ahoag'
-		session['user'] = username 
-
+	# if 'user' not in session: # When the user has just logged into CAS 
+	# username = session['user']
+	hostname = socket.gethostname()
+	if hostname == 'braincogs00.pni.princeton.edu':
+		username = request.headers['X-Remote-User']
+	else:
+		username = 'ahoag'
+	session['user'] = username
 	exp_contents = db.Experiment() & f'username="{username}"'
 	sort = request.args.get('sort', 'experiment_id') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')

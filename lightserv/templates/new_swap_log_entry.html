@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+{% block content %}
+	 <div class="content-section">
+		<form method="POST" action="">
+			{{ form.hidden_tag() }}
+			<fieldset class="form-group">
+				<legend class="border-bottom mb-4">New Microscope Objective Swap Log Entry</legend>
+				<div class="form-group">
+					{{ form.date.label(class="form-control-label") }}
+					{% if form.date.errors %}
+						{{ form.date(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.date.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.date(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.old_objective.label(class="form-control-label") }}
+					{% if form.old_objective.errors %}
+						{{ form.old_objective(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.old_objective.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.old_objective(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.new_objective.label(class="form-control-label") }}
+					{% if form.new_objective.errors %}
+						{{ form.new_objective(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.new_objective.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.new_objective(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.swapper.label(class="form-control-label") }}
+					{% if form.swapper.errors %}
+						{{ form.swapper(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.swapper.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.swapper(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.calibration.label(class="form-control-label") }}
+					{% if form.calibration.errors %}
+						{{ form.calibration(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.calibration.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.calibration(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.notes.label(class="form-control-label") }}
+					{% if form.notes.errors %}
+						{{ form.notes(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.notes.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.notes(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+			</fieldset>
+			<div class="form-group">
+				{{ form.submit(class="btn btn-outline-info mt-4") }}
+			</div>
+		</form>
+	</div>
+{% endblock content %}

@@ -1,11 +1,12 @@
 import os,sys
-from flask import Flask
+from flask import Flask, session
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_mail import Mail
 from lightserv.config import Config
 import datajoint as dj
 from lightserv.test_schemata import create_test_schema
+import socket
 
 dj.config['database.user'] = 'ahoag'
 dj.config['database.password'] = 'p@sswd'
@@ -47,6 +48,7 @@ def create_app(config_class=Config):
 	from lightserv.main.routes import main
 	from lightserv.ontology.routes import ontology
 	from lightserv.clearing.routes import clearing
+	from lightserv.microscope.routes import microscope
 	from lightserv.errors.handlers import errors
 
 
@@ -55,5 +57,6 @@ def create_app(config_class=Config):
 	app.register_blueprint(main)
 	app.register_blueprint(ontology)
 	app.register_blueprint(clearing)
+	app.register_blueprint(microscope)
 	app.register_blueprint(errors)
 	return app
