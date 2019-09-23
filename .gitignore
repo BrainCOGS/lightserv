@@ -4,3 +4,5 @@
 docker
 **/.ipynb_checkpoints
 startserver.sh
+credentials.json
+token.pickle
