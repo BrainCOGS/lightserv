@@ -3,4 +3,12 @@
 	<legend class="border-bottom mb-4 mt-4">Light Sheet Microscope Objective Swap/Calibrate Log:</legend>
 
 		{{ table }}
+
+	<!-- <div> -->
+	<!-- <a href="{{url_for('microscope.objective_swap_log_entry')}}">Make a new entry</a> -->
+        <!-- <button type="button" class="btn btn-info" data-target="{{url_for('microscope.objective_swap_log_entry')}}">Make a new entry</button> -->
+	 <form action="{{url_for('microscope.objective_swap_log_entry')}}">
+         <button type="submit" class="btn btn-info mb-4">Make a new entry </button>
+      </form>
+	<!-- </div> -->
 	{% endblock content %}

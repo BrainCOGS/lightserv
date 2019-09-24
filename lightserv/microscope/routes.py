@@ -60,7 +60,7 @@ def update_entry(entrynum):
         print(update_insert_dict)
         microscope_contents.delete_quick()
         db.Microscope().insert1(update_insert_dict)
-        flash(f"Successfully updated entrynum={entrynum} to swap log","success")
+        flash(f"Successfully updated entry in swap log","success")
         return redirect(url_for('microscope.swap_calibrate_log'))
         
     date,old_objective,new_objective,swapper,calibration,notes = \
