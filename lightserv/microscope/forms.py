@@ -42,8 +42,7 @@ class UpdateSwapLogEntryForm(FlaskForm):
 	calibration = TextAreaField('Calibration',validators=[DataRequired(),Length(max=1000)])
 	notes = TextAreaField('Notes',validators=[DataRequired(),Length(max=1000)])
 
-	submit = SubmitField('Update entry to swap log')
-	delete = SubmitField('Delete entry from swap log')	
+	submit = SubmitField('Update Entry')
 
 	def validate_date(self,date):
 		''' Makes sure that the date is in the proper format  '''

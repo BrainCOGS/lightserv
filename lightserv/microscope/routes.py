@@ -11,8 +11,7 @@ from lightserv.main.utils import table_sorter
 microscope = Blueprint('microscope',__name__)
 
 @microscope.route('/microscope/new_swap_entry', methods=['GET','POST'])
-def objective_swap_log_entry(mode):
-    assert mode in ['new','update']
+def objective_swap_log_entry():
     form = NewSwapLogEntryForm()
     if form.validate_on_submit():
         # enter form data into database
@@ -28,7 +27,7 @@ def objective_swap_log_entry(mode):
         db.Microscope().insert1(insert_dict)
         flash("Successfully added new entry to swap log","success")
         return redirect(url_for('microscope.swap_calibrate_log'))
-    return render_template('new_swap_log_entry.html',form=form,mode=mode)
+    return render_template('new_swap_log_entry.html',form=form,)
 
 @microscope.route('/microscope/swap_calibrate_log', methods=['GET'])
 def swap_calibrate_log():
@@ -45,8 +44,25 @@ def swap_calibrate_log():
 def update_entry(entrynum):
     form = UpdateSwapLogEntryForm() 
     microscope_contents = db.Microscope & f'entrynum = {entrynum}'
-    # attrs = ['date','old_objective','new_objective','swapper','calibration','notes']
 
+
+    if form.validate_on_submit():
+        date = datetime.strptime(form.date.data,'%Y-%m-%d').strftime('%Y-%m-%d')
+        username = session['user']
+        old_objective = form.old_objective.data
+        new_objective = form.new_objective.data
+        swapper = form.swapper.data
+        calibration = form.calibration.data
+        notes = form.notes.data
+
+        update_insert_dict=dict(entrynum=entrynum,date=date,username=username,old_objective=old_objective,
+            new_objective=new_objective,swapper=swapper,calibration=calibration,notes=notes)
+        print(update_insert_dict)
+        microscope_contents.delete_quick()
+        db.Microscope().insert1(update_insert_dict)
+        flash(f"Successfully updated entrynum={entrynum} to swap log","success")
+        return redirect(url_for('microscope.swap_calibrate_log'))
+        
     date,old_objective,new_objective,swapper,calibration,notes = \
             microscope_contents.fetch1('date','old_objective','new_objective','swapper','calibration','notes')
     form.date.data = date
@@ -55,8 +71,6 @@ def update_entry(entrynum):
     form.swapper.data = swapper
     form.calibration.data = calibration
     form.notes.data = notes
-    # for attr in attrs:
-    #     form.data[] = entry_dict
     return render_template('update_swap_log_entry.html',form=form,entrynum=entrynum)
 
 @microscope.route("/microscope/<int:entrynum>/delete", methods=['POST'])
