@@ -80,6 +80,7 @@ def update_notes(experiment_id):
 		return redirect('users.login')
 	form = UpdateNotesForm()
 	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
+	exp_table = ExpTable(exp_contents)
 
 	if form.validate_on_submit():
 		''' Enter the entered notes into this experiment's notes column'''
@@ -97,7 +98,7 @@ def update_notes(experiment_id):
 	elif request.method == 'GET':
 		current_notes = exp_contents.fetch1('notes')
 		form.notes.data = current_notes
-	return render_template('update_notes.html',form=form)
+	return render_template('update_notes.html',form=form,exp_table=exp_table)
 
 @experiments.route("/exp/<int:experiment_id>/rawdata_link",)
 def exp_rawdata(experiment_id):
