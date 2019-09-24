@@ -20,6 +20,8 @@
 		<header class="site-header">
 			<nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
 				<div class="container">
+				<!-- Navbar Left Side -->
+
 					<a class="navbar-brand mr-4" href="/">Lightserv</a>
 					<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
 						<span class="navbar-toggler-icon"></span>
@@ -29,6 +31,9 @@
 							<div class="navbar-nav mr-auto">
 								<a class="nav-item nav-link" href="{{ url_for('main.home') }}">Home</a>
 								<a class="nav-item nav-link" href="{{ url_for('ontology.interactive_ontology')}}" target="_blank">Interactive Ontology</a>
+								{% if session['user'] == 'ahoag' or session['user'] == 'zmd' %}
+									<a class="nav-item nav-link" href="{{ url_for('microscope.swap_calibrate_log')}}" target="_blank">Microscope Management</a>
+								{% endif %}
 							</div>
 						
 						<!-- Navbar Right Side -->

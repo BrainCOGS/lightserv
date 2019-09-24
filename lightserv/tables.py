@@ -11,8 +11,6 @@ class ExpTable(Table):
     border = True
     allow_sort = True
     no_items = "No Experiments Yet"
-    # classes = ["table-wrapper-scroll-x"]
-    # classes = ["table","table-striped","table-bordered","table-sm"]
     html_attrs = {"style":'font-size:10px'} # gets assigned to table header
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     # td_html_attrs = {"align":"center"}
@@ -25,6 +23,7 @@ class ExpTable(Table):
     # notes = Col('notes',column_html_attrs=column_html_attrs)
     species = Col('species',column_html_attrs=column_html_attrs)
     clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
+    clearing_progress = Col('clearing_progress',column_html_attrs=column_html_attrs)
     fluorophores = Col('fluorophores',column_html_attrs=column_html_attrs)
     primary_antibody = Col('primary_antibody',column_html_attrs=column_html_attrs)
     secondary_antibody = Col('secondary_antibody',column_html_attrs=column_html_attrs)
@@ -33,12 +32,14 @@ class ExpTable(Table):
     registration = Col('registration',column_html_attrs=column_html_attrs)
     probe_detection = Col('probe_detection',column_html_attrs=column_html_attrs)
     injection_detection = Col('injection_detection',column_html_attrs=column_html_attrs)
+
     # kwargs = {'animal_id': 'animal_id', 'surgery_id': 'surgery_id'}
-    kwargs = {'experiment_id':'experiment_id',}
+    url_kwargs = {'experiment_id':'experiment_id',}
     anchor_attrs = {'target':"_blank",}
     # anchor_attrs = {'target':"_blank",'data-toggle':'modal','data-target':'#deleteModal'}
     
-    experiment_link = LinkCol('View experiment', 'experiments.exp',url_kwargs=kwargs,anchor_attrs=anchor_attrs)
+    clearing_link = LinkCol('Update clearing params','clearing.update_clearing',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs)
+    experiment_link = LinkCol('View experiment', 'experiments.exp',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs)
     
     def sort_url(self, col_key, reverse=False):
         if col_key == 'experiment_link':
@@ -54,20 +55,20 @@ class ExpTable(Table):
 class ClearingTable(Table):
     border = True
     no_items = "No Clearing Yet"
-    # classes = ["table-wrapper-scroll-x"]
-    # classes = ["table","table-striped","table-bordered","table-sm"]
-    html_attrs = {"style":'font-size:10px'} # gets assigned to table header
+    html_attrs = {"style":'font-size:12px'} # gets assigned to table header
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
-    # td_html_attrs = {"align":"center"}
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
-    # html_attrs = {'style':'width:100%',"text-align":"center"}
     username = Col('username',column_html_attrs=column_html_attrs)
     experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
     title = Col('title',column_html_attrs=column_html_attrs,)
-    # description = Col('description',column_html_attrs=column_html_attrs)
-    clearing_notes = Col('notes',column_html_attrs=column_html_attrs)
-    # species = Col('species',column_html_attrs=column_html_attrs)
+    description = Col('description',column_html_attrs=column_html_attrs)
     clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
+    clearing_progress = Col('clearing_progress',column_html_attrs=column_html_attrs)
+
+    # clearing_notes = Col('notes',column_html_attrs=column_html_attrs)
+
+    # species = Col('species',column_html_attrs=column_html_attrs)
+    # clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
 
 
 class MicroscopeCalibrationTable(Table):
