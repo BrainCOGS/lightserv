@@ -51,7 +51,6 @@ class ExpTable(Table):
         return url_for('main.home', sort=col_key, direction=direction)
 
 
-
 class ClearingTable(Table):
     border = True
     no_items = "No Clearing Yet"
@@ -70,22 +69,34 @@ class ClearingTable(Table):
     # species = Col('species',column_html_attrs=column_html_attrs)
     clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
 
-    # fluorophores = Col('fluorophores',column_html_attrs=column_html_attrs)
-    # primary_antibody = Col('primary_antibody',column_html_attrs=column_html_attrs)
-    # secondary_antibody = Col('secondary_antibody',column_html_attrs=column_html_attrs)
-    # image_resolution = Col('image_resolution',column_html_attrs=column_html_attrs)
-    # cell_detection = Col('cell_detection',column_html_attrs=column_html_attrs)
-    # registration = Col('registration',column_html_attrs=column_html_attrs)
-    # probe_detection = Col('probe_detection',column_html_attrs=column_html_attrs)
-    # injection_detection = Col('injection_detection',column_html_attrs=column_html_attrs)
-    # kwargs = {'animal_id': 'animal_id', 'surgery_id': 'surgery_id'}
-    # kwargs = {'experiment_id':'experiment_id',}
-    # anchor_attrs = {'target':"_blank",}
-    # anchor_attrs = {'target':"_blank",'data-toggle':'modal','data-target':'#deleteModal'}
-    
-    # experiment_link = LinkCol('View experiment', 'experiments.exp',url_kwargs=kwargs,anchor_attrs=anchor_attrs)
 
+class MicroscopeCalibrationTable(Table):
+    border = True
+    allow_sort = True
+    no_items = "No Logs Yet"
+    html_attrs = {"style":'font-size:10px'} # gets assigned to table header
+    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    classes = ["table-striped","mb-4"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    entrynum = Col('entrynum',column_html_attrs=column_html_attrs)
+    date = Col('date',column_html_attrs=column_html_attrs)
+    username = Col('username',column_html_attrs=column_html_attrs)
+    old_objective = Col('old_objective',column_html_attrs=column_html_attrs)
+    new_objective = Col('new_objective',column_html_attrs=column_html_attrs)
+    swapper = Col('swapper',column_html_attrs=column_html_attrs)
+    calibration = Col('calibration',column_html_attrs=column_html_attrs)
+    notes = Col('notes',column_html_attrs=column_html_attrs)
+    kwargs = {'entrynum':'entrynum',}
+    anchor_attrs = {'target':"_blank",}
 
+    delete_link = LinkCol('Update entry', 'microscope.update_entry',url_kwargs=kwargs,anchor_attrs=anchor_attrs)
+
+   
+    def sort_url(self, col_key, reverse=False):
+        if reverse:
+            direction = 'desc'
+        else:
+            direction = 'asc'
+        return url_for('microscope.swap_calibrate_log', sort=col_key, direction=direction)
 
 # class SelectCol(flask_table.Col):
 #     def td_format(self, content):
