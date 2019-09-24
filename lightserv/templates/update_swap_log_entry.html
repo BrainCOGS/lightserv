@@ -1,0 +1,129 @@
+{% extends "layout.html" %}
+{% block content %}
+	 <div class="content-section">
+		<form method="POST" action="">
+			{{ form.hidden_tag() }}
+			<fieldset class="form-group">
+				<legend class="border-bottom mb-4">Update Microscope Objective Swap Log Entry</legend>
+				<div class="form-group">
+					{{ form.date.label(class="form-control-label") }}
+					{% if form.date.errors %}
+						{{ form.date(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.date.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.date(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.old_objective.label(class="form-control-label") }}
+					{% if form.old_objective.errors %}
+						{{ form.old_objective(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.old_objective.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.old_objective(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.new_objective.label(class="form-control-label") }}
+					{% if form.new_objective.errors %}
+						{{ form.new_objective(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.new_objective.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.new_objective(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.swapper.label(class="form-control-label") }}
+					{% if form.swapper.errors %}
+						{{ form.swapper(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.swapper.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.swapper(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.calibration.label(class="form-control-label") }}
+					{% if form.calibration.errors %}
+						{{ form.calibration(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.calibration.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.calibration(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.notes.label(class="form-control-label") }}
+					{% if form.notes.errors %}
+						{{ form.notes(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.notes.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.notes(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+			</fieldset>
+			<div class="form-group">
+				{{ form.submit(class="btn btn-outline-info mt-4") }}
+				{{ form.delete(class="btn btn-outline-danger mt-4",hidden='true',id='form_submit') }}
+				<!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal"> -->
+				<button type="button" class="btn btn-success success" id="deleteModal">Confirm</button>
+			</div>
+		</form>
+	</div>
+
+	<!-- Modal -->
+	  <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+	    <div class="modal-dialog" role="document">
+	      <div class="modal-content">
+	        <div class="modal-header">
+	          <h5 class="modal-title" id="deleteModalLabel">Delete Entry?</h5>
+	          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	            <span aria-hidden="true">&times;</span>
+	          </button>
+	        </div>
+	        <div class="modal-footer">
+	          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+	          <form action="{{ url_for('microscope.delete_entry',entrynum=entrynum) }}" method="POST">
+	            <input class="btn btn-danger" type="submit" value="Delete">
+	          </form>
+	        </div>
+	      </div>
+	    </div>
+	  </div>
+
+	  <script>
+	  $('#modal-confirm').click(function(){
+    // Perform the action after modal confirm button is clicked.
+
+    $('#form-submit').click(); // submitting the form
+});
+	  </script>
+{% endblock content %}
