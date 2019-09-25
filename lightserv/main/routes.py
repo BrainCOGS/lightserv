@@ -16,13 +16,20 @@ main = Blueprint('main',__name__)
 def home():
 	# if 'user' not in session: # When the user has just logged into CAS 
 	# username = session['user']
+	print(session)
 	hostname = socket.gethostname()
 	if hostname == 'braincogs00.pni.princeton.edu':
 		username = request.headers['X-Remote-User']
 	else:
 		username = 'ahoag'
 	session['user'] = username
-	exp_contents = db.Experiment() & f'username="{username}"'
+
+	if username in ['ahoag','zmd']:
+		exp_contents = db.Experiment()
+		legend = 'All light sheet experiments'
+	else:
+		exp_contents = db.Experiment() & f'username="{username}"'
+		legend = 'Your light sheet experiments'
 	sort = request.args.get('sort', 'experiment_id') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sorted_results = sorted(exp_contents.fetch(as_dict=True),
@@ -30,7 +37,7 @@ def home():
 
 	table = ExpTable(sorted_results,sort_by=sort,
 					  sort_reverse=reverse)
-	return render_template('home.html',exp_table=table,)
+	return render_template('home.html',exp_table=table,legend=legend)
 
 @main.route("/allenatlas",)
 def allenatlas():
