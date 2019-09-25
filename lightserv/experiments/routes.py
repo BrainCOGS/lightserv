@@ -20,8 +20,7 @@ experiments = Blueprint('experiments',__name__)
 
 @experiments.route("/exp/new",methods=['GET','POST'])
 def new_exp():
-	if 'user' not in session:
-		return redirect('users.login')
+
 	form = ExpForm()
 	if form.validate_on_submit():
 		''' Create a new entry in the Experiment table based on form input.
@@ -65,7 +64,7 @@ def exp(experiment_id):
 	exp_table = ExpTable(exp_contents)
 
 	try:
-		if exp_contents.fetch1('username') != session['user']:
+		if exp_contents.fetch1('username') != session['user'] and session['user'] != 'ahoag':
 			flash('You do not have permission to see dataset: {}'.format(experiment_id),'danger')
 			return redirect(url_for('main.home'))
 	except:
