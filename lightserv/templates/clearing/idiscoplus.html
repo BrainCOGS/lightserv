@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block content %}
+	{{ clearing_table }}
+	 <div class="content-section mt-4">
+		<form method="POST" action="">
+			{{ form.hidden_tag() }}
+			{% set day_dictionary = {'dehydr':'Dehydration','rehydr':'Rehydration','blocking':'Blocking','antibody1':'Primary Antibody','antibody2':'Secondary Antibody','clearing':'Clearing'} %}
+			<fieldset class="form-group">
+				<legend class="border-bottom mb-4">Clearing log for experiment_id={{experiment_id}}:</legend>
+				<div>
+					</br>
+					<h4 class="border-bottom">Day 1: Perfusion</h4>
+				    {{ form.perfusion_date(class='datepicker') }}
+					{{ form.perfusion_date_submit(class="btn btn-sm btn-info") }}
+				</div>
+
+				{% set lastday_dict = {'lastday':'perfusion','counter': 2} %}
+				{% for key in form._fields %}
+					{% if form._fields[key].type == 'DateTimeLocalField' %}
+						{% set submit_key = key + '_submit' %}
+						{% set thisday = key.split('_')[1] %}
+						{% set current_counter = lastday_dict['counter'] %}
+						{% if thisday != lastday_dict['lastday'] %}
+							<h4 class="border-bottom mt-4">Day {{current_counter}}: {{day_dictionary[thisday]}}</h4>
+							{% set new_counter = current_counter + 1 %}
+							<!-- Update the dictionary to store the new day and counter -->
+							{% if lastday_dict.update({'lastday':thisday}) %}{% endif %}
+							{% if lastday_dict.update({'counter':new_counter}) %}{% endif %}
+						{% endif %}
+						<div> </br>
+							{{ form[key].label }}
+							{{ form[key](class='datetime-local') }}
+							{{ form[submit_key](class="btn btn-sm btn-info") }}
+						</div>
+					{% endif %}
+				{% endfor %}
+			</fieldset>
+			<h5 class="mt-2">Clearing Core notes: If anything unusual happened during clearing, please note it here. </h5>
+
+			{{ form.clearing_notes(class="form-control form-control-lg") }}
+			<div class="form-group">
+				{{ form.submit(class="btn btn-info mt-4") }}
+			</div>
+		</form>
+	</div>
+
+
+{% endblock content %}
