@@ -35,7 +35,6 @@ def update_clearing(experiment_id):
 
 @clearing.route("/clearing/idiscoplus_entry/<experiment_id>",methods=['GET','POST'])
 def make_iDISCOplus_entry(experiment_id): 
-	from wtforms.fields.html5 import DateField
 	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
 	assert exp_contents, f"experiment_id={experiment_id} does not exist.\
 						   It must exist before the clearing for this experiment can be done"
