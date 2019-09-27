@@ -4,7 +4,7 @@
 	 <div class="content-section mt-4">
 		<form method="POST" action="">
 			{{ form.hidden_tag() }}
-			{% set day_dictionary = {'dehydr':'Dehydration','rehydr':'Rehydration','blocking':'Blocking','antibody1':'Primary Antibody','antibody2':'Secondary Antibody','clearing':'Clearing'} %}
+			{% set day_dictionary = {'dehydr':'Dehydration','rehydr':'Rehydration','blocking':'Blocking','antibody1':'Primary Antibody','antibody2':'Secondary Antibody','clearing':'Clearing','wash1':'Wash','wash2':'Wash'} %}
 			<fieldset class="form-group">
 				<legend class="border-bottom mb-4">Clearing log for experiment_id={{experiment_id}}:</legend>
 				<div>
@@ -38,11 +38,19 @@
 			<h5 class="mt-2">Clearing Core notes: If anything unusual happened during clearing, please note it here. </h5>
 
 			{{ form.clearing_notes(class="form-control form-control-lg") }}
+			{{ form.clearing_notes_submit(class="btn btn-sm btn-info mt-2") }}
 			<div class="form-group">
-				{{ form.submit(class="btn btn-info mt-4") }}
+				{{ form.submit(class="btn btn-success mt-4") }}
 			</div>
 		</form>
 	</div>
+{% if column_name %}
+<script>
+window.onload = function() {
+  document.getElementById("{{column_name}}").focus();
+};
+</script>
+{% endif %}
 
 
 {% endblock content %}
