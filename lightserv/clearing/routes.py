@@ -8,33 +8,24 @@ from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedFor
 									  uDiscoForm, iDiscoPlusForm, iDiscoEduForm )
 from lightserv.tables import ClearingTable
 from lightserv import db
-from .utils import determine_clearing_form
+from .utils import determine_clearing_form, determine_clearing_route
 # import cloudvolume
 import numpy as np
 import datajoint as dj
 
 clearing = Blueprint('clearing',__name__)
 
-@clearing.route("/clearing/<experiment_id>",methods=['GET','POST'])
-def update_clearing(experiment_id):
+@clearing.route("/clearingfinder/<experiment_id>",methods=['GET'])
+def clearing_finder(experiment_id):
+	""" Given an experiment_id redirect to the correct 
+	clearing protocol route """
 	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
-	clearing_table = ClearingTable(exp_contents)
-	# clearing_contents = db.Clearing() & f'experiment_id="{experiment_id}"'
-	# if len(clearing_contents) == 0:
-	# 	return render_template('new_clearing.html',form=form)
-	# clearing_table = ClearingTable(clearing_contents)
+
 	clearing_protocol = exp_contents.fetch1('clearing_protocol')
-	form = determine_clearing_form(clearing_protocol)
-	''' If clearing entry exists for this exp in db already, 
-	then populate with what we have '''
-	# if len(clearing_contents) > 0:
-	# 	form.notes.data = clearing_contents.fetch1('clearing_notes')
-
-	return render_template('clearing.html',form=form,clearing_table=clearing_table,clearing_protocol=clearing_protocol,experiment_id=experiment_id)
-
+	return determine_clearing_route(clearing_protocol,experiment_id)
 
 @clearing.route("/clearing/idiscoplus_entry/<experiment_id>",methods=['GET','POST'])
-def make_iDISCOplus_entry(experiment_id): 
+def iDISCOplus_entry(experiment_id): 
 	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
 	assert exp_contents, f"experiment_id={experiment_id} does not exist.\
 						   It must exist before the clearing for this experiment can be done"
@@ -67,6 +58,12 @@ def make_iDISCOplus_entry(experiment_id):
 					clearing_contents.delete_quick()
 					db.IdiscoPlusClearing().insert1(clearing_entry_dict)
 					print(f"updated row for value: {column_name}")
-
-
-	return render_template('clearing/idiscoplus.html',form=form,clearing_table=clearing_table,experiment_id=experiment_id)
+		print(f"Going to render {column_name}")
+		# return render_template('clearing/idiscoplus.html',form=form,
+		# 	clearing_table=clearing_table,experiment_id=experiment_id,column_name=column_name)
+	else:
+		column_name = None
+	print(f"Going to render {column_name}")
+	return render_template('clearing/idiscoplus.html',form=form,
+		clearing_table=clearing_table,experiment_id=experiment_id,
+		column_name=column_name)

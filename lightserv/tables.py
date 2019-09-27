@@ -38,7 +38,7 @@ class ExpTable(Table):
     anchor_attrs = {'target':"_blank",}
     # anchor_attrs = {'target':"_blank",'data-toggle':'modal','data-target':'#deleteModal'}
     
-    clearing_link = LinkCol('Update clearing params','clearing.update_clearing',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs)
+    clearing_link = LinkCol('Edit clearing','clearing.clearing_finder',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs)
     experiment_link = LinkCol('View experiment', 'experiments.exp',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs)
     
     def sort_url(self, col_key, reverse=False):
