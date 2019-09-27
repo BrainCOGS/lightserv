@@ -6,9 +6,9 @@ from flask import (render_template, url_for, flash,
 # from lightserv.models import Experiment
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 									  uDiscoForm, iDiscoPlusForm, iDiscoEduForm )
-from lightserv.tables import ClearingTable
+from lightserv.tables import ClearingTable,IdiscoPlusTable
 from lightserv import db
-from .utils import determine_clearing_form, determine_clearing_route
+from .utils import determine_clearing_form, determine_clearing_route, determine_clearing_table
 # import cloudvolume
 import numpy as np
 import datajoint as dj
@@ -44,26 +44,49 @@ def iDISCOplus_entry(experiment_id):
 		print("Created clearing database entry")
 
 	''' Handle user's post requests '''
+
 	if request.method == 'POST':
 		submit_keys = [x for x in form._fields.keys() if 'submit' in x]
 		for key in submit_keys:
 			if form[key].data:
+				# print(f"{form[key]} has data")
 				if key == 'submit': # The final submit button
-					print("Submitting entire form")
+					flash("You have completed the clearing form. Here are the data from this clearing procedure.",'success')
+					return redirect(url_for('clearing.clearing_table',experiment_id=experiment_id)) 
 				else: 
 					''' Update the row '''
-					column_name = key.rstrip('_submit')
-					clearing_entry_dict = clearing_contents.fetch1() # returns as a dict
-					clearing_entry_dict[column_name]=form[column_name].data
-					clearing_contents.delete_quick()
-					db.IdiscoPlusClearing().insert1(clearing_entry_dict)
+					column_name = key.split('_submit')[0]
+					try:
+						dj.Table._update(clearing_contents,column_name,form[column_name].data)
+					except TypeError: 
+						# There is a bug in datajoint where you cannot update a NULLable column to have value=None: 
+						# https://github.com/datajoint/datajoint-python/issues/664
+						clearing_entry_dict = clearing_contents.fetch1() # returns as a dict
+						clearing_entry_dict[column_name]=form[column_name].data
+						clearing_contents.delete_quick()
+						db.IdiscoPlusClearing().insert1(clearing_entry_dict)
 					print(f"updated row for value: {column_name}")
-		print(f"Going to render {column_name}")
-		# return render_template('clearing/idiscoplus.html',form=form,
-		# 	clearing_table=clearing_table,experiment_id=experiment_id,column_name=column_name)
+
 	else:
 		column_name = None
 	print(f"Going to render {column_name}")
 	return render_template('clearing/idiscoplus.html',form=form,
 		clearing_table=clearing_table,experiment_id=experiment_id,
 		column_name=column_name)
+
+
+@clearing.route("/clearing/clearing_table/<experiment_id>",methods=['GET'])
+def clearing_table(experiment_id): 
+	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
+	assert exp_contents, f"experiment_id={experiment_id} does not exist.\
+						   It must exist for clearing for this experiment to exist."
+	clearing_protocol = exp_contents.fetch1('clearing_protocol')
+
+	if clearing_protocol == 'iDISCO+_immuno':
+		clearing_contents = db.IdiscoPlusClearing() & f'experiment_id="{experiment_id}"'
+		table = IdiscoPlusTable(clearing_contents) 
+	else:
+		table = "Need to work on this" 
+
+
+	return render_template('clearing/clearing_table.html',table=table)
