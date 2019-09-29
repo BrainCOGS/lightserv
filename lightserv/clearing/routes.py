@@ -8,8 +8,8 @@ from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedFor
 									  uDiscoForm, iDiscoPlusForm, iDiscoEduForm )
 from lightserv.tables import ClearingTable,IdiscoPlusTable
 from lightserv import db
-from .utils import determine_clearing_form, determine_clearing_route, determine_clearing_table
-# import cloudvolume
+from .utils import (determine_clearing_form, determine_clearing_route,
+					add_clearing_calendar_entry)# import cloudvolume
 import numpy as np
 import datajoint as dj
 import re
@@ -51,7 +51,7 @@ def iDISCOplus_entry(experiment_id):
 			if form[key].data:
 				if key == 'submit': # The final submit button
 					print("Submitting entire form")
-				elif re.search("^day\d_date_submit$",key) != None:
+				elif re.search("^(?!perfusion).*_date_submit$",key) != None:
 					column_name = key.split('_submit')[0]
 					date = form[column_name].data
 					if date == None:
