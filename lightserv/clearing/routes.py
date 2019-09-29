@@ -12,6 +12,7 @@ from .utils import determine_clearing_form, determine_clearing_route, determine_
 # import cloudvolume
 import numpy as np
 import datajoint as dj
+import re
 
 clearing = Blueprint('clearing',__name__)
 
@@ -44,32 +45,45 @@ def iDISCOplus_entry(experiment_id):
 		print("Created clearing database entry")
 
 	''' Handle user's post requests '''
-
 	if request.method == 'POST':
 		submit_keys = [x for x in form._fields.keys() if 'submit' in x]
 		for key in submit_keys:
 			if form[key].data:
-				# print(f"{form[key]} has data")
 				if key == 'submit': # The final submit button
-					flash("You have completed the clearing form. Here are the data from this clearing procedure.",'success')
-					return redirect(url_for('clearing.clearing_table',experiment_id=experiment_id)) 
+					print("Submitting entire form")
+				elif re.search("^day\d_date_submit$",key) != None:
+					column_name = key.split('_submit')[0]
+					date = form[column_name].data
+					if date == None:
+						flash("Please enter a valid date to push to the Clearing Calendar",'danger')
+						break
+					else:
+						username = clearing_contents.fetch1('username')
+						clearing_step = key.split('_')[0]
+						summary = f'{username} {clearing_protocol} {clearing_step}'
+						print(summary)
+						add_clearing_calendar_entry(date=date,
+						summary=summary)
+						flash("Event added to Clearing Calendar. Check the calendar.",'success')
+					break
 				else: 
 					''' Update the row '''
 					column_name = key.split('_submit')[0]
-					try:
-						dj.Table._update(clearing_contents,column_name,form[column_name].data)
-					except TypeError: 
-						# There is a bug in datajoint where you cannot update a NULLable column to have value=None: 
-						# https://github.com/datajoint/datajoint-python/issues/664
-						clearing_entry_dict = clearing_contents.fetch1() # returns as a dict
-						clearing_entry_dict[column_name]=form[column_name].data
-						clearing_contents.delete_quick()
-						db.IdiscoPlusClearing().insert1(clearing_entry_dict)
+					clearing_entry_dict = clearing_contents.fetch1() # returns as a dict
+					clearing_entry_dict[column_name]=form[column_name].data
+					clearing_contents.delete_quick()
+					db.IdiscoPlusClearing().insert1(clearing_entry_dict)
 					print(f"updated row for value: {column_name}")
+					break
+		else:
+			column_name=None
 
+		# print(f"Going to render {column_name}")
+		# return render_template('clearing/idiscoplus.html',form=form,
+		# 	clearing_table=clearing_table,experiment_id=experiment_id,column_name=column_name)
 	else:
 		column_name = None
-	print(f"Going to render {column_name}")
+	# print(f"Going to render {column_name}")
 	return render_template('clearing/idiscoplus.html',form=form,
 		clearing_table=clearing_table,experiment_id=experiment_id,
 		column_name=column_name)

@@ -2,14 +2,14 @@
 {% block content %}
 	{{ clearing_table }}
 	 <div class="content-section mt-4">
-		<form method="POST" action="">
+		<form method="POST" action="{{ url_for('clearing.iDISCOplus_entry',experiment_id=experiment_id) }}">
 			{{ form.hidden_tag() }}
 			{% set day_dictionary = {'dehydr':'Dehydration','rehydr':'Rehydration','blocking':'Blocking','antibody1':'Primary Antibody','antibody2':'Secondary Antibody','clearing':'Clearing','wash1':'Wash','wash2':'Wash'} %}
 			<fieldset class="form-group">
 				<legend class="border-bottom mb-4">Clearing log for experiment_id={{experiment_id}}:</legend>
 				<div>
 					</br>
-					<h4 class="border-bottom">Day 1: Perfusion</h4>
+					{{form.perfusion_date.label(class="border-bottom font-weight-bold",id='larger')}}
 				    {{ form.perfusion_date(class='datepicker') }}
 					{{ form.perfusion_date_submit(class="btn btn-sm btn-info") }}
 				</div>
@@ -19,9 +19,13 @@
 					{% if form._fields[key].type == 'DateTimeLocalField' %}
 						{% set submit_key = key + '_submit' %}
 						{% set thisday = key.split('_')[1] %}
+						{% set thisday_date = thisday + '_date' %}
+						{% set thisday_date_submit = thisday + '_date_submit' %}
 						{% set current_counter = lastday_dict['counter'] %}
 						{% if thisday != lastday_dict['lastday'] %}
-							<h4 class="border-bottom mt-4">Day {{current_counter}}: {{day_dictionary[thisday]}}</h4>
+							{{ form[thisday_date].label(class="border-bottom font-weight-bold mt-4",id='larger')}}
+							{{ form[thisday_date](class='datepicker') }}
+							{{ form[thisday_date_submit](class="btn btn-sm btn-danger") }}
 							{% set new_counter = current_counter + 1 %}
 							<!-- Update the dictionary to store the new day and counter -->
 							{% if lastday_dict.update({'lastday':thisday}) %}{% endif %}

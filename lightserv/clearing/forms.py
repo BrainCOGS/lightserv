@@ -7,15 +7,19 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 	# notes = TextAreaField('iDISCO+_immuno Notes',validators=[Length(max=1000)])
 	datetimeformat='%Y-%m-%dT%H:%M' # To get form.field.data to work. Does not work with the default (bug)
-	perfusion_date = DateField('Perfusion date')
+	# perfusion_date = DateField('Perfusion date')
+	# perfusion_date_submit = SubmitField('Update')
+	perfusion_date = DateField('Day 1: Perfusion')
 	perfusion_date_submit = SubmitField('Update')
+	
+	dehydr_date = DateField('Day 2: Dehydration')
+	dehydr_date_submit = SubmitField('Push date to calendar')
 	time_dehydr_pbs_wash1 = DateTimeLocalField('1xPBS 30 min R@RT',format=datetimeformat)
 	time_dehydr_pbs_wash1_submit = SubmitField('Update')
 	time_dehydr_pbs_wash2 = DateTimeLocalField('2xPBS 30 min R@RT',format=datetimeformat)
 	time_dehydr_pbs_wash2_submit = SubmitField('Update')
 	time_dehydr_pbs_wash3 = DateTimeLocalField('3xPBS 30 min R@RT',format=datetimeformat)
 	time_dehydr_pbs_wash3_submit = SubmitField('Update')
-
 	time_dehydr_ch3oh_20percent_wash1 = DateTimeLocalField('20% CH3OH R@RTx1hr',format=datetimeformat)
 	time_dehydr_ch3oh_20percent_wash1_submit = SubmitField('Update')
 	time_dehydr_ch3oh_40percent_wash1 = DateTimeLocalField('40% CH3OH R@RTx1hr',format=datetimeformat)
@@ -28,9 +32,11 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	time_dehydr_ch3oh_100percent_wash1_submit = SubmitField('Update')
 	time_dehydr_ch3oh_100percent_wash2 = DateTimeLocalField('100% CH3OH R@RTx1hr (second hour)',format=datetimeformat)
 	time_dehydr_ch3oh_100percent_wash2_submit = SubmitField('Update')
-
 	time_dehydr_h202_wash1 = DateTimeLocalField('5% H2O2(30%) in CH3OH(100%) O/N R@RT (1 part H2O2:5 parts methanol)',format=datetimeformat)
 	time_dehydr_h202_wash1_submit = SubmitField('Update')
+
+	rehydr_date = DateField('Day 3: Rehydration')
+	rehydr_date_submit = SubmitField('Push date to calendar')
 	time_rehydr_ch3oh_100percent_wash1 = DateTimeLocalField('100% CH3OH R@RTx1hr',format=datetimeformat)
 	time_rehydr_ch3oh_100percent_wash1_submit = SubmitField('Update')
 	time_rehydr_ch3oh_80percent_wash1 = DateTimeLocalField('80% CH3OH R@RTx1hr',format=datetimeformat)
@@ -49,10 +55,16 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	time_rehydr_sodium_azide_wash2_submit = SubmitField('Update')
 	time_rehydr_glycine_wash1 = DateTimeLocalField('20%DMSO/0.3M glycine/0.2% TritonX-100/0.1%sodium azide/1xPBS R@37C for 2 days',format=datetimeformat)
 	time_rehydr_glycine_wash1_submit = SubmitField('Update')
+
+	blocking_date = DateField('Day 4: Blocking')
+	blocking_date_submit = SubmitField('Push date to calendar')
 	time_blocking_start_roomtemp = DateTimeLocalField('Sample R@RT for ~1.5hrs',format=datetimeformat)
 	time_blocking_start_roomtemp_submit = SubmitField('Update')
 	time_blocking_donkey_serum = DateTimeLocalField('10% DMSO / 6% Donkey seum / 0.2%TritonX-100 / 0.1%sodium azide / 1xPBS, R@37°C for 2-3 days',format=datetimeformat)
 	time_blocking_donkey_serum_submit = SubmitField('Update')
+
+	antibody1_date = DateField('Day 5: Primary Antibody')
+	antibody1_date_submit = SubmitField('Push date to calendar')
 	time_antibody1_start_roomtemp = DateTimeLocalField('Sample R@RT for ~1.5hrs',format=datetimeformat)
 	time_antibody1_start_roomtemp_submit = SubmitField('Update')
 	time_antibody1_ptwh_wash1 = DateTimeLocalField('PTwH R@RTx1hr (first hour)',format=datetimeformat)
@@ -61,6 +73,9 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	time_antibody1_ptwh_wash2_submit = SubmitField('Update')
 	time_antibody1_added = DateTimeLocalField('primary antibody (5% DMSO, 3% donkey serum in PTwH); 37C 7d',format=datetimeformat)
 	time_antibody1_added_submit = SubmitField('Update')
+
+	wash1_date = DateField('Day 6: Wash')
+	wash1_date_submit = SubmitField('Push date to calendar')
 	time_wash1_start_roomtemp = DateTimeLocalField('Sample R@RT for ~1.5hrs',format=datetimeformat)
 	time_wash1_start_roomtemp_submit = SubmitField('Update')
 	time_wash1_ptwh_wash1 = DateTimeLocalField('PTwH 10 min',format=datetimeformat)
@@ -73,8 +88,14 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	time_wash1_ptwh_wash4_submit = SubmitField('Update')
 	time_wash1_ptwh_wash5 = DateTimeLocalField('PTwH 2 hr',format=datetimeformat)
 	time_wash1_ptwh_wash5_submit = SubmitField('Update')
+
+	antibody2_date = DateField('Day 7: Secondary Antibody')
+	antibody2_date_submit = SubmitField('Push date to calendar')
 	time_antibody2_added = DateTimeLocalField('2nd antibody solution R@37°C for 7 days (3% donkey serum/PTwH)',format=datetimeformat)
 	time_antibody2_added_submit = SubmitField('Update')
+
+	wash2_date = DateField('Day 8: Wash')
+	wash2_date_submit = SubmitField('Push date to calendar')
 	time_wash2_start_roomtemp = DateTimeLocalField('Sample R@RT for ~1.5hrs',format=datetimeformat)
 	time_wash2_start_roomtemp_submit = SubmitField('Update')
 	time_wash2_ptwh_wash1 = DateTimeLocalField('PTwH 10 min',format=datetimeformat)
@@ -87,6 +108,9 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	time_wash2_ptwh_wash4_submit = SubmitField('Update')
 	time_wash2_ptwh_wash5 = DateTimeLocalField('PTwH 2 hr',format=datetimeformat)
 	time_wash2_ptwh_wash5_submit = SubmitField('Update')
+
+	clearing_date = DateField('Day 9: Clearing')
+	clearing_date_submit = SubmitField('Push date to calendar')
 	time_clearing_ch3oh_20percent_wash1 = DateTimeLocalField('20% CH3OH R@RTx1hr',format=datetimeformat)
 	time_clearing_ch3oh_20percent_wash1_submit = SubmitField('Update')
 	time_clearing_ch3oh_40percent_wash1 = DateTimeLocalField('40% CH3OH R@RTx1hr',format=datetimeformat)
