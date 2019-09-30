@@ -10,6 +10,7 @@ from lightserv.tables import ClearingTable,IdiscoPlusTable
 from lightserv import db
 from .utils import (determine_clearing_form, add_clearing_calendar_entry,
 				   determine_clearing_dbtable, determine_clearing_table) 
+from lightserv.main.utils import logged_in
 import numpy as np
 import datajoint as dj
 import re
@@ -17,6 +18,7 @@ import re
 clearing = Blueprint('clearing',__name__)
 
 @clearing.route("/clearingfinder/<experiment_id>",methods=['GET'])
+@logged_in
 def clearing_finder(experiment_id):
 	""" Given an experiment_id redirect to the correct 
 	clearing protocol route """
@@ -26,6 +28,7 @@ def clearing_finder(experiment_id):
 	return determine_clearing_route(clearing_protocol,experiment_id)
 
 @clearing.route("/clearing/clearing_entry/<clearing_protocol>/<experiment_id>",methods=['GET','POST'])
+@logged_in
 def clearing_entry(clearing_protocol,experiment_id): 
 	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
 	assert exp_contents, f"experiment_id={experiment_id} does not exist.\
@@ -87,6 +90,7 @@ def clearing_entry(clearing_protocol,experiment_id):
 		column_name=column_name)
 
 @clearing.route("/clearing/clearing_table/<experiment_id>",methods=['GET'])
+@logged_in
 def clearing_table(experiment_id): 
 	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
 	assert exp_contents, f"experiment_id={experiment_id} does not exist.\

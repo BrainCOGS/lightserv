@@ -2,28 +2,22 @@ from flask import render_template, request, redirect, Blueprint, session, url_fo
 from lightserv import db
 from lightserv.tables import ExpTable
 import pandas as pd
-from . import utils
-from functools import partial
+from .utils import logged_in, table_sorter
+from functools import partial, wraps
 
 import socket
 import numpy as np
 
 # from lightserv.experiments.routes import experiments
 
+
 main = Blueprint('main',__name__)
+
 @main.route("/") 
 @main.route("/home")
-def home():
-	# if 'user' not in session: # When the user has just logged into CAS 
-	# username = session['user']
-	# print(session)
-	hostname = socket.gethostname()
-	if hostname == 'braincogs00.pni.princeton.edu':
-		username = request.headers['X-Remote-User']
-	else:
-		username = 'ahoag'
-	session['user'] = username
-
+@logged_in
+def home(): 
+	username = session['user']
 	if username in ['ahoag','zmd']:
 		exp_contents = db.Experiment()
 		legend = 'All light sheet experiments'
@@ -33,13 +27,26 @@ def home():
 	sort = request.args.get('sort', 'experiment_id') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sorted_results = sorted(exp_contents.fetch(as_dict=True),
-		key=partial(utils.table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
+		key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
 
 	table = ExpTable(sorted_results,sort_by=sort,
 					  sort_reverse=reverse)
 	return render_template('main/home.html',exp_table=table,legend=legend)
 
-@main.route("/allenatlas",)
+@main.route('/login', methods=['GET', 'POST'])
+def login():
+	next_url = request.args.get("next")
+	print("Logging you in first!")
+	print(next_url)
+	hostname = socket.gethostname()
+	if hostname == 'braincogs00.pni.princeton.edu':
+		username = request.headers['X-Remote-User']
+	else:
+		username = 'ahoag'
+	session['user'] = username
+	return redirect(next_url)
+
+@main.route("/allenatlas")
 def allenatlas():
 	""" Makes a neuroglancer viewer for the allen brain atlas and then generates a link for the user to click 
 	to enter neuroglancer."""

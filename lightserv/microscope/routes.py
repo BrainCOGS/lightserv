@@ -6,11 +6,12 @@ from datetime import datetime
 from lightserv.microscope.forms import NewSwapLogEntryForm, UpdateSwapLogEntryForm
 from lightserv import db
 from lightserv.tables import MicroscopeCalibrationTable
-from lightserv.main.utils import table_sorter
+from lightserv.main.utils import table_sorter,logged_in
 
 microscope = Blueprint('microscope',__name__)
 
 @microscope.route('/microscope/new_swap_entry', methods=['GET','POST'])
+@logged_in
 def objective_swap_log_entry():
     form = NewSwapLogEntryForm()
     if form.validate_on_submit():
@@ -30,6 +31,7 @@ def objective_swap_log_entry():
     return render_template('microscope/new_swap_log_entry.html',form=form,)
 
 @microscope.route('/microscope/swap_calibrate_log', methods=['GET'])
+@logged_in
 def swap_calibrate_log():
     microscope_contents = db.Microscope()
     sort = request.args.get('sort','date') # first is the variable name, second is default value
@@ -41,6 +43,7 @@ def swap_calibrate_log():
 
 
 @microscope.route('/microscope/<int:entrynum>/update_swap_entry', methods=['GET','POST'])
+@logged_in
 def update_entry(entrynum):
     form = UpdateSwapLogEntryForm() 
     microscope_contents = db.Microscope & f'entrynum = {entrynum}'
@@ -74,6 +77,7 @@ def update_entry(entrynum):
     return render_template('microscope/update_swap_log_entry.html',form=form,entrynum=entrynum)
 
 @microscope.route("/microscope/<int:entrynum>/delete", methods=['POST'])
+@logged_in
 def delete_entry(entrynum):
     assert session['user'] in ['ahoag','zmd']
     microscope_contents = db.Microscope() & f'entrynum={entrynum}'

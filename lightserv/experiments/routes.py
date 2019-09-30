@@ -7,6 +7,7 @@ from flask import (render_template, url_for, flash,
 from lightserv.experiments.forms import ExpForm, UpdateNotesForm
 from lightserv.tables import ExpTable
 from lightserv import db
+from lightserv.main.utils import logged_in
 
 import secrets
 
@@ -19,6 +20,7 @@ neuroglancer.set_static_content_source(url='https://neuromancer-seung-import.app
 experiments = Blueprint('experiments',__name__)
 
 @experiments.route("/exp/new",methods=['GET','POST'])
+@logged_in
 def new_exp():
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
 	form = ExpForm()
@@ -48,6 +50,7 @@ def new_exp():
 		form=form,legend='New Request')	
 
 @experiments.route("/exp/<int:experiment_id>/delete", methods=['POST'])
+@logged_in
 def delete_exp(experiment_id):
 	""" A route which will delete an experiment from the database """
 	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
@@ -60,6 +63,7 @@ def delete_exp(experiment_id):
 	return redirect(url_for('main.home'))
 
 @experiments.route("/exp/<int:experiment_id>",)
+@logged_in
 def exp(experiment_id):
 	""" A route for displaying a single experiment as a table """
 	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
@@ -75,6 +79,7 @@ def exp(experiment_id):
 	return render_template('experiments/exp.html',exp_contents=exp_contents,exp_table=exp_table)
 
 @experiments.route("/exp/<int:experiment_id>/notes", methods=['GET','POST'])
+@logged_in
 def update_notes(experiment_id):
 	""" A route for updating notes in a single experiment """
 	if 'user' not in session:
@@ -101,6 +106,7 @@ def update_notes(experiment_id):
 	return render_template('experiments/update_notes.html',form=form,exp_table=exp_table)
 
 @experiments.route("/exp/<int:experiment_id>/rawdata_link",)
+@logged_in
 def exp_rawdata(experiment_id):
 	""" An incomplete route for making a neuroglancer link to view the raw data from an experiment """
 	try: 
