@@ -8,6 +8,7 @@ datetimeformat='%Y-%m-%dT%H:%M' # To get form.field.data to work. Does not work 
 
 class iDiscoPlusImmunoForm(FlaskForm):
 	""" The form for entering clearing information """
+	title = 'iDISCO+ Immunostaining'
 	perfusion_date = DateField('Day 1: Perfusion')
 	perfusion_date_submit = SubmitField('Update')
 	
@@ -139,6 +140,8 @@ class iDiscoPlusImmunoForm(FlaskForm):
 
 class iDiscoAbbreviatedForm(FlaskForm):
 	""" The form for entering clearing information """
+	title = 'iDISCO for non-oxidative fluorophores (abbreviated clearing)'
+
 	perfusion_date = DateField('Day 1: Perfusion')
 	perfusion_date_submit = SubmitField('Update')
 	
@@ -183,6 +186,8 @@ class iDiscoAbbreviatedForm(FlaskForm):
 
 class iDiscoAbbreviatedRatForm(FlaskForm):
 	""" The form for entering clearing information """
+	title = 'Rat: iDISCO for non-oxidative fluorophores (abbreviated clearing)'
+
 	perfusion_date = DateField('Day 1: Perfusion')
 	perfusion_date_submit = SubmitField('Update')
 	
