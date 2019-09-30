@@ -131,4 +131,4 @@ emitRGBA(vec4(v, 0.0, 0.0, v));
 	except:
 		flash('Something went wrong making viewer','danger')
 		return redirect(url_for('experiments.exp',experiment_id=experiment_id))
-	return render_template('datalink.html',viewer=viewer)
+	return render_template('experiments/datalink.html',viewer=viewer)

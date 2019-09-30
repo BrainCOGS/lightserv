@@ -37,7 +37,7 @@ def home():
 
 	table = ExpTable(sorted_results,sort_by=sort,
 					  sort_reverse=reverse)
-	return render_template('home.html',exp_table=table,legend=legend)
+	return render_template('main/home.html',exp_table=table,legend=legend)
 
 @main.route("/allenatlas",)
 def allenatlas():
@@ -63,4 +63,4 @@ def allenatlas():
 	except:
 		flash('Something went wrong starting Neuroglancer. Try again later.','danger')
 		return redirect(url_for('main.home'))
-	return render_template('datalink.html',viewer=viewer)
+	return render_template('experiments/datalink.html',viewer=viewer)

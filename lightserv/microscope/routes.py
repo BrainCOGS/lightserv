@@ -27,7 +27,7 @@ def objective_swap_log_entry():
         db.Microscope().insert1(insert_dict)
         flash("Successfully added new entry to swap log","success")
         return redirect(url_for('microscope.swap_calibrate_log'))
-    return render_template('new_swap_log_entry.html',form=form,)
+    return render_template('microscope/new_swap_log_entry.html',form=form,)
 
 @microscope.route('/microscope/swap_calibrate_log', methods=['GET'])
 def swap_calibrate_log():
@@ -37,7 +37,7 @@ def swap_calibrate_log():
     sorted_results = sorted(microscope_contents.fetch(as_dict=True),
         key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function    
     swap_calibrate_table = MicroscopeCalibrationTable(microscope_contents,sort_by=sort,sort_reverse=reverse)
-    return render_template('objective_swap_log.html',table=swap_calibrate_table)
+    return render_template('microscope/objective_swap_log.html',table=swap_calibrate_table)
 
 
 @microscope.route('/microscope/<int:entrynum>/update_swap_entry', methods=['GET','POST'])
@@ -71,7 +71,7 @@ def update_entry(entrynum):
     form.swapper.data = swapper
     form.calibration.data = calibration
     form.notes.data = notes
-    return render_template('update_swap_log_entry.html',form=form,entrynum=entrynum)
+    return render_template('microscope/update_swap_log_entry.html',form=form,entrynum=entrynum)
 
 @microscope.route("/microscope/<int:entrynum>/delete", methods=['POST'])
 def delete_entry(entrynum):

@@ -56,7 +56,7 @@ def interactive_ontology():
 		    result = np.ctypeslib.as_array(shared_array)
 
 
-	return render_template('interactive_graph.html', graph_output=G_output, form=form,section=section)
+	return render_template('ontology/interactive_graph.html', graph_output=G_output, form=form,section=section)
 
 def ID_reassignment_parallel(list_of_tuples):
     '''
