@@ -27,13 +27,6 @@ class ExpForm(FlaskForm):
 	injection_detection = BooleanField('Injection site detection',default=False)
 	submit = SubmitField('Start experiment')	
 
-	# def validate_dataset_hex(self,dataset_hex):
-	# 	''' Checks to see if dataset_hex already in db '''
-	# 	exp = Experiment.query.filter_by(dataset_hex=dataset_hex.data).first()
-	# 	if exp: 
-	# 		raise ValidationError('dataset ID is already in use. \
-	# 			Please enter a different one, or view the status of the existing dataset at its own page.')
-
 	def validate_primary_antibody(self,primary_antibody):
 		''' Makes sure that primary antibody is not blank if immunostaining clearing protocol
 		is chosen  '''

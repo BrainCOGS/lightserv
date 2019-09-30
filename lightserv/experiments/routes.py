@@ -20,7 +20,7 @@ experiments = Blueprint('experiments',__name__)
 
 @experiments.route("/exp/new",methods=['GET','POST'])
 def new_exp():
-
+	""" Route for a user to enter a new experiment via a form and submit that experiment """
 	form = ExpForm()
 	if form.validate_on_submit():
 		''' Create a new entry in the Experiment table based on form input.
@@ -48,12 +48,12 @@ def new_exp():
 		# flash(f'Your experiment has started!\nCheck your new experiment page (Experiment_ID={exp_id}) for your data when it becomes available.','success')
 		return redirect(url_for('main.home'))
 
-	return render_template('create_exp.html', title='new_experiment',
+	return render_template('experiments/create_exp.html', title='new_experiment',
 		form=form,legend='New Request')	
 
 @experiments.route("/exp/<int:experiment_id>/delete", methods=['POST'])
 def delete_exp(experiment_id):
-	# post = Post.query.get_or_404(post_id)
+	""" A route which will delete an experiment from the database """
 	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
 
 	if exp_contents.fetch1('username') != session['user']:
@@ -65,7 +65,7 @@ def delete_exp(experiment_id):
 
 @experiments.route("/exp/<int:experiment_id>",)
 def exp(experiment_id):
-	# exp = Experiment.query.filter_by(dataset_hex=dataset_hex).first() # give me the dataset with this hex string
+	""" A route for displaying a single experiment as a table """
 	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
 	exp_table = ExpTable(exp_contents)
 
@@ -76,11 +76,11 @@ def exp(experiment_id):
 	except:
 		flash(f'Page does not exist for Dataset: "{experiment_id}"','danger')
 		return redirect(url_for('main.home'))
-	return render_template('exp.html',exp_contents=exp_contents,exp_table=exp_table)
+	return render_template('experiments/exp.html',exp_contents=exp_contents,exp_table=exp_table)
 
 @experiments.route("/exp/<int:experiment_id>/notes", methods=['GET','POST'])
 def update_notes(experiment_id):
-	# exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
+	""" A route for updating notes in a single experiment """
 	if 'user' not in session:
 		return redirect('users.login')
 	form = UpdateNotesForm()
@@ -98,17 +98,15 @@ def update_notes(experiment_id):
 
 		db.Experiment().insert1(update_insert_dict)
 		flash(f"Your notes have been updated",'success')
-		# flash(Markup(f'Your experiment has started!\nCheck your new experiment page: <a href="{url_for("experiments.exp",experiment_id=exp_id)}" class="alert-link" target="_blank">here</a> for your data when it becomes available.'),'success')
 		return redirect(url_for('experiments.exp',experiment_id=experiment_id))
 	elif request.method == 'GET':
 		current_notes = exp_contents.fetch1('notes')
 		form.notes.data = current_notes
-	return render_template('update_notes.html',form=form,exp_table=exp_table)
+	return render_template('experiments/update_notes.html',form=form,exp_table=exp_table)
 
 @experiments.route("/exp/<int:experiment_id>/rawdata_link",)
 def exp_rawdata(experiment_id):
-	# exp = Experiment.query.filter_by(dataset_hex=dataset_hex).first() # give me the dataset with this hex string
-	# Generate the neuroglancer viewer string and display it to the screen 
+	""" An incomplete route for making a neuroglancer link to view the raw data from an experiment """
 	try: 
 		vol = cloudvolume.CloudVolume('file:///home/ahoag/ngdemo/demo_bucket/demo_dataset/190715_an31_devcno_03082019_1d3x_488_017na_1hfds_z10um_100msec_16-55-48/')
 		# vol = cloudvolume.CloudVolume('file:///home/ahoag/ngdemo/demo_bucket/demo_dataset/demo_layer_singletif/')
