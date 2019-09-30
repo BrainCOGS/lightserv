@@ -11,7 +11,7 @@ import numpy as np
 # from lightserv.experiments.routes import experiments
 
 main = Blueprint('main',__name__)
-@main.route("/") # Where the app brings you when you pass CAS
+@main.route("/") 
 @main.route("/home")
 def home():
 	# if 'user' not in session: # When the user has just logged into CAS 

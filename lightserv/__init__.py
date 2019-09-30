@@ -1,11 +1,10 @@
 import os,sys
 from flask import Flask, session
-from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_mail import Mail
 from lightserv.config import Config
 import datajoint as dj
-from lightserv.test_schemata import create_test_schema
+from lightserv.tests.test_schemata import create_test_schema
 import socket
 
 dj.config['database.user'] = 'ahoag'
@@ -27,7 +26,7 @@ def set_schema():
 	return db
 db = set_schema()
 
-bcrypt = Bcrypt()
+# bcrypt = Bcrypt()
 # login_manager = LoginManager()
 # login_manager.login_view = 'users.login' # function name - like the url_for() argument. 
 # This is how the login manager knows where to redirect us when a page requires a login
@@ -40,7 +39,6 @@ def create_app(config_class=Config):
 	app.config.from_object(config_class)
 
 	# db.init_app(app)
-	bcrypt.init_app(app)
 	# login_manager.init_app(app)
 	mail.init_app(app)
 	# from lightserv.users.routes import users
