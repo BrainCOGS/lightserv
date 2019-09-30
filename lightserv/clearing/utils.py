@@ -1,7 +1,8 @@
 from flask import redirect, url_for
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 									  iDiscoAbbreviatedRatForm, uDiscoForm, iDiscoEduForm )
-from lightserv.tables import IdiscoPlusTable,IdiscoAbbreviatedTable,IdiscoAbbreviatedRatTable
+from lightserv.tables import (IdiscoPlusTable,IdiscoAbbreviatedTable,
+							  IdiscoAbbreviatedRatTable,UdiscoTable)
 from lightserv import db
 import os.path
 import pickle
@@ -30,6 +31,8 @@ def determine_clearing_dbtable(clearing_protocol):
 		dbtable = db.IdiscoAbbreviatedClearing
 	elif clearing_protocol == 'iDISCO abbreviated clearing (rat)':
 		dbtable = db.IdiscoAbbreviatedRatClearing
+	elif clearing_protocol == 'uDISCO':
+		dbtable = db.UdiscoClearing
 	else:
 		dbtable = None
 	return dbtable
@@ -41,6 +44,8 @@ def determine_clearing_table(clearing_protocol):
 		table = IdiscoAbbreviatedTable
 	elif clearing_protocol == 'iDISCO abbreviated clearing (rat)':
 		table = IdiscoAbbreviatedRatTable
+	elif clearing_protocol == 'uDISCO':
+		table = UdiscoTable
 	else:
 		table = None
 	return table	

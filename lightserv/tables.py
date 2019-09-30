@@ -45,26 +45,6 @@ class ExpTable(Table):
             direction = 'asc'
         return url_for('main.home', sort=col_key, direction=direction)
 
-
-class ClearingTable(Table):
-    border = True
-    no_items = "No Clearing Yet"
-    html_attrs = {"style":'font-size:12px'} # gets assigned to table header
-    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
-    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
-    username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
-    title = Col('title',column_html_attrs=column_html_attrs,)
-    description = Col('description',column_html_attrs=column_html_attrs)
-    clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
-    clearing_progress = Col('clearing_progress',column_html_attrs=column_html_attrs)
-
-    # clearing_notes = Col('notes',column_html_attrs=column_html_attrs)
-
-    # species = Col('species',column_html_attrs=column_html_attrs)
-    # clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
-
-
 class MicroscopeCalibrationTable(Table):
     border = True
     allow_sort = True
@@ -92,6 +72,19 @@ class MicroscopeCalibrationTable(Table):
         else:
             direction = 'asc'
         return url_for('microscope.swap_calibrate_log', sort=col_key, direction=direction)
+
+class ClearingTable(Table):
+    border = True
+    no_items = "No Clearing Yet"
+    html_attrs = {"style":'font-size:12px'} # gets assigned to table header
+    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    username = Col('username',column_html_attrs=column_html_attrs)
+    experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
+    title = Col('title',column_html_attrs=column_html_attrs,)
+    description = Col('description',column_html_attrs=column_html_attrs)
+    clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
+    clearing_progress = Col('clearing_progress',column_html_attrs=column_html_attrs)
 
 class IdiscoPlusTable(Table):
     border = True
@@ -205,3 +198,23 @@ class IdiscoAbbreviatedRatTable(Table):
     time_dehydr_dbe_wash1 = Col('time_dehydr_dbe_wash1')
     time_dehydr_dbe_wash2 = Col('time_dehydr_dbe_wash2')
     clearing_notes                              = Col('clearing_notes')
+
+class UdiscoTable(Table):
+    border = True
+    no_items = "No Clearing Yet"
+    html_attrs = {"style":'font-size:12px'} # gets assigned to table header
+    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    username = Col('username',column_html_attrs=column_html_attrs)
+    experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
+    time_dehydr_pbs_wash1 = Col('time_dehydr_pbs_wash1')
+    time_dehydr_butanol_30percent = Col('time_dehydr_butanol_30percent')
+    time_dehydr_butanol_50percent = Col('time_dehydr_butanol_50percent')
+    time_dehydr_butanol_70percent = Col('time_dehydr_butanol_70percent')
+    time_dehydr_butanol_80percent = Col('time_dehydr_butanol_80percent')
+    time_dehydr_butanol_90percent = Col('time_dehydr_butanol_90percent')
+    time_dehydr_butanol_96percent = Col('time_dehydr_butanol_96percent')
+    time_dehydr_butanol_100percent = Col('time_dehydr_butanol_100percent')
+    time_clearing_dcm_wash1 = Col('time_clearing_dcm_wash1')
+    time_clearing_babb_wash1 = Col('time_clearing_babb_wash1')
+    clearing_notes = Col('clearing_notes')

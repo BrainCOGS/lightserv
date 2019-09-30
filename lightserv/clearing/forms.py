@@ -241,8 +241,40 @@ class iDiscoAbbreviatedRatForm(FlaskForm):
 
 class uDiscoForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
-	notes = TextAreaField('uDISCO Notes',validators=[Length(max=1000)])
-	submit = SubmitField('Submit Changes')	
+	title = 'uDISCO'
+
+	perfusion_date = DateField('Day 1: Perfusion')
+	perfusion_date_submit = SubmitField('Update')
+	
+	dehydr_date = DateField('Day 2-6: Dehydration')
+	dehydr_date_submit = SubmitField('Push date to calendar')
+	time_dehydr_pbs_wash1 = DateTimeLocalField('0.1M PBS R@RT5min',format=datetimeformat)
+	time_dehydr_pbs_wash1_submit = SubmitField('Update')
+	time_dehydr_butanol_30percent = DateTimeLocalField('30% t-butanol R@35C O/N',format=datetimeformat)
+	time_dehydr_butanol_30percent_submit = SubmitField('Update')
+	time_dehydr_butanol_50percent = DateTimeLocalField('50% t-butanol R@35C 10 h',format=datetimeformat)
+	time_dehydr_butanol_50percent_submit = SubmitField('Update')
+	time_dehydr_butanol_70percent = DateTimeLocalField('70% t-butanol R@35C O/N',format=datetimeformat)
+	time_dehydr_butanol_70percent_submit = SubmitField('Update')
+	time_dehydr_butanol_80percent = DateTimeLocalField('80% t-butanol R@35C 10 h',format=datetimeformat)
+	time_dehydr_butanol_80percent_submit = SubmitField('Update')
+	time_dehydr_butanol_90percent = DateTimeLocalField('90% t-butanol R@35C O/N',format=datetimeformat)
+	time_dehydr_butanol_90percent_submit = SubmitField('Update')
+	time_dehydr_butanol_96percent = DateTimeLocalField('96% t-butanol R@35C 10 h',format=datetimeformat)
+	time_dehydr_butanol_96percent_submit = SubmitField('Update')
+	time_dehydr_butanol_100percent = DateTimeLocalField('100% t-butanol R@35C O/N',format=datetimeformat)
+	time_dehydr_butanol_100percent_submit = SubmitField('Update')
+	
+	clearing_date = DateField('Day 9: Clearing')
+	clearing_date_submit = SubmitField('Push date to calendar')
+	time_clearing_dcm_wash1 = DateTimeLocalField('100% DCM R@RT 50-70min',format=datetimeformat)
+	time_clearing_dcm_wash1_submit = SubmitField('Update')
+	time_clearing_babb_wash1 = DateTimeLocalField('BABB-D10 >3hrs',format=datetimeformat)
+	time_clearing_babb_wash1_submit = SubmitField('Update')
+	clearing_notes = TextAreaField('Clearing Notes')
+	clearing_notes_submit = SubmitField('Update')
+
+	submit = SubmitField('Done')
 
 class iDiscoEduForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
