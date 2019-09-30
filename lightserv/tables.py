@@ -34,11 +34,11 @@ class ExpTable(Table):
     injection_detection = Col('injection_detection',column_html_attrs=column_html_attrs)
 
     # kwargs = {'animal_id': 'animal_id', 'surgery_id': 'surgery_id'}
-    url_kwargs = {'experiment_id':'experiment_id',}
+    url_kwargs = {'clearing_protocol':'clearing_protocol','experiment_id':'experiment_id',}
     anchor_attrs = {'target':"_blank",}
     # anchor_attrs = {'target':"_blank",'data-toggle':'modal','data-target':'#deleteModal'}
     
-    clearing_link = LinkCol('Edit clearing','clearing.clearing_finder',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs)
+    clearing_link = LinkCol('Edit clearing','clearing.clearing_entry',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs)
     experiment_link = LinkCol('View experiment', 'experiments.exp',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs)
     
     def sort_url(self, col_key, reverse=False):
@@ -158,6 +158,29 @@ class IdiscoPlusTable(Table):
     time_clearing_new_tubes                     = Col('time_clearing_new_tubes')
     clearing_notes                              = Col('clearing_notes')
    
+class IdiscoAbbreviatedTable(Table):
+    border = True
+    no_items = "No Clearing Yet"
+    html_attrs = {"style":'font-size:12px'} # gets assigned to table header
+    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    username = Col('username',column_html_attrs=column_html_attrs)
+    experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
+    time_pbs_wash1 = Col('time_pbs_wash1',)
+    time_pbs_wash2 = Col('time_pbs_wash2',)
+    time_pbs_wash3 = Col('time_pbs_wash3',)
+    time_dehydr_ch3oh_20percent_wash1           = Col('time_dehydr_ch3oh_20percent_wash1',)
+    time_dehydr_ch3oh_40percent_wash1           = Col('time_dehydr_ch3oh_40percent_wash1',)
+    time_dehydr_ch3oh_60percent_wash1           = Col('time_dehydr_ch3oh_60percent_wash1',)
+    time_dehydr_ch3oh_80percent_wash1           = Col('time_dehydr_ch3oh_80percent_wash1',)
+    time_dehydr_ch3oh_100percent_wash1          = Col('time_dehydr_ch3oh_100percent_wash1',)
+    time_dehydr_ch3oh_100percent_wash2          = Col('time_dehydr_ch3oh_100percent_wash2',)
+    time_dehydr_dcm_66percent_ch3oh_33percent   = Col('time_dehydr_dcm_66percent_ch3oh_33percent',)
+    time_dehydr_dcm_wash1   = Col('time_dehydr_dcm_wash1')
+    time_dehydr_dcm_wash2   = Col('time_dehydr_dcm_wash2')
+    time_dehydr_dbe_wash1   = Col('time_dehydr_dbe_wash1')
+    time_dehydr_dbe_wash2   = Col('time_dehydr_dbe_wash2')
+    clearing_notes                              = Col('clearing_notes')
 
 # class SelectCol(flask_table.Col):
 #     def td_format(self, content):

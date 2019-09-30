@@ -1,23 +1,14 @@
 from flask import redirect, url_for
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 									  uDiscoForm, iDiscoPlusForm, iDiscoEduForm )
+from lightserv.tables import IdiscoPlusTable,IdiscoAbbreviatedTable
 from lightserv import db
 import os.path
 import pickle
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-
-def determine_clearing_route(clearing_protocol,experiment_id):
-
-	if clearing_protocol == 'iDISCO+_immuno':
-		return redirect(url_for('clearing.iDISCOplus_entry',
-			clearing_protocol=clearing_protocol,experiment_id=experiment_id))
-	elif clearing_protocol == 'iDISCO abbreviated clearing':
-		return redirect(url_for('clearing.iDISCOabbreviated_entry',
-			clearing_protocol=clearing_protocol,experiment_id=experiment_id))
-	else:
-		return redirect(url_for('main.home'))
+	
 
 def determine_clearing_form(clearing_protocol,existing_form):
 	if clearing_protocol == 'iDISCO+': 
@@ -40,6 +31,15 @@ def determine_clearing_dbtable(clearing_protocol):
 	else:
 		dbtable = None
 	return dbtable
+
+def determine_clearing_table(clearing_protocol):
+	if clearing_protocol == 'iDISCO+_immuno': 
+		table = IdiscoPlusTable
+	elif clearing_protocol == 'iDISCO abbreviated clearing':
+		table = IdiscoAbbreviatedTable
+	else:
+		table = None
+	return table	
 
 def add_clearing_calendar_entry(date,summary):
 	SCOPES = ['https://www.googleapis.com/auth/calendar.events']

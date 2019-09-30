@@ -8,8 +8,8 @@ from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedFor
 									  uDiscoForm, iDiscoPlusForm, iDiscoEduForm )
 from lightserv.tables import ClearingTable,IdiscoPlusTable
 from lightserv import db
-from .utils import (determine_clearing_form, determine_clearing_route,
-					add_clearing_calendar_entry, determine_clearing_dbtable) 
+from .utils import (determine_clearing_form, add_clearing_calendar_entry,
+				   determine_clearing_dbtable, determine_clearing_table) 
 import numpy as np
 import datajoint as dj
 import re
@@ -49,8 +49,10 @@ def clearing_entry(clearing_protocol,experiment_id):
 		submit_keys = [x for x in form._fields.keys() if 'submit' in x]
 		for key in submit_keys:
 			if form[key].data:
+
 				if key == 'submit': # The final submit button
 					print("Submitting entire form")
+					return redirect(url_for('clearing.clearing_table',experiment_id=experiment_id))
 				elif re.search("^(?!perfusion).*_date_submit$",key) != None:
 					column_name = key.split('_submit')[0]
 					date = form[column_name].data
@@ -80,8 +82,8 @@ def clearing_entry(clearing_protocol,experiment_id):
 
 	else:
 		column_name = None
-	return render_template('clearing/clearing_entry.html',form=form,
-		clearing_table=clearing_table,experiment_id=experiment_id,
+	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,
+		form=form,clearing_table=clearing_table,experiment_id=experiment_id,
 		column_name=column_name)
 
 @clearing.route("/clearing/clearing_table/<experiment_id>",methods=['GET'])
@@ -91,11 +93,12 @@ def clearing_table(experiment_id):
 						   It must exist for clearing for this experiment to exist."
 	clearing_protocol = exp_contents.fetch1('clearing_protocol')
 
-	if clearing_protocol == 'iDISCO+_immuno':
-		clearing_contents = db.IdiscoPlusClearing() & f'experiment_id="{experiment_id}"'
-		table = IdiscoPlusTable(clearing_contents) 
-	else:
-		table = "Need to work on this" 
+	dbTable = determine_clearing_dbtable(clearing_protocol)
+
+	db_contents = dbTable() & f'experiment_id = {experiment_id}'
+
+	table = determine_clearing_table(clearing_protocol)(db_contents)
+
 
 
 	return render_template('clearing/clearing_table.html',table=table)
