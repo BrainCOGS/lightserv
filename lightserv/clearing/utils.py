@@ -1,7 +1,7 @@
 from flask import redirect, url_for
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
-									  uDiscoForm, iDiscoPlusForm, iDiscoEduForm )
-from lightserv.tables import IdiscoPlusTable,IdiscoAbbreviatedTable
+									  iDiscoAbbreviatedRatForm, uDiscoForm, iDiscoEduForm )
+from lightserv.tables import IdiscoPlusTable,IdiscoAbbreviatedTable,IdiscoAbbreviatedRatTable
 from lightserv import db
 import os.path
 import pickle
@@ -11,10 +11,10 @@ from google.auth.transport.requests import Request
 	
 
 def determine_clearing_form(clearing_protocol,existing_form):
-	if clearing_protocol == 'iDISCO+': 
-		form = iDiscoPlusForm(existing_form)
-	elif clearing_protocol == 'iDISCO abbreviated clearing':
+	if clearing_protocol == 'iDISCO abbreviated clearing':
 		form = iDiscoAbbreviatedForm(existing_form)
+	elif clearing_protocol == 'iDISCO abbreviated clearing (rat)':
+		form = iDiscoAbbreviatedRatForm(existing_form)
 	elif clearing_protocol == 'uDISCO':
 		form = uDiscoForm(existing_form)
 	elif clearing_protocol == 'iDISCO+_immuno':
@@ -28,6 +28,8 @@ def determine_clearing_dbtable(clearing_protocol):
 		dbtable = db.IdiscoPlusClearing
 	elif clearing_protocol == 'iDISCO abbreviated clearing':
 		dbtable = db.IdiscoAbbreviatedClearing
+	elif clearing_protocol == 'iDISCO abbreviated clearing (rat)':
+		dbtable = db.IdiscoAbbreviatedRatClearing
 	else:
 		dbtable = None
 	return dbtable
@@ -37,6 +39,8 @@ def determine_clearing_table(clearing_protocol):
 		table = IdiscoPlusTable
 	elif clearing_protocol == 'iDISCO abbreviated clearing':
 		table = IdiscoAbbreviatedTable
+	elif clearing_protocol == 'iDISCO abbreviated clearing (rat)':
+		table = IdiscoAbbreviatedRatTable
 	else:
 		table = None
 	return table	

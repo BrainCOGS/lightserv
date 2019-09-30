@@ -5,7 +5,7 @@ from flask import (render_template, url_for, flash,
 # from lightserv import db
 # from lightserv.models import Experiment
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
-									  uDiscoForm, iDiscoPlusForm, iDiscoEduForm )
+									  iDiscoAbbreviatedRatForm, uDiscoForm,  iDiscoEduForm )
 from lightserv.tables import ClearingTable,IdiscoPlusTable
 from lightserv import db
 from .utils import (determine_clearing_form, add_clearing_calendar_entry,
@@ -41,7 +41,7 @@ def clearing_entry(clearing_protocol,experiment_id):
 		experiment_username = exp_contents.fetch1('username')
 		insert_dict = {'experiment_id':experiment_id,
 						'username':experiment_username,'clearer':session['user']}
-		db.IdiscoPlusClearing().insert1(insert_dict)
+		dbTable().insert1(insert_dict)
 		print("Created clearing database entry")
 
 	''' Handle user's post requests '''

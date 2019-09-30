@@ -13,14 +13,11 @@ class ExpTable(Table):
     no_items = "No Experiments Yet"
     html_attrs = {"style":'font-size:10px'} # gets assigned to table header
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
-    # td_html_attrs = {"align":"center"}
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
-    # html_attrs = {'style':'width:100%',"text-align":"center"}
     username = Col('username',column_html_attrs=column_html_attrs)
     experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
     title = Col('title',column_html_attrs=column_html_attrs,)
     description = Col('description',column_html_attrs=column_html_attrs)
-    # notes = Col('notes',column_html_attrs=column_html_attrs)
     species = Col('species',column_html_attrs=column_html_attrs)
     clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
     clearing_progress = Col('clearing_progress',column_html_attrs=column_html_attrs)
@@ -33,17 +30,14 @@ class ExpTable(Table):
     probe_detection = Col('probe_detection',column_html_attrs=column_html_attrs)
     injection_detection = Col('injection_detection',column_html_attrs=column_html_attrs)
 
-    # kwargs = {'animal_id': 'animal_id', 'surgery_id': 'surgery_id'}
     url_kwargs = {'clearing_protocol':'clearing_protocol','experiment_id':'experiment_id',}
     anchor_attrs = {'target':"_blank",}
-    # anchor_attrs = {'target':"_blank",'data-toggle':'modal','data-target':'#deleteModal'}
     
     clearing_link = LinkCol('Edit clearing','clearing.clearing_entry',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs)
     experiment_link = LinkCol('View experiment', 'experiments.exp',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs)
     
     def sort_url(self, col_key, reverse=False):
         if col_key == 'experiment_link':
-            # flash("Ah ah ah, you didn't say the magic word. Ah Ah Ah.",'danger')
             return url_for('main.home')
         if reverse:
             direction = 'desc'
@@ -181,6 +175,37 @@ class IdiscoAbbreviatedTable(Table):
     time_dehydr_dbe_wash1   = Col('time_dehydr_dbe_wash1')
     time_dehydr_dbe_wash2   = Col('time_dehydr_dbe_wash2')
     clearing_notes                              = Col('clearing_notes')
+
+class IdiscoAbbreviatedRatTable(Table):
+    border = True
+    no_items = "No Clearing Yet"
+    html_attrs = {"style":'font-size:12px'} # gets assigned to table header
+    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    username = Col('username',column_html_attrs=column_html_attrs)
+    experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
+    time_pbs_wash1 = Col('time_pbs_wash1',)
+    time_pbs_wash2 = Col('time_pbs_wash2',)
+    time_pbs_wash3 = Col('time_pbs_wash3',)
+    time_dehydr_ch3oh_20percent_wash1           = Col('time_dehydr_ch3oh_20percent_wash1',)
+    time_dehydr_ch3oh_40percent_wash1           = Col('time_dehydr_ch3oh_40percent_wash1',)
+    time_dehydr_ch3oh_60percent_wash1           = Col('time_dehydr_ch3oh_60percent_wash1',)
+    time_dehydr_ch3oh_80percent_wash1           = Col('time_dehydr_ch3oh_80percent_wash1',)
+    time_dehydr_ch3oh_100percent_wash1          = Col('time_dehydr_ch3oh_100percent_wash1',)
+    time_dehydr_ch3oh_100percent_wash2          = Col('time_dehydr_ch3oh_100percent_wash2',)
+
+    time_dehydr_h202_wash1 = Col('time_dehydr_h202_wash1')
+    time_dehydr_ch3oh_100percent_wash3 = Col('time_dehydr_ch3oh_100percent_wash3')
+    time_dehydr_ch3oh_100percent_wash4 = Col('time_dehydr_ch3oh_100percent_wash4')
+    time_dehydr_ch3oh_100percent_wash5 = Col('time_dehydr_ch3oh_100percent_wash5')
+
+    time_dehydr_dcm_66percent_ch3oh_33percent = Col('time_dehydr_dcm_66percent_ch3oh_33percent')
+    time_dehydr_dcm_wash1 = Col('time_dehydr_dcm_wash1')
+    time_dehydr_dcm_wash2 = Col('time_dehydr_dcm_wash2')
+    time_dehydr_dbe_wash1 = Col('time_dehydr_dbe_wash1')
+    time_dehydr_dbe_wash2 = Col('time_dehydr_dbe_wash2')
+    clearing_notes                              = Col('clearing_notes')
+
 
 # class SelectCol(flask_table.Col):
 #     def td_format(self, content):

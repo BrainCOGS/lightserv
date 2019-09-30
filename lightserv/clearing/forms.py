@@ -3,12 +3,11 @@ from wtforms import StringField, SubmitField, TextAreaField, SelectField, Boolea
 from wtforms.fields.html5 import DateField, DateTimeLocalField
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError
 
+datetimeformat='%Y-%m-%dT%H:%M' # To get form.field.data to work. Does not work with the default (bug)
+
+
 class iDiscoPlusImmunoForm(FlaskForm):
 	""" The form for entering clearing information """
-	# notes = TextAreaField('iDISCO+_immuno Notes',validators=[Length(max=1000)])
-	datetimeformat='%Y-%m-%dT%H:%M' # To get form.field.data to work. Does not work with the default (bug)
-	# perfusion_date = DateField('Perfusion date')
-	# perfusion_date_submit = SubmitField('Update')
 	perfusion_date = DateField('Day 1: Perfusion')
 	perfusion_date_submit = SubmitField('Update')
 	
@@ -140,10 +139,6 @@ class iDiscoPlusImmunoForm(FlaskForm):
 
 class iDiscoAbbreviatedForm(FlaskForm):
 	""" The form for entering clearing information """
-	# notes = TextAreaField('iDISCO+_immuno Notes',validators=[Length(max=1000)])
-	datetimeformat='%Y-%m-%dT%H:%M' # To get form.field.data to work. Does not work with the default (bug)
-	# perfusion_date = DateField('Perfusion date')
-	# perfusion_date_submit = SubmitField('Update')
 	perfusion_date = DateField('Day 1: Perfusion')
 	perfusion_date_submit = SubmitField('Update')
 	
@@ -186,14 +181,62 @@ class iDiscoAbbreviatedForm(FlaskForm):
 
 	submit = SubmitField('Done')
 
+class iDiscoAbbreviatedRatForm(FlaskForm):
+	""" The form for entering clearing information """
+	perfusion_date = DateField('Day 1: Perfusion')
+	perfusion_date_submit = SubmitField('Update')
+	
+	pbs_date = DateField('Day 2: PBS wash')
+	pbs_date_submit = SubmitField('Push date to calendar')
+	time_pbs_wash1 = DateTimeLocalField('1xPBS R@RT30min',format=datetimeformat)
+	time_pbs_wash1_submit = SubmitField('Update')
+	time_pbs_wash2 = DateTimeLocalField('1xPBS R@RT30min',format=datetimeformat)
+	time_pbs_wash2_submit = SubmitField('Update')
+	time_pbs_wash3 = DateTimeLocalField('1xPBS R@RT30min',format=datetimeformat)
+	time_pbs_wash3_submit = SubmitField('Update')
+	
+	dehydr_date = DateField('Day 2 or 3: Dehydration')
+	dehydr_date_submit = SubmitField('Push date to calendar')
+	time_dehydr_ch3oh_20percent_wash1 = DateTimeLocalField('20% CH3OH R@RTX3hrs',format=datetimeformat)
+	time_dehydr_ch3oh_20percent_wash1_submit = SubmitField('Update')
+	time_dehydr_ch3oh_40percent_wash1 = DateTimeLocalField('40% CH3OH R@RTX3hrs',format=datetimeformat)
+	time_dehydr_ch3oh_40percent_wash1_submit = SubmitField('Update')
+	time_dehydr_ch3oh_60percent_wash1 = DateTimeLocalField('60% CH3OH R@RTX3hrs',format=datetimeformat)
+	time_dehydr_ch3oh_60percent_wash1_submit = SubmitField('Update')
+	time_dehydr_ch3oh_80percent_wash1 = DateTimeLocalField('80% CH3OH R@RTX3hrs',format=datetimeformat)
+	time_dehydr_ch3oh_80percent_wash1_submit = SubmitField('Update')
+	time_dehydr_ch3oh_100percent_wash1 = DateTimeLocalField('100% CH3OH R@RTX3hrs',format=datetimeformat)
+	time_dehydr_ch3oh_100percent_wash1_submit = SubmitField('Update')
+	time_dehydr_ch3oh_100percent_wash2 = DateTimeLocalField('100% CH3OH R@RTX3hrs (or overnight)',format=datetimeformat)
+	time_dehydr_ch3oh_100percent_wash2_submit = SubmitField('Update')
+	time_dehydr_h202_wash1 = DateTimeLocalField('5% H202 / Methanol (1 part 30% H202: 5 parts 100% methanol) ',format=datetimeformat)
+	time_dehydr_h202_wash1_submit = SubmitField('Update')
+	time_dehydr_ch3oh_100percent_wash3 = DateTimeLocalField('100% CH3OH R@RTX2hrs',format=datetimeformat)
+	time_dehydr_ch3oh_100percent_wash3_submit = SubmitField('Update')
+	time_dehydr_ch3oh_100percent_wash4 = DateTimeLocalField('100% CH3OH R@RTX2hrs',format=datetimeformat)
+	time_dehydr_ch3oh_100percent_wash4_submit = SubmitField('Update')
+	time_dehydr_ch3oh_100percent_wash5 = DateTimeLocalField('100% CH3OH R@RTX2hrs (or overnight)',format=datetimeformat)
+	time_dehydr_ch3oh_100percent_wash5_submit = SubmitField('Update')
+
+	time_dehydr_dcm_66percent_ch3oh_33percent = DateTimeLocalField('66% DCM / 33% CH3OH R@RTx6hrs',format=datetimeformat)
+	time_dehydr_dcm_66percent_ch3oh_33percent_submit = SubmitField('Update')
+	time_dehydr_dcm_wash1 = DateTimeLocalField('100% DCM R@RTx1hr (wash 1)',format=datetimeformat)
+	time_dehydr_dcm_wash1_submit = SubmitField('Update')
+	time_dehydr_dcm_wash2 = DateTimeLocalField('100% DCM R@RTx1hr (wash 2)',format=datetimeformat)
+	time_dehydr_dcm_wash2_submit = SubmitField('Update')
+	time_dehydr_dbe_wash1 = DateTimeLocalField('100% DBE > 3 hrs',format=datetimeformat)
+	time_dehydr_dbe_wash1_submit = SubmitField('Update')
+	time_dehydr_dbe_wash2 = DateTimeLocalField('100% DBE no rocking',format=datetimeformat)
+	time_dehydr_dbe_wash2_submit = SubmitField('Update')
+
+	clearing_notes = TextAreaField('Clearing Notes')
+	clearing_notes_submit = SubmitField('Update')
+
+	submit = SubmitField('Done')
+
 class uDiscoForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 	notes = TextAreaField('uDISCO Notes',validators=[Length(max=1000)])
-	submit = SubmitField('Submit Changes')	
-
-class iDiscoPlusForm(FlaskForm):
-	""" The form for requesting a new experiment/dataset """
-	notes = TextAreaField('iDISCO+ Notes',validators=[Length(max=1000)])
 	submit = SubmitField('Submit Changes')	
 
 class iDiscoEduForm(FlaskForm):
