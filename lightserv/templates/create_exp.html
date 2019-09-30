@@ -38,7 +38,17 @@
 				<legend class="border-bottom mb-2 mt-4">Clearing Setup</legend>
 				<div class="form-group">
 					{{ form.clearing_protocol.label(class="form-control-label mr-2") }}
-					{{ form.clearing_protocol(class="form-control form-control-lg") }}
+					{% if form.clearing_protocol.errors %}
+						{{ form.clearing_protocol(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.clearing_protocol.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.clearing_protocol(class="form-control form-control-lg") }}
+					{% endif %}
+
 				</div>
 				<div class="form-group">
 					{{ form.fluorophores.label(class="form-control-label") }}

@@ -25,14 +25,20 @@ def new_exp():
 	if form.validate_on_submit():
 		''' Create a new entry in the Experiment table based on form input.
 		'''
-		# dataset_hex=secrets.token_hex(5)
+		username = session['user']
 		exp_dict = dict(title=form.title.data,
 		 description=form.description.data,species=form.species.data,clearing_protocol=form.clearing_protocol.data,
 		 fluorophores=form.fluorophores.data,primary_antibody=form.primary_antibody.data,
 		 secondary_antibody=form.secondary_antibody.data,image_resolution=form.image_resolution.data,
 		 cell_detection=form.cell_detection.data,registration=form.registration.data,
 		 probe_detection=form.probe_detection.data,injection_detection=form.injection_detection.data,
-		 username=session['user']) 
+		 username=username)
+		all_usernames = db.User().fetch('username') 
+		if username not in all_usernames:
+			email = username + '@princeton.edu'
+			user_dict = {'username':username,'email':email}
+			db.User().insert1(user_dict)
+
 		db.Experiment().insert1(exp_dict)
 		# db.session.add(exp)
 		# db.session.commit()

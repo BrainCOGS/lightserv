@@ -11,8 +11,9 @@ class ExpForm(FlaskForm):
 	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],validators=[InputRequired(),Length(max=50)]) # for choices first element of tuple is the value of the option, the second is the displayed text
 	clearing_protocol = SelectField('Clearing Protocol:', choices= \
 		[('iDISCO abbreviated clearing','iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
-	('iDISCO+_immuno','iDISCO+ (immunostaining)'),
-	('uDISCO','uDISCO'),('iDISCO+','iDISCO+'),('iDISCO_EdU','Wang Lab iDISCO Protocol-EdU')],validators=[InputRequired()]) # for choices first element of tuple is the value of the option, the second is the displayed text
+		 ('iDISCO abbreviated clearing (rat)','Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
+	     ('iDISCO+_immuno','iDISCO+ (immunostaining)'),
+	     ('uDISCO','uDISCO'),('iDISCO_EdU','Wang Lab iDISCO Protocol-EdU')],validators=[InputRequired()]) # for choices first element of tuple is the value of the option, the second is the displayed text
 	fluorophores = TextAreaField('Fluorophores/dyes involved (E.g. AlexaFluor 647 or Thy1-YFP mouse)',validators=[Length(max=100)])
 	primary_antibody = TextAreaField('Primary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
 	secondary_antibody = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
@@ -39,6 +40,15 @@ class ExpForm(FlaskForm):
 		if self.clearing_protocol.data == 'iDISCO+_immuno' and primary_antibody.data == '':
 			raise ValidationError('Antibody must be specified because you selected \
 				an immunostaining clearing protocol')
+
+	def validate_clearing_protocol(self,clearing_protocol):
+		''' Makes sure that the clearing protocol selected is appropriate for the species selected. '''
+		if clearing_protocol.data == 'iDISCO abbreviated clearing' and self.species.data == 'rat':
+			raise ValidationError('This clearing protocol is not allowed for rats. \
+				Did you mean to choose: Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)?')
+		elif clearing_protocol.data == 'iDISCO abbreviated clearing (rat)' and self.species.data != 'rat':
+			raise ValidationError('This clearing protocol is only allowed for rats. \
+				Did you mean to choose: iDISCO for non-oxidizable fluorophores (abbreviated clearing)?')
 
 class UpdateNotesForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
