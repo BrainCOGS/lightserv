@@ -15,7 +15,7 @@ from lightserv import create_app, config
 # from ..models import User, Experiment
 import secrets
 import pytest
-from flask import url_for, session
+from flask import url_for
 import datajoint as dj
 
 
@@ -60,14 +60,9 @@ def test_schema():
 def test_login(test_client):
 	""" Log the user in. Requires a test_client fixture to do this. """
 	print('----------Setup login response----------')
-	test_username = "testuser"
-	test_password = "testing"
-	response = test_client.post(
-				'/login',
-				data=dict(username=test_username, password=test_password),
-				follow_redirects=True
-			)
-	session['user'] = test_username
-	yield response
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'ahoag'
+
+	yield sess
 	print('----------Teardown login response----------')
 	pass

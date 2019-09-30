@@ -4,7 +4,7 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from lightserv.config import Config
 import datajoint as dj
-from lightserv.tests.test_schemata import create_test_schema
+from lightserv.tests.make_test_schemata import create_test_schema
 import socket
 
 dj.config['database.user'] = 'ahoag'
@@ -48,7 +48,6 @@ def create_app(config_class=Config):
 	from lightserv.clearing.routes import clearing
 	from lightserv.microscope.routes import microscope
 	from lightserv.errors.handlers import errors
-
 
 	# app.register_blueprint(users)
 	app.register_blueprint(experiments)

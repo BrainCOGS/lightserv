@@ -37,13 +37,14 @@ def home():
 def login():
 	next_url = request.args.get("next")
 	print("Logging you in first!")
-	print(next_url)
 	hostname = socket.gethostname()
 	if hostname == 'braincogs00.pni.princeton.edu':
 		username = request.headers['X-Remote-User']
 	else:
 		username = 'ahoag'
+
 	session['user'] = username
+	# print(session)
 	return redirect(next_url)
 
 @main.route("/allenatlas")

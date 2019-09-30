@@ -15,6 +15,5 @@ def logged_in(f):
 		else:
 			next_url = request.url
 			login_url = '%s?next=%s' % (url_for('main.login'), next_url)
-			print(login_url)
 			return redirect(login_url)
 	return decorated_function

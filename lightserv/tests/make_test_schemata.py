@@ -66,10 +66,6 @@ def create_test_schema():
     with open(experiment_test_data_file,'rb') as f:
         experiment_test_data = pickle.load(f)
 
-    
-
-
-    return test_schema
 
     def fill_user_exp_tables():
         """ Fills the User() and Experiment() tables 
@@ -135,3 +131,4 @@ def create_test_schema():
             Experiment().insert1(exp_insert_dict)
 
     fill_user_exp_tables()
+    return test_schema
