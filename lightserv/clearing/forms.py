@@ -9,6 +9,8 @@ datetimeformat='%Y-%m-%dT%H:%M' # To get form.field.data to work. Does not work 
 class iDiscoPlusImmunoForm(FlaskForm):
 	""" The form for entering clearing information """
 	title = 'iDISCO+ Immunostaining'
+	exp_notes = TextAreaField('Experiment Notes: If anything unusual happened during the experiment that might affect clearing, please note it here.')
+	exp_notes_submit = SubmitField('Update')
 	perfusion_date = DateField('Day 1: Perfusion')
 	perfusion_date_submit = SubmitField('Update')
 	
@@ -141,7 +143,8 @@ class iDiscoPlusImmunoForm(FlaskForm):
 class iDiscoAbbreviatedForm(FlaskForm):
 	""" The form for entering clearing information """
 	title = 'iDISCO for non-oxidative fluorophores (abbreviated clearing)'
-
+	exp_notes = TextAreaField('Experiment Notes: If anything unusual happened during the experiment that might affect clearing, please note it here.')
+	exp_notes_submit = SubmitField('Update')
 	perfusion_date = DateField('Day 1: Perfusion')
 	perfusion_date_submit = SubmitField('Update')
 	
@@ -187,7 +190,8 @@ class iDiscoAbbreviatedForm(FlaskForm):
 class iDiscoAbbreviatedRatForm(FlaskForm):
 	""" The form for entering clearing information """
 	title = 'Rat: iDISCO for non-oxidative fluorophores (abbreviated clearing)'
-
+	exp_notes = TextAreaField('Experiment Notes: If anything unusual happened during the experiment that might affect clearing, please note it here.')
+	exp_notes_submit = SubmitField('Update')
 	perfusion_date = DateField('Day 1: Perfusion')
 	perfusion_date_submit = SubmitField('Update')
 	
@@ -242,7 +246,8 @@ class iDiscoAbbreviatedRatForm(FlaskForm):
 class uDiscoForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 	title = 'uDISCO'
-
+	exp_notes = TextAreaField('Experiment Notes: If anything unusual happened during the experiment that might affect clearing, please note it here.')
+	exp_notes_submit = SubmitField('Update')
 	perfusion_date = DateField('Day 1: Perfusion')
 	perfusion_date_submit = SubmitField('Update')
 	

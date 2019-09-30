@@ -8,8 +8,12 @@
 			<fieldset class="form-group">
 				<legend class="border-bottom mb-4">Clearing protocol: {{form.title}}</br></br>Entry log for experiment_id={{experiment_id}}:</legend>
 				<div>
-					</br>
-					{{form.perfusion_date.label(class="border-bottom font-weight-bold",id='larger')}}
+					{{ form.exp_notes.label(class="border-bottom",id='larger')}}
+					{{ form.exp_notes(class="form-control form-control-lg")}}
+					{{ form.exp_notes_submit(class="btn btn-sm btn-info mt-2") }}
+				</div>
+				<div>
+					{{ form.perfusion_date.label(class="border-bottom font-weight-bold mt-4",id='larger')}}
 				    {{ form.perfusion_date(class='datepicker') }}
 					{{ form.perfusion_date_submit(class="btn btn-sm btn-info") }}
 				</div>
