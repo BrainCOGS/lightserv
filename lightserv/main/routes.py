@@ -16,7 +16,7 @@ main = Blueprint('main',__name__)
 def home():
 	# if 'user' not in session: # When the user has just logged into CAS 
 	# username = session['user']
-	print(session)
+	# print(session)
 	hostname = socket.gethostname()
 	if hostname == 'braincogs00.pni.princeton.edu':
 		username = request.headers['X-Remote-User']

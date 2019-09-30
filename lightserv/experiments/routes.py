@@ -28,8 +28,8 @@ def new_exp():
 		username = session['user']
 		exp_dict = dict(title=form.title.data,
 		 description=form.description.data,species=form.species.data,clearing_protocol=form.clearing_protocol.data,
-		 fluorophores=form.fluorophores.data,primary_antibody=form.primary_antibody.data,
-		 secondary_antibody=form.secondary_antibody.data,image_resolution=form.image_resolution.data,
+		 fluorophores=form.fluorophores.data,antibody1=form.antibody1.data,
+		 antibody2=form.antibody2.data,image_resolution=form.image_resolution.data,
 		 cell_detection=form.cell_detection.data,registration=form.registration.data,
 		 probe_detection=form.probe_detection.data,injection_detection=form.injection_detection.data,
 		 username=username)
@@ -40,12 +40,8 @@ def new_exp():
 			db.User().insert1(user_dict)
 
 		db.Experiment().insert1(exp_dict)
-		# db.session.add(exp)
-		# db.session.commit()
 		exp_id = db.Experiment().fetch("KEY")[-1]['experiment_id'] # gets the most recently added key
-		# print(url_for(experiments.exp))
 		flash(Markup(f'Your experiment has started!\nCheck your new experiment page: <a href="{url_for("experiments.exp",experiment_id=exp_id)}" class="alert-link" target="_blank">here</a> for your data when it becomes available.'),'success')
-		# flash(f'Your experiment has started!\nCheck your new experiment page (Experiment_ID={exp_id}) for your data when it becomes available.','success')
 		return redirect(url_for('main.home'))
 
 	return render_template('experiments/create_exp.html', title='new_experiment',

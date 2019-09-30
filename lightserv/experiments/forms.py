@@ -15,8 +15,8 @@ class ExpForm(FlaskForm):
 	     ('iDISCO+_immuno','iDISCO+ (immunostaining)'),
 	     ('uDISCO','uDISCO'),('iDISCO_EdU','Wang Lab iDISCO Protocol-EdU')],validators=[InputRequired()]) # for choices first element of tuple is the value of the option, the second is the displayed text
 	fluorophores = TextAreaField('Fluorophores/dyes involved (E.g. AlexaFluor 647 or Thy1-YFP mouse)',validators=[Length(max=100)])
-	primary_antibody = TextAreaField('Primary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
-	secondary_antibody = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
+	antibody1 = TextAreaField('Primary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
+	antibody2 = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
 	''' Imaging parameters '''
 	image_resolution = SelectField('Image Resolution:', 
 		choices=[('1.3x','1.3x (low-res: good for site detection, whole brain c-fos quantification, or registration)'),
@@ -27,10 +27,10 @@ class ExpForm(FlaskForm):
 	injection_detection = BooleanField('Injection site detection',default=False)
 	submit = SubmitField('Start experiment')	
 
-	def validate_primary_antibody(self,primary_antibody):
+	def validate_antibody1(self,antibody1):
 		''' Makes sure that primary antibody is not blank if immunostaining clearing protocol
 		is chosen  '''
-		if self.clearing_protocol.data == 'iDISCO+_immuno' and primary_antibody.data == '':
+		if self.clearing_protocol.data == 'iDISCO+_immuno' and antibody1.data == '':
 			raise ValidationError('Antibody must be specified because you selected \
 				an immunostaining clearing protocol')
 
