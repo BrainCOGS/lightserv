@@ -8,7 +8,7 @@
 			<fieldset class="form-group">
 				<legend class="border-bottom mb-4">Clearing protocol: {{form.title}}</br></br>Entry log for experiment_id={{experiment_id}}:</legend>
 				<div>
-					{{ form.exp_notes.label(class="border-bottom",id='larger')}}
+					{{ form.exp_notes.label(id='larger')}}
 					{{ form.exp_notes(class="form-control form-control-lg")}}
 					{{ form.exp_notes_submit(class="btn btn-sm btn-info mt-2") }}
 				</div>
@@ -22,6 +22,9 @@
 				{% for key in form._fields %}
 					{% if form._fields[key].type == 'DateTimeLocalField' %}
 						{% set submit_key = key + '_submit' %}
+						{% set notes_key = key[5:] + '_notes' %}
+						{% set notes_update_key = key[5:] + '_notes_submit' %}
+
 						{% set thisday = key.split('_')[1] %}
 						{% set thisday_date = thisday + '_date' %}
 						{% set thisday_date_submit = thisday + '_date_submit' %}
@@ -39,6 +42,11 @@
 							{{ form[key].label }}
 							{{ form[key](class='datetime-local') }}
 							{{ form[submit_key](class="btn btn-sm btn-info") }}
+							</br>
+							{{ form[notes_key].label }}
+							{{ form[notes_key](class="form-control form-control-lg ") }}
+							{{ form[notes_update_key](class="btn btn-sm btn-info mt-2") }}
+
 						</div>
 					{% endif %}
 				{% endfor %}
