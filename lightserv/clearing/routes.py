@@ -49,40 +49,46 @@ def clearing_entry(clearing_protocol,experiment_id):
 
 	''' Handle user's post requests '''
 	if request.method == 'POST':
-		submit_keys = [x for x in form._fields.keys() if 'submit' in x]
-		for key in submit_keys:
-			if form[key].data:
+		if form.validate_on_submit():
+			submit_keys = [x for x in form._fields.keys() if 'submit' in x]
+			for key in submit_keys:
+				if form[key].data:
 
-				if key == 'submit': # The final submit button
-					print("Submitting entire form")
-					return redirect(url_for('clearing.clearing_table',experiment_id=experiment_id))
-				elif re.search("^(?!perfusion).*_date_submit$",key) != None:
-					column_name = key.split('_submit')[0]
-					date = form[column_name].data
-					if date == None:
-						flash("Please enter a valid date to push to the Clearing Calendar",'danger')
+					if key == 'submit': # The final submit button
+						print("Submitting entire form")
+						return redirect(url_for('clearing.clearing_table',experiment_id=experiment_id))
+					elif re.search("^(?!perfusion).*_date_submit$",key) != None:
+						column_name = key.split('_submit')[0]
+						date = form[column_name].data
+						if date == None:
+							flash("Please enter a valid date to push to the Clearing Calendar",'danger')
+							break
+						else:
+							username = clearing_contents.fetch1('username')
+							clearing_step = key.split('_')[0]
+							summary = f'{username} {clearing_protocol} {clearing_step}'
+							add_clearing_calendar_entry(date=date,
+							summary=summary)
+							flash("Event added to Clearing Calendar. Check the calendar.",'success')
 						break
-					else:
-						username = clearing_contents.fetch1('username')
-						clearing_step = key.split('_')[0]
-						summary = f'{username} {clearing_protocol} {clearing_step}'
-						print(summary)
-						add_clearing_calendar_entry(date=date,
-						summary=summary)
-						flash("Event added to Clearing Calendar. Check the calendar.",'success')
-					break
-				else: 
-					''' Update the row '''
-					column_name = key.split('_submit')[0]
-					clearing_entry_dict = clearing_contents.fetch1() # returns as a dict
-					clearing_entry_dict[column_name]=form[column_name].data
-					clearing_contents.delete_quick()
-					dbTable().insert1(clearing_entry_dict)
-					print(f"updated row for value: {column_name}")
-					break
+					else: 
+						''' Update the row '''
+						column_name = key.split('_submit')[0]
+						clearing_entry_dict = clearing_contents.fetch1() # returns as a dict
+						clearing_entry_dict[column_name]=form[column_name].data
+						clearing_contents.delete_quick()
+						dbTable().insert1(clearing_entry_dict)
+						print(f"updated row for value: {column_name}")
+						this_index = submit_keys.index(key)
+						next_index = this_index + 1 if 'notes' in column_name else this_index+2
+						column_name = submit_keys[next_index].split('_submit')[0]
+						break
+			else:
+				column_name=None
 		else:
-			column_name=None
-
+			''' Find the first form field where there was an error and set the column_name to it 
+			so the focus is set there upon reload of page '''
+			column_name = list(form.errors.keys())[0]
 	else:
 		column_name = None
 	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,

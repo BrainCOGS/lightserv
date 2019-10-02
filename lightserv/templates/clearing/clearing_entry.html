@@ -2,14 +2,23 @@
 {% block content %}
 	{{ clearing_table }}
 	 <div class="content-section mt-4">
-		<form method="POST" action="{{ url_for('clearing.clearing_entry',clearing_protocol=clearing_protocol,experiment_id=experiment_id) }}">
+		<form method="POST" action="">
 			{{ form.hidden_tag() }}
 			{% set day_dictionary = {'dehydr':'Dehydration','rehydr':'Rehydration','blocking':'Blocking','antibody1':'Primary Antibody','antibody2':'Secondary Antibody','clearing':'Clearing','wash1':'Wash','wash2':'Wash'} %}
 			<fieldset class="form-group">
 				<legend class="border-bottom mb-4">Clearing protocol: {{form.title}}</br></br>Entry log for experiment_id={{experiment_id}}:</legend>
 				<div>
 					{{ form.exp_notes.label(id='larger')}}
-					{{ form.exp_notes(class="form-control form-control-lg")}}
+					{% if form.exp_notes.errors %}
+						{{ form.exp_notes(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.exp_notes.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.exp_notes(class="form-control form-control-lg") }}
+					{% endif %}
 					{{ form.exp_notes_submit(class="btn btn-sm btn-info mt-2") }}
 				</div>
 				<div>
@@ -18,6 +27,7 @@
 					{{ form.perfusion_date_submit(class="btn btn-sm btn-info") }}
 				</div>
 
+				<!-- Loop through the form fields and render them.  -->
 				{% set lastday_dict = {'lastday':'perfusion','counter': 2} %}
 				{% for key in form._fields %}
 					{% if form._fields[key].type == 'DateTimeLocalField' %}
@@ -29,6 +39,8 @@
 						{% set thisday_date = thisday + '_date' %}
 						{% set thisday_date_submit = thisday + '_date_submit' %}
 						{% set current_counter = lastday_dict['counter'] %}
+						<!-- If the prefix of the form field changes, then it is a new clearing day
+						and we need to represent that with a larger title and a new field -->
 						{% if thisday != lastday_dict['lastday'] %}
 							{{ form[thisday_date].label(class="border-bottom font-weight-bold mt-4",id='larger')}}
 							{{ form[thisday_date](class='datepicker') }}
@@ -40,12 +52,23 @@
 						{% endif %}
 						<div> </br>
 							{{ form[key].label }}
+							
 							{{ form[key](class='datetime-local') }}
 							{{ form[submit_key](class="btn btn-sm btn-info") }}
 							</br>
 							{{ form[notes_key].label }}
-							{{ form[notes_key](class="form-control form-control-lg ") }}
-							{{ form[notes_update_key](class="btn btn-sm btn-info mt-2") }}
+							{% if form[notes_key].errors %}
+								{{ form[notes_key](class="form-control form-control-lg is-invalid") }}
+								{{ form[notes_update_key](class="btn btn-sm btn-info mt-2") }}
+									<div class="invalid-feedback">
+									{% for error in form[notes_key].errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+							{% else %}
+								{{ form[notes_key](class="form-control form-control-lg ") }}
+								{{ form[notes_update_key](class="btn btn-sm btn-info mt-2") }}
+							{% endif %}
+							
 
 						</div>
 					{% endif %}
