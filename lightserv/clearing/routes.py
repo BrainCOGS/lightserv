@@ -17,25 +17,19 @@ import re
 
 clearing = Blueprint('clearing',__name__)
 
-@clearing.route("/clearingfinder/<experiment_id>",methods=['GET'])
-@logged_in
-def clearing_finder(experiment_id):
-	""" Given an experiment_id redirect to the correct 
-	clearing protocol route """
-	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
-
-	clearing_protocol = exp_contents.fetch1('clearing_protocol')
-	return determine_clearing_route(clearing_protocol,experiment_id)
-
 @clearing.route("/clearing/clearing_entry/<clearing_protocol>/<experiment_id>",methods=['GET','POST'])
 @logged_in
 def clearing_entry(clearing_protocol,experiment_id): 
-	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
-	assert exp_contents, f"experiment_id={experiment_id} does not exist.\
-						   It must exist before the clearing for this experiment can be done"
+	exp_contents = db.Experiment() & f'experiment_id={experiment_id}' & f'clearing_protocol="{clearing_protocol}"'
+	if not exp_contents:
+		flash(f'Experiment must exist for experiment_id={experiment_id} with \
+			clearing_protocol="{clearing_protocol}" before clearing can be done. \
+			Please submit a new request for this experiment first. ','danger')
+		return redirect(url_for('experiments.new_exp'))
+
 	clearing_table = ClearingTable(exp_contents)
 	form = determine_clearing_form(clearing_protocol,existing_form=request.form)
-	print(clearing_protocol)
+	
 	dbTable = determine_clearing_dbtable(clearing_protocol)
 	''' Check to see if there is an entry in the db yet. If not create one with all NULL values.
 	They will get updated as the user fills out the form '''
