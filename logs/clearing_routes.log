@@ -1,0 +1,1532 @@
+2019-10-03 11:38:41,129:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 11:38:41,142:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 11:38:41,142:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 11:39:08,925:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 11:39:31,590:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 11:39:31,606:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 11:39:31,606:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 11:42:42,019:lightserv.clearing.routes:OrderedDict([('exp_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e16738908>), ('exp_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e16738a90>), ('perfusion_date', <wtforms.fields.html5.DateField object at 0x7f8e16738b00>), ('perfusion_date_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e16738cf8>), ('dehydr_date', <wtforms.fields.html5.DateField object at 0x7f8e16738080>), ('dehydr_date_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e16738198>), ('time_dehydr_pbs_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e16738208>), ('time_dehydr_pbs_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e16738400>), ('dehydr_pbs_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e16738438>), ('dehydr_pbs_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e167385c0>), ('time_dehydr_pbs_wash2', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e16738668>), ('time_dehydr_pbs_wash2_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e16738b38>), ('dehydr_pbs_wash2_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e16738da0>), ('dehydr_pbs_wash2_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a4080>), ('time_dehydr_pbs_wash3', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164a4128>), ('time_dehydr_pbs_wash3_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a41d0>), ('dehydr_pbs_wash3_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164a4278>), ('dehydr_pbs_wash3_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a4320>), ('time_dehydr_ch3oh_20percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164a43c8>), ('time_dehydr_ch3oh_20percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a4470>), ('dehydr_ch3oh_20percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164a4518>), ('dehydr_ch3oh_20percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a45c0>), ('time_dehydr_ch3oh_40percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164a4668>), ('time_dehydr_ch3oh_40percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a4710>), ('dehydr_ch3oh_40percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164a47b8>), ('dehydr_ch3oh_40percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a4860>), ('time_dehydr_ch3oh_60percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164a4908>), ('time_dehydr_ch3oh_60percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a49b0>), ('dehydr_ch3oh_60percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164a4a58>), ('dehydr_ch3oh_60percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a4b00>), ('time_dehydr_ch3oh_80percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164a4ba8>), ('time_dehydr_ch3oh_80percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a4c50>), ('dehydr_ch3oh_80percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164a4cf8>), ('dehydr_ch3oh_80percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a4da0>), ('time_dehydr_ch3oh_100percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164a4e48>), ('time_dehydr_ch3oh_100percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a4ef0>), ('dehydr_ch3oh_100percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164a4f98>), ('dehydr_ch3oh_100percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a9048>), ('time_dehydr_ch3oh_100percent_wash2', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164a9128>), ('time_dehydr_ch3oh_100percent_wash2_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a91d0>), ('dehydr_ch3oh_100percent_wash2_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164a9278>), ('dehydr_ch3oh_100percent_wash2_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a9320>), ('time_dehydr_h202_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164a93c8>), ('time_dehydr_h202_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a9470>), ('dehydr_h202_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164a9518>), ('dehydr_h202_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a95c0>), ('rehydr_date', <wtforms.fields.html5.DateField object at 0x7f8e164a9668>), ('rehydr_date_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a9710>), ('time_rehydr_ch3oh_100percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164a97b8>), ('time_rehydr_ch3oh_100percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a9860>), ('rehydr_ch3oh_100percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164a9908>), ('rehydr_ch3oh_100percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a99b0>), ('time_rehydr_ch3oh_80percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164a9a58>), ('time_rehydr_ch3oh_80percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a9b00>), ('rehydr_ch3oh_80percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164a9ba8>), ('rehydr_ch3oh_80percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a9c50>), ('time_rehydr_ch3oh_60percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164a9cf8>), ('time_rehydr_ch3oh_60percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a9da0>), ('rehydr_ch3oh_60percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164a9e48>), ('rehydr_ch3oh_60percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164a9ef0>), ('time_rehydr_ch3oh_40percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164a9f98>), ('time_rehydr_ch3oh_40percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164ad080>), ('rehydr_ch3oh_40percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164ad128>), ('rehydr_ch3oh_40percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164ad1d0>), ('time_rehydr_ch3oh_20percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164ad278>), ('time_rehydr_ch3oh_20percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164ad320>), ('rehydr_ch3oh_20percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164ad3c8>), ('rehydr_ch3oh_20percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164ad470>), ('time_rehydr_pbs_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164ad518>), ('time_rehydr_pbs_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164ad5c0>), ('rehydr_pbs_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164ad668>), ('rehydr_pbs_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164ad710>), ('time_rehydr_sodium_azide_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164ad7b8>), ('time_rehydr_sodium_azide_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164ad860>), ('rehydr_sodium_azide_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164ad908>), ('rehydr_sodium_azide_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164ad9b0>), ('time_rehydr_sodium_azide_wash2', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164ada58>), ('time_rehydr_sodium_azide_wash2_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164adb00>), ('rehydr_sodium_azide_wash2_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164adba8>), ('rehydr_sodium_azide_wash2_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164adc50>), ('time_rehydr_glycine_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164adcf8>), ('time_rehydr_glycine_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164adda0>), ('rehydr_glycine_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164ade48>), ('rehydr_glycine_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164adef0>), ('blocking_date', <wtforms.fields.html5.DateField object at 0x7f8e164adf98>), ('blocking_date_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b0080>), ('time_blocking_start_roomtemp', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b0128>), ('time_blocking_start_roomtemp_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b01d0>), ('blocking_start_roomtemp_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b0278>), ('blocking_start_roomtemp_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b0320>), ('time_blocking_donkey_serum', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b03c8>), ('time_blocking_donkey_serum_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b0470>), ('blocking_donkey_serum_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b0518>), ('blocking_donkey_serum_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b05c0>), ('antibody1_date', <wtforms.fields.html5.DateField object at 0x7f8e164b0668>), ('antibody1_date_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b0710>), ('time_antibody1_start_roomtemp', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b07b8>), ('time_antibody1_start_roomtemp_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b0860>), ('antibody1_start_roomtemp_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b0908>), ('antibody1_start_roomtemp_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b09b0>), ('time_antibody1_ptwh_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b0a58>), ('time_antibody1_ptwh_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b0b00>), ('antibody1_ptwh_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b0ba8>), ('antibody1_ptwh_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b0c50>), ('time_antibody1_ptwh_wash2', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b0cf8>), ('time_antibody1_ptwh_wash2_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b0da0>), ('antibody1_ptwh_wash2_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b0e48>), ('antibody1_ptwh_wash2_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b0ef0>), ('time_antibody1_added', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b0f98>), ('time_antibody1_added_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b4080>), ('antibody1_added_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b4128>), ('antibody1_added_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b41d0>), ('wash1_date', <wtforms.fields.html5.DateField object at 0x7f8e164b4278>), ('wash1_date_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b4320>), ('time_wash1_start_roomtemp', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b43c8>), ('time_wash1_start_roomtemp_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b4470>), ('wash1_start_roomtemp_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b4518>), ('wash1_start_roomtemp_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b45c0>), ('time_wash1_ptwh_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b4668>), ('time_wash1_ptwh_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b4710>), ('wash1_ptwh_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b47b8>), ('wash1_ptwh_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b4860>), ('time_wash1_ptwh_wash2', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b4908>), ('time_wash1_ptwh_wash2_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b49b0>), ('wash1_ptwh_wash2_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b4a58>), ('wash1_ptwh_wash2_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b4b00>), ('time_wash1_ptwh_wash3', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b4ba8>), ('time_wash1_ptwh_wash3_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b4c50>), ('wash1_ptwh_wash3_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b4cf8>), ('wash1_ptwh_wash3_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b4da0>), ('time_wash1_ptwh_wash4', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b4e48>), ('time_wash1_ptwh_wash4_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b4ef0>), ('wash1_ptwh_wash4_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b4f98>), ('wash1_ptwh_wash4_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b7080>), ('time_wash1_ptwh_wash5', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b7128>), ('time_wash1_ptwh_wash5_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b71d0>), ('wash1_ptwh_wash5_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b7278>), ('wash1_ptwh_wash5_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b7320>), ('antibody2_date', <wtforms.fields.html5.DateField object at 0x7f8e164b73c8>), ('antibody2_date_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b7470>), ('time_antibody2_added', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b7518>), ('time_antibody2_added_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b75c0>), ('antibody2_added_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b7668>), ('antibody2_added_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b7710>), ('wash2_date', <wtforms.fields.html5.DateField object at 0x7f8e164b77b8>), ('wash2_date_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b7860>), ('time_wash2_start_roomtemp', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b7908>), ('time_wash2_start_roomtemp_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b79b0>), ('wash2_start_roomtemp_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b7a58>), ('wash2_start_roomtemp_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b7b00>), ('time_wash2_ptwh_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b7ba8>), ('time_wash2_ptwh_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b7c50>), ('wash2_ptwh_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b7cf8>), ('wash2_ptwh_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b7da0>), ('time_wash2_ptwh_wash2', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164b7e48>), ('time_wash2_ptwh_wash2_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164b7ef0>), ('wash2_ptwh_wash2_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164b7f98>), ('wash2_ptwh_wash2_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164bb080>), ('time_wash2_ptwh_wash3', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164bb128>), ('time_wash2_ptwh_wash3_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164bb1d0>), ('wash2_ptwh_wash3_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164bb278>), ('wash2_ptwh_wash3_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164bb320>), ('time_wash2_ptwh_wash4', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164bb3c8>), ('time_wash2_ptwh_wash4_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164bb470>), ('wash2_ptwh_wash4_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164bb518>), ('wash2_ptwh_wash4_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164bb5c0>), ('time_wash2_ptwh_wash5', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164bb668>), ('time_wash2_ptwh_wash5_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164bb710>), ('wash2_ptwh_wash5_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164bb7b8>), ('wash2_ptwh_wash5_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164bb860>), ('clearing_date', <wtforms.fields.html5.DateField object at 0x7f8e164bb908>), ('clearing_date_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164bb9b0>), ('time_clearing_ch3oh_20percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164bba58>), ('time_clearing_ch3oh_20percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164bbb00>), ('clearing_ch3oh_20percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164bbba8>), ('clearing_ch3oh_20percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164bbc50>), ('time_clearing_ch3oh_40percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164bbcf8>), ('time_clearing_ch3oh_40percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164bbda0>), ('clearing_ch3oh_40percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164bbe48>), ('clearing_ch3oh_40percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164bbef0>), ('time_clearing_ch3oh_60percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164bbf98>), ('time_clearing_ch3oh_60percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c0048>), ('clearing_ch3oh_60percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164c0128>), ('clearing_ch3oh_60percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c01d0>), ('time_clearing_ch3oh_80percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164c0278>), ('time_clearing_ch3oh_80percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c0320>), ('clearing_ch3oh_80percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164c03c8>), ('clearing_ch3oh_80percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c0470>), ('time_clearing_ch3oh_100percent_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164c0518>), ('time_clearing_ch3oh_100percent_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c05c0>), ('clearing_ch3oh_100percent_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164c0668>), ('clearing_ch3oh_100percent_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c0710>), ('time_clearing_ch3oh_100percent_wash2', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164c07b8>), ('time_clearing_ch3oh_100percent_wash2_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c0860>), ('clearing_ch3oh_100percent_wash2_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164c0908>), ('clearing_ch3oh_100percent_wash2_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c09b0>), ('time_clearing_dcm_66percent_ch3oh_33percent', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164c0a58>), ('time_clearing_dcm_66percent_ch3oh_33percent_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c0b00>), ('clearing_dcm_66percent_ch3oh_33percent_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164c0ba8>), ('clearing_dcm_66percent_ch3oh_33percent_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c0c50>), ('time_clearing_dcm_wash1', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164c0cf8>), ('time_clearing_dcm_wash1_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c0da0>), ('clearing_dcm_wash1_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164c0e48>), ('clearing_dcm_wash1_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c0ef0>), ('time_clearing_dcm_wash2', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164c0f98>), ('time_clearing_dcm_wash2_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c2080>), ('clearing_dcm_wash2_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164c2128>), ('clearing_dcm_wash2_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c21d0>), ('time_clearing_dbe', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164c2278>), ('time_clearing_dbe_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c2320>), ('clearing_dbe_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164c23c8>), ('clearing_dbe_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c2470>), ('time_clearing_new_tubes', <wtforms.fields.html5.DateTimeLocalField object at 0x7f8e164c2518>), ('time_clearing_new_tubes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c25c0>), ('clearing_new_tubes_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164c2668>), ('clearing_new_tubes_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c2710>), ('clearing_notes', <wtforms.fields.simple.TextAreaField object at 0x7f8e164c27b8>), ('clearing_notes_submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c2860>), ('submit', <wtforms.fields.simple.SubmitField object at 0x7f8e164c2908>), ('csrf_token', <wtforms.csrf.core.CSRFTokenField object at 0x7f8e164c29b0>)])
+2019-10-03 11:42:42,020:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 11:42:42,036:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 11:42:42,036:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 11:43:15,885:lightserv.clearing.routes:{'exp_notes': '', 'exp_notes_submit': False, 'perfusion_date': None, 'perfusion_date_submit': False, 'dehydr_date': None, 'dehydr_date_submit': False, 'time_dehydr_pbs_wash1': None, 'time_dehydr_pbs_wash1_submit': False, 'dehydr_pbs_wash1_notes': '', 'dehydr_pbs_wash1_notes_submit': False, 'time_dehydr_pbs_wash2': None, 'time_dehydr_pbs_wash2_submit': False, 'dehydr_pbs_wash2_notes': '', 'dehydr_pbs_wash2_notes_submit': False, 'time_dehydr_pbs_wash3': None, 'time_dehydr_pbs_wash3_submit': False, 'dehydr_pbs_wash3_notes': '', 'dehydr_pbs_wash3_notes_submit': False, 'time_dehydr_ch3oh_20percent_wash1': None, 'time_dehydr_ch3oh_20percent_wash1_submit': False, 'dehydr_ch3oh_20percent_wash1_notes': '', 'dehydr_ch3oh_20percent_wash1_notes_submit': False, 'time_dehydr_ch3oh_40percent_wash1': None, 'time_dehydr_ch3oh_40percent_wash1_submit': False, 'dehydr_ch3oh_40percent_wash1_notes': '', 'dehydr_ch3oh_40percent_wash1_notes_submit': False, 'time_dehydr_ch3oh_60percent_wash1': None, 'time_dehydr_ch3oh_60percent_wash1_submit': False, 'dehydr_ch3oh_60percent_wash1_notes': '', 'dehydr_ch3oh_60percent_wash1_notes_submit': False, 'time_dehydr_ch3oh_80percent_wash1': None, 'time_dehydr_ch3oh_80percent_wash1_submit': False, 'dehydr_ch3oh_80percent_wash1_notes': '', 'dehydr_ch3oh_80percent_wash1_notes_submit': False, 'time_dehydr_ch3oh_100percent_wash1': None, 'time_dehydr_ch3oh_100percent_wash1_submit': False, 'dehydr_ch3oh_100percent_wash1_notes': '', 'dehydr_ch3oh_100percent_wash1_notes_submit': False, 'time_dehydr_ch3oh_100percent_wash2': None, 'time_dehydr_ch3oh_100percent_wash2_submit': False, 'dehydr_ch3oh_100percent_wash2_notes': '', 'dehydr_ch3oh_100percent_wash2_notes_submit': False, 'time_dehydr_h202_wash1': None, 'time_dehydr_h202_wash1_submit': False, 'dehydr_h202_wash1_notes': '', 'dehydr_h202_wash1_notes_submit': False, 'rehydr_date': None, 'rehydr_date_submit': False, 'time_rehydr_ch3oh_100percent_wash1': None, 'time_rehydr_ch3oh_100percent_wash1_submit': False, 'rehydr_ch3oh_100percent_wash1_notes': '', 'rehydr_ch3oh_100percent_wash1_notes_submit': False, 'time_rehydr_ch3oh_80percent_wash1': None, 'time_rehydr_ch3oh_80percent_wash1_submit': False, 'rehydr_ch3oh_80percent_wash1_notes': '', 'rehydr_ch3oh_80percent_wash1_notes_submit': False, 'time_rehydr_ch3oh_60percent_wash1': None, 'time_rehydr_ch3oh_60percent_wash1_submit': False, 'rehydr_ch3oh_60percent_wash1_notes': '', 'rehydr_ch3oh_60percent_wash1_notes_submit': False, 'time_rehydr_ch3oh_40percent_wash1': None, 'time_rehydr_ch3oh_40percent_wash1_submit': False, 'rehydr_ch3oh_40percent_wash1_notes': '', 'rehydr_ch3oh_40percent_wash1_notes_submit': False, 'time_rehydr_ch3oh_20percent_wash1': None, 'time_rehydr_ch3oh_20percent_wash1_submit': False, 'rehydr_ch3oh_20percent_wash1_notes': '', 'rehydr_ch3oh_20percent_wash1_notes_submit': False, 'time_rehydr_pbs_wash1': None, 'time_rehydr_pbs_wash1_submit': False, 'rehydr_pbs_wash1_notes': '', 'rehydr_pbs_wash1_notes_submit': False, 'time_rehydr_sodium_azide_wash1': None, 'time_rehydr_sodium_azide_wash1_submit': False, 'rehydr_sodium_azide_wash1_notes': '', 'rehydr_sodium_azide_wash1_notes_submit': False, 'time_rehydr_sodium_azide_wash2': None, 'time_rehydr_sodium_azide_wash2_submit': False, 'rehydr_sodium_azide_wash2_notes': '', 'rehydr_sodium_azide_wash2_notes_submit': False, 'time_rehydr_glycine_wash1': None, 'time_rehydr_glycine_wash1_submit': False, 'rehydr_glycine_wash1_notes': '', 'rehydr_glycine_wash1_notes_submit': False, 'blocking_date': None, 'blocking_date_submit': False, 'time_blocking_start_roomtemp': None, 'time_blocking_start_roomtemp_submit': False, 'blocking_start_roomtemp_notes': '', 'blocking_start_roomtemp_notes_submit': False, 'time_blocking_donkey_serum': None, 'time_blocking_donkey_serum_submit': False, 'blocking_donkey_serum_notes': '', 'blocking_donkey_serum_notes_submit': False, 'antibody1_date': None, 'antibody1_date_submit': False, 'time_antibody1_start_roomtemp': None, 'time_antibody1_start_roomtemp_submit': False, 'antibody1_start_roomtemp_notes': '', 'antibody1_start_roomtemp_notes_submit': False, 'time_antibody1_ptwh_wash1': None, 'time_antibody1_ptwh_wash1_submit': False, 'antibody1_ptwh_wash1_notes': '', 'antibody1_ptwh_wash1_notes_submit': False, 'time_antibody1_ptwh_wash2': None, 'time_antibody1_ptwh_wash2_submit': False, 'antibody1_ptwh_wash2_notes': '', 'antibody1_ptwh_wash2_notes_submit': False, 'time_antibody1_added': None, 'time_antibody1_added_submit': False, 'antibody1_added_notes': '', 'antibody1_added_notes_submit': False, 'wash1_date': None, 'wash1_date_submit': False, 'time_wash1_start_roomtemp': None, 'time_wash1_start_roomtemp_submit': False, 'wash1_start_roomtemp_notes': '', 'wash1_start_roomtemp_notes_submit': False, 'time_wash1_ptwh_wash1': None, 'time_wash1_ptwh_wash1_submit': False, 'wash1_ptwh_wash1_notes': '', 'wash1_ptwh_wash1_notes_submit': False, 'time_wash1_ptwh_wash2': None, 'time_wash1_ptwh_wash2_submit': False, 'wash1_ptwh_wash2_notes': '', 'wash1_ptwh_wash2_notes_submit': False, 'time_wash1_ptwh_wash3': None, 'time_wash1_ptwh_wash3_submit': False, 'wash1_ptwh_wash3_notes': '', 'wash1_ptwh_wash3_notes_submit': False, 'time_wash1_ptwh_wash4': None, 'time_wash1_ptwh_wash4_submit': False, 'wash1_ptwh_wash4_notes': '', 'wash1_ptwh_wash4_notes_submit': False, 'time_wash1_ptwh_wash5': None, 'time_wash1_ptwh_wash5_submit': False, 'wash1_ptwh_wash5_notes': '', 'wash1_ptwh_wash5_notes_submit': False, 'antibody2_date': None, 'antibody2_date_submit': False, 'time_antibody2_added': None, 'time_antibody2_added_submit': False, 'antibody2_added_notes': '', 'antibody2_added_notes_submit': False, 'wash2_date': None, 'wash2_date_submit': False, 'time_wash2_start_roomtemp': None, 'time_wash2_start_roomtemp_submit': False, 'wash2_start_roomtemp_notes': '', 'wash2_start_roomtemp_notes_submit': False, 'time_wash2_ptwh_wash1': None, 'time_wash2_ptwh_wash1_submit': False, 'wash2_ptwh_wash1_notes': '', 'wash2_ptwh_wash1_notes_submit': False, 'time_wash2_ptwh_wash2': None, 'time_wash2_ptwh_wash2_submit': False, 'wash2_ptwh_wash2_notes': '', 'wash2_ptwh_wash2_notes_submit': False, 'time_wash2_ptwh_wash3': None, 'time_wash2_ptwh_wash3_submit': False, 'wash2_ptwh_wash3_notes': '', 'wash2_ptwh_wash3_notes_submit': False, 'time_wash2_ptwh_wash4': None, 'time_wash2_ptwh_wash4_submit': False, 'wash2_ptwh_wash4_notes': '', 'wash2_ptwh_wash4_notes_submit': False, 'time_wash2_ptwh_wash5': None, 'time_wash2_ptwh_wash5_submit': False, 'wash2_ptwh_wash5_notes': '', 'wash2_ptwh_wash5_notes_submit': False, 'clearing_date': None, 'clearing_date_submit': False, 'time_clearing_ch3oh_20percent_wash1': None, 'time_clearing_ch3oh_20percent_wash1_submit': False, 'clearing_ch3oh_20percent_wash1_notes': '', 'clearing_ch3oh_20percent_wash1_notes_submit': False, 'time_clearing_ch3oh_40percent_wash1': None, 'time_clearing_ch3oh_40percent_wash1_submit': False, 'clearing_ch3oh_40percent_wash1_notes': '', 'clearing_ch3oh_40percent_wash1_notes_submit': False, 'time_clearing_ch3oh_60percent_wash1': None, 'time_clearing_ch3oh_60percent_wash1_submit': False, 'clearing_ch3oh_60percent_wash1_notes': '', 'clearing_ch3oh_60percent_wash1_notes_submit': False, 'time_clearing_ch3oh_80percent_wash1': None, 'time_clearing_ch3oh_80percent_wash1_submit': False, 'clearing_ch3oh_80percent_wash1_notes': '', 'clearing_ch3oh_80percent_wash1_notes_submit': False, 'time_clearing_ch3oh_100percent_wash1': None, 'time_clearing_ch3oh_100percent_wash1_submit': False, 'clearing_ch3oh_100percent_wash1_notes': '', 'clearing_ch3oh_100percent_wash1_notes_submit': False, 'time_clearing_ch3oh_100percent_wash2': None, 'time_clearing_ch3oh_100percent_wash2_submit': False, 'clearing_ch3oh_100percent_wash2_notes': '', 'clearing_ch3oh_100percent_wash2_notes_submit': False, 'time_clearing_dcm_66percent_ch3oh_33percent': None, 'time_clearing_dcm_66percent_ch3oh_33percent_submit': False, 'clearing_dcm_66percent_ch3oh_33percent_notes': '', 'clearing_dcm_66percent_ch3oh_33percent_notes_submit': False, 'time_clearing_dcm_wash1': None, 'time_clearing_dcm_wash1_submit': False, 'clearing_dcm_wash1_notes': '', 'clearing_dcm_wash1_notes_submit': False, 'time_clearing_dcm_wash2': None, 'time_clearing_dcm_wash2_submit': False, 'clearing_dcm_wash2_notes': '', 'clearing_dcm_wash2_notes_submit': False, 'time_clearing_dbe': None, 'time_clearing_dbe_submit': False, 'clearing_dbe_notes': '', 'clearing_dbe_notes_submit': False, 'time_clearing_new_tubes': None, 'time_clearing_new_tubes_submit': False, 'clearing_new_tubes_notes': '', 'clearing_new_tubes_notes_submit': False, 'clearing_notes': '', 'clearing_notes_submit': False, 'submit': False, 'csrf_token': ''}
+2019-10-03 11:43:15,885:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 11:43:15,901:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 11:43:15,901:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:16:59,541:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:16:59,557:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:16:59,557:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:17:37,191:lightserv.clearing.routes:Post request
+2019-10-03 13:17:37,192:lightserv.clearing.routes:Form validated
+2019-10-03 13:17:37,223:lightserv.clearing.routes:Entered into database: dehydr_pbs_wash3_notes:asdf
+2019-10-03 13:17:37,223:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:17:37,238:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:17:37,239:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:17:37,239:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:17:54,182:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:17:54,195:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:17:54,196:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:17:54,196:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:18:27,271:lightserv.clearing.routes:Post request
+2019-10-03 13:18:27,272:lightserv.clearing.routes:Form validated
+2019-10-03 13:18:27,272:lightserv.clearing.routes:Submitting entire form
+2019-10-03 13:19:58,159:lightserv.clearing.routes:Post request
+2019-10-03 13:19:58,160:lightserv.clearing.routes:Form validated
+2019-10-03 13:19:58,161:lightserv.clearing.routes:Submitting entire form
+2019-10-03 13:20:09,577:lightserv.clearing.routes:Post request
+2019-10-03 13:20:09,578:lightserv.clearing.routes:Form validated
+2019-10-03 13:20:09,578:lightserv.clearing.routes:Submitting entire form
+2019-10-03 13:23:24,875:lightserv.clearing.routes:Post request
+2019-10-03 13:23:24,878:lightserv.clearing.routes:Form validated
+2019-10-03 13:23:24,878:lightserv.clearing.routes:Submitting entire form
+2019-10-03 13:23:24,883:lightserv.clearing.routes:key:exp_notes,val:asdf
+2019-10-03 13:23:24,900:lightserv.clearing.routes:key:perfusion_date,val:2019-03-01
+2019-10-03 13:23:24,904:lightserv.clearing.routes:key:time_dehydr_pbs_wash1,val:None
+2019-10-03 13:35:06,867:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:35:06,883:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:35:06,883:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:35:06,883:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:35:24,078:lightserv.clearing.routes:Post request
+2019-10-03 13:35:24,079:lightserv.clearing.routes:Form validated
+2019-10-03 13:35:24,109:lightserv.clearing.routes:Entered into database: clearing_notes:asdf
+2019-10-03 13:35:24,109:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:35:24,121:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:35:24,121:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:35:24,121:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:35:24,121:lightserv.clearing.routes:key=clearing_notes,val=asdf
+2019-10-03 13:35:26,816:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:35:26,826:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:35:26,826:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:35:26,826:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:35:26,826:lightserv.clearing.routes:key=clearing_notes,val=asdf
+2019-10-03 13:35:29,758:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:35:29,771:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:35:29,772:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:35:29,772:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:35:29,772:lightserv.clearing.routes:key=clearing_notes,val=asdf
+2019-10-03 13:35:34,768:lightserv.clearing.routes:Post request
+2019-10-03 13:35:34,769:lightserv.clearing.routes:Form validated
+2019-10-03 13:35:34,770:lightserv.clearing.routes:Submitting entire form
+2019-10-03 13:36:06,082:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:36:06,100:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:36:06,100:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:36:06,100:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:36:06,100:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:36:06,100:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:36:06,100:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 13:36:09,196:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:36:09,214:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:36:09,214:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:36:09,215:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:36:09,215:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:36:09,215:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:36:09,215:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 13:44:45,594:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:44:45,619:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:44:45,619:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:44:45,619:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:44:45,619:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:44:45,620:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:44:45,620:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 13:45:12,473:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:45:12,486:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:45:12,486:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:45:12,487:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:45:12,487:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:45:12,487:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:45:12,487:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 13:45:59,857:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:45:59,873:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:45:59,874:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:45:59,874:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:45:59,874:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:45:59,874:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:45:59,874:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 13:46:10,419:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:46:10,432:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:46:10,433:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:46:10,433:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:46:10,433:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:46:10,433:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:46:10,433:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 13:46:38,024:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:46:38,043:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:46:38,043:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:46:38,043:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:46:38,043:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:46:38,043:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:46:38,044:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 13:46:39,397:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:46:39,411:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:46:39,411:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:46:39,412:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:46:39,412:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:46:39,412:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:46:39,412:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 13:46:44,676:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:46:44,692:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:46:44,692:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:46:44,692:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:46:44,692:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:46:44,692:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:46:44,692:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 13:46:45,592:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:46:45,609:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:46:45,609:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:46:45,609:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:46:45,609:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:46:45,609:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:46:45,609:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 13:46:49,426:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:46:49,441:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:46:49,441:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:46:49,441:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:46:49,441:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:46:49,441:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:46:49,441:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 13:46:50,017:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:46:50,027:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:46:50,028:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:46:50,028:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:46:50,028:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:46:50,028:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:46:50,028:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 13:46:56,556:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:46:56,571:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:46:56,571:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:46:56,571:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:46:56,571:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:46:56,571:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:46:56,571:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 13:54:18,719:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:54:18,737:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:54:18,737:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:54:18,737:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:54:18,737:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:54:18,737:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:54:18,738:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 13:58:53,001:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 13:58:53,015:lightserv.clearing.routes:key=exp_notes,val=asdf
+2019-10-03 13:58:53,015:lightserv.clearing.routes:key=perfusion_date,val=2019-03-01
+2019-10-03 13:58:53,015:lightserv.clearing.routes:key=dehydr_pbs_wash3_notes,val=asdf
+2019-10-03 13:58:53,015:lightserv.clearing.routes:key=clearing_dbe_notes,val=1
+2019-10-03 13:58:53,016:lightserv.clearing.routes:key=clearing_new_tubes_notes,val=2
+2019-10-03 13:58:53,016:lightserv.clearing.routes:key=clearing_notes,val=3
+2019-10-03 14:06:11,129:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:06:11,140:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-01-30 14:30:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_dehydr_pbs_wash2,val=2019-01-30 15:00:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_dehydr_pbs_wash3,val=2019-01-30 15:30:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-02-04 09:14:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-02-04 10:04:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-02-04 10:56:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-02-04 11:47:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-02-04 12:41:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-02-04 13:32:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_dehydr_h202_wash1,val=2019-02-26 16:58:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_rehydr_ch3oh_100percent_wash1,val=2019-02-27 11:01:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_rehydr_ch3oh_80percent_wash1,val=2019-02-27 11:55:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_rehydr_ch3oh_60percent_wash1,val=2019-02-27 12:50:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_rehydr_ch3oh_40percent_wash1,val=2019-02-27 13:43:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_rehydr_ch3oh_20percent_wash1,val=2019-02-27 14:40:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_rehydr_pbs_wash1,val=2019-02-27 15:35:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_rehydr_sodium_azide_wash1,val=2019-02-27 16:32:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_rehydr_sodium_azide_wash2,val=2019-02-27 17:28:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_rehydr_glycine_wash1,val=2019-02-27 18:26:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_blocking_start_roomtemp,val=2019-03-01 09:54:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_blocking_donkey_serum,val=2019-03-01 12:06:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_antibody1_start_roomtemp,val=2019-03-04 09:34:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_antibody1_ptwh_wash1,val=2019-03-04 11:33:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_antibody1_added,val=2019-03-04 14:58:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_wash1_start_roomtemp,val=2019-03-11 10:05:00
+2019-10-03 14:06:11,141:lightserv.clearing.routes:key=time_wash1_ptwh_wash1,val=2019-03-11 12:50:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_wash1_ptwh_wash2,val=2019-03-11 13:15:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_wash1_ptwh_wash3,val=2019-03-11 13:45:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_wash1_ptwh_wash4,val=2019-03-11 14:36:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_wash1_ptwh_wash5,val=2019-03-11 15:42:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_antibody2_added,val=2019-03-12 14:11:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_wash2_start_roomtemp,val=2019-03-13 10:27:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_wash2_ptwh_wash1,val=2019-03-13 12:48:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_wash2_ptwh_wash2,val=2019-03-13 13:10:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_wash2_ptwh_wash3,val=2019-03-13 13:40:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_wash2_ptwh_wash4,val=2019-03-13 14:23:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_wash2_ptwh_wash5,val=2019-03-13 15:37:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_clearing_ch3oh_20percent_wash1,val=2019-03-20 10:36:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_clearing_ch3oh_40percent_wash1,val=2019-03-20 11:13:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_clearing_ch3oh_60percent_wash1,val=2019-03-20 11:57:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_clearing_ch3oh_80percent_wash1,val=2019-03-20 13:00:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_clearing_ch3oh_100percent_wash1,val=2019-03-20 13:55:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_clearing_ch3oh_100percent_wash2,val=2019-03-20 14:55:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_clearing_dcm_66percent_ch3oh_33percent,val=2019-03-20 15:55:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_clearing_dcm_wash1,val=2019-03-20 18:55:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_clearing_dcm_wash2,val=2019-03-20 19:10:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_clearing_dbe,val=2019-03-20 19:30:00
+2019-10-03 14:06:11,142:lightserv.clearing.routes:key=time_clearing_new_tubes,val=2019-03-21 11:40:00
+2019-10-03 14:15:49,749:lightserv.clearing.routes:Created clearing database entry
+2019-10-03 14:15:49,750:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:49,834:lightserv.clearing.routes:Created clearing database entry
+2019-10-03 14:15:49,834:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:49,892:lightserv.clearing.routes:Created clearing database entry
+2019-10-03 14:15:49,892:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:49,947:lightserv.clearing.routes:Created clearing database entry
+2019-10-03 14:15:49,948:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:49,989:lightserv.clearing.routes:Post request
+2019-10-03 14:15:49,989:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:49,990:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,026:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,026:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,027:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,063:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,064:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,064:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,101:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,102:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,128:lightserv.clearing.routes:Entered into database: exp_notes:Half brain
+2019-10-03 14:15:50,128:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,138:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:50,166:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,167:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,191:lightserv.clearing.routes:Entered into database: perfusion_date:None
+2019-10-03 14:15:50,191:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,202:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:50,232:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,233:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,257:lightserv.clearing.routes:Entered into database: time_dehydr_pbs_wash1:2019-06-02 16:35:00
+2019-10-03 14:15:50,257:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,267:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:50,267:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:50,296:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,297:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,333:lightserv.clearing.routes:Entered into database: dehydr_pbs_wash1_notes:
+2019-10-03 14:15:50,333:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,343:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:50,343:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:50,371:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,372:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,401:lightserv.clearing.routes:Entered into database: time_dehydr_butanol_30percent:2019-06-03 14:15:00
+2019-10-03 14:15:50,401:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,411:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:50,412:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:50,412:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:50,440:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,441:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,466:lightserv.clearing.routes:Entered into database: dehydr_butanol_30percent_notes:
+2019-10-03 14:15:50,467:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,476:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:50,476:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:50,476:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:50,504:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,505:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,530:lightserv.clearing.routes:Entered into database: time_dehydr_butanol_50percent:2019-06-04 11:06:00
+2019-10-03 14:15:50,530:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,541:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:50,541:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:50,541:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:50,541:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:50,569:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,569:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,603:lightserv.clearing.routes:Entered into database: dehydr_butanol_50percent_notes:
+2019-10-03 14:15:50,604:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,614:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:50,615:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:50,615:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:50,615:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:50,644:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,645:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,676:lightserv.clearing.routes:Entered into database: time_dehydr_butanol_70percent:2019-06-04 18:15:00
+2019-10-03 14:15:50,676:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,687:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:50,687:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:50,687:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:50,687:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:50,687:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:50,716:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,717:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,742:lightserv.clearing.routes:Entered into database: dehydr_butanol_70percent_notes:
+2019-10-03 14:15:50,742:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,752:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:50,752:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:50,752:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:50,752:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:50,752:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:50,781:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,782:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,809:lightserv.clearing.routes:Entered into database: time_dehydr_butanol_80percent:2019-06-05 10:14:00
+2019-10-03 14:15:50,809:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,820:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:50,820:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:50,820:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:50,820:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:50,820:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:50,820:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:15:50,849:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,850:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,880:lightserv.clearing.routes:Entered into database: dehydr_butanol_80percent_notes:
+2019-10-03 14:15:50,880:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,890:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:50,891:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:50,891:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:50,891:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:50,891:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:50,891:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:15:50,920:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,921:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:50,948:lightserv.clearing.routes:Entered into database: time_dehydr_butanol_90percent:2019-06-05 18:02:00
+2019-10-03 14:15:50,948:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:50,958:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:50,958:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:50,958:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:50,958:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:50,959:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:50,959:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:15:50,959:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:15:50,987:lightserv.clearing.routes:Post request
+2019-10-03 14:15:50,987:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:51,012:lightserv.clearing.routes:Entered into database: dehydr_butanol_90percent_notes:
+2019-10-03 14:15:51,012:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:51,023:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:51,024:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:51,024:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:51,024:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:51,024:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:51,024:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:15:51,024:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:15:51,054:lightserv.clearing.routes:Post request
+2019-10-03 14:15:51,055:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:51,082:lightserv.clearing.routes:Entered into database: time_dehydr_butanol_96percent:2019-06-06 10:10:00
+2019-10-03 14:15:51,082:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:51,092:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:51,092:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:51,092:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:51,093:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:51,093:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:51,093:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:15:51,093:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:15:51,093:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:15:51,121:lightserv.clearing.routes:Post request
+2019-10-03 14:15:51,122:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:51,148:lightserv.clearing.routes:Entered into database: dehydr_butanol_96percent_notes:
+2019-10-03 14:15:51,148:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:51,158:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:51,158:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:51,158:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:51,158:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:51,159:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:51,159:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:15:51,159:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:15:51,159:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:15:51,186:lightserv.clearing.routes:Post request
+2019-10-03 14:15:51,187:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:51,214:lightserv.clearing.routes:Entered into database: time_dehydr_butanol_100percent:2019-06-06 18:52:00
+2019-10-03 14:15:51,214:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:51,224:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:51,224:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:51,224:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:51,225:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:51,225:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:51,225:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:15:51,225:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:15:51,225:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:15:51,225:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:15:51,253:lightserv.clearing.routes:Post request
+2019-10-03 14:15:51,254:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:51,287:lightserv.clearing.routes:Entered into database: dehydr_butanol_100percent_notes:
+2019-10-03 14:15:51,288:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:51,298:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:51,298:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:51,299:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:51,299:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:51,299:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:51,299:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:15:51,299:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:15:51,299:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:15:51,299:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:15:51,328:lightserv.clearing.routes:Post request
+2019-10-03 14:15:51,329:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:51,358:lightserv.clearing.routes:Entered into database: time_clearing_dcm_wash1:2019-06-07 09:27:00
+2019-10-03 14:15:51,359:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:51,369:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:51,369:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:51,369:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:51,369:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:51,370:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:51,370:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:15:51,370:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:15:51,370:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:15:51,370:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:15:51,370:lightserv.clearing.routes:key=time_clearing_dcm_wash1,val=2019-06-07 09:27:00
+2019-10-03 14:15:51,398:lightserv.clearing.routes:Post request
+2019-10-03 14:15:51,399:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:51,424:lightserv.clearing.routes:Entered into database: clearing_dcm_wash1_notes:
+2019-10-03 14:15:51,424:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:51,435:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:51,435:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:51,435:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:51,435:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:51,435:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:51,435:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:15:51,435:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:15:51,435:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:15:51,435:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:15:51,436:lightserv.clearing.routes:key=time_clearing_dcm_wash1,val=2019-06-07 09:27:00
+2019-10-03 14:15:51,463:lightserv.clearing.routes:Post request
+2019-10-03 14:15:51,464:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:51,494:lightserv.clearing.routes:Entered into database: time_clearing_babb_wash1:2019-06-07 10:29:00
+2019-10-03 14:15:51,495:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:51,505:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:51,505:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:51,505:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:51,506:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:51,506:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:51,506:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:15:51,506:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:15:51,506:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:15:51,506:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:15:51,506:lightserv.clearing.routes:key=time_clearing_dcm_wash1,val=2019-06-07 09:27:00
+2019-10-03 14:15:51,506:lightserv.clearing.routes:key=time_clearing_babb_wash1,val=2019-06-07 10:29:00
+2019-10-03 14:15:51,534:lightserv.clearing.routes:Post request
+2019-10-03 14:15:51,535:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:51,559:lightserv.clearing.routes:Entered into database: clearing_babb_wash1_notes:
+2019-10-03 14:15:51,559:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:51,570:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:51,570:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:51,570:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:51,570:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:51,570:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:51,570:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:15:51,570:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:15:51,570:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:15:51,570:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:15:51,571:lightserv.clearing.routes:key=time_clearing_dcm_wash1,val=2019-06-07 09:27:00
+2019-10-03 14:15:51,571:lightserv.clearing.routes:key=time_clearing_babb_wash1,val=2019-06-07 10:29:00
+2019-10-03 14:15:51,595:lightserv.clearing.routes:Post request
+2019-10-03 14:15:51,596:lightserv.clearing.routes:Form validated
+2019-10-03 14:15:51,621:lightserv.clearing.routes:Entered into database: clearing_notes:
+2019-10-03 14:15:51,621:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:15:51,631:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:15:51,631:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:15:51,632:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:15:51,632:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:15:51,632:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:15:51,632:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:15:51,632:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:15:51,632:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:15:51,632:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:15:51,632:lightserv.clearing.routes:key=time_clearing_dcm_wash1,val=2019-06-07 09:27:00
+2019-10-03 14:15:51,632:lightserv.clearing.routes:key=time_clearing_babb_wash1,val=2019-06-07 10:29:00
+2019-10-03 14:16:57,611:lightserv.clearing.routes:Created clearing database entry
+2019-10-03 14:16:57,611:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:57,688:lightserv.clearing.routes:Created clearing database entry
+2019-10-03 14:16:57,688:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:57,735:lightserv.clearing.routes:Created clearing database entry
+2019-10-03 14:16:57,735:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:57,787:lightserv.clearing.routes:Created clearing database entry
+2019-10-03 14:16:57,787:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:57,820:lightserv.clearing.routes:Post request
+2019-10-03 14:16:57,820:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:57,820:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:57,848:lightserv.clearing.routes:Post request
+2019-10-03 14:16:57,849:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:57,849:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:57,872:lightserv.clearing.routes:Post request
+2019-10-03 14:16:57,872:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:57,873:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:57,898:lightserv.clearing.routes:Post request
+2019-10-03 14:16:57,898:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:57,921:lightserv.clearing.routes:Entered into database: exp_notes:Half brain
+2019-10-03 14:16:57,921:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:57,930:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:57,953:lightserv.clearing.routes:Post request
+2019-10-03 14:16:57,953:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:57,972:lightserv.clearing.routes:Entered into database: perfusion_date:None
+2019-10-03 14:16:57,972:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:57,982:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,011:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,011:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,034:lightserv.clearing.routes:Entered into database: time_dehydr_pbs_wash1:2019-06-02 16:35:00
+2019-10-03 14:16:58,034:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,045:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,045:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,074:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,074:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,094:lightserv.clearing.routes:Entered into database: dehydr_pbs_wash1_notes:
+2019-10-03 14:16:58,094:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,100:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,100:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,120:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,121:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,150:lightserv.clearing.routes:Entered into database: time_dehydr_butanol_30percent:2019-06-03 14:15:00
+2019-10-03 14:16:58,151:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,160:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,160:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,161:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,188:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,188:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,209:lightserv.clearing.routes:Entered into database: dehydr_butanol_30percent_notes:
+2019-10-03 14:16:58,209:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,215:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,215:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,215:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,235:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,236:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,255:lightserv.clearing.routes:Entered into database: time_dehydr_butanol_50percent:2019-06-04 11:06:00
+2019-10-03 14:16:58,255:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,262:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,262:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,262:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,262:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:58,280:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,280:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,302:lightserv.clearing.routes:Entered into database: dehydr_butanol_50percent_notes:
+2019-10-03 14:16:58,302:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,311:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,311:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,311:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,311:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:58,333:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,333:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,353:lightserv.clearing.routes:Entered into database: time_dehydr_butanol_70percent:2019-06-04 18:15:00
+2019-10-03 14:16:58,353:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,361:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,361:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,361:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,361:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:58,361:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:58,388:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,388:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,408:lightserv.clearing.routes:Entered into database: dehydr_butanol_70percent_notes:
+2019-10-03 14:16:58,408:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,417:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,417:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,417:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,417:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:58,417:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:58,446:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,447:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,475:lightserv.clearing.routes:Entered into database: time_dehydr_butanol_80percent:2019-06-05 10:14:00
+2019-10-03 14:16:58,476:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,486:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,486:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,486:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,486:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:58,486:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:58,486:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:16:58,510:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,510:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,533:lightserv.clearing.routes:Entered into database: dehydr_butanol_80percent_notes:
+2019-10-03 14:16:58,533:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,541:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,541:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,541:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,541:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:58,541:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:58,541:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:16:58,565:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,565:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,588:lightserv.clearing.routes:Entered into database: time_dehydr_butanol_90percent:2019-06-05 18:02:00
+2019-10-03 14:16:58,588:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,597:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,597:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,597:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,597:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:58,597:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:58,597:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:16:58,597:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:16:58,623:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,624:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,648:lightserv.clearing.routes:Entered into database: dehydr_butanol_90percent_notes:
+2019-10-03 14:16:58,648:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,655:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,655:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,655:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,655:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:58,656:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:58,656:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:16:58,656:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:16:58,676:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,677:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,697:lightserv.clearing.routes:Entered into database: time_dehydr_butanol_96percent:2019-06-06 10:10:00
+2019-10-03 14:16:58,698:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,707:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,707:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,707:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,707:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:58,707:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:58,707:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:16:58,707:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:16:58,707:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:16:58,732:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,733:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,756:lightserv.clearing.routes:Entered into database: dehydr_butanol_96percent_notes:
+2019-10-03 14:16:58,756:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,765:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,765:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,765:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,765:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:58,765:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:58,765:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:16:58,765:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:16:58,765:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:16:58,788:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,789:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,809:lightserv.clearing.routes:Entered into database: time_dehydr_butanol_100percent:2019-06-06 18:52:00
+2019-10-03 14:16:58,809:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,818:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,818:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,818:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,818:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:58,818:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:58,818:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:16:58,818:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:16:58,819:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:16:58,819:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:16:58,842:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,842:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,862:lightserv.clearing.routes:Entered into database: dehydr_butanol_100percent_notes:
+2019-10-03 14:16:58,862:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,871:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,871:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,871:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,871:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:58,871:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:58,871:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:16:58,871:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:16:58,872:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:16:58,872:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:16:58,895:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,896:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,917:lightserv.clearing.routes:Entered into database: time_clearing_dcm_wash1:2019-06-07 09:27:00
+2019-10-03 14:16:58,918:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,926:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,926:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,926:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,926:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:58,927:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:58,927:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:16:58,927:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:16:58,927:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:16:58,927:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:16:58,927:lightserv.clearing.routes:key=time_clearing_dcm_wash1,val=2019-06-07 09:27:00
+2019-10-03 14:16:58,950:lightserv.clearing.routes:Post request
+2019-10-03 14:16:58,951:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:58,975:lightserv.clearing.routes:Entered into database: clearing_dcm_wash1_notes:
+2019-10-03 14:16:58,975:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:58,984:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:58,984:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:58,984:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:58,984:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:58,984:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:58,985:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:16:58,985:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:16:58,985:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:16:58,985:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:16:58,985:lightserv.clearing.routes:key=time_clearing_dcm_wash1,val=2019-06-07 09:27:00
+2019-10-03 14:16:59,008:lightserv.clearing.routes:Post request
+2019-10-03 14:16:59,008:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:59,030:lightserv.clearing.routes:Entered into database: time_clearing_babb_wash1:2019-06-07 10:29:00
+2019-10-03 14:16:59,030:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:59,039:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:59,039:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:59,039:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:59,039:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:59,039:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:59,039:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:16:59,039:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:16:59,039:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:16:59,039:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:16:59,039:lightserv.clearing.routes:key=time_clearing_dcm_wash1,val=2019-06-07 09:27:00
+2019-10-03 14:16:59,040:lightserv.clearing.routes:key=time_clearing_babb_wash1,val=2019-06-07 10:29:00
+2019-10-03 14:16:59,064:lightserv.clearing.routes:Post request
+2019-10-03 14:16:59,065:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:59,086:lightserv.clearing.routes:Entered into database: clearing_babb_wash1_notes:
+2019-10-03 14:16:59,086:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:59,094:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:59,095:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:59,095:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:59,095:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:59,095:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:59,095:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:16:59,095:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:16:59,095:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:16:59,095:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:16:59,095:lightserv.clearing.routes:key=time_clearing_dcm_wash1,val=2019-06-07 09:27:00
+2019-10-03 14:16:59,096:lightserv.clearing.routes:key=time_clearing_babb_wash1,val=2019-06-07 10:29:00
+2019-10-03 14:16:59,120:lightserv.clearing.routes:Post request
+2019-10-03 14:16:59,120:lightserv.clearing.routes:Form validated
+2019-10-03 14:16:59,147:lightserv.clearing.routes:Entered into database: clearing_notes:
+2019-10-03 14:16:59,147:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:16:59,156:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:16:59,156:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:16:59,156:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:16:59,156:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:16:59,156:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:16:59,156:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:16:59,156:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:16:59,156:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:16:59,156:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:16:59,157:lightserv.clearing.routes:key=time_clearing_dcm_wash1,val=2019-06-07 09:27:00
+2019-10-03 14:16:59,157:lightserv.clearing.routes:key=time_clearing_babb_wash1,val=2019-06-07 10:29:00
+2019-10-03 14:23:12,484:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:23:12,493:lightserv.clearing.routes:key=exp_notes,val=Half brain
+2019-10-03 14:23:12,493:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-06-02 16:35:00
+2019-10-03 14:23:12,493:lightserv.clearing.routes:key=time_dehydr_butanol_30percent,val=2019-06-03 14:15:00
+2019-10-03 14:23:12,493:lightserv.clearing.routes:key=time_dehydr_butanol_50percent,val=2019-06-04 11:06:00
+2019-10-03 14:23:12,493:lightserv.clearing.routes:key=time_dehydr_butanol_70percent,val=2019-06-04 18:15:00
+2019-10-03 14:23:12,493:lightserv.clearing.routes:key=time_dehydr_butanol_80percent,val=2019-06-05 10:14:00
+2019-10-03 14:23:12,493:lightserv.clearing.routes:key=time_dehydr_butanol_90percent,val=2019-06-05 18:02:00
+2019-10-03 14:23:12,493:lightserv.clearing.routes:key=time_dehydr_butanol_96percent,val=2019-06-06 10:10:00
+2019-10-03 14:23:12,494:lightserv.clearing.routes:key=time_dehydr_butanol_100percent,val=2019-06-06 18:52:00
+2019-10-03 14:23:12,494:lightserv.clearing.routes:key=time_clearing_dcm_wash1,val=2019-06-07 09:27:00
+2019-10-03 14:23:12,494:lightserv.clearing.routes:key=time_clearing_babb_wash1,val=2019-06-07 10:29:00
+2019-10-03 14:23:24,800:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:23:24,816:lightserv.clearing.routes:key=time_dehydr_pbs_wash1,val=2019-01-30 14:30:00
+2019-10-03 14:23:24,816:lightserv.clearing.routes:key=time_dehydr_pbs_wash2,val=2019-01-30 15:00:00
+2019-10-03 14:23:24,816:lightserv.clearing.routes:key=time_dehydr_pbs_wash3,val=2019-01-30 15:30:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-02-04 09:14:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-02-04 10:04:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-02-04 10:56:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-02-04 11:47:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-02-04 12:41:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-02-04 13:32:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_dehydr_h202_wash1,val=2019-02-26 16:58:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_rehydr_ch3oh_100percent_wash1,val=2019-02-27 11:01:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_rehydr_ch3oh_80percent_wash1,val=2019-02-27 11:55:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_rehydr_ch3oh_60percent_wash1,val=2019-02-27 12:50:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_rehydr_ch3oh_40percent_wash1,val=2019-02-27 13:43:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_rehydr_ch3oh_20percent_wash1,val=2019-02-27 14:40:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_rehydr_pbs_wash1,val=2019-02-27 15:35:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_rehydr_sodium_azide_wash1,val=2019-02-27 16:32:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_rehydr_sodium_azide_wash2,val=2019-02-27 17:28:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_rehydr_glycine_wash1,val=2019-02-27 18:26:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_blocking_start_roomtemp,val=2019-03-01 09:54:00
+2019-10-03 14:23:24,817:lightserv.clearing.routes:key=time_blocking_donkey_serum,val=2019-03-01 12:06:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_antibody1_start_roomtemp,val=2019-03-04 09:34:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_antibody1_ptwh_wash1,val=2019-03-04 11:33:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_antibody1_added,val=2019-03-04 14:58:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_wash1_start_roomtemp,val=2019-03-11 10:05:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_wash1_ptwh_wash1,val=2019-03-11 12:50:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_wash1_ptwh_wash2,val=2019-03-11 13:15:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_wash1_ptwh_wash3,val=2019-03-11 13:45:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_wash1_ptwh_wash4,val=2019-03-11 14:36:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_wash1_ptwh_wash5,val=2019-03-11 15:42:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_antibody2_added,val=2019-03-12 14:11:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_wash2_start_roomtemp,val=2019-03-13 10:27:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_wash2_ptwh_wash1,val=2019-03-13 12:48:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_wash2_ptwh_wash2,val=2019-03-13 13:10:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_wash2_ptwh_wash3,val=2019-03-13 13:40:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_wash2_ptwh_wash4,val=2019-03-13 14:23:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_wash2_ptwh_wash5,val=2019-03-13 15:37:00
+2019-10-03 14:23:24,818:lightserv.clearing.routes:key=time_clearing_ch3oh_20percent_wash1,val=2019-03-20 10:36:00
+2019-10-03 14:23:24,819:lightserv.clearing.routes:key=time_clearing_ch3oh_40percent_wash1,val=2019-03-20 11:13:00
+2019-10-03 14:23:24,819:lightserv.clearing.routes:key=time_clearing_ch3oh_60percent_wash1,val=2019-03-20 11:57:00
+2019-10-03 14:23:24,819:lightserv.clearing.routes:key=time_clearing_ch3oh_80percent_wash1,val=2019-03-20 13:00:00
+2019-10-03 14:23:24,819:lightserv.clearing.routes:key=time_clearing_ch3oh_100percent_wash1,val=2019-03-20 13:55:00
+2019-10-03 14:23:24,819:lightserv.clearing.routes:key=time_clearing_ch3oh_100percent_wash2,val=2019-03-20 14:55:00
+2019-10-03 14:23:24,819:lightserv.clearing.routes:key=time_clearing_dcm_66percent_ch3oh_33percent,val=2019-03-20 15:55:00
+2019-10-03 14:23:24,819:lightserv.clearing.routes:key=time_clearing_dcm_wash1,val=2019-03-20 18:55:00
+2019-10-03 14:23:24,819:lightserv.clearing.routes:key=time_clearing_dcm_wash2,val=2019-03-20 19:10:00
+2019-10-03 14:23:24,819:lightserv.clearing.routes:key=time_clearing_dbe,val=2019-03-20 19:30:00
+2019-10-03 14:23:24,819:lightserv.clearing.routes:key=time_clearing_new_tubes,val=2019-03-21 11:40:00
+2019-10-03 14:23:43,648:lightserv.clearing.routes:Created clearing database entry
+2019-10-03 14:23:43,649:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:25:15,926:lightserv.clearing.routes:Post request
+2019-10-03 14:25:15,926:lightserv.clearing.routes:Form validated
+2019-10-03 14:25:15,962:lightserv.clearing.routes:Entered into database: perfusion_date:2019-02-28
+2019-10-03 14:25:15,962:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:25:15,972:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:25:37,253:lightserv.clearing.routes:Post request
+2019-10-03 14:25:37,254:lightserv.clearing.routes:Form validated
+2019-10-03 14:25:37,311:lightserv.clearing.routes:Entered into database: time_pbs_wash1:2019-03-01 15:45:00
+2019-10-03 14:25:37,312:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:25:37,322:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:25:37,322:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:25:47,971:lightserv.clearing.routes:Post request
+2019-10-03 14:25:47,972:lightserv.clearing.routes:Form validated
+2019-10-03 14:25:47,998:lightserv.clearing.routes:Entered into database: time_pbs_wash2:2019-03-01 16:18:00
+2019-10-03 14:25:47,998:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:25:48,006:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:25:48,007:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:25:48,007:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:25:59,083:lightserv.clearing.routes:Post request
+2019-10-03 14:25:59,084:lightserv.clearing.routes:Form validated
+2019-10-03 14:25:59,108:lightserv.clearing.routes:Entered into database: time_pbs_wash3:2019-03-01 16:53:00
+2019-10-03 14:25:59,109:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:25:59,118:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:25:59,118:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:25:59,118:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:25:59,119:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:26:11,247:lightserv.clearing.routes:Post request
+2019-10-03 14:26:11,248:lightserv.clearing.routes:Form validated
+2019-10-03 14:26:11,284:lightserv.clearing.routes:Entered into database: time_dehydr_ch3oh_20percent_wash1:2019-03-04 09:43:00
+2019-10-03 14:26:11,284:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:26:11,293:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:26:11,294:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:26:11,294:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:26:11,294:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:26:11,294:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:26:21,230:lightserv.clearing.routes:Post request
+2019-10-03 14:26:21,231:lightserv.clearing.routes:Form validated
+2019-10-03 14:26:21,273:lightserv.clearing.routes:Entered into database: time_dehydr_ch3oh_40percent_wash1:2019-03-04 10:32:00
+2019-10-03 14:26:21,273:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:26:21,282:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:26:21,283:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:26:21,283:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:26:21,283:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:26:21,283:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:26:21,283:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:26:27,395:lightserv.clearing.routes:Post request
+2019-10-03 14:26:27,396:lightserv.clearing.routes:Form validated
+2019-10-03 14:26:27,428:lightserv.clearing.routes:Entered into database: time_dehydr_ch3oh_60percent_wash1:2019-03-04 11:19:00
+2019-10-03 14:26:27,428:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:26:27,438:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:26:27,439:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:26:27,439:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:26:27,439:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:26:27,439:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:26:27,439:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:26:27,439:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:26:40,778:lightserv.clearing.routes:Post request
+2019-10-03 14:26:40,779:lightserv.clearing.routes:Form validated
+2019-10-03 14:26:40,803:lightserv.clearing.routes:Entered into database: time_dehydr_ch3oh_80percent_wash1:2019-03-04 00:07:00
+2019-10-03 14:26:40,803:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:26:40,811:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:26:40,811:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:26:40,811:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:26:40,811:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:26:40,811:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:26:40,811:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:26:40,811:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:26:40,811:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:27:01,082:lightserv.clearing.routes:Post request
+2019-10-03 14:27:01,083:lightserv.clearing.routes:Form validated
+2019-10-03 14:27:01,114:lightserv.clearing.routes:Entered into database: time_dehydr_ch3oh_100percent_wash1:2019-03-04 12:55:00
+2019-10-03 14:27:01,114:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:27:01,123:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:27:01,123:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:27:01,123:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:27:01,123:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:27:01,123:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:27:01,123:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:27:01,124:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:27:01,124:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:27:01,124:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:27:10,576:lightserv.clearing.routes:Post request
+2019-10-03 14:27:10,577:lightserv.clearing.routes:Form validated
+2019-10-03 14:27:10,602:lightserv.clearing.routes:Entered into database: time_dehydr_ch3oh_100percent_wash2:2019-03-04 13:41:00
+2019-10-03 14:27:10,602:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:27:10,612:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:27:10,612:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:27:10,612:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:27:10,612:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:27:10,612:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:27:10,612:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:27:10,612:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:27:10,612:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:27:10,612:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:27:10,612:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:27:36,345:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:27:36,353:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:27:36,353:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:27:36,353:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:27:36,353:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:27:36,353:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:27:36,353:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:27:36,353:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:27:36,353:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:27:36,353:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:27:36,353:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:27:56,263:lightserv.clearing.routes:Post request
+2019-10-03 14:27:56,265:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:27:56,274:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:27:56,274:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:27:56,274:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:27:56,274:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:27:56,274:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:27:56,274:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:27:56,274:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:27:56,274:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:27:56,274:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:27:56,274:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:30:40,905:lightserv.clearing.routes:Post request
+2019-10-03 14:30:40,906:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:30:40,917:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:30:40,917:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:30:40,917:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:30:40,917:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:30:40,918:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:30:40,918:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:30:40,918:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:30:40,918:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:30:40,918:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:30:40,918:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:31:51,496:lightserv.clearing.routes:Post request
+2019-10-03 14:31:51,499:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:31:51,512:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:31:51,512:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:31:51,512:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:31:51,512:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:31:51,512:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:31:51,512:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:31:51,512:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:31:51,512:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:31:51,512:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:31:51,513:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:31:53,903:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:31:53,912:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:31:53,913:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:31:53,913:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:31:53,913:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:31:53,913:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:31:53,913:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:31:53,913:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:31:53,913:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:31:53,913:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:31:53,913:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:32:15,963:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:32:15,973:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:32:15,973:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:32:15,974:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:32:15,974:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:32:15,974:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:32:15,974:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:32:15,974:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:32:15,974:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:32:15,974:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:32:15,974:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:32:22,080:lightserv.clearing.routes:Post request
+2019-10-03 14:32:22,081:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:32:22,091:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:32:22,092:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:32:22,092:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:32:22,092:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:32:22,092:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:32:22,092:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:32:22,092:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:32:22,092:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:32:22,092:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:32:22,092:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:38:19,358:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:38:19,365:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:38:19,365:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:38:19,366:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:38:19,366:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:38:19,366:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:38:19,366:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:38:19,366:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:38:19,366:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:38:19,366:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:38:19,366:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:45:46,290:lightserv.clearing.routes:Post request
+2019-10-03 14:45:46,291:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:45:46,300:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:45:46,300:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:45:46,300:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:45:46,300:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:45:46,300:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:45:46,300:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:45:46,300:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:45:46,300:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:45:46,300:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:45:46,300:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:45:49,923:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:45:49,932:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:45:49,932:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:45:49,932:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:45:49,932:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:45:49,932:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:45:49,932:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:45:49,933:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:45:49,933:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:45:49,934:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:45:49,934:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:53:35,992:lightserv.clearing.routes:Post request
+2019-10-03 14:53:35,994:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:53:36,003:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:53:36,003:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:53:36,003:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:53:36,003:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:53:36,003:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:53:36,003:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:53:36,003:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:53:36,003:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:53:36,004:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:53:36,004:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:54:21,397:lightserv.clearing.routes:Post request
+2019-10-03 14:54:21,399:lightserv.clearing.routes:{'time_dehydr_dcm_66percent_ch3oh_33percent': ['Not a valid datetime value']}
+2019-10-03 14:54:21,399:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:54:21,408:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:54:21,409:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:54:21,409:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:54:21,409:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:54:21,409:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:54:21,409:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:54:21,409:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:54:21,409:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:54:21,409:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:54:21,409:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:55:29,403:lightserv.clearing.routes:Post request
+2019-10-03 14:55:29,405:lightserv.clearing.routes:['Not a valid datetime value']
+2019-10-03 14:55:29,405:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:55:29,417:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:55:29,417:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:55:29,417:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:55:29,417:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:55:29,417:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:55:29,417:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:55:29,417:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:55:29,417:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:55:29,418:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:55:29,418:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:55:58,059:lightserv.clearing.routes:Post request
+2019-10-03 14:55:58,060:lightserv.clearing.routes:['Not a valid datetime value']
+2019-10-03 14:55:58,060:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:55:58,069:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:55:58,069:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:55:58,069:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:55:58,069:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:55:58,069:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:55:58,069:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:55:58,069:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:55:58,069:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:55:58,069:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:55:58,069:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:57:01,625:lightserv.clearing.routes:Post request
+2019-10-03 14:57:01,627:lightserv.clearing.routes:['Not a valid datetime value']
+2019-10-03 14:57:01,627:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:57:01,638:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:57:01,638:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:57:01,638:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:57:01,638:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:57:01,638:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:57:01,639:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:57:01,639:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:57:01,639:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:57:01,639:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:57:01,639:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:57:08,247:lightserv.clearing.routes:Post request
+2019-10-03 14:57:08,249:lightserv.clearing.routes:[]
+2019-10-03 14:57:08,249:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:57:08,259:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:57:08,259:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:57:08,259:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:57:08,260:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:57:08,260:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:57:08,260:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:57:08,260:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:57:08,260:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:57:08,260:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:57:08,260:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:57:58,063:lightserv.clearing.routes:Post request
+2019-10-03 14:57:58,065:lightserv.clearing.routes:['Not a valid datetime value']
+2019-10-03 14:57:58,065:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:57:58,077:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:57:58,077:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:57:58,077:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:57:58,077:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:57:58,078:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:57:58,078:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:57:58,078:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:57:58,078:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:57:58,078:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:57:58,078:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:58:08,485:lightserv.clearing.routes:Post request
+2019-10-03 14:58:08,487:lightserv.clearing.routes:[]
+2019-10-03 14:58:08,488:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:58:08,498:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:58:08,498:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:58:08,498:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:58:08,498:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:58:08,498:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:58:08,498:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:58:08,498:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:58:08,498:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:58:08,498:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:58:08,498:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:58:31,271:lightserv.clearing.routes:Post request
+2019-10-03 14:58:31,272:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 14:58:31,272:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:58:31,283:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:58:31,283:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:58:31,284:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:58:31,284:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:58:31,284:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:58:31,284:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:58:31,284:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:58:31,284:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:58:31,284:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:58:31,284:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:59:07,497:lightserv.clearing.routes:Post request
+2019-10-03 14:59:07,498:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 14:59:07,498:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:59:07,507:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:59:07,508:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:59:07,508:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:59:07,508:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:59:07,508:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:59:07,508:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:59:07,508:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:59:07,508:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:59:07,508:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:59:07,508:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:59:29,216:lightserv.clearing.routes:Post request
+2019-10-03 14:59:29,218:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 14:59:29,218:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:59:29,227:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:59:29,227:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:59:29,227:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:59:29,228:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:59:29,228:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:59:29,228:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:59:29,228:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:59:29,228:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:59:29,228:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:59:29,228:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 14:59:39,988:lightserv.clearing.routes:Post request
+2019-10-03 14:59:39,990:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 14:59:39,990:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 14:59:40,000:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 14:59:40,000:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 14:59:40,000:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 14:59:40,000:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 14:59:40,000:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 14:59:40,001:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 14:59:40,001:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 14:59:40,001:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 14:59:40,001:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 14:59:40,001:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:00:53,873:lightserv.clearing.routes:Post request
+2019-10-03 15:00:53,875:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:00:53,875:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:00:53,885:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:00:53,885:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:00:53,885:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:00:53,885:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:00:53,886:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:00:53,886:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:00:53,886:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:00:53,886:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:00:53,886:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:00:53,886:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:01:00,671:lightserv.clearing.routes:Post request
+2019-10-03 15:01:00,673:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:01:00,673:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:01:00,682:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:01:00,682:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:01:00,682:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:01:00,683:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:01:00,683:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:01:00,683:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:01:00,683:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:01:00,683:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:01:00,683:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:01:00,683:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:01:25,486:lightserv.clearing.routes:Post request
+2019-10-03 15:01:25,488:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:01:25,488:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:01:25,498:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:01:25,498:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:01:25,498:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:01:25,498:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:01:25,498:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:01:25,498:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:01:25,498:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:01:25,498:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:01:25,498:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:01:25,499:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:02:09,699:lightserv.clearing.routes:Post request
+2019-10-03 15:02:09,701:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:02:09,701:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:02:09,712:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:02:09,712:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:02:09,712:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:02:09,712:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:02:09,712:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:02:09,712:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:02:09,712:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:02:09,712:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:02:09,712:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:02:09,713:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:02:53,409:lightserv.clearing.routes:Post request
+2019-10-03 15:02:53,410:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:03:16,274:lightserv.clearing.routes:Post request
+2019-10-03 15:03:16,275:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:03:16,275:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:03:16,283:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:03:16,284:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:03:16,284:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:03:16,284:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:03:16,284:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:03:16,284:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:03:16,284:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:03:16,284:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:03:16,284:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:03:16,284:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:04:03,121:lightserv.clearing.routes:Post request
+2019-10-03 15:04:03,123:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:04:03,123:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:04:03,132:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:04:03,132:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:04:03,132:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:04:03,132:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:04:03,132:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:04:03,133:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:04:03,133:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:04:03,133:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:04:03,133:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:04:03,133:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:04:46,031:lightserv.clearing.routes:Post request
+2019-10-03 15:04:46,032:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:04:46,032:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:04:46,040:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:04:46,040:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:04:46,041:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:04:46,041:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:04:46,041:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:04:46,041:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:04:46,041:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:04:46,041:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:04:46,041:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:04:46,041:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:04:57,921:lightserv.clearing.routes:Post request
+2019-10-03 15:04:57,923:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:04:57,923:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:04:57,932:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:04:57,933:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:04:57,933:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:04:57,933:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:04:57,933:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:04:57,933:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:04:57,933:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:04:57,933:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:04:57,933:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:04:57,933:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:05:40,037:lightserv.clearing.routes:Post request
+2019-10-03 15:05:40,039:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:05:40,039:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:05:40,048:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:05:40,048:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:05:40,048:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:05:40,048:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:05:40,048:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:05:40,048:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:05:40,049:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:05:40,049:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:05:40,049:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:05:40,049:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:05:56,529:lightserv.clearing.routes:Post request
+2019-10-03 15:05:56,531:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:05:56,531:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:05:56,539:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:05:56,539:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:05:56,540:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:05:56,540:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:05:56,540:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:05:56,540:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:05:56,540:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:05:56,540:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:05:56,540:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:05:56,540:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:06:13,013:lightserv.clearing.routes:Post request
+2019-10-03 15:06:13,015:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value'], 'pbs_wash1_notes': ['Field cannot be longer than 250 characters.']}
+2019-10-03 15:06:13,015:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:06:13,025:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:06:13,026:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:06:13,026:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:06:13,026:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:06:13,026:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:06:13,026:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:06:13,026:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:06:13,026:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:06:13,026:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:06:13,026:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:07:09,632:lightserv.clearing.routes:Post request
+2019-10-03 15:07:09,634:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:07:09,634:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:07:09,645:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:07:09,645:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:07:09,645:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:07:09,646:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:07:09,646:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:07:09,646:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:07:09,646:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:07:09,646:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:07:09,646:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:07:09,646:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:07:16,525:lightserv.clearing.routes:Post request
+2019-10-03 15:07:16,527:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:07:16,527:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:07:16,535:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:07:16,535:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:07:16,535:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:07:16,535:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:07:16,535:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:07:16,535:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:07:16,535:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:07:16,535:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:07:16,535:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:07:16,535:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:07:20,773:lightserv.clearing.routes:Post request
+2019-10-03 15:07:20,775:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:07:20,775:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:07:20,788:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:07:20,789:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:07:20,789:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:07:20,789:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:07:20,789:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:07:20,789:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:07:20,789:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:07:20,789:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:07:20,789:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:07:20,789:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:07:28,296:lightserv.clearing.routes:Post request
+2019-10-03 15:07:28,297:lightserv.clearing.routes:{'time_pbs_wash1': ['Not a valid datetime value']}
+2019-10-03 15:07:28,297:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:07:28,305:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:07:28,305:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-03-01 15:45:00
+2019-10-03 15:07:28,305:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:07:28,305:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:07:28,305:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:07:28,305:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:07:28,306:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:07:28,306:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:07:28,306:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:07:28,306:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:07:33,227:lightserv.clearing.routes:Post request
+2019-10-03 15:07:33,229:lightserv.clearing.routes:Form validated
+2019-10-03 15:07:33,258:lightserv.clearing.routes:Entered into database: time_pbs_wash1:None
+2019-10-03 15:07:33,258:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:07:33,268:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:07:33,268:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:07:33,268:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:07:33,268:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:07:33,268:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:07:33,268:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:07:33,268:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:07:33,269:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:07:33,269:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:13:53,290:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:13:53,299:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:13:53,299:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:13:53,299:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:13:53,299:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:13:53,299:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:13:53,299:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:13:53,299:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:13:53,300:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:13:53,300:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:14:20,503:lightserv.clearing.routes:Post request
+2019-10-03 15:14:20,505:lightserv.clearing.routes:Form validated
+2019-10-03 15:14:20,533:lightserv.clearing.routes:Entered into database: time_dehydr_dcm_66percent_ch3oh_33percent:2019-03-05 10:55:00
+2019-10-03 15:14:20,534:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:14:20,544:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:14:20,544:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:14:20,544:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:14:20,544:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:14:20,544:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:14:20,545:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:14:20,545:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:14:20,545:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:14:20,545:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:14:20,545:lightserv.clearing.routes:key=time_dehydr_dcm_66percent_ch3oh_33percent,val=2019-03-05 10:55:00
+2019-10-03 15:14:36,079:lightserv.clearing.routes:Post request
+2019-10-03 15:14:36,081:lightserv.clearing.routes:Form validated
+2019-10-03 15:14:36,105:lightserv.clearing.routes:Entered into database: time_dehydr_dcm_wash1:2019-03-05 14:00:00
+2019-10-03 15:14:36,105:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:14:36,112:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:14:36,112:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:14:36,112:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:14:36,112:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:14:36,112:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:14:36,112:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:14:36,112:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:14:36,112:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:14:36,112:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:14:36,112:lightserv.clearing.routes:key=time_dehydr_dcm_66percent_ch3oh_33percent,val=2019-03-05 10:55:00
+2019-10-03 15:14:36,112:lightserv.clearing.routes:key=time_dehydr_dcm_wash1,val=2019-03-05 14:00:00
+2019-10-03 15:14:42,686:lightserv.clearing.routes:Post request
+2019-10-03 15:14:42,687:lightserv.clearing.routes:Form validated
+2019-10-03 15:14:42,715:lightserv.clearing.routes:Entered into database: time_dehydr_dcm_wash2:2019-03-05 14:17:00
+2019-10-03 15:14:42,716:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:14:42,726:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:14:42,726:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:14:42,726:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:14:42,726:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:14:42,726:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:14:42,726:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:14:42,726:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:14:42,726:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:14:42,726:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:14:42,726:lightserv.clearing.routes:key=time_dehydr_dcm_66percent_ch3oh_33percent,val=2019-03-05 10:55:00
+2019-10-03 15:14:42,726:lightserv.clearing.routes:key=time_dehydr_dcm_wash1,val=2019-03-05 14:00:00
+2019-10-03 15:14:42,727:lightserv.clearing.routes:key=time_dehydr_dcm_wash2,val=2019-03-05 14:17:00
+2019-10-03 15:14:53,424:lightserv.clearing.routes:Post request
+2019-10-03 15:14:53,427:lightserv.clearing.routes:Form validated
+2019-10-03 15:14:53,454:lightserv.clearing.routes:Entered into database: time_dehydr_dbe_wash1:2019-03-05 14:36:00
+2019-10-03 15:14:53,454:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:14:53,463:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:14:53,463:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:14:53,463:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:14:53,463:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:14:53,463:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:14:53,463:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:14:53,463:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:14:53,463:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:14:53,463:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:14:53,463:lightserv.clearing.routes:key=time_dehydr_dcm_66percent_ch3oh_33percent,val=2019-03-05 10:55:00
+2019-10-03 15:14:53,463:lightserv.clearing.routes:key=time_dehydr_dcm_wash1,val=2019-03-05 14:00:00
+2019-10-03 15:14:53,463:lightserv.clearing.routes:key=time_dehydr_dcm_wash2,val=2019-03-05 14:17:00
+2019-10-03 15:14:53,464:lightserv.clearing.routes:key=time_dehydr_dbe_wash1,val=2019-03-05 14:36:00
+2019-10-03 15:15:03,085:lightserv.clearing.routes:Post request
+2019-10-03 15:15:03,086:lightserv.clearing.routes:Form validated
+2019-10-03 15:15:03,125:lightserv.clearing.routes:Entered into database: time_dehydr_dbe_wash2:2019-03-05 16:29:00
+2019-10-03 15:15:03,125:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:15:03,135:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:15:03,136:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:15:03,136:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:15:03,136:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:15:03,136:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:15:03,136:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:15:03,136:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:15:03,136:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:15:03,136:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:15:03,136:lightserv.clearing.routes:key=time_dehydr_dcm_66percent_ch3oh_33percent,val=2019-03-05 10:55:00
+2019-10-03 15:15:03,136:lightserv.clearing.routes:key=time_dehydr_dcm_wash1,val=2019-03-05 14:00:00
+2019-10-03 15:15:03,136:lightserv.clearing.routes:key=time_dehydr_dcm_wash2,val=2019-03-05 14:17:00
+2019-10-03 15:15:03,136:lightserv.clearing.routes:key=time_dehydr_dbe_wash1,val=2019-03-05 14:36:00
+2019-10-03 15:15:03,136:lightserv.clearing.routes:key=time_dehydr_dbe_wash2,val=2019-03-05 16:29:00
+2019-10-03 15:15:11,198:lightserv.clearing.routes:Post request
+2019-10-03 15:15:11,200:lightserv.clearing.routes:Form validated
+2019-10-03 15:15:11,200:lightserv.clearing.routes:Submitting entire form
+2019-10-03 15:17:56,675:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:17:56,681:lightserv.clearing.routes:key=perfusion_date,val=2019-02-28
+2019-10-03 15:17:56,682:lightserv.clearing.routes:key=time_pbs_wash2,val=2019-03-01 16:18:00
+2019-10-03 15:17:56,682:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-03-01 16:53:00
+2019-10-03 15:17:56,682:lightserv.clearing.routes:key=time_dehydr_ch3oh_20percent_wash1,val=2019-03-04 09:43:00
+2019-10-03 15:17:56,682:lightserv.clearing.routes:key=time_dehydr_ch3oh_40percent_wash1,val=2019-03-04 10:32:00
+2019-10-03 15:17:56,682:lightserv.clearing.routes:key=time_dehydr_ch3oh_60percent_wash1,val=2019-03-04 11:19:00
+2019-10-03 15:17:56,682:lightserv.clearing.routes:key=time_dehydr_ch3oh_80percent_wash1,val=2019-03-04 00:07:00
+2019-10-03 15:17:56,682:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash1,val=2019-03-04 12:55:00
+2019-10-03 15:17:56,682:lightserv.clearing.routes:key=time_dehydr_ch3oh_100percent_wash2,val=2019-03-04 13:41:00
+2019-10-03 15:17:56,682:lightserv.clearing.routes:key=time_dehydr_dcm_66percent_ch3oh_33percent,val=2019-03-05 10:55:00
+2019-10-03 15:17:56,682:lightserv.clearing.routes:key=time_dehydr_dcm_wash1,val=2019-03-05 14:00:00
+2019-10-03 15:17:56,682:lightserv.clearing.routes:key=time_dehydr_dcm_wash2,val=2019-03-05 14:17:00
+2019-10-03 15:17:56,682:lightserv.clearing.routes:key=time_dehydr_dbe_wash1,val=2019-03-05 14:36:00
+2019-10-03 15:17:56,682:lightserv.clearing.routes:key=time_dehydr_dbe_wash2,val=2019-03-05 16:29:00
+2019-10-03 15:18:01,561:lightserv.clearing.routes:Post request
+2019-10-03 15:18:01,563:lightserv.clearing.routes:Form validated
+2019-10-03 15:18:01,563:lightserv.clearing.routes:Submitting entire form
+2019-10-03 15:20:21,764:lightserv.clearing.routes:Created clearing database entry
+2019-10-03 15:20:21,764:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:20:40,145:lightserv.clearing.routes:Post request
+2019-10-03 15:20:40,146:lightserv.clearing.routes:Form validated
+2019-10-03 15:20:40,146:lightserv.clearing.routes:Submitting entire form
+2019-10-03 15:20:48,718:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:24:20,403:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:24:37,507:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:24:49,954:lightserv.clearing.routes:Post request
+2019-10-03 15:24:49,955:lightserv.clearing.routes:Form validated
+2019-10-03 15:24:50,414:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:39:38,756:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:46:44,757:lightserv.clearing.routes:Post request
+2019-10-03 15:46:44,758:lightserv.clearing.routes:Form validated
+2019-10-03 15:53:32,682:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 15:53:47,446:lightserv.clearing.routes:Post request
+2019-10-03 15:53:47,447:lightserv.clearing.routes:Form validated
+2019-10-03 15:54:05,732:lightserv.clearing.routes:Post request
+2019-10-03 15:54:05,732:lightserv.clearing.routes:Form validated
+2019-10-03 15:54:30,304:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 16:35:47,773:lightserv.clearing.routes:Created clearing database entry
+2019-10-03 16:35:47,773:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 16:36:31,946:lightserv.clearing.routes:Post request
+2019-10-03 16:36:31,947:lightserv.clearing.routes:Form validated
+2019-10-03 16:36:31,970:lightserv.clearing.routes:Entered into database: perfusion_date:2019-10-05
+2019-10-03 16:36:31,971:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 16:36:31,982:lightserv.clearing.routes:key=perfusion_date,val=2019-10-05
+2019-10-03 16:36:48,171:lightserv.clearing.routes:Post request
+2019-10-03 16:36:48,173:lightserv.clearing.routes:Form validated
+2019-10-03 16:36:48,194:lightserv.clearing.routes:Entered into database: time_pbs_wash1:2019-10-05 08:30:00
+2019-10-03 16:36:48,194:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 16:36:48,202:lightserv.clearing.routes:key=perfusion_date,val=2019-10-05
+2019-10-03 16:36:48,202:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-10-05 08:30:00
+2019-10-03 16:36:53,468:lightserv.clearing.routes:Post request
+2019-10-03 16:36:53,471:lightserv.clearing.routes:Form validated
+2019-10-03 16:36:53,907:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 16:36:53,915:lightserv.clearing.routes:key=perfusion_date,val=2019-10-05
+2019-10-03 16:36:53,915:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-10-05 08:30:00
+2019-10-03 16:38:22,259:lightserv.clearing.routes:Post request
+2019-10-03 16:38:22,261:lightserv.clearing.routes:Form validated
+2019-10-03 16:38:22,287:lightserv.clearing.routes:Entered into database: time_pbs_wash3:2019-11-04 14:30:00
+2019-10-03 16:38:22,287:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 16:38:22,297:lightserv.clearing.routes:key=perfusion_date,val=2019-10-05
+2019-10-03 16:38:22,297:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-10-05 08:30:00
+2019-10-03 16:38:22,297:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-11-04 14:30:00
+2019-10-03 16:38:44,691:lightserv.clearing.routes:Post request
+2019-10-03 16:38:44,692:lightserv.clearing.routes:Form validated
+2019-10-03 16:38:44,719:lightserv.clearing.routes:Entered into database: time_dehydr_dbe_wash2:2019-10-09 13:30:00
+2019-10-03 16:38:44,719:lightserv.clearing.routes:Current non-null contents of the database:
+2019-10-03 16:38:44,730:lightserv.clearing.routes:key=perfusion_date,val=2019-10-05
+2019-10-03 16:38:44,730:lightserv.clearing.routes:key=time_pbs_wash1,val=2019-10-05 08:30:00
+2019-10-03 16:38:44,730:lightserv.clearing.routes:key=time_pbs_wash3,val=2019-11-04 14:30:00
+2019-10-03 16:38:44,730:lightserv.clearing.routes:key=time_dehydr_dbe_wash2,val=2019-10-09 13:30:00
+2019-10-03 16:38:46,182:lightserv.clearing.routes:Post request
+2019-10-03 16:38:46,183:lightserv.clearing.routes:Form validated
+2019-10-03 16:38:46,184:lightserv.clearing.routes:Submitting entire form
