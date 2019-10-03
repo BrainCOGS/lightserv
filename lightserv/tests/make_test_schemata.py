@@ -10,7 +10,7 @@ experiment_test_data_file = DATA_PATH + '/experiment_test_data.pkl'
 
 def create_test_schema():
     """ If test schema already exists (from e.g. a failed previous test), then drop it """
-    if 'ahoag_lightsheet_test' in dj.get_schema_names():
+    if 'ahoag_lightsheet_test' in dj.list_schemas():
         print("Removing existing test schema")
         test_schema = dj.schema('ahoag_lightsheet_test')
         test_schema.drop(force=True)
@@ -63,6 +63,237 @@ def create_test_schema():
         notes =                 :   varchar(1000)
         """
 
+
+    @test_schema
+    class UdiscoClearing(dj.Manual): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
+        definition = """ # uDISCO clearing table
+        -> Experiment              # experiment_id, the primary key from the Experiment() table
+        ----
+        -> User                    # username, the researcher's netid from the User() table
+        clearer                                                  :   varchar(20)   # the netid of the person who did the clearing
+        exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+        perfusion_date = NULL                                    :   date 
+        time_dehydr_pbs_wash1 = NULL                             :   datetime
+        dehydr_pbs_wash1_notes = ""                              :   varchar(250)
+        time_dehydr_butanol_30percent = NULL                     :   datetime
+        dehydr_butanol_30percent_notes = ""                      :   varchar(250)
+        time_dehydr_butanol_50percent = NULL                     :   datetime
+        dehydr_butanol_50percent_notes = ""                      :   varchar(250)
+        time_dehydr_butanol_70percent = NULL                     :   datetime
+        dehydr_butanol_70percent_notes = ""                      :   varchar(250)
+        time_dehydr_butanol_80percent = NULL                     :   datetime
+        dehydr_butanol_80percent_notes = ""                      :   varchar(250)
+        time_dehydr_butanol_90percent = NULL                     :   datetime
+        dehydr_butanol_90percent_notes = ""                      :   varchar(250)
+        time_dehydr_butanol_96percent = NULL                     :   datetime
+        dehydr_butanol_96percent_notes = ""                      :   varchar(250)
+        time_dehydr_butanol_100percent = NULL                    :   datetime
+        dehydr_butanol_100percent_notes = ""                     :   varchar(250)
+        time_clearing_dcm_wash1 = NULL                           :   datetime
+        clearing_dcm_wash1_notes = ""                            :   varchar(250)
+        time_clearing_babb_wash1 = NULL                          :   datetime
+        clearing_babb_wash1_notes = ""                           :   varchar(250)
+        clearing_notes = ""                                      : varchar(500)
+        """
+
+    @test_schema
+    class IdiscoPlusClearing(dj.Manual): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
+        definition = """ # Periodic calibration data of the light sheet microscope
+        -> Experiment              # experiment_id, the primary key from the Experiment() table
+        ----
+        -> User                    # username, the researcher's netid from the User() table
+        clearer                                                  :   varchar(20)   # the netid of the person who did the clearing
+        exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+        perfusion_date = NULL                                    :   date 
+        time_dehydr_pbs_wash1 = NULL                             :   datetime
+        dehydr_pbs_wash1_notes = ""                              :   varchar(250)
+        time_dehydr_pbs_wash2 = NULL                             :   datetime
+        dehydr_pbs_wash2_notes = ""                              :   varchar(250)
+        time_dehydr_pbs_wash3 = NULL                             :   datetime
+        dehydr_pbs_wash3_notes = ""                              :   varchar(250)
+        time_dehydr_ch3oh_20percent_wash1 = NULL                 :   datetime
+        dehydr_ch3oh_20percent_wash1_notes = ""                  :   varchar(250)
+        time_dehydr_ch3oh_40percent_wash1 = NULL                 :   datetime
+        dehydr_ch3oh_40percent_wash1_notes = ""                  :   varchar(250)
+        time_dehydr_ch3oh_60percent_wash1 = NULL                 :   datetime
+        dehydr_ch3oh_60percent_wash1_notes = ""                  :   varchar(250)
+        time_dehydr_ch3oh_80percent_wash1 = NULL                 :   datetime
+        dehydr_ch3oh_80percent_wash1_notes = ""                  :   varchar(250)
+        time_dehydr_ch3oh_100percent_wash1 = NULL                :   datetime
+        dehydr_ch3oh_100percent_wash1_notes = ""                 :   varchar(250)
+        time_dehydr_ch3oh_100percent_wash2 = NULL                :   datetime
+        dehydr_ch3oh_100percent_wash2_notes = ""                 :   varchar(250)
+        time_dehydr_h202_wash1 = NULL                            :   datetime
+        dehydr_h202_wash1_notes = ""                             :   varchar(250)
+        time_rehydr_ch3oh_100percent_wash1 = NULL                :   datetime
+        rehydr_ch3oh_100percent_wash1_notes = ""                 :   varchar(250)
+        time_rehydr_ch3oh_80percent_wash1 = NULL                 :   datetime
+        rehydr_ch3oh_80percent_wash1_notes = ""                  :   varchar(250)
+        time_rehydr_ch3oh_60percent_wash1 = NULL                 :   datetime
+        rehydr_ch3oh_60percent_wash1_notes = ""                  :   varchar(250)
+        time_rehydr_ch3oh_40percent_wash1 = NULL                 :   datetime
+        rehydr_ch3oh_40percent_wash1_notes = ""                  :   varchar(250)
+        time_rehydr_ch3oh_20percent_wash1 = NULL                 :   datetime
+        rehydr_ch3oh_20percent_wash1_notes = ""                  :   varchar(250)
+        time_rehydr_pbs_wash1 = NULL                             :   datetime
+        rehydr_pbs_wash1_notes = ""                              :   varchar(250)
+        time_rehydr_sodium_azide_wash1 = NULL                    :   datetime
+        rehydr_sodium_azide_wash1_notes = ""                     :   varchar(250)
+        time_rehydr_sodium_azide_wash2 = NULL                    :   datetime
+        rehydr_sodium_azide_wash2_notes = ""                     :   varchar(250)
+        time_rehydr_glycine_wash1 = NULL                         :   datetime
+        rehydr_glycine_wash1_notes = ""                          :   varchar(250)
+        time_blocking_start_roomtemp = NULL                      :   datetime
+        blocking_start_roomtemp_notes = ""                       :   varchar(250)
+        time_blocking_donkey_serum = NULL                        :   datetime
+        blocking_donkey_serum_notes = ""                         :   varchar(250)
+        time_antibody1_start_roomtemp = NULL                     :   datetime
+        antibody1_start_roomtemp_notes = ""                      :   varchar(250)
+        time_antibody1_ptwh_wash1 = NULL                         :   datetime
+        antibody1_ptwh_wash1_notes = ""                          :   varchar(250)
+        time_antibody1_ptwh_wash2 = NULL                         :   datetime
+        antibody1_ptwh_wash2_notes = ""                          :   varchar(250)
+        time_antibody1_added = NULL                              :   datetime
+        antibody1_added_notes = ""                               :   varchar(250)
+        time_wash1_start_roomtemp = NULL                         :   datetime
+        wash1_start_roomtemp_notes = ""                          :   varchar(250)
+        time_wash1_ptwh_wash1 = NULL                             :   datetime
+        wash1_ptwh_wash1_notes = ""                              :   varchar(250)
+        time_wash1_ptwh_wash2 = NULL                             :   datetime
+        wash1_ptwh_wash2_notes = ""                              :   varchar(250)
+        time_wash1_ptwh_wash3 = NULL                             :   datetime
+        wash1_ptwh_wash3_notes = ""                              :   varchar(250)
+        time_wash1_ptwh_wash4 = NULL                             :   datetime
+        wash1_ptwh_wash4_notes = ""                              :   varchar(250)
+        time_wash1_ptwh_wash5 = NULL                             :   datetime
+        wash1_ptwh_wash5_notes = ""                              :   varchar(250)
+        time_antibody2_added = NULL                              :   datetime
+        antibody2_added_notes = ""                               :   varchar(250)
+        time_wash2_start_roomtemp = NULL                         :   datetime
+        wash2_start_roomtemp_notes = ""                          :   varchar(250)
+        time_wash2_ptwh_wash1 = NULL                             :   datetime
+        wash2_ptwh_wash1_notes = ""                              :   varchar(250)
+        time_wash2_ptwh_wash2 = NULL                             :   datetime
+        wash2_ptwh_wash2_notes = ""                              :   varchar(250)
+        time_wash2_ptwh_wash3 = NULL                             :   datetime
+        wash2_ptwh_wash3_notes = ""                              :   varchar(250)
+        time_wash2_ptwh_wash4 = NULL                             :   datetime
+        wash2_ptwh_wash3_notes = ""                              :   varchar(250)
+        time_wash2_ptwh_wash5 = NULL                             :   datetime
+        wash2_ptwh_wash5_notes = ""                              :   varchar(250)
+        time_clearing_ch3oh_20percent_wash1 = NULL               :   datetime
+        clearing_ch3oh_20percent_wash1_notes = ""                :   varchar(250)
+        time_clearing_ch3oh_40percent_wash1 = NULL               :   datetime
+        clearing_ch3oh_40percent_wash1_notes = ""                :   varchar(250)
+        time_clearing_ch3oh_60percent_wash1 = NULL               :   datetime
+        clearing_ch3oh_60percent_wash1_notes = ""                :   varchar(250)
+        time_clearing_ch3oh_80percent_wash1 = NULL               :   datetime
+        clearing_ch3oh_80percent_wash1_notes = ""                :   varchar(250)
+        time_clearing_ch3oh_100percent_wash1 = NULL              :   datetime
+        clearing_ch3oh_100percent_wash1_notes = ""               :   varchar(250)
+        time_clearing_ch3oh_100percent_wash2 = NULL              :   datetime
+        clearing_ch3oh_100percent_wash2_notes = ""               :   varchar(250)
+        time_clearing_dcm_66percent_ch3oh_33percent = NULL       :   datetime
+        clearing_dcm_66percent_ch3oh_33percent_notes = ""        :   varchar(250)
+        time_clearing_dcm_wash1 = NULL                           :   datetime
+        clearing_dcm_wash1_notes = ""                            :   varchar(250)
+        time_clearing_dcm_wash2 = NULL                           :   datetime
+        clearing_dcm_wash2_notes = ""                            :   varchar(250)
+        time_clearing_dbe = NULL                                 :   datetime
+        clearing_dbe_notes = ""                                  :   varchar(250)
+        time_clearing_new_tubes = NULL                           :   datetime
+        clearing_new_tubes_notes = ""                            :   varchar(250)
+        clearing_notes = ""                                      :   varchar(500)
+        """
+
+    @test_schema
+    class IdiscoAbbreviatedClearing(dj.Manual): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
+        definition = """ # Periodic calibration data of the light sheet microscope
+        -> Experiment              # experiment_id, the primary key from the Experiment() table
+        ----
+        -> User                    # username, the researcher's netid from the User() table
+        clearer                                                  :   varchar(20)   # the netid of the person who did the clearing
+        exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+        perfusion_date = NULL                                    :   date 
+        time_pbs_wash1 = NULL                                    :   datetime
+        pbs_wash1_notes = ""                                     :   varchar(250)
+        time_pbs_wash2 = NULL                                    :   datetime
+        pbs_wash2_notes = ""                                     :   varchar(250)
+        time_pbs_wash3 = NULL                                    :   datetime
+        pbs_wash3_notes = ""                                     :   varchar(250)
+        time_dehydr_ch3oh_20percent_wash1 = NULL                 :   datetime
+        dehydr_ch3oh_20percent_wash1_notes = ""                  :   varchar(250)
+        time_dehydr_ch3oh_40percent_wash1 = NULL                 :   datetime
+        dehydr_ch3oh_40percent_wash1_notes = ""                  :   varchar(250)
+        time_dehydr_ch3oh_60percent_wash1 = NULL                 :   datetime
+        dehydr_ch3oh_60percent_wash1_notes = ""                  :   varchar(250)
+        time_dehydr_ch3oh_80percent_wash1 = NULL                 :   datetime
+        dehydr_ch3oh_80percent_wash1_notes = ""                  :   varchar(250)
+        time_dehydr_ch3oh_100percent_wash1 = NULL                :   datetime
+        dehydr_ch3oh_100percent_wash1_notes = ""                 :   varchar(250)
+        time_dehydr_ch3oh_100percent_wash2 = NULL                :   datetime
+        dehydr_ch3oh_100percent_wash2_notes = ""                 :   varchar(250)
+        time_dehydr_dcm_66percent_ch3oh_33percent = NULL         :   datetime
+        dehydr_dcm_66percent_ch3oh_33percent_notes = ""          :   varchar(250)
+        time_dehydr_dcm_wash1 = NULL                             :   datetime
+        dehydr_dcm_wash1_notes = ""                              :   varchar(250)
+        time_dehydr_dcm_wash2 = NULL                             :   datetime
+        dehydr_dcm_wash2_notes = ""                              :   varchar(250)
+        time_dehydr_dbe_wash1 = NULL                             :   datetime
+        dehydr_dbe_wash1_notes = ""                              :   varchar(250)
+        time_dehydr_dbe_wash2 = NULL                             :   datetime
+        dehydr_dbe_wash2_notes = ""                              :   varchar(250)
+        clearing_notes = ""                                      :   varchar(500)
+        """
+
+    @test_schema
+    class IdiscoAbbreviatedRatClearing(dj.Manual): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
+        definition = """ # Abbreviated Rat clearing table
+        -> Experiment              # experiment_id, the primary key from the Experiment() table
+        ----
+        -> User                    # username, the researcher's netid from the User() table
+        clearer                                                  :   varchar(20)   # the netid of the person who did the clearing
+        exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+        perfusion_date = NULL                                    :   date 
+        time_pbs_wash1 = NULL                                    :   datetime
+        pbs_wash1_notes = ""                                     :   varchar(250)
+        time_pbs_wash2 = NULL                                    :   datetime
+        pbs_wash2_notes = ""                                     :   varchar(250)
+        time_pbs_wash3 = NULL                                    :   datetime
+        pbs_wash3_notes = ""                                     :   varchar(250)
+        time_dehydr_ch3oh_20percent_wash1 = NULL                 :   datetime
+        dehydr_ch3oh_20percent_wash1_notes = ""                  :   varchar(250)
+        time_dehydr_ch3oh_40percent_wash1 = NULL                 :   datetime
+        dehydr_ch3oh_40percent_wash1_notes = ""                  :   varchar(250)
+        time_dehydr_ch3oh_60percent_wash1 = NULL                 :   datetime
+        dehydr_ch3oh_60percent_wash1_notes = ""                  :   varchar(250)
+        time_dehydr_ch3oh_80percent_wash1 = NULL                 :   datetime
+        dehydr_ch3oh_80percent_wash1_notes = ""                  :   varchar(250)
+        time_dehydr_ch3oh_100percent_wash1 = NULL                :   datetime
+        dehydr_ch3oh_100percent_wash1_notes = ""                 :   varchar(250)
+        time_dehydr_ch3oh_100percent_wash2 = NULL                :   datetime
+        dehydr_ch3oh_100percent_wash2_notes = ""                 :   varchar(250)
+        time_dehydr_h202_wash1 = NULL                            :   datetime
+        dehydr_h202_wash1_notes = ""                             :   varchar(250)
+        time_dehydr_ch3oh_100percent_wash3 = NULL                :   datetime
+        dehydr_ch3oh_100percent_wash3_notes = ""                 :   varchar(250)
+        time_dehydr_ch3oh_100percent_wash4 = NULL                :   datetime
+        dehydr_ch3oh_100percent_wash4_notes = ""                 :   varchar(250)
+        time_dehydr_ch3oh_100percent_wash5 = NULL                :   datetime
+        dehydr_ch3oh_100percent_wash5_notes = ""                 :   varchar(250)
+        time_dehydr_dcm_66percent_ch3oh_33percent = NULL         :   datetime
+        dehydr_dcm_66percent_ch3oh_33percent_notes = ""          :   varchar(250)
+        time_dehydr_dcm_wash1 = NULL                             :   datetime
+        dehydr_dcm_wash1_notes = ""                              :   varchar(250)
+        time_dehydr_dcm_wash2 = NULL                             :   datetime
+        dehydr_dcm_wash2_notes = ""                              :   varchar(250)
+        time_dehydr_dbe_wash1 = NULL                             :   datetime
+        dehydr_dbe_wash1_notes = ""                              :   varchar(250)
+        time_dehydr_dbe_wash2 = NULL                             :   datetime
+        dehydr_dbe_wash2_notes = ""                              :   varchar(250)
+        clearing_notes = ""                                      : varchar(500)
+        """
+
     with open(experiment_test_data_file,'rb') as f:
         experiment_test_data = pickle.load(f)
 
@@ -78,7 +309,7 @@ def create_test_schema():
             # ignore blank lines
             if not form_response:
                 continue
-            assert len(form_response) == 14
+            assert len(form_response) == 15
             species = form_response[0].lower()
             clearing_protocol = form_response[1]
             if 'immunostaining' in clearing_protocol:
@@ -117,7 +348,7 @@ def create_test_schema():
                 if 'injection' in item and 'detection' in item:
                     injection_detection =1
             notes = form_response[11]
-            email = form_response[13]
+            email = form_response[14]
             username = email.split('@')[0].lower() if 'princeton' in email else 'zmd' # zahra is the only one who used her gmail
             
             user_insert_dict = {'username':username,'email':email}
