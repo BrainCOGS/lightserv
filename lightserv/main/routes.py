@@ -18,7 +18,7 @@ main = Blueprint('main',__name__)
 @logged_in
 def home(): 
 	username = session['user']
-	if username in ['ahoag','zmd']:
+	if username in ['ahoag','zmd','ll3']:
 		exp_contents = db.Experiment()
 		legend = 'All light sheet experiments'
 	else:

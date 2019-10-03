@@ -100,5 +100,5 @@ def add_clearing_calendar_entry(date,summary):
 
 	# Call the Calendar API
 	# print('Getting the upcoming 10 events')
-	events_result = service.events().insert(calendarId='primary', 
+	events_result = service.events().insert(calendarId='8kvbhcbo0smdg394f79eh45gfc@group.calendar.google.com', 
 										  body=all_day_event).execute()
