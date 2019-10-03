@@ -181,9 +181,12 @@ class IdiscoAbbreviatedRatTable(Table):
     time_pbs_wash2 = Col('time_pbs_wash2',)
     time_pbs_wash3 = Col('time_pbs_wash3',)
     time_dehydr_methanol_20percent_wash1           = Col('time_dehydr_methanol_20percent_wash1',)
+    time_dehydr_methanol_20percent_wash2           = Col('time_dehydr_methanol_20percent_wash2',)
     time_dehydr_methanol_40percent_wash1           = Col('time_dehydr_methanol_40percent_wash1',)
+    time_dehydr_methanol_40percent_wash2           = Col('time_dehydr_methanol_40percent_wash1',)
     time_dehydr_methanol_60percent_wash1           = Col('time_dehydr_methanol_60percent_wash1',)
     time_dehydr_methanol_80percent_wash1           = Col('time_dehydr_methanol_80percent_wash1',)
+    time_dehydr_methanol_80percent_wash2           = Col('time_dehydr_methanol_80percent_wash2',)
     time_dehydr_methanol_100percent_wash1          = Col('time_dehydr_methanol_100percent_wash1',)
     time_dehydr_methanol_100percent_wash2          = Col('time_dehydr_methanol_100percent_wash2',)
 

@@ -3,13 +3,14 @@ dj.config['database.host'] = '127.0.0.1'
 dj.config['database.port'] = 3306
 
 dj.config['database.user'] = 'ahoag'
-dj.config['database.password'] = 'p@sswd'
+# dj.config['database.password'] = 'p@sswd'
 
 # dj.config['database.user'] = 'lightserv'
 # dj.config['database.password'] = 'microscope'
 
 schema = dj.schema('ahoag_lightsheet_demo') 
-
+schema.drop()
+schema = dj.schema('ahoag_lightsheet_demo')
 @schema
 class User(dj.Lookup):
     definition = """
@@ -223,12 +224,18 @@ class IdiscoAbbreviatedRatClearing(dj.Manual): # dj.Manual is one of the 4 dataj
     pbs_wash3_notes = ""                                     :   varchar(250)
     time_dehydr_methanol_20percent_wash1 = NULL                 :   datetime
     dehydr_methanol_20percent_wash1_notes = ""                  :   varchar(250)
+    time_dehydr_methanol_20percent_wash2 = NULL                 :   datetime
+    dehydr_methanol_20percent_wash2_notes = ""                  :   varchar(250)
     time_dehydr_methanol_40percent_wash1 = NULL                 :   datetime
     dehydr_methanol_40percent_wash1_notes = ""                  :   varchar(250)
+    time_dehydr_methanol_40percent_wash2 = NULL                 :   datetime
+    dehydr_methanol_40percent_wash2_notes = ""                  :   varchar(250)
     time_dehydr_methanol_60percent_wash1 = NULL                 :   datetime
     dehydr_methanol_60percent_wash1_notes = ""                  :   varchar(250)
     time_dehydr_methanol_80percent_wash1 = NULL                 :   datetime
     dehydr_methanol_80percent_wash1_notes = ""                  :   varchar(250)
+    time_dehydr_methanol_80percent_wash2 = NULL                 :   datetime
+    dehydr_methanol_80percent_wash2_notes = ""                  :   varchar(250)
     time_dehydr_methanol_100percent_wash1 = NULL                :   datetime
     dehydr_methanol_100percent_wash1_notes = ""                 :   varchar(250)
     time_dehydr_methanol_100percent_wash2 = NULL                :   datetime
