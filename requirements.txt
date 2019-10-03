@@ -18,7 +18,7 @@ Click==7.0
 compressed-segmentation==1.0.0
 coverage==4.5.4
 cycler==0.10.0
-datajoint==0.12.dev3
+datajoint>=0.12.dev7
 decorator==4.4.0
 docutils==0.15.2
 dominate==2.4.0
