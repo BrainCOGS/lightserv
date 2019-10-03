@@ -22,6 +22,8 @@ def determine_clearing_form(clearing_protocol,existing_form):
 		form = iDiscoPlusImmunoForm(existing_form)
 	elif clearing_protocol == 'iDISCO_EdU':
 		form = iDiscoEduForm()
+	else:
+		return None
 	return form
 
 def determine_clearing_dbtable(clearing_protocol):

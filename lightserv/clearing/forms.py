@@ -467,7 +467,6 @@ class uDiscoForm(FlaskForm):
 	dehydr_butanol_90percent_notes = TextAreaField('Notes:',validators=[Length(max=250)])
 	dehydr_butanol_90percent_notes_submit = SubmitField('Update Notes')
 
-
 	time_dehydr_butanol_96percent = OptionalDateTimeLocalField('96% t-butanol R@35C 10 h')
 	time_dehydr_butanol_96percent_submit = SubmitField('Update')
 	dehydr_butanol_96percent_notes = TextAreaField('Notes:',validators=[Length(max=250)])
@@ -485,7 +484,6 @@ class uDiscoForm(FlaskForm):
 	time_clearing_dcm_wash1_submit = SubmitField('Update')
 	clearing_dcm_wash1_notes = TextAreaField('Notes:',validators=[Length(max=250)])
 	clearing_dcm_wash1_notes_submit = SubmitField('Update Notes')
-
 
 	time_clearing_babb_wash1 = OptionalDateTimeLocalField('BABB-D10 >3hrs')
 	time_clearing_babb_wash1_submit = SubmitField('Update')

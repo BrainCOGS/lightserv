@@ -14,6 +14,25 @@ from lightserv.main.utils import logged_in
 import numpy as np
 import datajoint as dj
 import re
+import datetime
+
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+
+''' Make the file handler to deal with logging to file '''
+file_handler = logging.FileHandler('logs/clearing_routes.log')
+file_handler.setFormatter(formatter)
+
+stream_handler = logging.StreamHandler() # level already set at debug from logger.setLevel() above
+
+stream_handler.setFormatter(formatter)
+
+logger.addHandler(stream_handler)
+logger.addHandler(file_handler)
 
 clearing = Blueprint('clearing',__name__)
 
@@ -39,17 +58,28 @@ def clearing_entry(clearing_protocol,experiment_id):
 		insert_dict = {'experiment_id':experiment_id,
 						'username':experiment_username,'clearer':session['user']}
 		dbTable().insert1(insert_dict)
-		print("Created clearing database entry")
+		logger.info("Created clearing database entry")
+	
 
 	''' Handle user's post requests '''
 	if request.method == 'POST':
+		logger.debug("Post request")
 		if form.validate_on_submit():
+			logger.debug("Form validated")
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x]
 			for key in submit_keys:
 				if form[key].data:
-
 					if key == 'submit': # The final submit button
-						print("Submitting entire form")
+						logger.debug("Submitting entire form")
+						form_data_dict = form.data
+						clearing_contents_dict = clearing_contents.fetch1()
+						base_entry_dict = {'experiment_id':experiment_id,
+						'username':clearing_contents_dict['username'],'clearer':clearing_contents_dict['clearer']}
+						clearing_entry_dict = {key:form_data_dict[key] for key in form_data_dict.keys() if key in clearing_contents_dict.keys()}
+						for k in base_entry_dict:
+							clearing_entry_dict[k] = base_entry_dict[k]
+						clearing_contents.delete_quick()
+						dbTable().insert1(clearing_entry_dict)							
 						return redirect(url_for('clearing.clearing_table',experiment_id=experiment_id))
 					elif re.search("^(?!perfusion).*_date_submit$",key) != None:
 						column_name = key.split('_submit')[0]
@@ -72,7 +102,7 @@ def clearing_entry(clearing_protocol,experiment_id):
 						clearing_entry_dict[column_name]=form[column_name].data
 						clearing_contents.delete_quick()
 						dbTable().insert1(clearing_entry_dict)
-						print(f"updated row for value: {column_name}")
+						logger.debug(f"Entered into database: {column_name}:{form[column_name].data}")
 						this_index = submit_keys.index(key)
 						next_index = this_index + 1 if 'notes' in column_name else this_index+2
 						column_name = submit_keys[next_index].split('_submit')[0]
@@ -85,6 +115,18 @@ def clearing_entry(clearing_protocol,experiment_id):
 			column_name = list(form.errors.keys())[0]
 	else:
 		column_name = None
+
+	''' Populate form with current database contents '''
+	logger.debug("Current non-null contents of the database:")
+	clearing_contents = dbTable() & f'experiment_id={experiment_id}'
+	clearing_contents_dict = clearing_contents.fetch1()
+	form_fieldnames = form._fields.keys()
+	for key in clearing_contents_dict.keys():
+		val = clearing_contents_dict[key]
+		if key in form_fieldnames and val:
+			logger.debug(f"key={key},val={val}")
+			# logger.debug(val)
+			form[key].data = val
 	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,
 		form=form,clearing_table=clearing_table,experiment_id=experiment_id,
 		column_name=column_name)
