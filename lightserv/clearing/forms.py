@@ -256,7 +256,7 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	clearing_notes = TextAreaField('Clearing Notes',validators=[Length(max=500)])
 	clearing_notes_submit = SubmitField('Update')
 
-	submit = SubmitField('Done')
+	submit = SubmitField('Done (submits all entered data)')
 
 class iDiscoAbbreviatedForm(FlaskForm):
 	""" The form for entering clearing information """
