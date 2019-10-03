@@ -112,6 +112,9 @@ def clearing_entry(clearing_protocol,experiment_id):
 		else:
 			''' Find the first form field where there was an error and set the column_name to it 
 			so the focus is set there upon reload of page '''
+			logger.debug(form.errors)
+			for error in form['time_pbs_wash1'].errors:
+				print(error)
 			column_name = list(form.errors.keys())[0]
 	else:
 		column_name = None

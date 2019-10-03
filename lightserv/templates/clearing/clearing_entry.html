@@ -51,11 +51,23 @@
 							{% if lastday_dict.update({'counter':new_counter}) %}{% endif %}
 						{% endif %}
 						<div> </br>
+							<!-- The datetime form and submit button -->
 							{{ form[key].label }}
-							
-							{{ form[key](class='datetime-local') }}
-							{{ form[submit_key](class="btn btn-sm btn-info") }}
+							{% if form[key].errors %}
+								{{ form[key](class="datetime-local is-invalid") }}
+								{{ form[submit_key](class="btn btn-sm btn-info") }}
+								<div class="invalid-feedback">
+								{% for error in form[key].errors %}
+									<span>{{ error }}</span>
+								{% endfor %}
+								</div>
+								<!-- </div> -->
+							{% else %}
+								{{ form[key](class="datetime-local") }}
+								{{ form[submit_key](class="btn btn-sm btn-info") }}
+							{% endif %}
 							</br>
+							<!-- The notes for the above datetime column and submit button -->
 							{{ form[notes_key].label }}
 							{% if form[notes_key].errors %}
 								{{ form[notes_key](class="form-control form-control-lg is-invalid") }}
@@ -64,13 +76,14 @@
 									{% for error in form[notes_key].errors %}
 										<span>{{ error }}</span>
 									{% endfor %}
+									</div>
 							{% else %}
 								{{ form[notes_key](class="form-control form-control-lg ") }}
 								{{ form[notes_update_key](class="btn btn-sm btn-info mt-2") }}
 							{% endif %}
 							
 
-						</div>
+					</div>
 					{% endif %}
 				{% endfor %}
 			</fieldset>
