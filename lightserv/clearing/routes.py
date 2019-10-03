@@ -71,15 +71,20 @@ def clearing_entry(clearing_protocol,experiment_id):
 				if form[key].data:
 					if key == 'submit': # The final submit button
 						logger.debug("Submitting entire form")
+						''' Get data from the form and submit it to the database '''
 						form_data_dict = form.data
 						clearing_contents_dict = clearing_contents.fetch1()
+						''' The fields that need to go in the database that are not in the form '''
 						base_entry_dict = {'experiment_id':experiment_id,
-						'username':clearing_contents_dict['username'],'clearer':clearing_contents_dict['clearer']}
+										   'username':clearing_contents_dict['username'],
+						                   'clearer':clearing_contents_dict['clearer']}
 						clearing_entry_dict = {key:form_data_dict[key] for key in form_data_dict.keys() if key in clearing_contents_dict.keys()}
 						for k in base_entry_dict:
 							clearing_entry_dict[k] = base_entry_dict[k]
 						clearing_contents.delete_quick()
-						dbTable().insert1(clearing_entry_dict)							
+						dbTable().insert1(clearing_entry_dict)	
+						dj.Table._update(exp_contents,'clearing_progress','complete')						
+						flash("Clearing form was successfully completed.",'success')
 						return redirect(url_for('clearing.clearing_table',experiment_id=experiment_id))
 					elif re.search("^(?!perfusion).*_date_submit$",key) != None:
 						column_name = key.split('_submit')[0]
