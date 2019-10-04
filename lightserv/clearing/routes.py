@@ -143,8 +143,11 @@ def clearing_entry(clearing_protocol,experiment_id):
 @logged_in
 def clearing_table(experiment_id): 
 	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
-	assert exp_contents, f"experiment_id={experiment_id} does not exist.\
-						   It must exist for clearing for this experiment to exist."
+	if not exp_contents:
+		flash(f"experiment_id={experiment_id} does not exist.\
+						   It must exist for clearing for this experiment to exist.",'danger')
+		return redirect(url_for('main.home'))
+	 
 	clearing_protocol = exp_contents.fetch1('clearing_protocol')
 
 	dbTable = determine_clearing_dbtable(clearing_protocol)
