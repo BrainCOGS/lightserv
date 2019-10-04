@@ -2,6 +2,15 @@
 	{% block content %}
 	<a class="text-muted">Logged in as: {{ session['user'] }}</a></br></br>
 	<legend class="border-bottom mb-4 mt-4">{{ legend }}:</legend>
-
 		{{ exp_table }}
+		{% if exp_contents %}
+			<input id = "tableSwapper" type="button"  class="btn btn-sm btn-info mt-1" value="Swap rows and columns"/>
+		{% endif %}
+
+		<form action="{{url_for('experiments.new_exp')}}">
+			<button type="submit" class="btn btn-info mt-4 mb-4">Start a new experiment</button>
+		</form>
+
+		<script src="{{ url_for('static',filename='javascript/tableswapper.js') }}" defer="defer"></script>
+
 	{% endblock content %}

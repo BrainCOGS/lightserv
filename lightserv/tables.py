@@ -33,8 +33,8 @@ class ExpTable(Table):
     url_kwargs = {'clearing_protocol':'clearing_protocol','experiment_id':'experiment_id',}
     anchor_attrs = {'target':"_blank",}
     
-    clearing_link = LinkCol('Edit clearing','clearing.clearing_entry',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs)
-    experiment_link = LinkCol('View experiment', 'experiments.exp',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs)
+    clearing_link = LinkCol('Edit clearing','clearing.clearing_entry',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs,allow_sort=False)
+    experiment_link = LinkCol('View experiment', 'experiments.exp',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs,allow_sort=False)
     
     def sort_url(self, col_key, reverse=False):
         if col_key == 'experiment_link':
@@ -63,9 +63,8 @@ class MicroscopeCalibrationTable(Table):
     kwargs = {'entrynum':'entrynum',}
     anchor_attrs = {'target':"_blank",}
 
-    delete_link = LinkCol('Update entry', 'microscope.update_entry',url_kwargs=kwargs,anchor_attrs=anchor_attrs)
+    delete_link = LinkCol('Update entry', 'microscope.update_entry',url_kwargs=kwargs,anchor_attrs=anchor_attrs,allow_sort=False)
 
-   
     def sort_url(self, col_key, reverse=False):
         if reverse:
             direction = 'desc'

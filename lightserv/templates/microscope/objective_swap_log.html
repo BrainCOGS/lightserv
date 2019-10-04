@@ -3,12 +3,13 @@
 	<legend class="border-bottom mb-4 mt-4">Light Sheet Microscope Objective Swap/Calibrate Log:</legend>
 
 		{{ table }}
+		{% if microscope_contents %}
 
-	<!-- <div> -->
-	<!-- <a href="{{url_for('microscope.objective_swap_log_entry')}}">Make a new entry</a> -->
-        <!-- <button type="button" class="btn btn-info" data-target="{{url_for('microscope.objective_swap_log_entry')}}">Make a new entry</button> -->
+			<input id = "tableSwapper" type="button"  class="btn btn-sm btn-info mt-1" value="Swap rows and columns"/>
+		{% endif %}
 	 <form action="{{url_for('microscope.objective_swap_log_entry')}}">
-         <button type="submit" class="btn btn-info mb-4">Make a new entry </button>
+         <button type="submit" class="btn btn-info mt-4 mb-4">Make a new entry </button>
       </form>
-	<!-- </div> -->
+
+	<script src="{{ url_for('static',filename='javascript/tableswapper.js') }}" defer="defer"></script>
 	{% endblock content %}

@@ -31,7 +31,7 @@ def home():
 
 	table = ExpTable(sorted_results,sort_by=sort,
 					  sort_reverse=reverse)
-	return render_template('main/home.html',exp_table=table,legend=legend)
+	return render_template('main/home.html',exp_contents=exp_contents,exp_table=table,legend=legend)
 
 @main.route('/login', methods=['GET', 'POST'])
 def login():

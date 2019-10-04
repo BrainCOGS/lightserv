@@ -7,6 +7,24 @@ from lightserv.microscope.forms import NewSwapLogEntryForm, UpdateSwapLogEntryFo
 from lightserv import db
 from lightserv.tables import MicroscopeCalibrationTable
 from lightserv.main.utils import table_sorter,logged_in
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+
+''' Make the file handler to deal with logging to file '''
+file_handler = logging.FileHandler('logs/microscope_routes.log')
+file_handler.setFormatter(formatter)
+
+stream_handler = logging.StreamHandler() # level already set at debug from logger.setLevel() above
+
+stream_handler.setFormatter(formatter)
+
+logger.addHandler(stream_handler)
+logger.addHandler(file_handler)
+
 
 microscope = Blueprint('microscope',__name__)
 
@@ -39,8 +57,7 @@ def swap_calibrate_log():
     sorted_results = sorted(microscope_contents.fetch(as_dict=True),
         key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function    
     swap_calibrate_table = MicroscopeCalibrationTable(microscope_contents,sort_by=sort,sort_reverse=reverse)
-    return render_template('microscope/objective_swap_log.html',table=swap_calibrate_table)
-
+    return render_template('microscope/objective_swap_log.html',microscope_contents=microscope_contents,table=swap_calibrate_table)
 
 @microscope.route('/microscope/<int:entrynum>/update_swap_entry', methods=['GET','POST'])
 @logged_in

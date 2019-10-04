@@ -1,5 +1,9 @@
 {% extends "layout.html" %}
 {% block content %}
 	{{ table }}
+	{% if clearing_contents %}
+		<input id = "tableSwapper" type="button"  class="btn btn-sm btn-info mt-1" value="Swap rows and columns"/>
+		<script src="{{ url_for('static',filename='javascript/tableswapper.js') }}" defer="defer"></script>
+	{% endif %}
 
 {% endblock content %}

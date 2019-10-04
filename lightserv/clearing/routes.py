@@ -155,4 +155,4 @@ def clearing_table(experiment_id):
 
 
 
-	return render_template('clearing/clearing_table.html',table=table)
+	return render_template('clearing/clearing_table.html',clearing_contents=db_contents,table=table)

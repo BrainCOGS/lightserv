@@ -47,7 +47,7 @@ def new_exp():
 		return redirect(url_for('main.home'))
 
 	return render_template('experiments/create_exp.html', title='new_experiment',
-		form=form,legend='New Request')	
+		form=form,legend='New Experiment')	
 
 @experiments.route("/exp/<int:experiment_id>/delete", methods=['POST'])
 @logged_in
