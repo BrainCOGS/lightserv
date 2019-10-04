@@ -8,8 +8,10 @@ from lightserv.tests.make_test_schemata import create_test_schema
 import socket
 
 dj.config['database.user'] = 'ahoag'
-dj.config['database.password'] = 'p@sswd'
-
+if socket.gethostname() == 'braincogs00.pni.princeton.edu':
+	dj.config['database.password'] = 'gaoha'
+else:
+	dj.config['database.password'] = 'p@sswd'
 
 ''' Initialize all the extensions outside of our app so 
 we can use them for multiple apps if we want. Don't want to tie 
