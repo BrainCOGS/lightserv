@@ -15,6 +15,24 @@ import neuroglancer
 # import cloudvolume
 import numpy as np
 
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+
+''' Make the file handler to deal with logging to file '''
+file_handler = logging.FileHandler('logs/experiment_routes.log')
+file_handler.setFormatter(formatter)
+
+stream_handler = logging.StreamHandler() # level already set at debug from logger.setLevel() above
+
+stream_handler.setFormatter(formatter)
+
+logger.addHandler(stream_handler)
+logger.addHandler(file_handler)
+
 neuroglancer.set_static_content_source(url='https://neuromancer-seung-import.appspot.com')
 
 experiments = Blueprint('experiments',__name__)
@@ -23,6 +41,7 @@ experiments = Blueprint('experiments',__name__)
 @logged_in
 def new_exp():
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
+	logger.info(f"{session['user']} accessed new experiment form")
 	form = ExpForm()
 	if form.validate_on_submit():
 		''' Create a new entry in the Experiment table based on form input.

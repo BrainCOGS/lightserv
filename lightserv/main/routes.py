@@ -8,7 +8,25 @@ from functools import partial, wraps
 import socket
 import numpy as np
 
-# from lightserv.experiments.routes import experiments
+
+
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+
+''' Make the file handler to deal with logging to file '''
+file_handler = logging.FileHandler('logs/main_routes.log')
+file_handler.setFormatter(formatter)
+
+stream_handler = logging.StreamHandler() # level already set at debug from logger.setLevel() above
+
+stream_handler.setFormatter(formatter)
+
+logger.addHandler(stream_handler)
+logger.addHandler(file_handler)
 
 
 main = Blueprint('main',__name__)
@@ -18,6 +36,7 @@ main = Blueprint('main',__name__)
 @logged_in
 def home(): 
 	username = session['user']
+	logger.info(f"{username} accessed home page")
 	if username in ['ahoag','zmd','ll3']:
 		exp_contents = db.Experiment()
 		legend = 'All light sheet experiments'
@@ -36,7 +55,7 @@ def home():
 @main.route('/login', methods=['GET', 'POST'])
 def login():
 	next_url = request.args.get("next")
-	print("Logging you in first!")
+	logger.info("Logging you in first!")
 	hostname = socket.gethostname()
 	if hostname == 'braincogs00.pni.princeton.edu':
 		username = request.headers['X-Remote-User']
@@ -44,7 +63,7 @@ def login():
 		username = 'ahoag'
 
 	session['user'] = username
-	# print(session)
+	logger.info(session)
 	return redirect(next_url)
 
 @main.route("/allenatlas")
