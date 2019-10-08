@@ -72,7 +72,7 @@ def update_entry(entrynum):
 
    
     if form.validate_on_submit():
-        date = datetime.strptime(form.date.data,'%Y-%m-%d').strftime('%Y-%m-%d')
+        date = form.date.data
         username = session['user']
         old_objective = form.old_objective.data
         new_objective = form.new_objective.data
