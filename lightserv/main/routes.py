@@ -63,6 +63,13 @@ def login():
 		username = 'ahoag'
 
 	session['user'] = username
+	''' If user not already in User() table, then add them '''
+	all_usernames = db.User().fetch('username') 
+	if username not in all_usernames:
+		email = username + '@princeton.edu'
+		user_dict = {'username':username,'email':email}
+		db.User().insert1(user_dict)
+		logger.info(f"Added {username} to User table in database")
 	logger.info(session)
 	return redirect(next_url)
 
