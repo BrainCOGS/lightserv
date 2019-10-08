@@ -4,8 +4,8 @@ from functools import wraps
 def table_sorter(dic,sort_key):
     if type(dic[sort_key]) == str:
         return dic[sort_key].lower()
-    
-    return dic[sort_key]
+    else:
+	    return (dic[sort_key] is None, dic[sort_key])
 
 def logged_in(f):
 	@wraps(f)

@@ -46,6 +46,9 @@ class ExpTable(Table):
         return url_for('main.home', sort=col_key, direction=direction)
 
 class MicroscopeCalibrationTable(Table):
+    ''' Define the microscope objective swap 
+    entry log table. Cannot be sorted by date because 
+    we allow NULL entries for date. '''
     border = True
     allow_sort = True
     no_items = "No Logs Yet"
@@ -152,6 +155,7 @@ class IdiscoAbbreviatedTable(Table):
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
     experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
+    perfusion_date = Col('perfusion_date')
     time_pbs_wash1 = Col('time_pbs_wash1',)
     time_pbs_wash2 = Col('time_pbs_wash2',)
     time_pbs_wash3 = Col('time_pbs_wash3',)
