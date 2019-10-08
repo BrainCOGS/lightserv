@@ -48,7 +48,7 @@ class Microscope(dj.Manual): # dj.Manual is one of the 4 datajoint table types -
     entrynum                :   smallint auto_increment    # allowed here are sql datatypes.
     ----
     -> User              
-    date                    :   varchar(10)    
+    date = NULL             :   date    
     old_objective           :   varchar(50)
     new_objective           :   varchar(50)
     swapper                 :   varchar(250)
