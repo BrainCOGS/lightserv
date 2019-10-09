@@ -119,7 +119,7 @@ def clearing_entry(clearing_protocol,experiment_id):
 			so the focus is set there upon reload of page '''
 			logger.debug(form.errors)
 			for error in form['time_pbs_wash1'].errors:
-				print(error)
+				logger.debug(error)
 			column_name = list(form.errors.keys())[0]
 	else:
 		column_name = None
@@ -149,13 +149,8 @@ def clearing_table(experiment_id):
 		return redirect(url_for('main.home'))
 	 
 	clearing_protocol = exp_contents.fetch1('clearing_protocol')
-
 	dbTable = determine_clearing_dbtable(clearing_protocol)
-
 	db_contents = dbTable() & f'experiment_id = {experiment_id}'
-
 	table = determine_clearing_table(clearing_protocol)(db_contents)
-
-
 
 	return render_template('clearing/clearing_table.html',clearing_contents=db_contents,table=table)
