@@ -40,6 +40,7 @@ clearing = Blueprint('clearing',__name__)
 @logged_in
 def clearing_entry(clearing_protocol,experiment_id): 
 	exp_contents = db.Experiment() & f'experiment_id={experiment_id}' & f'clearing_protocol="{clearing_protocol}"'
+	dj.Table._update(exp_contents,'clearing_progress','in progress')						
 	if not exp_contents:
 		flash(f'Experiment must exist for experiment_id={experiment_id} with \
 			clearing_protocol="{clearing_protocol}" before clearing can be done. \
