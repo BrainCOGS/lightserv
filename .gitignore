@@ -6,3 +6,5 @@ docker
 startserver.sh
 credentials.json
 token.pickle
+logs
+**/*log
