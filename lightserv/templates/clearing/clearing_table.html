@@ -2,7 +2,7 @@
 {% block content %}
 	{{ table }}
 	{% if clearing_contents %}
-		<input id = "tableSwapper" type="button"  class="btn btn-sm btn-info mt-1" value="Swap rows and columns"/>
+		<input id = "tableSwapper" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
 		<script src="{{ url_for('static',filename='javascript/tableswapper.js') }}" defer="defer"></script>
 	{% endif %}
 
