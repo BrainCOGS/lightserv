@@ -15,6 +15,7 @@ import neuroglancer
 # import cloudvolume
 import numpy as np
 
+import pymysql
 import logging
 
 logger = logging.getLogger(__name__)
@@ -76,8 +77,13 @@ def delete_exp(experiment_id):
 
 	if exp_contents.fetch1('username') != session['user']:
 		abort(403)
+	try:
+		exp_contents.delete_quick() # does not query user for confirmation like delete() does - that is handled in the form.
+	except pymysql.err.IntegrityError:
+		flash('You cannot delete an experiment without deleting its dependencies (e.g. clearing entries). \
+			Delete all dependencies first.','danger')
+		return redirect(url_for('main.home'))
 
-	exp_contents.delete_quick() # does not query user for confirmation like delete() does - that is handled in the form.
 	flash('Your experiment has been deleted!', 'success')
 	return redirect(url_for('main.home'))
 
