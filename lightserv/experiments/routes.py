@@ -44,21 +44,25 @@ def new_exp():
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
 	logger.info(f"{session['user']} accessed new experiment form")
 	form = ExpForm()
+
+	form.correspondence_email.data = session['user'] + '@princeton.edu' 
 	if form.validate_on_submit():
 		''' Create a new entry in the Experiment table based on form input.
 		'''
 		username = session['user']
-		exp_dict = dict(title=form.title.data,
-		 description=form.description.data,species=form.species.data,clearing_protocol=form.clearing_protocol.data,
-		 fluorophores=form.fluorophores.data,antibody1=form.antibody1.data,
-		 antibody2=form.antibody2.data,image_resolution=form.image_resolution.data,
-		 cell_detection=form.cell_detection.data,registration=form.registration.data,
-		 probe_detection=form.probe_detection.data,injection_detection=form.injection_detection.data,
-		 username=username)
+		''' The fields that need to go in the database that are not in the form '''
+		exp_dict = dict(labname=form.labname.data,correspondence_email=form.correspondence_email.data,
+			title=form.title.data,description=form.description.data,species=form.species.data,
+			clearing_protocol=form.clearing_protocol.data,
+			fluorophores=form.fluorophores.data,antibody1=form.antibody1.data,
+			antibody2=form.antibody2.data,image_resolution=form.image_resolution.data,
+			cell_detection=form.cell_detection.data,registration=form.registration.data,
+			probe_detection=form.probe_detection.data,injection_detection=form.injection_detection.data,
+			username=username)
 		all_usernames = db.User().fetch('username') 
 		if username not in all_usernames:
-			email = username + '@princeton.edu'
-			user_dict = {'username':username,'email':email}
+			princeton_email = username + '@princeton.edu'
+			user_dict = {'username':username,'princeton_email':princeton_email}
 			db.User().insert1(user_dict)
 
 		db.Experiment().insert1(exp_dict)

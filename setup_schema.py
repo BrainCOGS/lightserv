@@ -17,7 +17,7 @@ class User(dj.Lookup):
     # Users of the light sheet microscope
     username : varchar(20)      # user in the lab
     ---
-    email       : varchar(50)
+    princeton_email       : varchar(50)
     """
     
 @schema
@@ -26,12 +26,14 @@ class Experiment(dj.Manual):
     experiment_id           :   smallint auto_increment    # allowed here are sql datatypes.
     ----
     -> User 
+    labname                 :   varchar(50)
+    correspondence_email    :   varchar(100)
     title                   :   varchar(100)
     description             :   varchar(250)
     notes = ""              :   varchar(1000)
     species                 :   varchar(50)
     clearing_protocol       :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
-    clearing_progress       :   enum("incomplete","complete")
+    clearing_progress       :   enum("incomplete","in progress","complete")
     fluorophores            :   varchar(100)
     antibody1               :   varchar(100)
     antibody2               :   varchar(100)

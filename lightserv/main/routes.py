@@ -67,7 +67,7 @@ def login():
 	all_usernames = db.User().fetch('username') 
 	if username not in all_usernames:
 		email = username + '@princeton.edu'
-		user_dict = {'username':username,'email':email}
+		user_dict = {'username':username,'princeton_email':email}
 		db.User().insert1(user_dict)
 		logger.info(f"Added {username} to User table in database")
 	logger.info(session)

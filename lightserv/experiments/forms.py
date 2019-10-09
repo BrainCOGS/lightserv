@@ -1,13 +1,16 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, SelectField, BooleanField
-from wtforms.validators import DataRequired, Length, InputRequired, ValidationError
+from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email
 # from lightserv.models import Experiment
 
 class ExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
-
 	title = StringField('Title',validators=[DataRequired(),Length(max=100)])
 	description = TextAreaField('Description',validators=[DataRequired(),Length(max=250)])
+	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[DataRequired(),Length(max=100)])
+	correspondence_email = StringField('Correspondence email (default is princeton email)',
+		validators=[DataRequired(),Length(max=100),Email()])
+
 	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],validators=[InputRequired(),Length(max=50)]) # for choices first element of tuple is the value of the option, the second is the displayed text
 	clearing_protocol = SelectField('Clearing Protocol:', choices= \
 		[('iDISCO abbreviated clearing','iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
