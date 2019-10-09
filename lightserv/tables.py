@@ -11,7 +11,7 @@ class ExpTable(Table):
     border = True
     allow_sort = True
     no_items = "No Experiments Yet"
-    html_attrs = {"style":'font-size:10px'} # gets assigned to table header
+    html_attrs = {"style":'font-size:14px'} # gets assigned to table header
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
@@ -52,7 +52,7 @@ class MicroscopeCalibrationTable(Table):
     border = True
     allow_sort = True
     no_items = "No Logs Yet"
-    html_attrs = {"style":'font-size:10px'} # gets assigned to table header
+    html_attrs = {"style":'font-size:14px'} # gets assigned to table header
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped","mb-4"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     entrynum = Col('entrynum',column_html_attrs=column_html_attrs)
@@ -78,7 +78,7 @@ class MicroscopeCalibrationTable(Table):
 class ClearingTable(Table):
     border = True
     no_items = "No Clearing Yet"
-    html_attrs = {"style":'font-size:12px'} # gets assigned to table header
+    html_attrs = {"style":'font-size:14px'} # gets assigned to table header
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
@@ -91,7 +91,7 @@ class ClearingTable(Table):
 class IdiscoPlusTable(Table):
     border = True
     no_items = "No Clearing Yet"
-    html_attrs = {"style":'font-size:12px'} # gets assigned to table header
+    html_attrs = {"style":'font-size:14px'} # gets assigned to table header
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
@@ -150,7 +150,7 @@ class IdiscoPlusTable(Table):
 class IdiscoAbbreviatedTable(Table):
     border = True
     no_items = "No Clearing Yet"
-    html_attrs = {"style":'font-size:12px'} # gets assigned to table header
+    html_attrs = {"style":'font-size:14px'} # gets assigned to table header
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
@@ -175,7 +175,7 @@ class IdiscoAbbreviatedTable(Table):
 class IdiscoAbbreviatedRatTable(Table):
     border = True
     no_items = "No Clearing Yet"
-    html_attrs = {"style":'font-size:12px'} # gets assigned to table header
+    html_attrs = {"style":'font-size:14px'} # gets assigned to table header
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
@@ -208,7 +208,7 @@ class IdiscoAbbreviatedRatTable(Table):
 class UdiscoTable(Table):
     border = True
     no_items = "No Clearing Yet"
-    html_attrs = {"style":'font-size:12px'} # gets assigned to table header
+    html_attrs = {"style":'font-size:14px'} # gets assigned to table header
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
