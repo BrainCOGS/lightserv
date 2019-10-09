@@ -2,11 +2,6 @@
 from flask import url_for,flash,redirect
 from flask_table import Table, Col, LinkCol
 
-class UserTable(Table):
-    border = True
-    username = Col('username')
-    email = Col('email')
-
 class ExpTable(Table):
     border = True
     allow_sort = True
