@@ -20,6 +20,7 @@ def test_submit_good_experiment(test_client,test_schema,test_login):
 
 	response = test_client.post(
 		url_for('experiments.new_exp'),data=dict(
+			labname="Wang",correspondence_email="test@demo.com",
 			title="Demo Experiment",
 			description="This is a demo experiment",
 			species="rat",clearing_protocol="uDISCO",fluorophores="An experimental fluorophore",
@@ -35,10 +36,11 @@ def test_submit_good_experiment(test_client,test_schema,test_login):
 	assert b'light sheet experiments' in response.data and b'demo experiment' in response.data 
 
 def test_submit_bad_experiments(test_client,test_schema,test_login):
-	""" Ensure that submitting the experiment form incorrectly does not work """
-	# Submit a new experiment. The following line issues a post request to the experiments.new_exp route, which will create the database entry
+	""" Ensure that submitting the experiment form incorrectly (two different ways)
+	does not result in a successful post request """
 	response1 = test_client.post(
 		url_for('experiments.new_exp'),data=dict(
+			labname="Wang",correspondence_email="test@demo.com",
 			title="Bad Experiment",
 			description="This is a bad experiment that should not work because Image resolution is enum and I give it an empty string",
 			species="rat",clearing_protocol="uDISCO",fluorophores="An experimental fluorophore",
@@ -52,6 +54,7 @@ def test_submit_bad_experiments(test_client,test_schema,test_login):
 
 	response2 = test_client.post(
 		url_for('experiments.new_exp'),data=dict(
+			labname="Wang",correspondence_email="test@demo.com",
 			title="Bad Experiment2",
 			description="\
 			This is a bad experiment that should not work because when clearing_protocol=iDISCO+, \

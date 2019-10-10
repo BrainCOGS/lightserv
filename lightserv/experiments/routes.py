@@ -51,7 +51,8 @@ def new_exp():
 		'''
 		username = session['user']
 		''' The fields that need to go in the database that are not in the form '''
-		exp_dict = dict(labname=form.labname.data,correspondence_email=form.correspondence_email.data,
+		exp_dict = dict(labname=form.labname.data.lower(),
+			correspondence_email=form.correspondence_email.data.lower(),
 			title=form.title.data,description=form.description.data,species=form.species.data,
 			clearing_protocol=form.clearing_protocol.data,
 			fluorophores=form.fluorophores.data,antibody1=form.antibody1.data,
@@ -67,7 +68,9 @@ def new_exp():
 
 		db.Experiment().insert1(exp_dict)
 		exp_id = db.Experiment().fetch("KEY")[-1]['experiment_id'] # gets the most recently added key
-		flash(Markup(f'Your experiment has started!\nCheck your new experiment page: <a href="{url_for("experiments.exp",experiment_id=exp_id)}" class="alert-link" target="_blank">here</a> for your data when it becomes available.'),'success')
+		flash(Markup(f'Your experiment has started!\n \
+			Check your new experiment page: <a href="{url_for("experiments.exp",experiment_id=exp_id)}" \
+			class="alert-link" target="_blank">here</a> for your data when it becomes available.'),'success')
 		return redirect(url_for('main.home'))
 
 	return render_template('experiments/create_exp.html', title='new_experiment',
