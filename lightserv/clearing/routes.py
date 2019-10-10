@@ -39,14 +39,14 @@ clearing = Blueprint('clearing',__name__)
 @clearing.route("/clearing/clearing_entry/<clearing_protocol>/<experiment_id>",methods=['GET','POST'])
 @logged_in
 def clearing_entry(clearing_protocol,experiment_id): 
-	exp_contents = db.Experiment() & f'experiment_id={experiment_id}' & f'clearing_protocol="{clearing_protocol}"'
-	dj.Table._update(exp_contents,'clearing_progress','in progress')						
+	exp_contents = db.Experiment() & f'experiment_id={experiment_id}' & f'clearing_protocol="{clearing_protocol}"'							
+
 	if not exp_contents:
 		flash(f'Experiment must exist for experiment_id={experiment_id} with \
 			clearing_protocol="{clearing_protocol}" before clearing can be done. \
 			Please submit a new request for this experiment first. ','danger')
 		return redirect(url_for('experiments.new_exp'))
-
+	dj.Table._update(exp_contents,'clearing_progress','in progress')
 	clearing_table = ClearingTable(exp_contents)
 	form = determine_clearing_form(clearing_protocol,existing_form=request.form)
 	
