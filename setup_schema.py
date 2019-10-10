@@ -23,25 +23,25 @@ class User(dj.Lookup):
 @schema
 class Experiment(dj.Manual):
     definition = """ # Experiments performed using the light sheet microscope
-    experiment_id           :   smallint auto_increment    # allowed here are sql datatypes.
+    experiment_id                :   smallint auto_increment    # allowed here are sql datatypes.
     ----
     -> User 
-    labname                 :   varchar(50)
-    correspondence_email    :   varchar(100)
-    title                   :   varchar(100)
-    description             :   varchar(250)
-    notes = ""              :   varchar(1000)
-    species                 :   varchar(50)
-    clearing_protocol       :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
-    clearing_progress       :   enum("incomplete","in progress","complete")
-    fluorophores            :   varchar(100)
-    antibody1               :   varchar(100)
-    antibody2               :   varchar(100)
-    image_resolution        :   enum("1.3x","4x")
-    cell_detection          :   tinyint
-    registration            :   tinyint
-    probe_detection         :   tinyint
-    injection_detection     :   tinyint
+    labname                      :   varchar(50)
+    correspondence_email = ''    :   varchar(100)
+    title                        :   varchar(100)
+    description                  :   varchar(250)
+    notes = ""                   :   varchar(1000)
+    species                      :   varchar(50)
+    clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
+    clearing_progress            :   enum("incomplete","in progress","complete")
+    fluorophores                 :   varchar(100)
+    antibody1                    :   varchar(100)
+    antibody2                    :   varchar(100)
+    image_resolution             :   enum("1.3x","4x")
+    cell_detection               :   tinyint
+    registration                 :   tinyint
+    probe_detection              :   tinyint
+    injection_detection          :   tinyint
     """  
     
 @schema #  
