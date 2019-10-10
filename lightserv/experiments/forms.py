@@ -1,6 +1,9 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, SelectField, BooleanField
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email
+import os
+import glob
+from lightserv import db
 # from lightserv.models import Experiment
 
 class ExpForm(FlaskForm):
@@ -45,6 +48,24 @@ class ExpForm(FlaskForm):
 		elif clearing_protocol.data == 'iDISCO abbreviated clearing (rat)' and self.species.data != 'rat':
 			raise ValidationError('This clearing protocol is only allowed for rats. \
 				Did you mean to choose: iDISCO for non-oxidizable fluorophores (abbreviated clearing)?')
+
+class StartProcessingForm(FlaskForm):
+	""" The form for requesting to start the data processing """
+	rawdata_directory = TextAreaField('Please enter the raw data directory (on /jukebox) \
+	 corresponding to the experiment shown above',validators=[DataRequired(),Length(max=500)])
+	
+	submit = SubmitField('Start the processing')	
+
+	def validate_rawdata_directory(self,rawdata_directory):
+		''' Makes sure that primary antibody is not blank if immunostaining clearing protocol
+		is chosen  '''
+		if not os.path.isdir(rawdata_directory.data):
+			raise ValidationError('This is not a valid directory. Please try again')
+		elif rawdata_directory.data[0:8] != '/jukebox':
+			raise ValidationError('Path must start with "/jukebox" ')
+		elif len(glob.glob(rawdata_directory.data + '/*RawDataStack*ome.tif')) == 0:
+			raise ValidationError('No raw data files found in that directory. Try again')
+
 
 class UpdateNotesForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """

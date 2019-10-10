@@ -39,6 +39,14 @@
 	        {% endif %}
 		</article>
 
+		<!-- Processing start button -->
+		<!-- <form action="{{ url_for('experiments.start_processing',experiment_id=exp_contents.fetch1('experiment_id')) }}" method="POST">
+		<input type="button" class="btn btn-lg btn-success mt-1" value="Process your data"/>
+		</form> -->
+           <div>
+		        	<a class="btn btn-secondary btn-sm mt-1 mb-1" href="{{ url_for('experiments.start_processing', experiment_id=exp_contents.fetch1('experiment_id')) }}">Start Data Processing</a>
+			</div>
+		
 		<!-- Modal -->
 		  <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
 		    <div class="modal-dialog" role="document">
@@ -59,6 +67,7 @@
 		      </div>
 		    </div>
 		  </div>
+
 
 	<script src="{{ url_for('static',filename='javascript/tableswapper.js') }}" defer="defer"></script>
 

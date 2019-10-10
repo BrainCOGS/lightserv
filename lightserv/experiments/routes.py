@@ -4,10 +4,13 @@ from flask import (render_template, url_for, flash,
 # from flask_login import current_user, login_required
 # from lightserv import db
 # from lightserv.models import Experiment
-from lightserv.experiments.forms import ExpForm, UpdateNotesForm
+from lightserv.experiments.forms import ExpForm, UpdateNotesForm, StartProcessingForm
 from lightserv.tables import ExpTable
 from lightserv import db
 from lightserv.main.utils import logged_in
+
+# from lightsheet_py3
+import glob
 
 import secrets
 
@@ -166,3 +169,29 @@ emitRGBA(vec4(v, 0.0, 0.0, v));
 		flash('Something went wrong making viewer','danger')
 		return redirect(url_for('experiments.exp',experiment_id=experiment_id))
 	return render_template('experiments/datalink.html',viewer=viewer)
+
+@experiments.route("/exp/start_processing/<experiment_id>",methods=['GET','POST'])
+@logged_in
+def start_processing(experiment_id):
+	""" Route for a user to enter a new experiment via a form and submit that experiment """
+	logger.info(f"{session['user']} accessed data processing form")
+	exp_contents = db.Experiment() & f'experiment_id={experiment_id}'
+	exp_table = ExpTable(exp_contents)
+	form = StartProcessingForm()
+	if form.validate_on_submit():
+		''' Create a new entry in the Processing table based on form input and the data.
+		'''
+
+		''' Look for raw data files in that folder and verify that they match up with what the experiment entry suggests'''
+		rawdata_directory = form.rawdata_directory.data
+		rawdata_files = glob.glob(rawdata_directory + '/*RawDataStack*ome.tif')
+		nfiles_rawdata = len(rawdata_files)
+
+		logger.info(f"There are {nfiles_rawdata} raw data files")
+		flash(Markup(f'Your data processing has begun. You will receive an email \
+			when the first steps are completed.'),'success')
+		return redirect(url_for('main.home'))
+	form.rawdata_directory.data = '/jukebox/LightSheetTransfer/Jess/201907_ymaze_cfos/190916_tpham_cruslat_062019_an16_1d3x_647_008na_1hfds_z10um_500msec_17-21-45'
+
+	return render_template('experiments/start_processing.html',
+		form=form,exp_table=exp_table)	
