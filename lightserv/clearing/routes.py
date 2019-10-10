@@ -126,7 +126,7 @@ def clearing_entry(clearing_protocol,experiment_id):
 		column_name = None
 
 	''' Populate form with current database contents '''
-	logger.debug("Current non-null contents of the database:")
+	# logger.debug("Current non-null contents of the database:")
 	clearing_contents = dbTable() & f'experiment_id={experiment_id}'
 	clearing_contents_dict = clearing_contents.fetch1()
 	form_fieldnames = form._fields.keys()
