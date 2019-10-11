@@ -6,6 +6,11 @@ from lightserv.config import Config
 import datajoint as dj
 from lightserv.tests.make_test_schemata import create_test_schema
 import socket
+from celery import Celery
+
+
+cel = Celery(__name__,broker='amqp://localhost//',
+	backend='db+mysql+pymysql://ahoag:p@sswd@localhost:3306/ahoag_celery')
 
 dj.config['database.user'] = 'ahoag'
 if socket.gethostname() == 'braincogs00.pni.princeton.edu':
@@ -39,7 +44,7 @@ def create_app(config_class=Config):
 	""" Create the flask app instance"""
 	app = Flask(__name__)
 	app.config.from_object(config_class)
-
+	cel.conf.update(app.config)
 	# db.init_app(app)
 	# login_manager.init_app(app)
 	mail.init_app(app)

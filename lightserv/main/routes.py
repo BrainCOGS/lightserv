@@ -4,11 +4,11 @@ from lightserv.tables import ExpTable
 import pandas as pd
 from .utils import logged_in, table_sorter
 from functools import partial, wraps
+from lightserv.tasks import reverse
+
 
 import socket
 import numpy as np
-
-
 
 import logging
 
@@ -98,3 +98,9 @@ def allenatlas():
 		flash('Something went wrong starting Neuroglancer. Try again later.','danger')
 		return redirect(url_for('main.home'))
 	return render_template('experiments/datalink.html',viewer=viewer)
+
+
+@main.route("/test_celery")
+def test_celery():
+	reverse.delay('youknowwho')
+	return "Started an async task with celery!"
