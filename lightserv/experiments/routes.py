@@ -8,6 +8,7 @@ from lightserv.experiments.forms import ExpForm, UpdateNotesForm, StartProcessin
 from lightserv.tables import ExpTable
 from lightserv import db
 from lightserv.main.utils import logged_in
+from lightserv import cel
 
 # from lightsheet_py3
 import glob
@@ -176,6 +177,10 @@ def start_processing(experiment_id):
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
 	logger.info(f"{session['user']} accessed data processing form")
 	exp_contents = db.Experiment() & f'experiment_id={experiment_id}'
+	channels = ['registration','injection','cell_detection']
+	channel_bools = exp_contents.fetch1(channels)
+	for channel in channels:
+
 	exp_table = ExpTable(exp_contents)
 	form = StartProcessingForm()
 	if form.validate_on_submit():
@@ -188,6 +193,7 @@ def start_processing(experiment_id):
 		nfiles_rawdata = len(rawdata_files)
 
 		logger.info(f"There are {nfiles_rawdata} raw data files")
+		run_step0.delay(experiment_id=experiment_id,rawdata_directory=rawdata_directory)
 		flash(Markup(f'Your data processing has begun. You will receive an email \
 			when the first steps are completed.'),'success')
 		return redirect(url_for('main.home'))
@@ -195,3 +201,15 @@ def start_processing(experiment_id):
 
 	return render_template('experiments/start_processing.html',
 		form=form,exp_table=exp_table)	
+
+@cel.task()
+def run_step0(experiment_id,rawdata_directory):
+	""" An asynchronous celery task (runs in a background process) which runs step 0 
+	in the light sheet pipeline. 
+	"""
+	exp_contents = db.Experiment & f'experiment_id={experiment_id}'
+
+	param_dict = {}
+	param_dict['systemdirectory'] = '/jukebox/'
+	param_dict['inputdictionary'] = {rawdata_directory:[]}
+	return "success"

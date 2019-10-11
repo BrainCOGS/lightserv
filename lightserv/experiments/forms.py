@@ -66,7 +66,6 @@ class StartProcessingForm(FlaskForm):
 		elif len(glob.glob(rawdata_directory.data + '/*RawDataStack*ome.tif')) == 0:
 			raise ValidationError('No raw data files found in that directory. Try again')
 
-
 class UpdateNotesForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 	notes = TextAreaField('Notes',validators=[Length(max=1000)])
