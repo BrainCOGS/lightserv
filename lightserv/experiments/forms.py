@@ -21,6 +21,15 @@ class ExpForm(FlaskForm):
 	     ('iDISCO+_immuno','iDISCO+ (immunostaining)'),
 	     ('uDISCO','uDISCO'),('iDISCO_EdU','Wang Lab iDISCO Protocol-EdU')],validators=[InputRequired()]) # for choices first element of tuple is the value of the option, the second is the displayed text
 	fluorophores = TextAreaField('Fluorophores/dyes involved (E.g. AlexaFluor 647 or Thy1-YFP mouse)',validators=[Length(max=100)])
+	channel488 = SelectField('488 nm channel purpose',choices=[('registration','registration'),
+							('injection_detection','injection_detection','probe_detection','probe_detection','cell_detection','cell_detection')])
+	channel555 = SelectField('555 nm channel purpose',choices=[('registration','registration'),
+							('injection_detection','injection_detection','probe_detection','probe_detection','cell_detection','cell_detection')])
+	channel647 = SelectField('647 nm channel purpose',choices=[('registration','registration'),
+							('injection_detection','injection_detection','probe_detection','probe_detection','cell_detection','cell_detection')])
+	channel790 = SelectField('790 nm channel purpose',choices=[('registration','registration'),
+							('injection_detection','injection_detection','probe_detection','probe_detection','cell_detection','cell_detection')])
+	
 	antibody1 = TextAreaField('Primary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
 	antibody2 = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
 	''' Imaging parameters '''
@@ -51,9 +60,15 @@ class ExpForm(FlaskForm):
 
 class StartProcessingForm(FlaskForm):
 	""" The form for requesting to start the data processing """
-	rawdata_directory = TextAreaField('Please enter the raw data directory (on /jukebox) \
-	 corresponding to the experiment shown above',validators=[DataRequired(),Length(max=500)])
-	
+	rawdata_directory_registration = TextAreaField(\
+		'Registration channel raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500)])
+	rawdata_directory_injection_detection = TextAreaField(\
+		'Injection channel raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500)])
+	rawdata_directory_probe_detection = TextAreaField(\
+		'Injection channel raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500)])
+	rawdata_directory_cell_detection = TextAreaField(\
+		'Cell channel raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500)])
+
 	submit = SubmitField('Start the processing')	
 
 	def validate_rawdata_directory(self,rawdata_directory):
