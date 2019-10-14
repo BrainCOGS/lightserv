@@ -23,7 +23,7 @@ import pymysql
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
 
@@ -177,10 +177,12 @@ def start_processing(experiment_id):
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
 	logger.info(f"{session['user']} accessed data processing form")
 	exp_contents = db.Experiment() & f'experiment_id={experiment_id}'
-	channels = ['registration','injection','cell_detection']
-	channel_bools = exp_contents.fetch1(channels)
-	for channel in channels:
-
+	channels = ['registration','injection_detection','cell_detection']
+	channel_bools = exp_contents.fetch1(*channels)
+	logger.debug(channel_bools)
+	# print('hello')
+	# for channel in channel_bools:
+	# 	if channel:
 	exp_table = ExpTable(exp_contents)
 	form = StartProcessingForm()
 	if form.validate_on_submit():
@@ -194,8 +196,8 @@ def start_processing(experiment_id):
 
 		logger.info(f"There are {nfiles_rawdata} raw data files")
 		run_step0.delay(experiment_id=experiment_id,rawdata_directory=rawdata_directory)
-		flash(Markup(f'Your data processing has begun. You will receive an email \
-			when the first steps are completed.'),'success')
+		flash('Your data processing has begun. You will receive an email \
+			when the first steps are completed.','success')
 		return redirect(url_for('main.home'))
 	form.rawdata_directory.data = '/jukebox/LightSheetTransfer/Jess/201907_ymaze_cfos/190916_tpham_cruslat_062019_an16_1d3x_647_008na_1hfds_z10um_500msec_17-21-45'
 
