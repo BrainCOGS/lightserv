@@ -187,23 +187,28 @@ def start_processing(experiment_id):
 
 	exp_table = ExpTable(exp_contents)
 	form = StartProcessingForm()
-	if form.validate_on_submit():
-		''' Create a new entry in the Processing table based on form input and the data.
-		'''
+	if request.method == 'POST':
+		logger.debug("POST request")
+		if form.validate_on_submit():
+			logger.debug("Validated")
+			''' Create a new entry in the Processing table based on form input and the data.
+			'''
 
-		''' Look for raw data files in that folder and verify that they match up with what the experiment entry suggests'''
-		rawdata_dict = {}
-		for channel in used_imaging_channels:
-			rawdatadir_name = f'rawdata_directory_{channel}'
-			rawdata_dir = form[rawdatadir_name].data
-			rawdata_dir_dict[channel] = rawdata_dir
+			''' Look for raw data files in that folder and verify that they match up with what the experiment entry suggests'''
+			rawdata_dir_dict = {}
+			for channel in used_imaging_channels:
+				rawdatadir_name = f'rawdata_directory_{channel}'
+				rawdata_dir = form[rawdatadir_name].data
+				rawdata_dir_dict[channel] = rawdata_dir
 
-		logger.info(f"Sending processes to Celery")
-		run_step0.delay(experiment_id=experiment_id,rawdata_dir_dict=rawdata_dir_dict)
-		flash('Your data processing has begun. You will receive an email \
-			when the first steps are completed.','success')
-		return redirect(url_for('main.home'))
-
+			logger.info(f"Sending processes to Celery")
+			run_step0.delay(experiment_id=experiment_id,rawdata_dir_dict=rawdata_dir_dict)
+			flash('Your data processing has begun. You will receive an email \
+				when the first steps are completed.','success')
+			return redirect(url_for('main.home'))
+		else:
+			logger.debug("Not validated!")
+			logger.debug(form.errors)
 	return render_template('experiments/start_processing.html',
 		form=form,exp_table=exp_table,used_imaging_channels=used_imaging_channels)	
 
@@ -216,22 +221,39 @@ def run_step0(experiment_id,rawdata_dir_dict):
 	param_dict = {}
 	input_dictionary = {}
 	# Create a counter for multi-channel imaging. If multi-channel imaging was used
-	# This counter will be incremented so that each filter gets assigned the correct filter. 
-	multichannel_counter = 0 # the number of channels used in multi-channel imaging. 
+	# this counter will be incremented each time a raw data directory is repeated
+	# so that each channel gets assigned the right number, e.g. [['regch','00'],['cellch','01']] 
+	multichannel_counter_dict = {} 
 	for channel in rawdata_dir_dict.keys():
 		rawdata_dir = rawdata_dir_dict[channel]
-
+		# First figure out the counter 
+		if rawdata_dir in multichannel_counter_dict.keys():
+			multichannel_counter_dict[rawdata_dir] += 1
+		else:
+			multichannel_counter_dict[rawdata_dir] = 0
+		multichannel_counter = multichannel_counter_dict[rawdata_dir]
+		# Now figure out the channel type
 		channel_mode = exp_contents.fetch1(channel)
-		if channel_mode == 'registration'
-			input_list = [['regch','00']]
+		if channel_mode == 'registration':
+			mode_abbr = 'regch'
 		elif channel_mode == 'cell_detection':
-			input_list = [['cellch','00']]
-		if rawdata_dir in inputdictionary.keys():
-			inputdictionary[rawdata_dir].append
-		rawdata_dir = rawdata_dir_dict[channel]
+			mode_abbr = 'cellch'
+		elif channel_mode == 'injection_detection':
+			mode_abbr = 'injch'
+		elif channel_mode == 'probe_detection':
+			mode_abbr = 'injch'
+		else:
+			abort(403)
 
+		input_list = [mode_abbr,f'{multichannel_counter:02}']
+		if multichannel_counter > 0:		
+			input_dictionary[rawdata_dir].append(input_list)
+		else:
+			input_dictionary[rawdata_dir] = [input_list]
+	logger.info(input_dictionary)
+	
 
-	param_dict['inputdictionary'] = input_dictionary
+	# param_dict['inputdictionary'] = input_dictionary
 	# param_dict['systemdirectory'] = '/jukebox/'
 	# for channel in rawdata_dict.keys():
 	# 	rawdata_directory = rawdata_dict

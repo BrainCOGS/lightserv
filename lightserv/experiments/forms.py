@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, SelectField, BooleanField
-from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email
+from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email, Optional
 import os
 import glob
 from lightserv import db
@@ -88,13 +88,13 @@ def Directory_validator(form,field):
 class StartProcessingForm(FlaskForm):
 	""" The form for requesting to start the data processing """
 	rawdata_directory_channel488 = TextAreaField(\
-		'Channel 488 raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500),Directory_validator])
+		'Channel 488 raw data directory (on /jukebox)',validators=[Optional(),Length(max=500),Directory_validator])
 	rawdata_directory_channel555 = TextAreaField(\
-		'Channel 555 raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500),Directory_validator])
+		'Channel 555 raw data directory (on /jukebox)',validators=[Optional(),Length(max=500),Directory_validator])
 	rawdata_directory_channel647 = TextAreaField(\
-		'Channel 647 raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500),Directory_validator])
+		'Channel 647 raw data directory (on /jukebox)',validators=[Optional(),Length(max=500),Directory_validator])
 	rawdata_directory_channel790 = TextAreaField(\
-		'Channel 790 raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500),Directory_validator])
+		'Channel 790 raw data directory (on /jukebox)',validators=[Optional(),Length(max=500),Directory_validator])
 
 	submit = SubmitField('Start the processing')	
 
