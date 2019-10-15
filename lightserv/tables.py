@@ -8,7 +8,8 @@ class ExpTable(Table):
     no_items = "No Experiments Yet"
     html_attrs = {"style":'font-size:14px'} # gets assigned to table header
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
-    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    classes = ["table-striped"] # gets assigned to table classes. 
+    # Striped is alternating bright and dark rows for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
     experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
     title = Col('title',column_html_attrs=column_html_attrs,)
@@ -16,20 +17,20 @@ class ExpTable(Table):
     species = Col('species',column_html_attrs=column_html_attrs)
     clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
     clearing_progress = Col('clearing_progress',column_html_attrs=column_html_attrs)
-    fluorophores = Col('fluorophores',column_html_attrs=column_html_attrs)
     antibody1 = Col('primary_antibody',column_html_attrs=column_html_attrs)
     antibody2 = Col('secondary_antibody',column_html_attrs=column_html_attrs)
-    image_resolution = Col('image_resolution',column_html_attrs=column_html_attrs)
-    cell_detection = Col('cell_detection',column_html_attrs=column_html_attrs)
-    registration = Col('registration',column_html_attrs=column_html_attrs)
-    probe_detection = Col('probe_detection',column_html_attrs=column_html_attrs)
-    injection_detection = Col('injection_detection',column_html_attrs=column_html_attrs)
+    channel488 = Col('channel480',column_html_attrs=column_html_attrs)
+    channel555 = Col('channel555',column_html_attrs=column_html_attrs)
+    channel647 = Col('channel647',column_html_attrs=column_html_attrs)
+    channel790 = Col('channel790',column_html_attrs=column_html_attrs)
 
     url_kwargs = {'clearing_protocol':'clearing_protocol','experiment_id':'experiment_id',}
     anchor_attrs = {'target':"_blank",}
     
-    clearing_link = LinkCol('Edit clearing','clearing.clearing_entry',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs,allow_sort=False)
-    experiment_link = LinkCol('View experiment', 'experiments.exp',url_kwargs=url_kwargs,anchor_attrs=anchor_attrs,allow_sort=False)
+    clearing_link = LinkCol('Edit clearing','clearing.clearing_entry',url_kwargs=url_kwargs,
+        anchor_attrs=anchor_attrs,allow_sort=False)
+    experiment_link = LinkCol('View experiment', 'experiments.exp',url_kwargs=url_kwargs,
+        anchor_attrs=anchor_attrs,allow_sort=False)
     
     def sort_url(self, col_key, reverse=False):
         if col_key == 'experiment_link':

@@ -77,19 +77,6 @@
 
 				</div>
 				<div class="form-group">
-					{{ form.fluorophores.label(class="form-control-label") }}
-					{% if form.fluorophores.errors %}
-						{{ form.fluorophores(class="form-control form-control-lg is-invalid") }}
-						<div class="invalid-feedback">
-							{% for error in form.fluorophores.errors %}
-								<span>{{ error }}</span>
-							{% endfor %}
-						</div>
-					{% else %}
-						{{ form.fluorophores(class="form-control form-control-lg") }}
-					{% endif %}
-				</div>
-				<div class="form-group">
 					{{ form.antibody1.label(class="form-control-label") }}
 					{% if form.antibody1.errors %}
 						{{ form.antibody1(class="form-control form-control-lg is-invalid") }}
@@ -120,23 +107,23 @@
 					{{ form.image_resolution.label(class="form-control-label mr-2") }}
 					{{ form.image_resolution(class="form-control form-control-lg") }}
 				</div>
-				<legend class="border-bottom mb-2 mt-4">Post-Imaging Analysis</legend>
-				<div class="form-check">
-					{{ form.cell_detection(class="form-check-input") }}
-					{{ form.cell_detection.label(class="form-check-label") }}
+				<div class="form-group">
+					{{ form.channel488.label(class="form-control-label mr-2") }}
+					{{ form.channel488(class="form-control form-control-lg") }}
 				</div>
-				<div class="form-check">
-					{{ form.registration(class="form-check-input") }}
-					{{ form.registration.label(class="form-check-label") }}
+				<div class="form-group">
+					{{ form.channel555.label(class="form-control-label mr-2") }}
+					{{ form.channel555(class="form-control form-control-lg") }}
 				</div>
-				<div class="form-check">
-					{{ form.probe_detection(class="form-check-input") }}
-					{{ form.probe_detection.label(class="form-check-label") }}
+				<div class="form-group">
+					{{ form.channel647.label(class="form-control-label mr-2") }}
+					{{ form.channel647(class="form-control form-control-lg") }}
 				</div>
-				<div class="form-check">
-					{{ form.injection_detection(class="form-check-input") }}
-					{{ form.injection_detection.label(class="form-check-label") }}
+				<div class="form-group">
+					{{ form.channel790.label(class="form-control-label mr-2") }}
+					{{ form.channel790(class="form-control form-control-lg") }}
 				</div>
+				
 			</fieldset>
 			<div class="form-group">
 				{{ form.submit(class="btn btn-outline-info mt-4") }}

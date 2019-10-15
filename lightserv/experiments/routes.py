@@ -58,11 +58,10 @@ def new_exp():
 		exp_dict = dict(labname=form.labname.data.lower(),
 			correspondence_email=form.correspondence_email.data.lower(),
 			title=form.title.data,description=form.description.data,species=form.species.data,
-			clearing_protocol=form.clearing_protocol.data,
-			fluorophores=form.fluorophores.data,antibody1=form.antibody1.data,
-			antibody2=form.antibody2.data,image_resolution=form.image_resolution.data,
-			cell_detection=form.cell_detection.data,registration=form.registration.data,
-			probe_detection=form.probe_detection.data,injection_detection=form.injection_detection.data,
+			clearing_protocol=form.clearing_protocol.data,antibody1=form.antibody1.data,
+			antibody2=form.antibody2.data,channel488=form.channel488.data,
+			channel555=form.channel555.data,channel647=form.channel647.data,
+			channel790=form.channel790.data,image_resolution=form.image_resolution.data,
 			username=username)
 		all_usernames = db.User().fetch('username') 
 		if username not in all_usernames:
@@ -177,9 +176,12 @@ def start_processing(experiment_id):
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
 	logger.info(f"{session['user']} accessed data processing form")
 	exp_contents = db.Experiment() & f'experiment_id={experiment_id}'
-	channels = ['registration','injection_detection','cell_detection']
-	channel_bools = exp_contents.fetch1(*channels)
-	logger.debug(channel_bools)
+	channels = ['registration','injection_detection','probe_detection','cell_detection']
+	channel_bool_dict = exp_contents.fetch(*channels,as_dict=True)[0]
+	# logger.debug(channel_bool_dict)
+	used_imaging_channels = [channel for channel in channel_bool_dict.keys() if channel_bool_dict[channel]]
+
+	# logger.debug(channel_bools)
 	# print('hello')
 	# for channel in channel_bools:
 	# 	if channel:
@@ -190,28 +192,31 @@ def start_processing(experiment_id):
 		'''
 
 		''' Look for raw data files in that folder and verify that they match up with what the experiment entry suggests'''
-		rawdata_directory = form.rawdata_directory.data
-		rawdata_files = glob.glob(rawdata_directory + '/*RawDataStack*ome.tif')
-		nfiles_rawdata = len(rawdata_files)
+		rawdata_dict = {}
+		for channel in used_imaging_channels:
+			rawdatadir_name = f'rawdata_directory_{channel}'
+			rawdata_directory = form[rawdatadir_name].data
+			rawdata_dict[channel] = rawdata_directory
 
-		logger.info(f"There are {nfiles_rawdata} raw data files")
-		run_step0.delay(experiment_id=experiment_id,rawdata_directory=rawdata_directory)
+		logger.info(f"Sending processes to Celery")
+		run_step0.delay(experiment_id=experiment_id,rawdata_dict=rawdata_dict)
 		flash('Your data processing has begun. You will receive an email \
 			when the first steps are completed.','success')
 		return redirect(url_for('main.home'))
-	form.rawdata_directory.data = '/jukebox/LightSheetTransfer/Jess/201907_ymaze_cfos/190916_tpham_cruslat_062019_an16_1d3x_647_008na_1hfds_z10um_500msec_17-21-45'
 
 	return render_template('experiments/start_processing.html',
-		form=form,exp_table=exp_table)	
+		form=form,exp_table=exp_table,used_imaging_channels=used_imaging_channels)	
 
 @cel.task()
-def run_step0(experiment_id,rawdata_directory):
+def run_step0(experiment_id,rawdata_dict):
 	""" An asynchronous celery task (runs in a background process) which runs step 0 
 	in the light sheet pipeline. 
 	"""
 	exp_contents = db.Experiment & f'experiment_id={experiment_id}'
 
 	param_dict = {}
-	param_dict['systemdirectory'] = '/jukebox/'
-	param_dict['inputdictionary'] = {rawdata_directory:[]}
+	# param_dict['systemdirectory'] = '/jukebox/'
+	# for channel in rawdata_dict.keys():
+	# 	rawdata_directory = rawdata_dict
+	# param_dict['inputdictionary'] = {rawdata_directory:[]}
 	return "success"

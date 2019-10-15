@@ -7,19 +7,22 @@
 			{{ form.hidden_tag() }}
 			<fieldset class="form-group">
 				<legend class="border-bottom mb-4">Data Processing Form</legend>
-				<div class="form-group">
-					{{ form.rawdata_directory.label(class="form-control-label") }}
-					{% if form.rawdata_directory.errors %}
-						{{ form.rawdata_directory(class="form-control form-control-lg is-invalid") }}
-						<div class="invalid-feedback">
-							{% for error in form.rawdata_directory.errors %}
-								<span>{{ error }}</span>
-							{% endfor %}
-						</div>
-					{% else %}
-						{{ form.rawdata_directory(class="form-control form-control-lg") }}
-					{% endif %}
-				</div>
+				{% for channel in used_imaging_channels %}
+					{% set rawdata_dir = 'rawdata_directory_' + channel %} 
+					<div class="form-group">
+						{{ form[rawdata_dir].label(class="form-control-label") }}
+						{% if form[rawdata_dir].errors %}
+							{{ form[rawdata_dir](class="form-control form-control-lg is-invalid") }}
+							<div class="invalid-feedback">
+								{% for error in form[rawdata_dir].errors %}
+									<span>{{ error }}</span>
+								{% endfor %}
+							</div>
+						{% else %}
+							{{ form[rawdata_dir](class="form-control form-control-lg") }}
+						{% endif %}
+					</div>
+				{% endfor %}
 			</fieldset>
 			<div class="form-group">
 				{{ form.submit(class="btn btn-outline-info mt-4") }}

@@ -3,7 +3,7 @@ dj.config['database.host'] = '127.0.0.1'
 dj.config['database.port'] = 3306
 
 dj.config['database.user'] = 'ahoag'
-# dj.config['database.password'] = 'p@sswd'
+dj.config['database.password'] = 'p@sswd'
 
 # dj.config['database.user'] = 'lightserv'
 # dj.config['database.password'] = 'microscope'
@@ -34,14 +34,13 @@ class Experiment(dj.Manual):
     species                      :   varchar(50)
     clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
     clearing_progress            :   enum("incomplete","in progress","complete")
-    fluorophores                 :   varchar(100)
     antibody1                    :   varchar(100)
     antibody2                    :   varchar(100)
     image_resolution             :   enum("1.3x","4x")
-    cell_detection               :   tinyint
-    registration                 :   tinyint
-    probe_detection              :   tinyint
-    injection_detection          :   tinyint
+    channel488                   :   enum("","registration","cell_detection","probe_detection","injection_detection")                    
+    channel555                   :   enum("","registration","cell_detection","probe_detection","injection_detection")
+    channel647                   :   enum("","registration","cell_detection","probe_detection","injection_detection")
+    channel790                   :   enum("","registration","cell_detection","probe_detection","injection_detection")
     """  
     
 @schema #  

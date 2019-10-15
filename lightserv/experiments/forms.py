@@ -8,6 +8,8 @@ from lightserv import db
 
 class ExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
+
+	# Basic info
 	title = StringField('Title',validators=[DataRequired(),Length(max=100)])
 	description = TextAreaField('Description',validators=[DataRequired(),Length(max=250)])
 	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[DataRequired(),Length(max=100)])
@@ -15,31 +17,47 @@ class ExpForm(FlaskForm):
 		validators=[DataRequired(),Length(max=100),Email()])
 
 	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],validators=[InputRequired(),Length(max=50)]) # for choices first element of tuple is the value of the option, the second is the displayed text
+	# Clearing info
 	clearing_protocol = SelectField('Clearing Protocol:', choices= \
 		[('iDISCO abbreviated clearing','iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
 		 ('iDISCO abbreviated clearing (rat)','Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
 	     ('iDISCO+_immuno','iDISCO+ (immunostaining)'),
 	     ('uDISCO','uDISCO'),('iDISCO_EdU','Wang Lab iDISCO Protocol-EdU')],validators=[InputRequired()]) # for choices first element of tuple is the value of the option, the second is the displayed text
-	fluorophores = TextAreaField('Fluorophores/dyes involved (E.g. AlexaFluor 647 or Thy1-YFP mouse)',validators=[Length(max=100)])
-	channel488 = SelectField('488 nm channel purpose',choices=[('registration','registration'),
-							('injection_detection','injection_detection','probe_detection','probe_detection','cell_detection','cell_detection')])
-	channel555 = SelectField('555 nm channel purpose',choices=[('registration','registration'),
-							('injection_detection','injection_detection','probe_detection','probe_detection','cell_detection','cell_detection')])
-	channel647 = SelectField('647 nm channel purpose',choices=[('registration','registration'),
-							('injection_detection','injection_detection','probe_detection','probe_detection','cell_detection','cell_detection')])
-	channel790 = SelectField('790 nm channel purpose',choices=[('registration','registration'),
-							('injection_detection','injection_detection','probe_detection','probe_detection','cell_detection','cell_detection')])
-	
 	antibody1 = TextAreaField('Primary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
 	antibody2 = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
-	''' Imaging parameters '''
+	
+	# Imaging info
+	channel488 = SelectField('488 nm channel purpose',choices=[
+							('','None'),
+							('registration','registration'),
+							('injection_detection','injection_detection'),
+							('probe_detection','probe_detection'),
+							('cell_detection','cell_detection')]
+							)
+	channel555 = SelectField('555 nm channel purpose',choices=[
+							('','None'),
+							('registration','registration'),
+							('injection_detection','injection_detection'),
+							('probe_detection','probe_detection'),
+							('cell_detection','cell_detection')]
+							)
+	channel647 = SelectField('647 nm channel purpose',choices=[
+							('','None'),
+							('registration','registration'),
+							('injection_detection','injection_detection'),
+							('probe_detection','probe_detection'),
+							('cell_detection','cell_detection')]
+							)
+	channel790 = SelectField('790 nm channel purpose',choices=[
+							('','None'),
+							('registration','registration'),
+							('injection_detection','injection_detection'),
+							('probe_detection','probe_detection'),
+							('cell_detection','cell_detection')]
+							)
 	image_resolution = SelectField('Image Resolution:', 
 		choices=[('1.3x','1.3x (low-res: good for site detection, whole brain c-fos quantification, or registration)'),
 	('4x','4x (high-res: good for tracing, cell detection)')],validators=[InputRequired()]) # for choices first element of tuple is the value of the option, the second is the displayed text
-	cell_detection = BooleanField('Perform cell detection',default=False)
-	registration = BooleanField('Register to atlas',default=False)
-	probe_detection = BooleanField('Probe/fiber placement detection',default=False)
-	injection_detection = BooleanField('Injection site detection',default=False)
 	submit = SubmitField('Start experiment')	
 
 	def validate_antibody1(self,antibody1):
