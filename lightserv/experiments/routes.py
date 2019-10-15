@@ -195,11 +195,11 @@ def start_processing(experiment_id):
 		rawdata_dict = {}
 		for channel in used_imaging_channels:
 			rawdatadir_name = f'rawdata_directory_{channel}'
-			rawdata_directory = form[rawdatadir_name].data
-			rawdata_dict[channel] = rawdata_directory
+			rawdata_dir = form[rawdatadir_name].data
+			rawdata_dir_dict[channel] = rawdata_dir
 
 		logger.info(f"Sending processes to Celery")
-		run_step0.delay(experiment_id=experiment_id,rawdata_dict=rawdata_dict)
+		run_step0.delay(experiment_id=experiment_id,rawdata_dir_dict=rawdata_dir_dict)
 		flash('Your data processing has begun. You will receive an email \
 			when the first steps are completed.','success')
 		return redirect(url_for('main.home'))
@@ -208,13 +208,30 @@ def start_processing(experiment_id):
 		form=form,exp_table=exp_table,used_imaging_channels=used_imaging_channels)	
 
 @cel.task()
-def run_step0(experiment_id,rawdata_dict):
+def run_step0(experiment_id,rawdata_dir_dict):
 	""" An asynchronous celery task (runs in a background process) which runs step 0 
 	in the light sheet pipeline. 
 	"""
 	exp_contents = db.Experiment & f'experiment_id={experiment_id}'
-
 	param_dict = {}
+	input_dictionary = {}
+	# Create a counter for multi-channel imaging. If multi-channel imaging was used
+	# This counter will be incremented so that each filter gets assigned the correct filter. 
+	multichannel_counter = 0 # the number of channels used in multi-channel imaging. 
+	for channel in rawdata_dir_dict.keys():
+		rawdata_dir = rawdata_dir_dict[channel]
+
+		channel_mode = exp_contents.fetch1(channel)
+		if channel_mode == 'registration'
+			input_list = [['regch','00']]
+		elif channel_mode == 'cell_detection':
+			input_list = [['cellch','00']]
+		if rawdata_dir in inputdictionary.keys():
+			inputdictionary[rawdata_dir].append
+		rawdata_dir = rawdata_dir_dict[channel]
+
+
+	param_dict['inputdictionary'] = input_dictionary
 	# param_dict['systemdirectory'] = '/jukebox/'
 	# for channel in rawdata_dict.keys():
 	# 	rawdata_directory = rawdata_dict
