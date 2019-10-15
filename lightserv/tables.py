@@ -19,7 +19,7 @@ class ExpTable(Table):
     clearing_progress = Col('clearing_progress',column_html_attrs=column_html_attrs)
     antibody1 = Col('primary_antibody',column_html_attrs=column_html_attrs)
     antibody2 = Col('secondary_antibody',column_html_attrs=column_html_attrs)
-    channel488 = Col('channel480',column_html_attrs=column_html_attrs)
+    channel488 = Col('channel488',column_html_attrs=column_html_attrs)
     channel555 = Col('channel555',column_html_attrs=column_html_attrs)
     channel647 = Col('channel647',column_html_attrs=column_html_attrs)
     channel790 = Col('channel790',column_html_attrs=column_html_attrs)
