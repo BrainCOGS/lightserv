@@ -30,25 +30,24 @@ def create_test_schema():
     @test_schema
     class Experiment(dj.Manual):
         definition = """ # Experiments performed using the light sheet microscope
-        experiment_id             :   smallint auto_increment    # allowed here are sql datatypes.
+        experiment_id                :   smallint auto_increment    # allowed here are sql datatypes.
         ----
         -> User 
-        labname                   :   varchar(50)
-        correspondence_email=""   :   varchar(100)
-        title                     :   varchar(100)
-        description               :   varchar(250)
-        notes = ""                :   varchar(1000)
-        species                   :   varchar(50)
-        clearing_protocol         :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
-        clearing_progress         :   enum("incomplete","in progress","complete")
-        fluorophores              :   varchar(100)
-        antibody1                 :   varchar(100)
-        antibody2                 :   varchar(100)
-        image_resolution          :   enum("1.3x","4x")
-        cell_detection            :   tinyint
-        registration              :   tinyint
-        probe_detection           :   tinyint
-        injection_detection       :   tinyint
+        labname                      :   varchar(50)
+        correspondence_email = ''    :   varchar(100)
+        title                        :   varchar(100)
+        description                  :   varchar(250)
+        notes = ""                   :   varchar(1000)
+        species                      :   varchar(50)
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
+        clearing_progress            :   enum("incomplete","in progress","complete")
+        antibody1                    :   varchar(100)
+        antibody2                    :   varchar(100)
+        image_resolution             :   enum("1.3x","4x")
+        channel488                   :   enum("","registration","cell_detection","probe_detection","injection_detection")                    
+        channel555                   :   enum("","registration","cell_detection","probe_detection","injection_detection")
+        channel647                   :   enum("","registration","cell_detection","probe_detection","injection_detection")
+        channel790                   :   enum("","registration","cell_detection","probe_detection","injection_detection")
         """  
         
     @test_schema #  
@@ -314,9 +313,11 @@ def create_test_schema():
         """ Fills the User() and Experiment() tables 
         using the form response data from the tab in the clearing google spreadsheet
         """
-        exp_column_names = ['username','labname','species','clearing_protocol','clearing_progress','title','description','fluorophores',\
-                        'antibody1','antibody2','image_resolution',\
-                        'cell_detection','registration','probe_detection','injection_detection','notes'] # order doesn't matter since we will be using these in a dictionary
+        exp_column_names = ['username','labname','species','clearing_protocol',
+                            'clearing_progress','title','description',
+                            'antibody1','antibody2','image_resolution',
+                            'channel488','channel555','channel647',
+                            'channel790','notes'] # order doesn't matter since we will be using these in a dictionary
         for form_response in experiment_test_data:
             # ignore blank lines
             if not form_response:
@@ -338,38 +339,38 @@ def create_test_schema():
             clearing_progress = 'complete' # All of the ones in this sheet have already been completed
             title=form_response[2]
             description = form_response[3]
-            fluorophores = form_response[4]
-            primary_antibody = form_response[5]
-            secondary_antibody = form_response[6]
-            imaging_str = form_response[7]
+            # fluorophores = form_response[4]
+            antibody1 = form_response[6]
+            antibody2 = form_response[7]
+            imaging_str = form_response[8]
             image_resolution = "1.3x" if "1.3x" in imaging_str else "4x"
-            processing_str = form_response[8]
+            processing_str = form_response[9]
             processing_list = [x.lower() for x in processing_str.split(',')]
-
-            cell_detection = 0
-            registration = 0
-            probe_detection = 0
-            injection_detection = 0
+           
+            channel488 = ''
+            channel555 = ''
+            channel647 = ''
+            channel790 = ''
             for item in processing_list:
                 if 'cell detection' in item:
-                    cell_detection = 1
+                    channel488 = 'cell_detection'
                 if 'registration' in item:
-                    registration=1
+                    channel647 = 'registration'
                 if 'probe' in item and 'detection' in item:
-                    probe_detection = 1
+                    channel555 = 'probe_detection'
                 if 'injection' in item and 'detection' in item:
-                    injection_detection =1
+                    channel790 = 'injection_detection'
             notes = form_response[11]
             email = form_response[14]
             username = email.split('@')[0].lower() if 'princeton' in email else 'zmd' # zahra is the only one who used her gmail
             labname = labname_dict[username]
             user_insert_dict = {'username':username,'princeton_email':email}
             
-            exp_insert_row = [username,labname,species,clearing_protocol,clearing_progress,title,description,fluorophores,\
-                          primary_antibody,secondary_antibody,image_resolution,cell_detection,registration,\
-                          probe_detection,injection_detection,notes]
+            exp_insert_row = [username,labname,species,clearing_protocol,clearing_progress,
+                              title,description,antibody1,antibody2,image_resolution,
+                              channel488,channel555,channel647,channel790,notes]
             exp_insert_dict = {exp_column_names[ii]:exp_insert_row[ii] for ii in range(len(exp_column_names))}
-            
+            # print(exp_insert_dict)
             User().insert1(user_insert_dict,skip_duplicates=True)
             Experiment().insert1(exp_insert_dict)
 

@@ -5,7 +5,7 @@ def test_exps_show_up_on_main_page(test_client,test_schema):
 	""" Check that the test post is rendered on the home page """
 	response = test_client.get(url_for('main.home'), follow_redirects=True)
 
-	assert b'light sheet experiments' in response.data and b'mcherry' in response.data
+	assert b'light sheet experiments' in response.data and b'rabbit anti-RFP 1:1000' in response.data
 
 def test_new_exp_form_renders(test_client):
 	""" Ensure that the experiment form renders properly """
@@ -23,10 +23,10 @@ def test_submit_good_experiment(test_client,test_schema,test_login):
 			labname="Wang",correspondence_email="test@demo.com",
 			title="Demo Experiment",
 			description="This is a demo experiment",
-			species="rat",clearing_protocol="uDISCO",fluorophores="An experimental fluorophore",
+			species="rat",clearing_protocol="uDISCO",
 			antibody1="None",antibody2="None",
-			image_resolution="1.3x",cell_detection=True,registration=True,
-			probe_detection=True,injection_detection=False,
+			image_resolution="1.3x",channel488='cell_detection',
+			channel555='',channel647='registration',channel790='',
 			username=test_login['user']
 			),
 			follow_redirects=True
@@ -43,10 +43,10 @@ def test_submit_bad_experiments(test_client,test_schema,test_login):
 			labname="Wang",correspondence_email="test@demo.com",
 			title="Bad Experiment",
 			description="This is a bad experiment that should not work because Image resolution is enum and I give it an empty string",
-			species="rat",clearing_protocol="uDISCO",fluorophores="An experimental fluorophore",
+			species="rat",clearing_protocol="uDISCO",
 			primary_antibody="None",secondary_antibody="None",
-			image_resolution="",cell_detection=True,registration=True,
-			probe_detection=True,injection_detection=False,
+			image_resolution="",channel488='cell_detection',
+			channel555='',channel647='registration',channel790='',
 			username=test_login['user']
 			),
 			follow_redirects=True
@@ -59,10 +59,10 @@ def test_submit_bad_experiments(test_client,test_schema,test_login):
 			description="\
 			This is a bad experiment that should not work because when clearing_protocol=iDISCO+, \
 			there needs to be a primary antibody provided",
-			species="rat",clearing_protocol="iDISCO+",fluorophores="An experimental fluorophore",
-			primary_antibody="",secondary_antibody="None",
-			image_resolution="",cell_detection=True,registration=True,
-			probe_detection=True,injection_detection=False,
+			species="rat",clearing_protocol="iDISCO+",
+			antibody1="",antibody2="None",
+			image_resolution="",channel488='cell_detection',
+			channel555='',channel647='registration',channel790='',
 			username=test_login['user']
 			),
 			follow_redirects=True
