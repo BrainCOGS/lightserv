@@ -76,28 +76,28 @@ class ExpForm(FlaskForm):
 			raise ValidationError('This clearing protocol is only allowed for rats. \
 				Did you mean to choose: iDISCO for non-oxidizable fluorophores (abbreviated clearing)?')
 
+def Directory_validator(form,field):
+	''' Makes sure that the raw data directories exist on jukebox  '''
+	if not os.path.isdir(field.data):
+		raise ValidationError('This is not a valid directory. Please try again')
+	elif field.data[0:8] != '/jukebox':
+		raise ValidationError('Path must start with "/jukebox" ')
+	elif len(glob.glob(field.data + '/*RawDataStack*ome.tif')) == 0:
+		raise ValidationError('No raw data files found in that directory. Try again')	
+		
 class StartProcessingForm(FlaskForm):
 	""" The form for requesting to start the data processing """
-	rawdata_directory_registration = TextAreaField(\
-		'Registration channel raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500)])
-	rawdata_directory_injection_detection = TextAreaField(\
-		'Injection channel raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500)])
-	rawdata_directory_probe_detection = TextAreaField(\
-		'Injection channel raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500)])
-	rawdata_directory_cell_detection = TextAreaField(\
-		'Cell channel raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500)])
+	rawdata_directory_channel488 = TextAreaField(\
+		'Channel 488 raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500),Directory_validator])
+	rawdata_directory_channel555 = TextAreaField(\
+		'Channel 555 raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500),Directory_validator])
+	rawdata_directory_channel647 = TextAreaField(\
+		'Channel 647 raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500),Directory_validator])
+	rawdata_directory_channel790 = TextAreaField(\
+		'Channel 790 raw data directory (on /jukebox)',validators=[DataRequired(),Length(max=500),Directory_validator])
 
 	submit = SubmitField('Start the processing')	
 
-	def validate_rawdata_directory(self,rawdata_directory):
-		''' Makes sure that primary antibody is not blank if immunostaining clearing protocol
-		is chosen  '''
-		if not os.path.isdir(rawdata_directory.data):
-			raise ValidationError('This is not a valid directory. Please try again')
-		elif rawdata_directory.data[0:8] != '/jukebox':
-			raise ValidationError('Path must start with "/jukebox" ')
-		elif len(glob.glob(rawdata_directory.data + '/*RawDataStack*ome.tif')) == 0:
-			raise ValidationError('No raw data files found in that directory. Try again')
 
 class UpdateNotesForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """

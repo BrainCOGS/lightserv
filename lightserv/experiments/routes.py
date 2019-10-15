@@ -176,15 +176,15 @@ def start_processing(experiment_id):
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
 	logger.info(f"{session['user']} accessed data processing form")
 	exp_contents = db.Experiment() & f'experiment_id={experiment_id}'
-	channels = ['registration','injection_detection','probe_detection','cell_detection']
-	channel_bool_dict = exp_contents.fetch(*channels,as_dict=True)[0]
-	# logger.debug(channel_bool_dict)
-	used_imaging_channels = [channel for channel in channel_bool_dict.keys() if channel_bool_dict[channel]]
+	channels = [488,555,647,790]
+	channel_query_strs = ['channel%i' % channel for channel in channels]
 
-	# logger.debug(channel_bools)
-	# print('hello')
-	# for channel in channel_bools:
-	# 	if channel:
+	channels = ['registration','injection_detection','probe_detection','cell_detection']
+	channel_response_dict = exp_contents.fetch(*channel_query_strs,as_dict=True)[0]
+	used_imaging_channels = [channel for channel in channel_response_dict.keys() if channel_response_dict[channel]]
+
+	logger.debug(channel_response_dict)
+
 	exp_table = ExpTable(exp_contents)
 	form = StartProcessingForm()
 	if form.validate_on_submit():
