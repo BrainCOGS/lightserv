@@ -35,16 +35,18 @@ In order to connect to the MariaDB database, forward port 3306 from jtb3-dev.pri
 ssh {username}@jtb3-dev.princeton.edu -L 3306:127.0.0.1:3306 -N
 ```
 
+## Celery config
+Celery is a asynchronous job manager, allowing you to submit jobs from a flask route without having to wait for the job to complete. I have celery set up with a mysql database at jtb3-dev (same database server as where the main database lives) using rabbitmq as a message queue. The celery server needs to be started before the flask app is run in order for flask to be able to perform asynchronous tasks. It is started via:
+
+```
+bash
+celery -A celery_worker.cel worker --loglevel=info
+```
+where `celery_worker` references the file: `celery_worker.py`. The above line starts a dummy version of this application, giving celery the flask application context it needs to run its tasks. 
+
 
 ## Run
 =======
-
-```
-### Database setup
-Forward to a MariaDB/MySQL database:
-```bash
-ssh username@jtb3-dev.princeton.edu -L 3306:127.0.0.1:3306 -N
-```
 
 ```python
 python run.py
