@@ -255,7 +255,7 @@ def run_step0(experiment_id,rawdata_dir_dict):
 			input_dictionary[rawdata_dir].append(input_list)
 		else:
 			input_dictionary[rawdata_dir] = [input_list]
-	# logger.info(input_dictionary)
+	# Output directory for processed files
 	output_directory = f'/jukebox/LightSheetData/{username}/experiment_{experiment_id}'
 	
 	# Figure out xyz scale from metadata of 0th z plane of last rawdata directory (is the same for all directories)
