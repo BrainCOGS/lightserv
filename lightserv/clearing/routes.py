@@ -10,7 +10,7 @@ from lightserv.tables import ClearingTable,IdiscoPlusTable
 from lightserv import db
 from .utils import (determine_clearing_form, add_clearing_calendar_entry,
 				   determine_clearing_dbtable, determine_clearing_table) 
-from lightserv.main.utils import logged_in
+from lightserv.main.utils import logged_in, logged_in_as_clearer
 import numpy as np
 import datajoint as dj
 import re
@@ -37,7 +37,7 @@ logger.addHandler(file_handler)
 clearing = Blueprint('clearing',__name__)
 
 @clearing.route("/clearing/clearing_entry/<clearing_protocol>/<experiment_id>",methods=['GET','POST'])
-@logged_in
+@logged_in_as_clearer
 def clearing_entry(clearing_protocol,experiment_id): 
 	exp_contents = db.Experiment() & f'experiment_id={experiment_id}' & f'clearing_protocol="{clearing_protocol}"'							
 
@@ -141,12 +141,12 @@ def clearing_entry(clearing_protocol,experiment_id):
 		column_name=column_name)
 
 @clearing.route("/clearing/clearing_table/<experiment_id>",methods=['GET'])
-@logged_in
+@logged_in_as_clearer
 def clearing_table(experiment_id): 
 	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
 	if not exp_contents:
 		flash(f"experiment_id={experiment_id} does not exist.\
-						   It must exist for clearing for this experiment to exist.",'danger')
+			   It must exist for clearing for this experiment to exist.",'danger')
 		return redirect(url_for('main.home'))
 	 
 	clearing_protocol = exp_contents.fetch1('clearing_protocol')
