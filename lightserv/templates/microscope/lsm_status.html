@@ -1,0 +1,29 @@
+{% set svg_width=1000 %}
+{% set svg_height=300 %}
+{% set rect_width = 150 %}
+{% set rect_height = 150 %}
+{% set rect_left = 200 %}
+{% set rect_top = svg_height/2 - rect_height/2 %}
+{% set selectfield_width = 100 %}
+{% set selectfield_height = 75 %}
+{% set selectfield_left = rect_left+rect_width/2 - selectfield_width/2 %}		
+{% set selectfield_top = svg_height/2 - selectfield_height/2 %}
+
+{% set line_left = rect_left+rect_width %}
+{% set line_height = rect_top+rect_height/2 %}
+{% set line_dx = 100 %}
+ <svg width="{{svg_width}}" height="{{svg_height}}" style="border:1px red solid" xmlns="http://www.w3.org/2000/svg">
+
+	<g fill="white" stroke-width="5">
+		<rect x="{{rect_left}}" y="{{rect_top}}" width="{{rect_width}}" height="{{rect_height}}" style="stroke:green;stroke-width:5;fill-opacity:0.1;stroke-opacity:0.9" />
+		<text x="{{rect_left + rect_width/2}}" y="{{rect_top - 10}}" font-size="28" fill="black" text-anchor="middle" dominant-baseline="middle" >Optical element 1</text>
+		<line x1="{{line_left}}" y1="{{line_height}}" x2="{{line_left + line_dx}}" y2="{{line_height}}" stroke="black" />
+	</g>
+
+
+	<foreignobject class="node" x="{{selectfield_left}}" y="{{selectfield_top}}" width="{{selectfield_width}}" height="{{selectfield_height}}">
+		{{ microscope_form.status.label}}
+		{{ microscope_form.status(class="form-control form-control-sm") }}
+	</foreignobject>
+
+</svg> 

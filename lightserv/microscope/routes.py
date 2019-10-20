@@ -3,7 +3,8 @@ from functools import partial
 
 import os
 from datetime import datetime
-from lightserv.microscope.forms import NewSwapLogEntryForm, UpdateSwapLogEntryForm
+from lightserv.microscope.forms import (NewSwapLogEntryForm, UpdateSwapLogEntryForm,
+                                        StatusMonitorSelectForm, LightSheetStatusForm)
 from lightserv import db
 from lightserv.tables import MicroscopeCalibrationTable
 from lightserv.main.utils import table_sorter,logged_in
@@ -26,6 +27,17 @@ logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
 microscope = Blueprint('microscope',__name__)
+
+@microscope.route('/microscope/status_monitor', methods=['GET','POST'])
+@logged_in
+def status_monitor():
+    selectform = StatusMonitorSelectForm()
+    if selectform.validate_on_submit():
+        microscope = selectform.microscope.data
+        microscope_form = LightSheetStatusForm()
+        return render_template('microscope/status_monitor.html',
+            selectform=selectform,microscope=microscope,microscope_form=microscope_form)
+    return render_template('microscope/status_monitor.html',selectform=selectform,)
 
 @microscope.route('/microscope/new_swap_entry', methods=['GET','POST'])
 @logged_in

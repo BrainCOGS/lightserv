@@ -11,6 +11,19 @@ def OptionalDateField(description='',validators=[]):
 	field = DateField(description,validators)
 	return field
 
+class StatusMonitorSelectForm(FlaskForm):
+	""" The form for selecting which microscope  """
+	microscope = SelectField('Choose Microscope:', choices=[('light sheet microscope','light sheet microscope'),
+			 ('two photon microscope','two photon microscope'),('confocal microscope','confocal microscope')],
+	         default='light sheet microscope',validators=[InputRequired()])
+	
+	submit = SubmitField('Show microscope status')	
+
+class LightSheetStatusForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+	status = SelectField('Status:', 
+		choices=[('good','good'),('bad','bad')],validators=[InputRequired()])
+
 class NewSwapLogEntryForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 	date = OptionalDateField('Date')
