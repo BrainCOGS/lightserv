@@ -21,12 +21,12 @@ else:
 ''' Initialize all the extensions outside of our app so 
 we can use them for multiple apps if we want. Don't want to tie 
 them to a single app in the create_app() function below '''
-# db = SQLAlchemy()
 
 print("RUNNING IN FLASK_MODE:",os.environ['FLASK_MODE'])
 def set_schema():
 	if os.environ['FLASK_MODE'] == 'DEV':
 		db = dj.create_virtual_module('lightsheet_demo','ahoag_lightsheet_demo',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
+		# db = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
 	elif os.environ['FLASK_MODE'] == 'TEST':
 		test_schema = create_test_schema() 
 		db = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
