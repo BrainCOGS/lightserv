@@ -21,14 +21,9 @@
 					{% endif %}
 					{{ form.exp_notes_submit(class="btn btn-sm btn-info mt-2") }}
 				</div>
-				<div>
-					{{ form.perfusion_date.label(class="border-bottom font-weight-bold mt-4",id='larger')}}
-				    {{ form.perfusion_date(class='datepicker') }}
-					{{ form.perfusion_date_submit(class="btn btn-sm btn-info") }}
-				</div>
 
 				<!-- Loop through the form fields and render them.  -->
-				{% set lastday_dict = {'lastday':'perfusion','counter': 2} %}
+				{% set lastday_dict = {'lastday':'perfusion','counter': 0} %}
 				{% for key in form._fields %}
 					{% if form._fields[key].type == 'DateTimeLocalField' %}
 						{% set submit_key = key + '_submit' %}

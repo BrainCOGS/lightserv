@@ -8,6 +8,37 @@ h1, h2, h3, h4, h5, h6 {
   color: #444444;
 }
 
+/*hr { 
+  height: 1px; 
+  border: 1px solid #dddddd;
+} */
+hr.class-1 { 
+            border-top: 5px solid #698596;
+            border-bottom: 5px solid #698596;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        } 
+          
+hr.class-2 { 
+            border-top: 1px double #dddddd;
+            border-bottom: 1px double #dddddd;
+            margin-top: 1rem;
+            margin-bottom: 1rem; 
+        } 
+
+hr.class-3 { 
+            border-top: 5px solid #698596;
+            border-bottom: 5px solid #698596;
+            margin-top: 2rem;
+        } 
+
+hr.class-4 { 
+            border-top: 5px solid #698596;
+            border-bottom: 5px solid #698596;
+            margin-top: 1rem;
+        } 
+
+
 .bg-steel {
   background-color: #698596;
 }

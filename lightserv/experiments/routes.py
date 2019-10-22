@@ -76,7 +76,7 @@ def new_exp():
 			class="alert-link" target="_blank">here</a> for your data when it becomes available.'),'success')
 		return redirect(url_for('main.home'))
 
-	return render_template('experiments/create_exp.html', title='new_experiment',
+	return render_template('experiments/new_exp.html', title='new_experiment',
 		form=form,legend='New Experiment')	
 
 @experiments.route("/exp/<int:experiment_id>/delete", methods=['POST'])
