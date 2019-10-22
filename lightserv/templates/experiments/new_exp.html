@@ -7,6 +7,7 @@
 			<fieldset class="form-group">
 				<legend class="border-bottom mb-2 mt-4">Background Info</legend>
 				<div class="form-group">
+					{% if form.labname.flags.required %}*{% endif %}
 					{{ form.labname.label(class="form-control-label") }}
 					{% if form.labname.errors %}
 						{{ form.labname(class="form-control form-control-lg is-invalid") }}
@@ -20,6 +21,7 @@
 					{% endif %}
 				</div>
 				<div class="form-group">
+					{% if form.correspondence_email.flags.required %}*{% endif %}
 					{{ form.correspondence_email.label(class="form-control-label") }}
 					{% if form.correspondence_email.errors %}
 						{{ form.correspondence_email(class="form-control form-control-lg is-invalid") }}
@@ -33,6 +35,7 @@
 					{% endif %}
 				</div>
 				<div class="form-group">
+					{% if form.title.flags.required %}*{% endif %}
 					{{ form.title.label(class="form-control-label") }}
 					{% if form.title.errors %}
 						{{ form.title(class="form-control form-control-lg is-invalid") }}
@@ -46,6 +49,7 @@
 					{% endif %}
 				</div>
 				<div class="form-group">
+					{% if form.description.flags.required %}*{% endif %}
 					{{ form.description.label(class="form-control-label") }}
 					{% if form.description.errors %}
 						{{ form.description(class="form-control form-control-lg is-invalid") }}
@@ -59,6 +63,7 @@
 					{% endif %}
 				</div>
 				<div class="form-group">
+					{% if form.species.flags.required %}*{% endif %}
 					{{ form.species.label(class="form-control-label mr-2") }}
 					{{ form.species(class="form-control form-control-lg border-bottom") }}
 				</div>
@@ -66,6 +71,7 @@
 				<hr class='class-2'>
 				
 				<div class="form-group">
+					{% if form.perfusion_date.flags.required %}*{% endif %}
 					{{ form.perfusion_date.label(class="form-control-label mr-2") }}
 					{{ form.perfusion_date(class='datepicker') }}
 				</div>
@@ -73,6 +79,7 @@
 				<hr class='class-2'>
 
 				<div class="form-group">
+					{% if form.expected_handoff_date.flags.required %}*{% endif %}
 					{{ form.expected_handoff_date.label(class="form-control-label mr-2") }}
 					{{ form.expected_handoff_date(class='datepicker ') }}
 				</div>
@@ -81,6 +88,7 @@
 				<hr class='class-1'>
 				<legend class="border-bottom mb-2 mt-4">Clearing Setup</legend>
 				<div class="form-group">
+					{% if form.clearing_protocol.flags.required %}*{% endif %}
 					{{ form.clearing_protocol.label(class="form-control-label mr-2") }}
 					{% if form.clearing_protocol.errors %}
 						{{ form.clearing_protocol(class="form-control form-control-lg is-invalid") }}
@@ -95,6 +103,7 @@
 
 				</div>
 				<div class="form-group">
+					{% if form.antibody1.flags.required %}*{% endif %}
 					{{ form.antibody1.label(class="form-control-label") }}
 					{% if form.antibody1.errors %}
 						{{ form.antibody1(class="form-control form-control-lg is-invalid") }}
@@ -108,6 +117,7 @@
 					{% endif %}
 				</div>
 				<div class="form-group">
+					{% if form.antibody2.flags.required %}*{% endif %}
 					{{ form.antibody2.label(class="form-control-label") }}
 					{% if form.antibody2.errors %}
 						{{ form.antibody2(class="form-control form-control-lg is-invalid") }}
@@ -123,22 +133,27 @@
 				<hr class='class-1'>
 				<legend class="border-bottom mb-2 mt-4">Imaging Setup</legend>
 				<div class="form-group">
+					{% if form.image_resolution.flags.required %}*{% endif %}
 					{{ form.image_resolution.label(class="form-control-label mr-2") }}
 					{{ form.image_resolution(class="form-control form-control-lg") }}
 				</div>
 				<div class="form-group">
+					{% if form.channel488.flags.required %}*{% endif %}
 					{{ form.channel488.label(class="form-control-label mr-2") }}
 					{{ form.channel488(class="form-control form-control-lg") }}
 				</div>
 				<div class="form-group">
+					{% if form.channel555.flags.required %}*{% endif %}
 					{{ form.channel555.label(class="form-control-label mr-2") }}
 					{{ form.channel555(class="form-control form-control-lg") }}
 				</div>
 				<div class="form-group">
+					{% if form.channel647.flags.required %}*{% endif %}
 					{{ form.channel647.label(class="form-control-label mr-2") }}
 					{{ form.channel647(class="form-control form-control-lg") }}
 				</div>
 				<div class="form-group">
+					{% if form.channel790.flags.required %}*{% endif %}
 					{{ form.channel790.label(class="form-control-label mr-2") }}
 					{{ form.channel790(class="form-control form-control-lg") }}
 				</div>
