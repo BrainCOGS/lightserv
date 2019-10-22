@@ -8,6 +8,7 @@ from lightserv.microscope.forms import (NewSwapLogEntryForm, UpdateSwapLogEntryF
 from lightserv import db
 from lightserv.tables import MicroscopeCalibrationTable
 from lightserv.main.utils import table_sorter,logged_in
+from lightserv.microscope.utils import microscope_form_picker
 import logging
 
 logger = logging.getLogger(__name__)
@@ -32,12 +33,17 @@ microscope = Blueprint('microscope',__name__)
 @logged_in
 def status_monitor():
     selectform = StatusMonitorSelectForm()
+    microscope = 'light sheet microscope' # default
+    microscope_form = LightSheetStatusForm() # default
+
+    
     if selectform.validate_on_submit():
         microscope = selectform.microscope.data
-        microscope_form = LightSheetStatusForm()
-        return render_template('microscope/status_monitor.html',
-            selectform=selectform,microscope=microscope,microscope_form=microscope_form)
-    return render_template('microscope/status_monitor.html',selectform=selectform,)
+        microscope_form = microscope_form_picker(microscope)
+
+    microscope_form.status.choices = [('good','good'),('bad','bad'),('replace','replace')]
+    return render_template('microscope/status_monitor.html',selectform=selectform,
+        microscope_form=microscope_form,microscope=microscope)
 
 @microscope.route('/microscope/new_swap_entry', methods=['GET','POST'])
 @logged_in

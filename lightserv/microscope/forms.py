@@ -3,6 +3,7 @@ from wtforms import StringField, SubmitField, TextAreaField, SelectField, Boolea
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Optional
 from wtforms.fields.html5 import DateField
 from datetime import datetime
+from lightserv import db
 # from lightserv.models import Experiment
 
 def OptionalDateField(description='',validators=[]):
@@ -22,7 +23,12 @@ class StatusMonitorSelectForm(FlaskForm):
 class LightSheetStatusForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 	status = SelectField('Status:', 
-		choices=[('good','good'),('bad','bad')],validators=[InputRequired()])
+		choices=[],validators=[InputRequired()])
+
+class TwoPhotonStatusForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+	status = SelectField('Status:', 
+		choices=[('good','good'),('bad','bad'),('time to replace','time to replace')],validators=[InputRequired()])
 
 class NewSwapLogEntryForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
