@@ -58,6 +58,7 @@ def new_exp():
 		exp_dict = dict(labname=form.labname.data.lower(),
 			correspondence_email=form.correspondence_email.data.lower(),
 			title=form.title.data,description=form.description.data,species=form.species.data,
+			perfusion_date=form.perfusion_date.data,expected_handoff_date=form.expected_handoff_date.data,
 			clearing_protocol=form.clearing_protocol.data,antibody1=form.antibody1.data,
 			antibody2=form.antibody2.data,channel488=form.channel488.data,
 			channel555=form.channel555.data,channel647=form.channel647.data,

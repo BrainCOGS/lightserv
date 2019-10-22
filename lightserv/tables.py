@@ -15,6 +15,8 @@ class ExpTable(Table):
     title = Col('title',column_html_attrs=column_html_attrs,)
     description = Col('description',column_html_attrs=column_html_attrs)
     species = Col('species',column_html_attrs=column_html_attrs)
+    perfusion_date = Col('perfusion_date',column_html_attrs=column_html_attrs)
+    expected_handoff_date = Col('expected_handoff_date',column_html_attrs=column_html_attrs)
     clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
     clearing_progress = Col('clearing_progress',column_html_attrs=column_html_attrs)
     antibody1 = Col('primary_antibody',column_html_attrs=column_html_attrs)
@@ -151,7 +153,6 @@ class IdiscoAbbreviatedTable(Table):
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
     experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
-    perfusion_date = Col('perfusion_date')
     time_pbs_wash1 = Col('time_pbs_wash1',)
     time_pbs_wash2 = Col('time_pbs_wash2',)
     time_pbs_wash3 = Col('time_pbs_wash3',)
