@@ -1,10 +1,17 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, SelectField, BooleanField
+from wtforms.fields.html5 import DateField
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email, Optional
 import os
 import glob
 from lightserv import db
 # from lightserv.models import Experiment
+
+def OptionalDateField(description='',validators=[]):
+	""" A custom field that makes the DateField optional """
+	validators.append(Optional())
+	field = DateField(description,validators)
+	return field
 
 class ExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
@@ -18,6 +25,8 @@ class ExpForm(FlaskForm):
 
 	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],validators=[InputRequired(),Length(max=50)]) # for choices first element of tuple is the value of the option, the second is the displayed text
 	# Clearing info
+	perfusion_date = OptionalDateField('Perfusion Date (leave blank if unsure):')
+	expected_handoff_date = OptionalDateField('Expected date of hand-off (leave blank if unsure):')
 	clearing_protocol = SelectField('Clearing Protocol:', choices= \
 		[('iDISCO abbreviated clearing','iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
 		 ('iDISCO abbreviated clearing (rat)','Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
@@ -58,7 +67,7 @@ class ExpForm(FlaskForm):
 	image_resolution = SelectField('Image Resolution:', 
 		choices=[('1.3x','1.3x (low-res: good for site detection, whole brain c-fos quantification, or registration)'),
 	('4x','4x (high-res: good for tracing, cell detection)')],validators=[InputRequired()]) # for choices first element of tuple is the value of the option, the second is the displayed text
-	submit = SubmitField('Start experiment')	
+	submit = SubmitField('Submit Request')	
 
 	def validate_antibody1(self,antibody1):
 		''' Makes sure that primary antibody is not blank if immunostaining clearing protocol

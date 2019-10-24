@@ -1,4 +1,5 @@
 import datajoint as dj
+
 dj.config['database.host'] = '127.0.0.1'
 dj.config['database.port'] = 3306
 
@@ -11,6 +12,7 @@ dj.config['database.password'] = 'p@sswd'
 schema = dj.schema('ahoag_lightsheet_demo') 
 schema.drop()
 schema = dj.schema('ahoag_lightsheet_demo')
+
 @schema
 class User(dj.Lookup):
     definition = """
@@ -30,8 +32,9 @@ class Experiment(dj.Manual):
     correspondence_email = ''    :   varchar(100)
     title                        :   varchar(100)
     description                  :   varchar(250)
-    notes = ""                   :   varchar(1000)
     species                      :   varchar(50)
+    perfusion_date = NULL        :   date
+    expected_handoff_date = NULL :   date
     clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
     clearing_progress            :   enum("incomplete","in progress","complete")
     antibody1                    :   varchar(100)
@@ -41,6 +44,8 @@ class Experiment(dj.Manual):
     channel555                   :   enum("","registration","cell_detection","probe_detection","injection_detection")
     channel647                   :   enum("","registration","cell_detection","probe_detection","injection_detection")
     channel790                   :   enum("","registration","cell_detection","probe_detection","injection_detection")
+    notes = ""                   :   varchar(1000)
+
     """  
     
 @schema #  
@@ -65,7 +70,6 @@ class IdiscoPlusClearing(dj.Manual): # dj.Manual is one of the 4 datajoint table
     -> User                    # username, the researcher's netid from the User() table
     clearer                                                  :   varchar(20)   # the netid of the person who did the clearing
     exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
-    perfusion_date = NULL                                    :   date 
     time_dehydr_pbs_wash1 = NULL                             :   datetime
     dehydr_pbs_wash1_notes = ""                              :   varchar(250)
     time_dehydr_pbs_wash2 = NULL                             :   datetime
@@ -176,7 +180,6 @@ class IdiscoAbbreviatedClearing(dj.Manual): # dj.Manual is one of the 4 datajoin
     -> User                    # username, the researcher's netid from the User() table
     clearer                                                  :   varchar(20)   # the netid of the person who did the clearing
     exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
-    perfusion_date = NULL                                    :   date 
     time_pbs_wash1 = NULL                                    :   datetime
     pbs_wash1_notes = ""                                     :   varchar(250)
     time_pbs_wash2 = NULL                                    :   datetime
@@ -216,7 +219,6 @@ class IdiscoAbbreviatedRatClearing(dj.Manual): # dj.Manual is one of the 4 dataj
     -> User                    # username, the researcher's netid from the User() table
     clearer                                                  :   varchar(20)   # the netid of the person who did the clearing
     exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
-    perfusion_date = NULL                                    :   date 
     time_pbs_wash1 = NULL                                    :   datetime
     pbs_wash1_notes = ""                                     :   varchar(250)
     time_pbs_wash2 = NULL                                    :   datetime
@@ -270,7 +272,6 @@ class UdiscoClearing(dj.Manual): # dj.Manual is one of the 4 datajoint table typ
     -> User                    # username, the researcher's netid from the User() table
     clearer                                                  :   varchar(20)   # the netid of the person who did the clearing
     exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
-    perfusion_date = NULL                                    :   date 
     time_dehydr_pbs_wash1 = NULL                             :   datetime
     dehydr_pbs_wash1_notes = ""                              :   varchar(250)
     time_dehydr_butanol_30percent = NULL                     :   datetime
@@ -293,3 +294,4 @@ class UdiscoClearing(dj.Manual): # dj.Manual is one of the 4 datajoint table typ
     clearing_babb_wash1_notes = ""                           :   varchar(250)
     clearing_notes = ""                                      : varchar(500)
     """
+print("Successfully created ahoag_lightsheet_demo schema")
