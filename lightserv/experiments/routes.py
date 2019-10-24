@@ -15,7 +15,7 @@ import glob
 
 import secrets
 
-import neuroglancer
+# import neuroglancer
 # import cloudvolume
 import numpy as np
 
@@ -38,7 +38,7 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
-neuroglancer.set_static_content_source(url='https://neuromancer-seung-import.appspot.com')
+# neuroglancer.set_static_content_source(url='https://neuromancer-seung-import.appspot.com')
 
 experiments = Blueprint('experiments',__name__)
 

@@ -29,20 +29,25 @@ logger.addHandler(file_handler)
 
 microscope = Blueprint('microscope',__name__)
 
-@microscope.route('/microscope/status_monitor', methods=['GET','POST'])
+@microscope.route('/microscope/status_monitor_picker', methods=['GET','POST'])
 @logged_in
-def status_monitor():
+def status_monitor_picker():
     selectform = StatusMonitorSelectForm()
     microscope = 'light sheet microscope' # default
     microscope_form = LightSheetStatusForm() # default
 
-    
     if selectform.validate_on_submit():
         microscope = selectform.microscope.data
-        microscope_form = microscope_form_picker(microscope)
+        return redirect(url_for('microscope.status_monitor',microscope=microscope))
+    return render_template('microscope/status_monitor_picker.html',selectform=selectform,
+        microscope_form=microscope_form,microscope=microscope)
 
+@microscope.route('/microscope/status_monitor/<microscope>', methods=['GET','POST'])
+@logged_in
+def status_monitor(microscope):
+    microscope_form = microscope_form_picker(microscope)
     microscope_form.status.choices = [('good','good'),('bad','bad'),('replace','replace')]
-    return render_template('microscope/status_monitor.html',selectform=selectform,
+    return render_template('microscope/status_monitor.html',
         microscope_form=microscope_form,microscope=microscope)
 
 @microscope.route('/microscope/new_swap_entry', methods=['GET','POST'])

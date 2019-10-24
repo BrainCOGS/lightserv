@@ -30,6 +30,11 @@ class TwoPhotonStatusForm(FlaskForm):
 	status = SelectField('Status:', 
 		choices=[('good','good'),('bad','bad'),('time to replace','time to replace')],validators=[InputRequired()])
 
+class ConfocalStatusForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+	status = SelectField('Status:', 
+		choices=[('good','good'),('bad','bad'),('time to replace','time to replace')],validators=[InputRequired()])
+
 class NewSwapLogEntryForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 	date = OptionalDateField('Date')
