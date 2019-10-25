@@ -3,7 +3,7 @@ from wtforms import StringField, SubmitField, TextAreaField, SelectField, Boolea
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Optional
 from wtforms.fields.html5 import DateField
 from datetime import datetime
-from lightserv import db
+from lightserv import db_lightsheet
 # from lightserv.models import Experiment
 
 def OptionalDateField(description='',validators=[]):
@@ -14,9 +14,11 @@ def OptionalDateField(description='',validators=[]):
 
 class StatusMonitorSelectForm(FlaskForm):
 	""" The form for selecting which microscope  """
+	center = SelectField('Choose Facility:', choices=[('Bezos Center','Bezos Center'),
+			 ('McDonnell Center','McDonnell Center')],validators=[InputRequired()],id='select_center')
 	microscope = SelectField('Choose Microscope:', choices=[('light sheet microscope','light sheet microscope'),
 			 ('two photon microscope','two photon microscope'),('confocal microscope','confocal microscope')],
-	         default='light sheet microscope',validators=[InputRequired()])
+	         default='light sheet microscope',validators=[InputRequired()],id='select_microscope')
 	
 	submit = SubmitField('Show microscope status')	
 

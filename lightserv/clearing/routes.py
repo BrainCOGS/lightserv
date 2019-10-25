@@ -2,12 +2,12 @@ from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup)
 # from flask_login import current_user, login_required
-# from lightserv import db
+# from lightserv import db_lightsheet
 # from lightserv.models import Experiment
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 									  iDiscoAbbreviatedRatForm, uDiscoForm,  iDiscoEduForm )
 from lightserv.tables import ClearingTable,IdiscoPlusTable
-from lightserv import db
+from lightserv import db_lightsheet
 from .utils import (determine_clearing_form, add_clearing_calendar_entry,
 				   determine_clearing_dbtable, determine_clearing_table) 
 from lightserv.main.utils import logged_in, logged_in_as_clearer
@@ -39,7 +39,7 @@ clearing = Blueprint('clearing',__name__)
 @clearing.route("/clearing/clearing_entry/<clearing_protocol>/<experiment_id>",methods=['GET','POST'])
 @logged_in_as_clearer
 def clearing_entry(clearing_protocol,experiment_id): 
-	exp_contents = db.Experiment() & f'experiment_id={experiment_id}' & f'clearing_protocol="{clearing_protocol}"'							
+	exp_contents = db_lightsheet.Experiment() & f'experiment_id={experiment_id}' & f'clearing_protocol="{clearing_protocol}"'							
 
 	if not exp_contents:
 		flash(f'Experiment must exist for experiment_id={experiment_id} with \
@@ -143,7 +143,7 @@ def clearing_entry(clearing_protocol,experiment_id):
 @clearing.route("/clearing/clearing_table/<experiment_id>",methods=['GET'])
 @logged_in_as_clearer
 def clearing_table(experiment_id): 
-	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
+	exp_contents = db_lightsheet.Experiment() & f'experiment_id="{experiment_id}"'
 	if not exp_contents:
 		flash(f"experiment_id={experiment_id} does not exist.\
 			   It must exist for clearing for this experiment to exist.",'danger')

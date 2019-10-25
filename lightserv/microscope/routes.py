@@ -1,11 +1,12 @@
-from flask import Blueprint, redirect, render_template, url_for, flash, request, session
+from flask import (Blueprint, redirect, render_template,
+                     url_for, flash, request, session,jsonify)
 from functools import partial
 
 import os
 from datetime import datetime
 from lightserv.microscope.forms import (NewSwapLogEntryForm, UpdateSwapLogEntryForm,
                                         StatusMonitorSelectForm, LightSheetStatusForm)
-from lightserv import db
+from lightserv import db_lightsheet, db_microscope
 from lightserv.tables import MicroscopeCalibrationTable
 from lightserv.main.utils import table_sorter,logged_in
 from lightserv.microscope.utils import microscope_form_picker
@@ -32,15 +33,32 @@ microscope = Blueprint('microscope',__name__)
 @microscope.route('/microscope/status_monitor_picker', methods=['GET','POST'])
 @logged_in
 def status_monitor_picker():
-    selectform = StatusMonitorSelectForm()
-    microscope = 'light sheet microscope' # default
-    microscope_form = LightSheetStatusForm() # default
-
-    if selectform.validate_on_submit():
-        microscope = selectform.microscope.data
+    form = StatusMonitorSelectForm()
+    # microscope = 'light sheet microscope' # default
+    # microscope_form = LightSheetStatusForm() # default
+    
+    centers = db_microscope.Center().fetch('center')
+    form.center.choices = [(center,center) for center in centers]
+    microscopes = db_microscope.Microscope().fetch('microscope_name')
+    form.microscope.choices = [(microscope,microscope) for microscope in microscopes]
+  
+    if form.validate_on_submit():
+        microscope = form.microscope.data
         return redirect(url_for('microscope.status_monitor',microscope=microscope))
-    return render_template('microscope/status_monitor_picker.html',selectform=selectform,
-        microscope_form=microscope_form,microscope=microscope)
+    return render_template('microscope/status_monitor_picker.html',form=form)
+
+@microscope.route('/_get_microscopes/')
+def _get_microscopes():
+    """ Helper function to get microscopes from a given imaging center """
+    center = request.args.get('center', 'Bezos Center', type=str)
+    microscopes = (db_microscope.Microscope & f'center="{center}"').fetch('microscope_name')
+    microscopes_4json = [(microscope,microscope) for microscope in microscopes]
+    # print(counties_4json)
+    return jsonify(microscopes_4json)
+
+@microscope.route('/microscope_center_js')
+def microscope_center_js():
+    return render_template("js/microscope_facility_picker.js")
 
 @microscope.route('/microscope/status_monitor/<microscope>', methods=['GET','POST'])
 @logged_in

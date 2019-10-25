@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, Blueprint, session, url_for, flash, Markup
 # from lightserv.models import Experiment
-from lightserv import db
+from lightserv import db_lightsheet
 from lightserv.tables import ExpTable
 import pandas as pd
 from . import utils

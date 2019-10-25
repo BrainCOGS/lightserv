@@ -28,7 +28,51 @@
 	.st24{fill:#B3B3B3;stroke:#000000;stroke-width:2;stroke-miterlimit:10;}
 </style>
 
-<!-- ALL COMPONENTS -->
+<!-- BEAM PATH -->
+
+<!-- LINE: Scanners -> Custom Optical Assembly -> Mag. Telescope -> Laser (Red)-->
+<line class="st12" x1="643.5" y1="81.5" x2="250" y2="80"/>
+
+<!-- LINE: Laser Dichroic -> Scanners (Red)-->
+<line class="st12" x1="250" y1="260" x2="249" y2="82"/>
+
+<!-- LINE: Beam Splitter -> LaserDichroic (Red)-->
+<line class="st13" x1="250.5" y1="260.5" x2="127.5" y2="260.5"/>
+
+<!-- LINE: Objective -> Beam Splitter (Red)-->
+<line class="st13" x1="126.5" y1="309.5" x2="127.5" y2="260.5"/>
+
+<!-- LINE: Objective -> Beam Splitter (Orange)-->
+<line class="st19" x1="119" y1="308" x2="120" y2="264"/>
+
+<!-- LINE: Beam Splitter -> NIR Filter -> EmissionDichroic -> CH2 Filter -> CH2 Detector (Orange)-->
+<line class="st20" x1="794" y1="268" x2="119" y2="268"/>
+
+<!-- LINE: EmissionDichroic -> CH1 Filter (Orange)-->
+<line class="st20" x1="694" y1="264" x2="693.5" y2="338.5"/>
+
+<!-- LINES: CH2 Detector -> CH2 PreAmp (Black)-->
+<line class="st21" x1="933" y1="264" x2="976" y2="264"/>
+<line class="st21" x1="978" y1="307" x2="978" y2="263"/>
+
+<!-- LINE: CH1 Detector -> CH1 PreAmp (Orange)-->
+<line class="st21" x1="695" y1="472" x2="696" y2="486"/>
+
+<!-- LINES: CH2 PreAmp -> vDAQ system (Black)-->
+<line class="st21" x1="973" y1="668" x2="977" y2="358"/>
+<line class="st21" x1="596" y1="664" x2="975" y2="664"/>
+
+<!-- LINES: CH1 PreAmp -> vDAQ system (Black)-->
+<line class="st21" x1="697" y1="638" x2="697" y2="533"/>
+<line class="st21" x1="595" y1="637" x2="699" y2="637"/>
+
+<!-- LINE: vDAQ system -> Software & version (Gray)-->
+<line class="st22" x1="519" y1="644" x2="465.5" y2="643.5"/>
+
+<!-- ############### -->
+
+
+<!-- OPTICAL COMPONENTS -->
 
 <!-- Objective -->
 <g>
@@ -165,48 +209,7 @@
 
 <!-- ############### -->
 
-<!-- ALL LINES -->
 
-<!-- LINE: Scanners -> Custom Optical Assembly -> Mag. Telescope -> Laser (Red)-->
-<line class="st12" x1="643.5" y1="81.5" x2="250" y2="80"/>
-
-<!-- LINE: Laser Dichroic -> Scanners (Red)-->
-<line class="st12" x1="250" y1="260" x2="249" y2="82"/>
-
-<!-- LINE: Beam Splitter -> LaserDichroic (Red)-->
-<line class="st13" x1="250.5" y1="260.5" x2="127.5" y2="260.5"/>
-
-<!-- LINE: Objective -> Beam Splitter (Red)-->
-<line class="st13" x1="126.5" y1="309.5" x2="127.5" y2="260.5"/>
-
-<!-- LINE: Objective -> Beam Splitter (Orange)-->
-<line class="st19" x1="119" y1="308" x2="120" y2="264"/>
-
-<!-- LINE: Beam Splitter -> NIR Filter -> EmissionDichroic -> CH2 Filter -> CH2 Detector (Orange)-->
-<line class="st20" x1="794" y1="268" x2="119" y2="268"/>
-
-<!-- LINE: EmissionDichroic -> CH1 Filter (Orange)-->
-<line class="st20" x1="694" y1="264" x2="693.5" y2="338.5"/>
-
-<!-- LINES: CH2 Detector -> CH2 PreAmp (Black)-->
-<line class="st21" x1="933" y1="264" x2="976" y2="264"/>
-<line class="st21" x1="978" y1="307" x2="978" y2="263"/>
-
-<!-- LINE: CH1 Detector -> CH1 PreAmp (Orange)-->
-<line class="st21" x1="695" y1="472" x2="696" y2="486"/>
-
-<!-- LINES: CH2 PreAmp -> vDAQ system (Black)-->
-<line class="st21" x1="973" y1="668" x2="977" y2="358"/>
-<line class="st21" x1="596" y1="664" x2="975" y2="664"/>
-
-<!-- LINES: CH1 PreAmp -> vDAQ system (Black)-->
-<line class="st21" x1="697" y1="638" x2="697" y2="533"/>
-<line class="st21" x1="595" y1="637" x2="699" y2="637"/>
-
-<!-- LINE: vDAQ system -> Software & version (Gray)-->
-<line class="st22" x1="519" y1="644" x2="465.5" y2="643.5"/>
-
-<!-- ############### -->
 
 
 

@@ -4,7 +4,7 @@ from wtforms.fields.html5 import DateField
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email, Optional
 import os
 import glob
-from lightserv import db
+from lightserv import db_lightsheet
 # from lightserv.models import Experiment
 
 def OptionalDateField(description='',validators=[]):

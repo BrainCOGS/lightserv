@@ -3,7 +3,7 @@ from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedFor
 									  iDiscoAbbreviatedRatForm, uDiscoForm, iDiscoEduForm )
 from lightserv.tables import (IdiscoPlusTable,IdiscoAbbreviatedTable,
 							  IdiscoAbbreviatedRatTable,UdiscoTable)
-from lightserv import db
+from lightserv import db_lightsheet
 import os.path
 import pickle
 from googleapiclient.discovery import build
@@ -28,13 +28,13 @@ def determine_clearing_form(clearing_protocol,existing_form):
 
 def determine_clearing_dbtable(clearing_protocol):
 	if clearing_protocol == 'iDISCO+_immuno': 
-		dbtable = db.IdiscoPlusClearing
+		dbtable = db_lightsheet.IdiscoPlusClearing
 	elif clearing_protocol == 'iDISCO abbreviated clearing':
-		dbtable = db.IdiscoAbbreviatedClearing
+		dbtable = db_lightsheet.IdiscoAbbreviatedClearing
 	elif clearing_protocol == 'iDISCO abbreviated clearing (rat)':
-		dbtable = db.IdiscoAbbreviatedRatClearing
+		dbtable = db_lightsheet.IdiscoAbbreviatedRatClearing
 	elif clearing_protocol == 'uDISCO':
-		dbtable = db.UdiscoClearing
+		dbtable = db_lightsheet.UdiscoClearing
 	else:
 		dbtable = None
 	return dbtable

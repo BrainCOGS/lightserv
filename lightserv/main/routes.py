@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, Blueprint, session, url_for, flash, Markup,Request
-from lightserv import db
+from lightserv import db_lightsheet
 from lightserv.tables import ExpTable
 import pandas as pd
 from .utils import logged_in, table_sorter
@@ -38,10 +38,10 @@ def home():
 	username = session['user']
 	logger.info(f"{username} accessed home page")
 	if username in ['ahoag','zmd','ll3']:
-		exp_contents = db.Experiment()
+		exp_contents = db_lightsheet.Experiment()
 		legend = 'All light sheet experiments'
 	else:
-		exp_contents = db.Experiment() & f'username="{username}"'
+		exp_contents = db_lightsheet.Experiment() & f'username="{username}"'
 		legend = 'Your light sheet experiments'
 	sort = request.args.get('sort', 'experiment_id') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
@@ -64,11 +64,11 @@ def login():
 
 	session['user'] = username
 	''' If user not already in User() table, then add them '''
-	all_usernames = db.User().fetch('username') 
+	all_usernames = db_lightsheet.User().fetch('username') 
 	if username not in all_usernames:
 		email = username + '@princeton.edu'
 		user_dict = {'username':username,'princeton_email':email}
-		db.User().insert1(user_dict)
+		db_lightsheet.User().insert1(user_dict)
 		logger.info(f"Added {username} to User table in database")
 	logger.info(session)
 	return redirect(next_url)

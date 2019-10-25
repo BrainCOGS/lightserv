@@ -51,7 +51,7 @@ def test_schema():
 	""" Create the database and the database tables """
 	print('----------Setup test schema----------')
 	# test_schema = dj.create_virtual_module('test_lightsheet','test_lightsheet')
-	from lightserv import db
+	from lightserv import db_lightsheet
 	yield db  # this is where the testing happens!
 	print('----------Teardown test schema----------')
 	db.schema.drop(force=True)

@@ -2,11 +2,11 @@ from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup)
 # from flask_login import current_user, login_required
-# from lightserv import db
+# from lightserv import db_lightsheet
 # from lightserv.models import Experiment
 from lightserv.experiments.forms import ExpForm, UpdateNotesForm, StartProcessingForm
 from lightserv.tables import ExpTable
-from lightserv import db
+from lightserv import db_lightsheet
 from lightserv.main.utils import logged_in
 from lightserv import cel
 
@@ -64,14 +64,14 @@ def new_exp():
 			channel555=form.channel555.data,channel647=form.channel647.data,
 			channel790=form.channel790.data,image_resolution=form.image_resolution.data,
 			username=username)
-		all_usernames = db.User().fetch('username') 
+		all_usernames = db_lightsheet.User().fetch('username') 
 		if username not in all_usernames:
 			princeton_email = username + '@princeton.edu'
 			user_dict = {'username':username,'princeton_email':princeton_email}
-			db.User().insert1(user_dict)
+			db_lightsheet.User().insert1(user_dict)
 
-		db.Experiment().insert1(exp_dict)
-		exp_id = db.Experiment().fetch("KEY")[-1]['experiment_id'] # gets the most recently added key
+		db_lightsheet.Experiment().insert1(exp_dict)
+		exp_id = db_lightsheet.Experiment().fetch("KEY")[-1]['experiment_id'] # gets the most recently added key
 		flash(Markup(f'Your experiment has started!\n \
 			Check your new experiment page: <a href="{url_for("experiments.exp",experiment_id=exp_id)}" \
 			class="alert-link" target="_blank">here</a> for your data when it becomes available.'),'success')
@@ -84,7 +84,7 @@ def new_exp():
 @logged_in
 def delete_exp(experiment_id):
 	""" A route which will delete an experiment from the database """
-	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
+	exp_contents = db_lightsheet.Experiment() & f'experiment_id="{experiment_id}"'
 
 	if exp_contents.fetch1('username') != session['user']:
 		abort(403)
@@ -102,7 +102,7 @@ def delete_exp(experiment_id):
 @logged_in
 def exp(experiment_id):
 	""" A route for displaying a single experiment as a table """
-	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
+	exp_contents = db_lightsheet.Experiment() & f'experiment_id="{experiment_id}"'
 	exp_table = ExpTable(exp_contents)
 
 	try:
@@ -121,7 +121,7 @@ def update_notes(experiment_id):
 	if 'user' not in session:
 		return redirect('users.login')
 	form = UpdateNotesForm()
-	exp_contents = db.Experiment() & f'experiment_id="{experiment_id}"'
+	exp_contents = db_lightsheet.Experiment() & f'experiment_id="{experiment_id}"'
 	exp_table = ExpTable(exp_contents)
 
 	if form.validate_on_submit():
@@ -133,7 +133,7 @@ def update_notes(experiment_id):
 		update_insert_dict['notes']=form.notes.data
 		exp_contents.delete_quick()
 
-		db.Experiment().insert1(update_insert_dict)
+		db_lightsheet.Experiment().insert1(update_insert_dict)
 		flash(f"Your notes have been updated",'success')
 		return redirect(url_for('experiments.exp',experiment_id=experiment_id))
 	elif request.method == 'GET':
@@ -176,7 +176,7 @@ emitRGBA(vec4(v, 0.0, 0.0, v));
 def start_processing(experiment_id):
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
 	logger.info(f"{session['user']} accessed data processing form")
-	exp_contents = db.Experiment() & f'experiment_id={experiment_id}'
+	exp_contents = db_lightsheet.Experiment() & f'experiment_id={experiment_id}'
 	channels = [488,555,647,790]
 	channel_query_strs = ['channel%i' % channel for channel in channels]
 
@@ -220,7 +220,7 @@ def run_step0(experiment_id,rawdata_dir_dict):
 	"""
 	import tifffile
 	from xml.etree import ElementTree as ET 
-	exp_contents = db.Experiment & f'experiment_id={experiment_id}'
+	exp_contents = db_lightsheet.Experiment & f'experiment_id={experiment_id}'
 	username = exp_contents.fetch1('username')
 	param_dict = {}
 	input_dictionary = {}

@@ -25,13 +25,16 @@ them to a single app in the create_app() function below '''
 print("RUNNING IN FLASK_MODE:",os.environ['FLASK_MODE'])
 def set_schema():
 	if os.environ['FLASK_MODE'] == 'DEV':
-		db = dj.create_virtual_module('lightsheet_demo','ahoag_lightsheet_demo',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
+		db_lightsheet = dj.create_virtual_module('lightsheet_demo','ahoag_lightsheet_demo',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
+		db_microscope = dj.create_virtual_module('microscope_demo','ahoag_microscope_demo',create_schema=True)
 		# db = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
 	elif os.environ['FLASK_MODE'] == 'TEST':
 		test_schema = create_test_schema() 
-		db = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
-	return db
-db = set_schema()
+		db_lightsheet = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
+		db_microscope = dj.create_virtual_module('ahoag_microscope_test','ahoag_microscope_test',create_schema=True)
+
+	return db_lightsheet,db_microscope
+db_lightsheet,db_microscope = set_schema()
 
 # bcrypt = Bcrypt()
 # login_manager = LoginManager()
