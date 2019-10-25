@@ -119,6 +119,6 @@ def post_npp_table(port,methods=['GET','POST']):
 	data = {
 	'target':f"http://localhost:{port}"
 	}
-	response = requests.post('http://localhost:8001/api/routes/[:test]',data=data)
-	flash(f'Entered port {port} into routing table')
+	response = requests.post('http://localhost:8001/api/routes/test',json=data)
+	flash(f'Entered port {port} into routing table','success')
 	return redirect('main.home')
