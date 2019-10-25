@@ -102,7 +102,7 @@ def allenatlas():
 		return redirect(url_for('main.home'))
 	return render_template('experiments/datalink.html',viewer=viewer)
 
-@main.route("/npp_table")
+@main.route("/npp_table",methods=['GET'])
 @logged_in
 def npp_table(): 
 	r = requests.get('http://localhost:8001/api/routes')
@@ -114,12 +114,11 @@ def npp_table():
 
 @main.route("/post_to_table/<port>")
 @logged_in
-def post_npp_table(port): 
+def post_npp_table(port,methods=['GET','POST']): 
 	""" Send a post request to the npp table, opening a port """
 	data = {
-	target:"http://localhost:1337"
+	'target':f"http://localhost:{port}"
 	}
-	response = requests.post(data)
-	print(dir(response))
-	return response.text
-	# return render_template('main/home.html',exp_contents=exp_contents,exp_table=table,legend=legend)
+	response = requests.post('http://localhost:8001/api/routes/test',data=data)
+	flash(f'Entered port {port} into routing table')
+	return redirect('main.home')
