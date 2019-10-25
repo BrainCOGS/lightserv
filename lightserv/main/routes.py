@@ -1,4 +1,6 @@
-from flask import render_template, request, redirect, Blueprint, session, url_for, flash, Markup,Request
+from flask import (render_template, request, redirect,
+				   Blueprint, session, url_for, flash,
+				   Markup, Request, Response)
 from lightserv import db_lightsheet
 from lightserv.tables import ExpTable
 import pandas as pd
@@ -8,6 +10,7 @@ from lightserv.tasks import reverse
 
 
 import socket
+import requests
 import numpy as np
 
 import logging
@@ -98,3 +101,25 @@ def allenatlas():
 		flash('Something went wrong starting Neuroglancer. Try again later.','danger')
 		return redirect(url_for('main.home'))
 	return render_template('experiments/datalink.html',viewer=viewer)
+
+@main.route("/npp_table")
+@logged_in
+def npp_table(): 
+	r = requests.get('http://localhost:8001/api/routes')
+	return Response(
+		r.text,
+		status=r.status_code
+	)
+	# return render_template('main/home.html',exp_contents=exp_contents,exp_table=table,legend=legend)
+
+@main.route("/post_to_table/<port>")
+@logged_in
+def post_npp_table(port): 
+	""" Send a post request to the npp table, opening a port """
+	data = {
+	target:"http://localhost:1337"
+	}
+	response = requests.post(data)
+	print(dir(response))
+	return response.text
+	# return render_template('main/home.html',exp_contents=exp_contents,exp_table=table,legend=legend)
