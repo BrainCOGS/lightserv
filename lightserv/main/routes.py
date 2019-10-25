@@ -16,7 +16,7 @@ import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
 
@@ -112,13 +112,15 @@ def npp_table():
 	)
 	# return render_template('main/home.html',exp_contents=exp_contents,exp_table=table,legend=legend)
 
-@main.route("/post_to_table/<port>")
+@main.route("/post_to_table/",methods=['POST','GET'])
 @logged_in
-def post_npp_table(port,methods=['GET','POST']): 
+def post_npp_table(): 
 	""" Send a post request to the npp table, opening a port """
 	data = {
-	'target':f"http://localhost:{port}"
+	'target':"http://localhost:1337"
 	}
-	response = requests.post('http://localhost:8001/api/routes/test',json=data)
-	flash(f'Entered port {port} into routing table','success')
+	headers={'Authorization': 'token 31507a9ddf3e41cf86b58ffede2db68326657437704461ae2c1a4018d55e18f0'}
+	response = requests.post('http://localhost:8001/api/routes/test',json=data,headers=headers)
+	print(response)
+	flash(f'Entered port 1337 into routing table','success')
 	return redirect(url_for('main.home'))
