@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, SelectField, BooleanField
+from wtforms import (StringField, SubmitField, TextAreaField,
+        			 SelectField, BooleanField, RadioField)
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Optional
 from wtforms.fields.html5 import DateField
 from datetime import datetime
@@ -53,13 +54,6 @@ class NewSwapLogEntryForm(FlaskForm):
 
 	submit = SubmitField('Submit new entry to swap log')	
 
-	# def validate_date(self,date):
-	# 	''' Makes sure that the date is in the proper format  '''
-	# 	try:
-	# 		datetime_object=datetime.strptime(date.data,"%Y-%m-%d")
-	# 	except:
-	# 		raise ValidationError('Date not in correct format. Try again')
-
 class UpdateSwapLogEntryForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 
@@ -75,3 +69,27 @@ class UpdateSwapLogEntryForm(FlaskForm):
 	notes = TextAreaField('Notes',validators=[DataRequired(),Length(max=1000)])
 
 	submit = SubmitField('Update Entry')
+
+
+class MicroscopeActionSelectForm(FlaskForm):
+	""" The form for selecting whether we are doing maintenance or data entry """
+	
+	action = RadioField('Choose what to do:', choices=[('microscope_maintenance','Microscope maintenance'),
+		('enter_data','Enter new data')],default='value')
+	submit = SubmitField('Submit')	
+
+class DataEntrySelectForm(FlaskForm):
+	""" The form for selecting which form we need for data entry  """
+	
+	data_entry_type = RadioField('Select what kind of data to enter:', choices=[('new_microscope','New microscope'),
+		('new_laser','New laser')],default='value')
+	submit = SubmitField('Submit')	
+
+class NewMicroscopeForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+	center = SelectField('Center',choices=[('Bezos Center','Bezos Center'),('McDonnell Center','McDonnell Center')])
+	room_number = StringField('Room number',validators=[DataRequired(),Length(max=16)])
+	optical_bay = StringField('Optical bay',validators=[DataRequired(),Length(max=8)])
+	loc_on_table = StringField('Location on table',validators=[DataRequired(),Length(max=16)])
+	microscope_description = TextAreaField('Microscope description',validators=[DataRequired(),Length(max=2047)])
+	submit = SubmitField('Submit new entry to swap log')
