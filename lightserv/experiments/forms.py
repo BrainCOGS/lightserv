@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, SelectField, BooleanField
 from wtforms.fields.html5 import DateField
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email, Optional
+from wtforms.widgets import html5
 import os
 import glob
 from lightserv import db_lightsheet
@@ -25,8 +26,10 @@ class ExpForm(FlaskForm):
 
 	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],validators=[InputRequired(),Length(max=50)]) # for choices first element of tuple is the value of the option, the second is the displayed text
 	# Clearing info
+
 	perfusion_date = OptionalDateField('Perfusion Date (leave blank if unsure):')
-	expected_handoff_date = OptionalDateField('Expected date of hand-off (leave blank if unsure):')
+	expected_handoff_date = OptionalDateField('Expected date of hand-off (leave blank if not applicable or unsure):')
+	self_clearing = BooleanField('Check if you plan to do the clearing yourself',default=False)
 	clearing_protocol = SelectField('Clearing Protocol:', choices= \
 		[('iDISCO abbreviated clearing','iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
 		 ('iDISCO abbreviated clearing (rat)','Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),

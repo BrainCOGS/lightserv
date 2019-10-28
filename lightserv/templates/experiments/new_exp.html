@@ -87,6 +87,12 @@
 
 				<hr class='class-1'>
 				<legend class="border-bottom mb-2 mt-4">Clearing Setup</legend>
+
+				<div class="form-check">
+					{{ form.self_clearing(class="form-check-input mb-4") }}
+					{{ form.self_clearing.label(class="form-check-label mb-4") }}
+				</div>
+
 				<div class="form-group">
 					{% if form.clearing_protocol.flags.required %}*{% endif %}
 					{{ form.clearing_protocol.label(class="form-control-label mr-2") }}

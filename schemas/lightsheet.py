@@ -28,7 +28,7 @@ class Experiment(dj.Manual):
     definition = """ # Experiments performed using the light sheet microscope
     experiment_id                :   smallint auto_increment    # allowed here are sql datatypes.
     ----
-    -> User 
+    -> User  
     labname                      :   varchar(50)
     correspondence_email = ''    :   varchar(100)
     title                        :   varchar(100)
@@ -36,6 +36,7 @@ class Experiment(dj.Manual):
     species                      :   varchar(50)
     perfusion_date = NULL        :   date
     expected_handoff_date = NULL :   date
+    clearer = NULL               :   varchar(20)
     clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
     clearing_progress            :   enum("incomplete","in progress","complete")
     antibody1                    :   varchar(100)

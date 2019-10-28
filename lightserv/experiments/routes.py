@@ -64,6 +64,9 @@ def new_exp():
 			channel555=form.channel555.data,channel647=form.channel647.data,
 			channel790=form.channel790.data,image_resolution=form.image_resolution.data,
 			username=username)
+		if form.self_clearing.data == True: # otherwise keep as NULL
+			clearer = username
+			exp_dict['clearer'] = clearer
 		all_usernames = db_lightsheet.User().fetch('username') 
 		if username not in all_usernames:
 			princeton_email = username + '@princeton.edu'
