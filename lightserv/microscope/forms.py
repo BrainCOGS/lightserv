@@ -4,7 +4,7 @@ from wtforms import (StringField, SubmitField, TextAreaField,
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Optional
 from wtforms.fields.html5 import DateField
 from datetime import datetime
-from lightserv import db_lightsheet
+from lightserv import db_lightsheet, db_microscope
 # from lightserv.models import Experiment
 
 def OptionalDateField(description='',validators=[]):
@@ -71,28 +71,42 @@ class UpdateSwapLogEntryForm(FlaskForm):
 	submit = SubmitField('Update Entry')
 
 class MicroscopeActionSelectForm(FlaskForm):
-	""" The form for selecting whether we are doing maintenance or data entry """
-	
+	""" The form for selecting whether we are doing microscope maintenance or data entry """
 	action = SelectField('Choose what to do:', choices=[('microscope_maintenance','Microscope maintenance'),
 		('enter_data','Enter new data')],default='value')
 	submit = SubmitField('Submit')	
 
 class DataEntrySelectForm(FlaskForm):
 	""" The form for selecting which form we need for data entry  """
-	
 	data_entry_type = SelectField('Select which data entry form to access:', choices=[('new_microscope','New microscope'),
 		('new_laser','New laser'),('new_channel','New channel (for microscope)'),
-		('new_dichroic','New dichroic'),('new_filter','New filter'),('new_objective','New objective')],default='value')
+		('new_dichroic','New dichroic'),('new_filter','New filter'),('new_objective','New objective'),
+		('new_scanner','New scanner'),('new_pmt','New PMT'),('new_daq','New DAQ'),
+		('new_acq_software','New acquisition software')],default='new_microscope')
 	submit = SubmitField('Submit')	
 
 class NewMicroscopeForm(FlaskForm):
+	""" The form for entering in a new microscope """
+	microscope_name = StringField('Microscope name',validators=[InputRequired(),Length(max=32)])
+	center = SelectField('Center',choices=[('Bezos Center','Bezos Center'),('McDonnell Center','McDonnell Center')],
+		validators=[InputRequired()])
+	room_number = StringField('Room number',validators=[InputRequired(),Length(max=16)])
+	optical_bay = StringField('Optical bay',validators=[InputRequired(),Length(max=8)])
+	loc_on_table = StringField('Location on table',validators=[InputRequired(),Length(max=16)])
+	microscope_description = TextAreaField('Microscope description',validators=[InputRequired(),Length(max=2047)])
+	submit = SubmitField('Submit new entry')
+
+class NewLaserForm(FlaskForm):
+	""" The form for entering in a new laser """
+	laser_name = StringField('Laser name',validators=[InputRequired(),Length(max=32)])
+	laser_model = StringField('Laser model',validators=[InputRequired(),Length(max=64)])
+	laser_serial = StringField('Laser serial',validators=[InputRequired(),Length(max=64)])
+	submit = SubmitField('Submit new entry')
+
+class NewChannelForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
-	microscope_name = StringField('Microscope name',validators=[Length(max=32)])
-	center = SelectField('Center',choices=[('Bezos Center','Bezos Center'),('McDonnell Center','McDonnell Center')])
-	room_number = StringField('Room number',validators=[DataRequired(),Length(max=16)])
-	optical_bay = StringField('Optical bay',validators=[DataRequired(),Length(max=8)])
-	loc_on_table = StringField('Location on table',validators=[DataRequired(),Length(max=16)])
-	microscope_description = TextAreaField('Microscope description',validators=[DataRequired(),Length(max=2047)])
-	submit = SubmitField('Submit new entry to swap log')
-
-
+	microscopes = db_microscope.Microscope().fetch('microscope_name')
+	microscope_name = SelectField('Microscope name',
+		choices=[(microscope,microscope) for microscope in microscopes],validators=[InputRequired()])
+	channel_name = StringField('Channel name',validators=[InputRequired(),Length(max=16)])
+	submit = SubmitField('Submit new entry')

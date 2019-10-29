@@ -4,9 +4,9 @@
 	{% if data_entry_type == 'new_microscope' %}
 		{% include "microscope/new_microscope_entry.html" %}
 	{% elif data_entry_type == 'new_laser' %}
-		{% include "microscope/twophoton_status.html" %}
-	{% elif data_entry_type == 'new_filter' %}
-		{% include "microscope/confocal_status.html" %}
+		{% include "microscope/new_laser_entry.html" %}
+	{% elif data_entry_type == 'new_channel' %}
+		{% include "microscope/new_channel_entry.html" %}
 	{% endif %}
 
 {% endblock content %}

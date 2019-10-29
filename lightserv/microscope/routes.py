@@ -10,7 +10,8 @@ from lightserv.microscope.forms import (NewSwapLogEntryForm, UpdateSwapLogEntryF
 from lightserv import db_lightsheet, db_microscope
 from lightserv.tables import MicroscopeCalibrationTable
 from lightserv.main.utils import table_sorter,logged_in
-from lightserv.microscope.utils import microscope_form_picker,data_entry_form_picker
+from lightserv.microscope.utils import (microscope_form_picker,
+      data_entry_form_picker, data_entry_dbtable_picker)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -50,9 +51,8 @@ def data_entry_selector():
     form = DataEntrySelectForm()
   
     if form.validate_on_submit():
-        data_entry_type = form.data_entry_type.data
-        if data_entry_type == 'new_microscope':
-            return redirect(url_for('microscope.data_entry',data_entry_type=data_entry_type))
+        data_entry_type = form.data_entry_type.data    
+        return redirect(url_for('microscope.data_entry',data_entry_type=data_entry_type))
     return render_template('microscope/microscope_data_entry_selector.html',form=form)
 
 @microscope.route('/microscope/data_entry/<data_entry_type>', methods=['GET','POST'])
@@ -62,11 +62,16 @@ def data_entry(data_entry_type):
     if form.validate_on_submit():
         form_fields = [x for x in form._fields.keys() if 'submit' not in x and 'csrf_token' not in x]
         insert_dict = {field:form[field].data for field in form_fields}
+        print("submitted form")
         try:
-            db_microscope.Microscope().insert1(insert_dict)
+            db_table = data_entry_dbtable_picker(data_entry_type)
+            db_table().insert1(insert_dict)
+            flash(f"Successfully added new data into database!",'success')
+            return redirect(url_for('microscope.data_entry_selector'))
+
         except dj.errors.DuplicateError:
             flash(f"An entry already exists in the database with \
-                {form_fields[0]}:{insert_dict[form_fields[0]]}. Try again.",'warning')
+                {form_fields[0]}={insert_dict[form_fields[0]]}. Try again.",'danger')
         logger.debug(f"Inserted data into {data_entry_type} form: {insert_dict}")
 
     return render_template('microscope/data_entry.html',data_entry_type=data_entry_type,form=form)

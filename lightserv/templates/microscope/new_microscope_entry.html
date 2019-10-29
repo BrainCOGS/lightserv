@@ -1,5 +1,4 @@
-{% extends "layout.html" %}
-{% block content %}
+
 	 <div class="content-section">
 		<form method="POST" action="">
 			{{ form.hidden_tag() }}
@@ -7,6 +6,7 @@
 				<legend class="border-bottom mb-2 mt-4">New Microscope Entry Form</legend>
 
 				<div class="form-group">
+					{% if form.microscope_name.flags.required %}*{% endif %}
 					{{ form.microscope_name.label(class="form-control-label") }}
 					{% if form.microscope_name.errors %}
 						{{ form.microscope_name(class="form-control form-control-lg is-invalid") }}
@@ -21,11 +21,14 @@
 				</div>
 
 				<div class="form-group">
+					{% if form.center.flags.required %}*{% endif %}
+
 					{{ form.center.label }}
 					{{ form.center(class="form-control form-control-lg") }}							
 				</div>
 
 				<div class="form-group">
+					{% if form.room_number.flags.required %}*{% endif %}
 					{{ form.room_number.label(class="form-control-label") }}
 					{% if form.room_number.errors %}
 						{{ form.room_number(class="form-control form-control-lg is-invalid") }}
@@ -40,6 +43,8 @@
 				</div>
 
 				<div class="form-group">
+					{% if form.optical_bay.flags.required %}*{% endif %}
+
 					{{ form.optical_bay.label(class="form-control-label") }}
 					{% if form.optical_bay.errors %}
 						{{ form.optical_bay(class="form-control form-control-lg is-invalid") }}
@@ -54,6 +59,7 @@
 				</div>
 
 				<div class="form-group">
+					{% if form.loc_on_table.flags.required %}*{% endif %}
 					{{ form.loc_on_table.label(class="form-control-label") }}
 					{% if form.loc_on_table.errors %}
 						{{ form.loc_on_table(class="form-control form-control-lg is-invalid") }}
@@ -68,6 +74,7 @@
 				</div>
 
 				<div class="form-group">
+					{% if form.microscope_description.flags.required %}*{% endif %}
 					{{ form.microscope_description.label(class="form-control-label") }}
 					{% if form.microscope_description.errors %}
 						{{ form.microscope_description(class="form-control form-control-lg is-invalid") }}
@@ -88,6 +95,3 @@
 			</fieldset>
 		</form>
 	</div>
-
-
-{% endblock content %}

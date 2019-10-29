@@ -1,0 +1,60 @@
+
+	 <div class="content-section">
+		<form method="POST" action="">
+			{{ form.hidden_tag() }}
+			<fieldset class="form-group">
+				<legend class="border-bottom mb-2 mt-4">New Laser Entry Form</legend>
+
+				<div class="form-group">
+					{% if form.laser_name.flags.required %}*{% endif %}
+					{{ form.laser_name.label(class="form-control-label") }}
+					{% if form.laser_name.errors %}
+						{{ form.laser_name(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.laser_name.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.laser_name(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{% if form.laser_model.flags.required %}*{% endif %}
+					{{ form.laser_model.label(class="form-control-label") }}
+					{% if form.laser_model.errors %}
+						{{ form.laser_model(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.laser_model.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.laser_model(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{% if form.laser_serial.flags.required %}*{% endif %}
+
+					{{ form.laser_serial.label(class="form-control-label") }}
+					{% if form.laser_serial.errors %}
+						{{ form.laser_serial(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.laser_serial.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.laser_serial(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+
+				<div class="form-group">
+					{{ form.submit(class="btn btn-info mt-4") }}	            
+				</div>
+			</fieldset>
+		</form>
+	</div>
