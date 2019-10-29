@@ -4,10 +4,83 @@
 		<form method="POST" action="">
 			{{ form.hidden_tag() }}
 			<fieldset class="form-group">
+				<legend class="border-bottom mb-2 mt-4">New Microscope Entry Form</legend>
+
 				<div class="form-group">
-					{{ form.action.label }}
-					{{ form.action(class="form-control form-control-lg") }}							
+					{{ form.microscope_name.label(class="form-control-label") }}
+					{% if form.microscope_name.errors %}
+						{{ form.microscope_name(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.microscope_name.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.microscope_name(class="form-control form-control-lg") }}
+					{% endif %}
 				</div>
+
+				<div class="form-group">
+					{{ form.center.label }}
+					{{ form.center(class="form-control form-control-lg") }}							
+				</div>
+
+				<div class="form-group">
+					{{ form.room_number.label(class="form-control-label") }}
+					{% if form.room_number.errors %}
+						{{ form.room_number(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.room_number.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.room_number(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.optical_bay.label(class="form-control-label") }}
+					{% if form.optical_bay.errors %}
+						{{ form.optical_bay(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.optical_bay.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.optical_bay(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.loc_on_table.label(class="form-control-label") }}
+					{% if form.loc_on_table.errors %}
+						{{ form.loc_on_table(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.loc_on_table.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.loc_on_table(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.microscope_description.label(class="form-control-label") }}
+					{% if form.microscope_description.errors %}
+						{{ form.microscope_description(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.microscope_description.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.microscope_description(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
 
 				<div class="form-group">
 					{{ form.submit(class="btn btn-info mt-4") }}	            

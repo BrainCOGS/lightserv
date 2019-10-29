@@ -70,7 +70,6 @@ class UpdateSwapLogEntryForm(FlaskForm):
 
 	submit = SubmitField('Update Entry')
 
-
 class MicroscopeActionSelectForm(FlaskForm):
 	""" The form for selecting whether we are doing maintenance or data entry """
 	
@@ -88,9 +87,12 @@ class DataEntrySelectForm(FlaskForm):
 
 class NewMicroscopeForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
+	microscope_name = StringField('Microscope name',validators=[Length(max=32)])
 	center = SelectField('Center',choices=[('Bezos Center','Bezos Center'),('McDonnell Center','McDonnell Center')])
 	room_number = StringField('Room number',validators=[DataRequired(),Length(max=16)])
 	optical_bay = StringField('Optical bay',validators=[DataRequired(),Length(max=8)])
 	loc_on_table = StringField('Location on table',validators=[DataRequired(),Length(max=16)])
 	microscope_description = TextAreaField('Microscope description',validators=[DataRequired(),Length(max=2047)])
 	submit = SubmitField('Submit new entry to swap log')
+
+

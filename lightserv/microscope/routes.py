@@ -1,7 +1,7 @@
 from flask import (Blueprint, redirect, render_template,
                      url_for, flash, request, session,jsonify)
 from functools import partial
-
+import datajoint as dj
 import os
 from datetime import datetime
 from lightserv.microscope.forms import (NewSwapLogEntryForm, UpdateSwapLogEntryForm,
@@ -36,7 +36,6 @@ microscope = Blueprint('microscope',__name__)
 def landing_page():
     form = MicroscopeActionSelectForm()
 
-  
     if form.validate_on_submit():
         action = form.action.data
         if action == 'enter_data':
@@ -61,8 +60,16 @@ def data_entry_selector():
 def data_entry(data_entry_type):
     form = data_entry_form_picker(data_entry_type)
     if form.validate_on_submit():
-        pass
-    return render_template('microscope/data_entry',form=form)
+        form_fields = [x for x in form._fields.keys() if 'submit' not in x and 'csrf_token' not in x]
+        insert_dict = {field:form[field].data for field in form_fields}
+        try:
+            db_microscope.Microscope().insert1(insert_dict)
+        except dj.errors.DuplicateError:
+            flash(f"An entry already exists in the database with \
+                {form_fields[0]}:{insert_dict[form_fields[0]]}. Try again.",'warning')
+        logger.debug(f"Inserted data into {data_entry_type} form: {insert_dict}")
+
+    return render_template('microscope/data_entry.html',data_entry_type=data_entry_type,form=form)
 
 @microscope.route('/microscope/status_monitor_picker', methods=['GET','POST'])
 @logged_in

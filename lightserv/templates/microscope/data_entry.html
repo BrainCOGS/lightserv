@@ -1,11 +1,11 @@
 {% extends "layout.html" %}
 {% block content %}
 
-	{% if microscope == 'light sheet microscope' %}
-		{% include "microscope/lsm_status.html" %}
-	{% elif microscope == 'two photon microscope' %}
+	{% if data_entry_type == 'new_microscope' %}
+		{% include "microscope/new_microscope_entry.html" %}
+	{% elif data_entry_type == 'new_laser' %}
 		{% include "microscope/twophoton_status.html" %}
-	{% elif microscope == 'confocal microscope' %}
+	{% elif data_entry_type == 'new_filter' %}
 		{% include "microscope/confocal_status.html" %}
 	{% endif %}
 
