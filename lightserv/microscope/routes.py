@@ -5,12 +5,12 @@ from functools import partial
 import os
 from datetime import datetime
 from lightserv.microscope.forms import (NewSwapLogEntryForm, UpdateSwapLogEntryForm,
-                                        StatusMonitorSelectForm, LightSheetStatusForm,
-                                        MicroscopeActionSelectForm)
+                                        StatusMonitorSelectForm,MicroscopeActionSelectForm,
+                                        DataEntrySelectForm,NewMicroscopeForm)
 from lightserv import db_lightsheet, db_microscope
 from lightserv.tables import MicroscopeCalibrationTable
 from lightserv.main.utils import table_sorter,logged_in
-from lightserv.microscope.utils import microscope_form_picker
+from lightserv.microscope.utils import microscope_form_picker,data_entry_form_picker
 import logging
 
 logger = logging.getLogger(__name__)
@@ -38,8 +38,31 @@ def landing_page():
 
   
     if form.validate_on_submit():
-        pass
+        action = form.action.data
+        if action == 'enter_data':
+            return redirect(url_for('microscope.data_entry_selector'))
+        elif action == 'microscope_maintenance':
+            return redirect(url_for('microscope.status_monitor_picker'))
     return render_template('microscope/microscope_landing_page.html',form=form)
+
+@microscope.route('/microscope/data_entry_selector', methods=['GET','POST'])
+@logged_in
+def data_entry_selector():
+    form = DataEntrySelectForm()
+  
+    if form.validate_on_submit():
+        data_entry_type = form.data_entry_type.data
+        if data_entry_type == 'new_microscope':
+            return redirect(url_for('microscope.data_entry',data_entry_type=data_entry_type))
+    return render_template('microscope/microscope_data_entry_selector.html',form=form)
+
+@microscope.route('/microscope/data_entry/<data_entry_type>', methods=['GET','POST'])
+@logged_in
+def data_entry(data_entry_type):
+    form = data_entry_form_picker(data_entry_type)
+    if form.validate_on_submit():
+        pass
+    return render_template('microscope/data_entry',form=form)
 
 @microscope.route('/microscope/status_monitor_picker', methods=['GET','POST'])
 @logged_in
