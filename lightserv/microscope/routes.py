@@ -63,15 +63,21 @@ def data_entry(data_entry_type):
         form_fields = [x for x in form._fields.keys() if 'submit' not in x and 'csrf_token' not in x]
         insert_dict = {field:form[field].data for field in form_fields}
         print("submitted form")
+        db_table = data_entry_dbtable_picker(data_entry_type)
         try:
-            db_table = data_entry_dbtable_picker(data_entry_type)
             db_table().insert1(insert_dict)
             flash(f"Successfully added new data into database!",'success')
             return redirect(url_for('microscope.data_entry_selector'))
 
         except dj.errors.DuplicateError:
-            flash(f"An entry already exists in the database with \
-                {form_fields[0]}={insert_dict[form_fields[0]]}. Try again.",'danger')
+            ''' Figure out the primary key(s) and then report to the user 
+            that the combination is already taken '''
+            primary_key_list = db_table().primary_key
+            primary_key_result_str =', '.join(f'{form[key].label.text} = {insert_dict[key]}' \
+                for key in primary_key_list)
+
+            flash(f"An entry already exists in the database with {primary_key_result_str}.\
+                    Try again.",'danger')
         logger.debug(f"Inserted data into {data_entry_type} form: {insert_dict}")
 
     return render_template('microscope/data_entry.html',data_entry_type=data_entry_type,form=form)
