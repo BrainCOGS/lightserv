@@ -1,0 +1,57 @@
+<div class="content-section">
+	<form method="POST" action="">
+		{{ form.hidden_tag() }}
+		<fieldset class="form-group">
+			<legend class="border-bottom mb-2 mt-4">New PreAmp Entry Form</legend>
+
+			<div class="form-group">
+				{% if form.amp_type.flags.required %}*{% endif %}
+				{{ form.amp_type.label(class="form-control-label") }}
+				{% if form.amp_type.errors %}
+					{{ form.amp_type(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.amp_type.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.amp_type(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{% if form.amp_brand.flags.required %}*{% endif %}
+				{{ form.amp_brand.label(class="form-control-label") }}
+				{% if form.amp_brand.errors %}
+					{{ form.amp_brand(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.amp_brand.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.amp_brand(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{% if form.amp_model.flags.required %}*{% endif %}
+				{{ form.amp_model.label(class="form-control-label") }}
+				{% if form.amp_model.errors %}
+					{{ form.amp_model(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.amp_model.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.amp_model(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.submit(class="btn btn-info mt-4") }}	            
+			</div>
+		</fieldset>
+	</form>
+</div>

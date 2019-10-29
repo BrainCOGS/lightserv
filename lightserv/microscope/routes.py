@@ -66,7 +66,7 @@ def data_entry(data_entry_type):
         db_table = data_entry_dbtable_picker(data_entry_type)
         try:
             db_table().insert1(insert_dict)
-            flash(f"Successfully added new data into database!",'success')
+            flash(f"Successfully added your entry into the database!",'success')
             return redirect(url_for('microscope.data_entry_selector'))
 
         except dj.errors.DuplicateError:

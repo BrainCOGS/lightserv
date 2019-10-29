@@ -15,6 +15,16 @@
 		{% include "microscope/new_objective_entry.html" %}
 	{% elif data_entry_type == 'new_scanner' %}
 		{% include "microscope/new_scanner_entry.html" %}
+	{% elif data_entry_type == 'new_pmt' %}
+		{% include "microscope/new_pmt_entry.html" %}
+	{% elif data_entry_type == 'new_preamp' %}
+		{% include "microscope/new_preamp_entry.html" %}
+	{% elif data_entry_type == 'new_daq' %}
+		{% include "microscope/new_daq_entry.html" %}
+	{% elif data_entry_type == 'new_acq_software' %}
+		{% include "microscope/new_acq_software_entry.html" %}
+	{% else %}
+		Form not found.
 	{% endif %}
 
 {% endblock content %}

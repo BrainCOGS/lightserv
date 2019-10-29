@@ -1,0 +1,81 @@
+
+	 <div class="content-section">
+		<form method="POST" action="">
+			{{ form.hidden_tag() }}
+			<fieldset class="form-group">
+				<legend class="border-bottom mb-2 mt-4">New pmt Entry Form</legend>
+
+				<div class="form-group">
+					{% if form.pmt_name.flags.required %}*{% endif %}
+					{{ form.pmt_name.label(class="form-control-label") }}
+					{% if form.pmt_name.errors %}
+						{{ form.pmt_name(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.pmt_name.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.pmt_name(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{% if form.pmt_brand.flags.required %}*{% endif %}
+					{{ form.pmt_brand.label(class="form-control-label") }}
+					{% if form.pmt_brand.errors %}
+						{{ form.pmt_brand(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.pmt_brand.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.pmt_brand(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{% if form.pmt_model.flags.required %}*{% endif %}
+					{{ form.pmt_model.label(class="form-control-label") }}
+					{% if form.pmt_model.errors %}
+						{{ form.pmt_model(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.pmt_model.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.pmt_model(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{% if form.pmt_serial.flags.required %}*{% endif %}
+
+					{{ form.pmt_serial.label(class="form-control-label") }}
+					{% if form.pmt_serial.errors %}
+						{{ form.pmt_serial(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.pmt_serial.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.pmt_serial(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+
+				<div>
+					{% if form.pmt_date_of_first_use.flags.required %}*{% endif %}
+					{{ form.pmt_date_of_first_use.label(class="form-control-label")}}
+					{{ form.pmt_date_of_first_use(class='datepicker') }}
+				</div>
+
+				<div class="form-group">
+					{{ form.submit(class="btn btn-info mt-4") }}	            
+				</div>
+			</fieldset>
+		</form>
+	</div>

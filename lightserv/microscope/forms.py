@@ -83,8 +83,9 @@ class DataEntrySelectForm(FlaskForm):
 	data_entry_type = SelectField('Select which data entry form to access:', choices=[('new_microscope','New microscope'),
 		('new_laser','New laser'),('new_channel','New channel (for microscope)'),
 		('new_dichroic','New dichroic'),('new_filter','New filter'),('new_objective','New objective'),
-		('new_scanner','New scanner'),('new_pmt','New PMT'),('new_daq','New DAQ'),
-		('new_acq_software','New acquisition software')],default='new_microscope')
+		('new_scanner','New scanner'),('new_pmt','New PMT'),('new_preamp','New preamp'),
+		('new_daq','New DAQ'),('new_acq_software','New acquisition software')],
+		default='new_microscope')
 	submit = SubmitField('Submit')	
 
 class NewMicroscopeForm(FlaskForm):
@@ -165,5 +166,41 @@ class NewScannerForm(FlaskForm):
 		('conjugated x and y','conjugated x and y'),('other','other')],
 		validators=[InputRequired()])
 	scanner_info = StringField('Scanner info',validators=[Optional(),Length(max=512)])
+
+	submit = SubmitField('Submit new entry')
+
+class NewPMTForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+
+	pmt_name = StringField('PMT name',validators=[InputRequired(),Length(max=32)])
+	pmt_brand = StringField('PMT brand',validators=[InputRequired(),Length(max=64)])
+	pmt_model = StringField('PMT model',validators=[InputRequired(),Length(max=64)])
+	pmt_serial = StringField('PMT serial',validators=[InputRequired(),Length(max=64)])
+	pmt_date_of_first_use = DateField('PMT date of first use',validators=[InputRequired()])
+
+	submit = SubmitField('Submit new entry')	
+
+class NewPreampForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+
+	amp_type = StringField('Amp type',validators=[InputRequired(),Length(max=32)])
+	amp_brand = StringField('Amp brand',validators=[InputRequired(),Length(max=64)])
+	amp_model = StringField('Amp model',validators=[InputRequired(),Length(max=64)])
+
+	submit = SubmitField('Submit new entry')	
+
+class NewDAQForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+
+	daq_name = StringField('DAQ name',validators=[InputRequired(),Length(max=64)])
+	daq_notes = TextAreaField('DAQ notes',validators=[Optional(),Length(max=255)])
+
+	submit = SubmitField('Submit new entry')
+
+class NewAcquisitionSoftwareForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+
+	acq_software = StringField('Acqusition Software Name',validators=[InputRequired(),Length(max=64)])
+	acq_version = TextAreaField('Software version',validators=[InputRequired(),Length(max=16)])
 
 	submit = SubmitField('Submit new entry')
