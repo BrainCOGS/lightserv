@@ -1,8 +1,10 @@
 from flask_wtf import FlaskForm
 from wtforms import (StringField, SubmitField, TextAreaField,
-        			 SelectField, BooleanField, RadioField)
-from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Optional
-from wtforms.fields.html5 import DateField
+        			 SelectField, BooleanField, RadioField,
+        			 IntegerField)
+from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Optional, url
+from wtforms.fields.html5 import DateField, URLField
+from wtforms.widgets import html5
 from datetime import datetime
 from lightserv import db_lightsheet, db_microscope
 # from lightserv.models import Experiment
@@ -109,4 +111,59 @@ class NewChannelForm(FlaskForm):
 	microscope_name = SelectField('Microscope name',
 		choices=[(microscope,microscope) for microscope in microscopes],validators=[InputRequired()])
 	channel_name = StringField('Channel name',validators=[InputRequired(),Length(max=16)])
+	submit = SubmitField('Submit new entry')
+
+class NewChannelForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+	microscopes = db_microscope.Microscope().fetch('microscope_name')
+	microscope_name = SelectField('Microscope name',
+		choices=[(microscope,microscope) for microscope in microscopes],validators=[InputRequired()])
+	channel_name = StringField('Channel name',validators=[InputRequired(),Length(max=16)])
+	submit = SubmitField('Submit new entry')
+
+class NewDichroicForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+	mirror_type = StringField('Mirror type',validators=[InputRequired(),Length(max=16)])
+	mirror_brand = StringField('Mirror brand',validators=[InputRequired(),Length(max=64)])
+	mirror_model = StringField('Mirror model',validators=[InputRequired(),Length(max=64)])
+	mirror_spectrum = URLField('Mirror spectrum (link to google drive picture; include "https://"). ',
+		validators=[Optional(),Length(max=255),url()])
+
+	submit = SubmitField('Submit new entry')
+
+
+class NewFilterForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+	filter_type = StringField('Filter type',validators=[InputRequired(),Length(max=32)])
+	filter_brand = StringField('Filter brand',validators=[InputRequired(),Length(max=64)])
+	filter_model = StringField('Filter model',validators=[InputRequired(),Length(max=64)])
+	filter_spectrum = URLField('Filter spectrum (link to google drive picture; include "https://"). ',
+		validators=[Optional(),Length(max=255),url()])
+
+	submit = SubmitField('Submit new entry')
+
+class NewObjectiveForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+	lens_type = StringField('Lens type',validators=[InputRequired(),Length(max=32)])
+	lens_brand = StringField('Lens brand',validators=[InputRequired(),Length(max=64)])
+	lens_model = StringField('Lens model',validators=[InputRequired(),Length(max=64)])
+
+	submit = SubmitField('Submit new entry')
+
+class NewScannerForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+
+	scanner_type = SelectField('Scanner type',
+		choices=[('galvo','galvo'),('resonance','resonance')],
+		validators=[InputRequired()])
+	resonance_freq = IntegerField('Resonance frequency (unit?)',widget=html5.NumberInput(),
+		validators=[InputRequired()])
+	mirror_size = IntegerField('Mirror size (mm)',widget=html5.NumberInput(),
+		validators=[InputRequired()])
+	scanner_config = SelectField('Scanner config',
+		choices=[('xy','xy'),('xyy','xyy'),
+		('conjugated x and y','conjugated x and y'),('other','other')],
+		validators=[InputRequired()])
+	scanner_info = StringField('Scanner info',validators=[Optional(),Length(max=512)])
+
 	submit = SubmitField('Submit new entry')

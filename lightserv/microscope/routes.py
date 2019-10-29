@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 from lightserv.microscope.forms import (NewSwapLogEntryForm, UpdateSwapLogEntryForm,
                                         StatusMonitorSelectForm,MicroscopeActionSelectForm,
-                                        DataEntrySelectForm,NewMicroscopeForm)
+                                        DataEntrySelectForm)
 from lightserv import db_lightsheet, db_microscope
 from lightserv.tables import MicroscopeCalibrationTable
 from lightserv.main.utils import table_sorter,logged_in

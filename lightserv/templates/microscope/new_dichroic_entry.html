@@ -1,0 +1,74 @@
+
+	 <div class="content-section">
+		<form method="POST" action="">
+			{{ form.hidden_tag() }}
+			<fieldset class="form-group">
+				<legend class="border-bottom mb-2 mt-4">New Dichroic Entry Form</legend>
+
+				<div class="form-group">
+					{% if form.mirror_type.flags.required %}*{% endif %}
+					{{ form.mirror_type.label(class="form-control-label") }}
+					{% if form.mirror_type.errors %}
+						{{ form.mirror_type(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.mirror_type.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.mirror_type(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{% if form.mirror_brand.flags.required %}*{% endif %}
+					{{ form.mirror_brand.label(class="form-control-label") }}
+					{% if form.mirror_brand.errors %}
+						{{ form.mirror_brand(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.mirror_brand.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.mirror_brand(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{% if form.mirror_model.flags.required %}*{% endif %}
+					{{ form.mirror_model.label(class="form-control-label") }}
+					{% if form.mirror_model.errors %}
+						{{ form.mirror_model(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.mirror_model.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.mirror_model(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+
+				<div class="form-group">
+					{% if form.mirror_spectrum.flags.required %}*{% endif %}
+					{{ form.mirror_spectrum.label(class="form-control-label") }}
+					{% if form.mirror_spectrum.errors %}
+						{{ form.mirror_spectrum(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.mirror_spectrum.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.mirror_spectrum(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.submit(class="btn btn-info mt-4") }}	            
+				</div>
+			</fieldset>
+		</form>
+	</div>

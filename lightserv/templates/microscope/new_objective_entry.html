@@ -1,0 +1,58 @@
+
+	 <div class="content-section">
+		<form method="POST" action="">
+			{{ form.hidden_tag() }}
+			<fieldset class="form-group">
+				<legend class="border-bottom mb-2 mt-4">New Objective Entry Form</legend>
+
+				<div class="form-group">
+					{% if form.lens_type.flags.required %}*{% endif %}
+					{{ form.lens_type.label(class="form-control-label") }}
+					{% if form.lens_type.errors %}
+						{{ form.lens_type(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.lens_type.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.lens_type(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{% if form.lens_brand.flags.required %}*{% endif %}
+					{{ form.lens_brand.label(class="form-control-label") }}
+					{% if form.lens_brand.errors %}
+						{{ form.lens_brand(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.lens_brand.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.lens_brand(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{% if form.lens_model.flags.required %}*{% endif %}
+					{{ form.lens_model.label(class="form-control-label") }}
+					{% if form.lens_model.errors %}
+						{{ form.lens_model(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.lens_model.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.lens_model(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{{ form.submit(class="btn btn-info mt-4") }}	            
+				</div>
+			</fieldset>
+		</form>
+	</div>

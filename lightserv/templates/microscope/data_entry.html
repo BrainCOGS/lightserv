@@ -7,6 +7,14 @@
 		{% include "microscope/new_laser_entry.html" %}
 	{% elif data_entry_type == 'new_channel' %}
 		{% include "microscope/new_channel_entry.html" %}
+	{% elif data_entry_type == 'new_dichroic' %}
+		{% include "microscope/new_dichroic_entry.html" %}
+	{% elif data_entry_type == 'new_filter' %}
+		{% include "microscope/new_filter_entry.html" %}
+	{% elif data_entry_type == 'new_objective' %}
+		{% include "microscope/new_objective_entry.html" %}
+	{% elif data_entry_type == 'new_scanner' %}
+		{% include "microscope/new_scanner_entry.html" %}
 	{% endif %}
 
 {% endblock content %}
