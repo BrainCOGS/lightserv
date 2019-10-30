@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, SelectField, BooleanField
+from wtforms import (StringField, SubmitField, TextAreaField,
+					 SelectField, BooleanField, IntegerField)
 from wtforms.fields.html5 import DateField
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email, Optional
 from wtforms.widgets import html5
@@ -96,9 +97,30 @@ def Directory_validator(form,field):
 		raise ValidationError('Path must start with "/jukebox" ')
 	elif len(glob.glob(field.data + '/*RawDataStack*ome.tif')) == 0:
 		raise ValidationError('No raw data files found in that directory. Try again')	
-		
+
 class StartProcessingForm(FlaskForm):
 	""" The form for requesting to start the data processing """
+	stitching_method = SelectField('Stitching method',choices=[('blending','blending')],
+		validators=[InputRequired()])
+	blend_type = SelectField('Blend type',choices=[('sigmoidal','sigmoidal'),('flat','flat')],
+		validators=[InputRequired()])
+	atlas_name = SelectField('Atlas for registration',
+		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
+				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])
+	tiling_overlap = IntegerField('Tiling overlap (leave blank if no tiling used)',widget=html5.NumberInput(),
+		validators=[Optional()]) 
+	intensity_correction = BooleanField('Perform intensity correction? (leave as default if unsure)',default=True)
+	
+
+	def validate_tiling_overlap(self,tiling_overlap):
+		if tiling_overlap.data < 0 or tiling_overlap.data >= 1:
+			raise ValidationError("Tiling overlap must be between 0.0 and 1.0")
+
+	submit = SubmitField('Start the processing')	
+		
+class OldStartProcessingForm(FlaskForm):
+	""" The form for requesting to start the data processing """
+
 	rawdata_directory_channel488 = TextAreaField(\
 		'Channel 488 raw data directory (on /jukebox)',validators=[Optional(),Length(max=500),Directory_validator])
 	rawdata_directory_channel555 = TextAreaField(\

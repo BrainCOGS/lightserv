@@ -104,7 +104,7 @@ def delete_exp(experiment_id):
 @experiments.route("/exp/<int:experiment_id>",)
 @logged_in
 def exp(experiment_id):
-	""" A route for displaying a single experiment as a table """
+	""" A route for displaying a single experiment. Also acts as a gateway to start data processing. """
 	exp_contents = db_lightsheet.Experiment() & f'experiment_id="{experiment_id}"'
 	exp_table = ExpTable(exp_contents)
 
@@ -178,7 +178,7 @@ emitRGBA(vec4(v, 0.0, 0.0, v));
 @logged_in
 def start_processing(experiment_id):
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
-	logger.info(f"{session['user']} accessed data processing form")
+	logger.info(f"{session['user']} accessed start_processing route")
 	exp_contents = db_lightsheet.Experiment() & f'experiment_id={experiment_id}'
 	channels = [488,555,647,790]
 	channel_query_strs = ['channel%i' % channel for channel in channels]
@@ -186,7 +186,9 @@ def start_processing(experiment_id):
 	channels = ['registration','injection_detection','probe_detection','cell_detection']
 	channel_response_dict = exp_contents.fetch(*channel_query_strs,as_dict=True)[0]
 	used_imaging_channels = [channel for channel in channel_response_dict.keys() if channel_response_dict[channel]]
-
+	if len(used_imaging_channels) == 0:
+		flash("This experiment has no images so no data processing can be done",'danger')
+		return redirect(url_for('experiments.exp',experiment_id=experiment_id))
 	logger.debug(channel_response_dict)
 
 	exp_table = ExpTable(exp_contents)
@@ -213,6 +215,7 @@ def start_processing(experiment_id):
 		else:
 			logger.debug("Not validated!")
 			logger.debug(form.errors)
+			flash("There were errors in the form. Check form for details.",'danger')
 	return render_template('experiments/start_processing.html',
 		form=form,exp_table=exp_table,used_imaging_channels=used_imaging_channels)	
 

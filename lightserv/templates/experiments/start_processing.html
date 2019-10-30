@@ -1,28 +1,81 @@
 {% extends "layout.html" %}
 {% block content %}
 	{{ exp_table }}
-	<input id = "tableSwapper" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
+	<input id = "tableSwapper" type="button"  class="btn btn-sm btn-secondary mt-1 mb-4" value="Click to change table orientation (vertical/horizontal)"/>
 	 <div class="content-section">
 		<form method="POST" action=""> <!-- action="" means submit post request back to same route -->
 			{{ form.hidden_tag() }}
 			<fieldset class="form-group">
 				<legend class="border-bottom mb-4">Data Processing Form</legend>
-				{% for channel in used_imaging_channels %}
-					{% set rawdata_dir = 'rawdata_directory_' + channel %} 
-					<div class="form-group">
-						{{ form[rawdata_dir].label(class="form-control-label") }}
-						{% if form[rawdata_dir].errors %}
-							{{ form[rawdata_dir](class="form-control form-control-lg is-invalid") }}
-							<div class="invalid-feedback">
-								{% for error in form[rawdata_dir].errors %}
-									<span>{{ error }}</span>
-								{% endfor %}
-							</div>
-						{% else %}
-							{{ form[rawdata_dir](class="form-control form-control-lg") }}
-						{% endif %}
-					</div>
-				{% endfor %}
+				
+				<div class="form-group">
+					{% if form.stitching_method.flags.required %}*{% endif %}
+
+					{{ form.stitching_method.label(class="form-control-label") }}
+					{% if form.stitching_method.errors %}
+						{{ form.stitching_method(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.stitching_method.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.stitching_method(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{% if form.blend_type.flags.required %}*{% endif %}
+
+					{{ form.blend_type.label(class="form-control-label") }}
+					{% if form.blend_type.errors %}
+						{{ form.blend_type(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.blend_type.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.blend_type(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{% if form.atlas_name.flags.required %}*{% endif %}
+
+					{{ form.atlas_name.label(class="form-control-label") }}
+					{% if form.atlas_name.errors %}
+						{{ form.atlas_name(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.atlas_name.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.atlas_name(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+					{% if form.tiling_overlap.flags.required %}*{% endif %}
+
+					{{ form.tiling_overlap.label(class="form-control-label") }}
+					{% if form.tiling_overlap.errors %}
+						{{ form.tiling_overlap(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.tiling_overlap.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.tiling_overlap(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-check">
+					{{ form.intensity_correction(class="form-check-input mb-4") }}
+					{{ form.intensity_correction.label(class="form-check-label mb-4") }}
+				</div>
 			</fieldset>
 			<div class="form-group">
 				{{ form.submit(class="btn btn-outline-info mt-4") }}
