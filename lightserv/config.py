@@ -13,7 +13,8 @@ class Config(object):
 	MAIL_USE_TLS = True
 	MAIL_USERNAME = os.environ.get('EMAIL_USER')
 	MAIL_PASSWORD = os.environ.get('EMAIL_PASS')
-	SQLALCHEMY_TRACK_MODIFICATIONS = False # to turn that annoying warning off
+	APPLICATION_ROOT = "/v01"
+
 
 class BaseConfig(object):
 	DEBUG = False
