@@ -20,6 +20,21 @@ class ExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 
 	# Basic info
+	title = StringField('Title',validators=[InputRequired(),Length(max=100)])
+	description = TextAreaField('Description',validators=[InputRequired(),Length(max=250)])
+	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)])
+	correspondence_email = StringField('Correspondence email (default is princeton email)',
+		validators=[DataRequired(),Length(max=100),Email()])
+
+	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],validators=[InputRequired(),Length(max=50)]) # for choices first element of tuple is the value of the option, the second is the displayed text
+	number_of_samples = IntegerField('Number of samples',widget=html5.NumberInput(),validators=[InputRequired()])
+	submit = SubmitField('Start the processing')	
+
+
+class OldExpForm(FlaskForm):
+	""" The form for requesting a new experiment/dataset """
+
+	# Basic info
 	title = StringField('Title',validators=[DataRequired(),Length(max=100)])
 	description = TextAreaField('Description',validators=[DataRequired(),Length(max=250)])
 	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[DataRequired(),Length(max=100)])

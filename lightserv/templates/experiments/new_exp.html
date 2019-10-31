@@ -68,101 +68,22 @@
 					{{ form.species(class="form-control form-control-lg border-bottom") }}
 				</div>
 
-				<hr class='class-2'>
-				
-				<div class="form-group">
-					{% if form.perfusion_date.flags.required %}*{% endif %}
-					{{ form.perfusion_date.label(class="form-control-label mr-2") }}
-					{{ form.perfusion_date(class='datepicker') }}
-				</div>
-
-				<hr class='class-2'>
 
 				<div class="form-group">
-					{% if form.expected_handoff_date.flags.required %}*{% endif %}
-					{{ form.expected_handoff_date.label(class="form-control-label mr-2") }}
-					{{ form.expected_handoff_date(class='datepicker ') }}
-				</div>
-				<hr class='class-2'>
-
-				<hr class='class-1'>
-				<legend class="border-bottom mb-2 mt-4">Clearing Setup</legend>
-
-				<div class="form-check">
-					{{ form.self_clearing(class="form-check-input mb-4") }}
-					{{ form.self_clearing.label(class="form-check-label mb-4") }}
-				</div>
-
-				<div class="form-group">
-					{% if form.clearing_protocol.flags.required %}*{% endif %}
-					{{ form.clearing_protocol.label(class="form-control-label mr-2") }}
-					{% if form.clearing_protocol.errors %}
-						{{ form.clearing_protocol(class="form-control form-control-lg is-invalid") }}
+					{% if form.number_of_samples.flags.required %}*{% endif %}
+					{{ form.number_of_samples.label(class="form-control-label") }}
+					{% if form.number_of_samples.errors %}
+						{{ form.number_of_samples(class="form-control form-control-lg is-invalid") }}
 						<div class="invalid-feedback">
-							{% for error in form.clearing_protocol.errors %}
+							{% for error in form.number_of_samples.errors %}
 								<span>{{ error }}</span>
 							{% endfor %}
 						</div>
 					{% else %}
-						{{ form.clearing_protocol(class="form-control form-control-lg") }}
-					{% endif %}
-
-				</div>
-				<div class="form-group">
-					{% if form.antibody1.flags.required %}*{% endif %}
-					{{ form.antibody1.label(class="form-control-label") }}
-					{% if form.antibody1.errors %}
-						{{ form.antibody1(class="form-control form-control-lg is-invalid") }}
-						<div class="invalid-feedback">
-							{% for error in form.antibody1.errors %}
-								<span>{{ error }}</span>
-							{% endfor %}
-						</div>
-					{% else %}
-						{{ form.antibody1(class="form-control form-control-lg") }}
+						{{ form.number_of_samples(class="form-control form-control-lg") }}
 					{% endif %}
 				</div>
-				<div class="form-group">
-					{% if form.antibody2.flags.required %}*{% endif %}
-					{{ form.antibody2.label(class="form-control-label") }}
-					{% if form.antibody2.errors %}
-						{{ form.antibody2(class="form-control form-control-lg is-invalid") }}
-						<div class="invalid-feedback">
-							{% for error in form.antibody2.errors %}
-								<span>{{ error }}</span>
-							{% endfor %}
-						</div>
-					{% else %}
-						{{ form.antibody2(class="form-control form-control-lg") }}
-					{% endif %}
-				</div>
-				<hr class='class-1'>
-				<legend class="border-bottom mb-2 mt-4">Imaging Setup</legend>
-				<div class="form-group">
-					{% if form.image_resolution.flags.required %}*{% endif %}
-					{{ form.image_resolution.label(class="form-control-label mr-2") }}
-					{{ form.image_resolution(class="form-control form-control-lg") }}
-				</div>
-				<div class="form-group">
-					{% if form.channel488.flags.required %}*{% endif %}
-					{{ form.channel488.label(class="form-control-label mr-2") }}
-					{{ form.channel488(class="form-control form-control-lg") }}
-				</div>
-				<div class="form-group">
-					{% if form.channel555.flags.required %}*{% endif %}
-					{{ form.channel555.label(class="form-control-label mr-2") }}
-					{{ form.channel555(class="form-control form-control-lg") }}
-				</div>
-				<div class="form-group">
-					{% if form.channel647.flags.required %}*{% endif %}
-					{{ form.channel647.label(class="form-control-label mr-2") }}
-					{{ form.channel647(class="form-control form-control-lg") }}
-				</div>
-				<div class="form-group">
-					{% if form.channel790.flags.required %}*{% endif %}
-					{{ form.channel790.label(class="form-control-label mr-2") }}
-					{{ form.channel790(class="form-control form-control-lg") }}
-				</div>
+	
 				<hr class='class-3'>
 				<hr class='class-4'>
 			</fieldset>
