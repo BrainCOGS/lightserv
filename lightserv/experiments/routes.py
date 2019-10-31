@@ -180,6 +180,7 @@ def start_processing(experiment_id):
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
 	logger.info(f"{session['user']} accessed start_processing route")
 	exp_contents = db_lightsheet.Experiment() & f'experiment_id={experiment_id}'
+	assert len(exp_contents) == 1
 	channels = [488,555,647,790]
 	channel_query_strs = ['channel%i' % channel for channel in channels]
 
@@ -189,7 +190,6 @@ def start_processing(experiment_id):
 	if len(used_imaging_channels) == 0:
 		flash("This experiment has no images so no data processing can be done",'danger')
 		return redirect(url_for('experiments.exp',experiment_id=experiment_id))
-	logger.debug(channel_response_dict)
 
 	exp_table = ExpTable(exp_contents)
 	form = StartProcessingForm()
@@ -197,18 +197,12 @@ def start_processing(experiment_id):
 		logger.debug("POST request")
 		if form.validate_on_submit():
 			logger.debug("Validated")
-			''' Create a new entry in the Processing table based on form input and the data.
-			'''
-
-			''' Look for raw data files in that folder and verify that they match up with what the experiment entry suggests'''
-			rawdata_dir_dict = {}
-			for channel in used_imaging_channels:
-				rawdatadir_name = f'rawdata_directory_{channel}'
-				rawdata_dir = form[rawdatadir_name].data
-				rawdata_dir_dict[channel] = rawdata_dir
-
+			''' Make the parameter dictionary from form input.'''
+			form_fields = [x for x in form._fields.keys() if 'submit' not in x and 'csrf_token' not in x]
+			processing_params_dict = {field:form[field].data for field in form_fields}
+			logger.debug("Successfully captured form input into processing parameter dictionary")
 			logger.info(f"Sending processes to Celery")
-			run_step0.delay(experiment_id=experiment_id,rawdata_dir_dict=rawdata_dir_dict)
+			run_step0.delay(experiment_id=experiment_id,processing_params_dict=processing_params_dict)
 			flash('Your data processing has begun. You will receive an email \
 				when the first steps are completed.','success')
 			return redirect(url_for('main.home'))
@@ -220,7 +214,7 @@ def start_processing(experiment_id):
 		form=form,exp_table=exp_table,used_imaging_channels=used_imaging_channels)	
 
 @cel.task()
-def run_step0(experiment_id,rawdata_dir_dict):
+def run_step0(experiment_id,processing_params_dict):
 	""" An asynchronous celery task (runs in a background process) which runs step 0 
 	in the light sheet pipeline. 
 	"""
@@ -228,7 +222,11 @@ def run_step0(experiment_id,rawdata_dir_dict):
 	from xml.etree import ElementTree as ET 
 	exp_contents = db_lightsheet.Experiment & f'experiment_id={experiment_id}'
 	username = exp_contents.fetch1('username')
-	param_dict = {}
+	''' Now add to parameter dictionary the other needed info to run the code '''
+	username = exp_contents.fetch('username')
+	raw_path = f'/jukebox/LightSheetData/lightserv_test/{username}/exp_{experiment_id}'  
+	''' Make the "inputdictionary", i.e. the mapping between directory and function '''
+	processing_params_dict['inputdictionary'] = {}
 	input_dictionary = {}
 
 	# Create a counter for multi-channel imaging. If multi-channel imaging was used

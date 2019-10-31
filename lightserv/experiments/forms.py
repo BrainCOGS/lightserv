@@ -111,12 +111,13 @@ class StartProcessingForm(FlaskForm):
 		validators=[Optional()]) 
 	intensity_correction = BooleanField('Perform intensity correction? (leave as default if unsure)',default=True)
 	
-
+	submit = SubmitField('Start the processing')	
+	
 	def validate_tiling_overlap(self,tiling_overlap):
 		if tiling_overlap.data < 0 or tiling_overlap.data >= 1:
 			raise ValidationError("Tiling overlap must be between 0.0 and 1.0")
 
-	submit = SubmitField('Start the processing')	
+	
 		
 class OldStartProcessingForm(FlaskForm):
 	""" The form for requesting to start the data processing """
@@ -131,7 +132,6 @@ class OldStartProcessingForm(FlaskForm):
 		'Channel 790 raw data directory (on /jukebox)',validators=[Optional(),Length(max=500),Directory_validator])
 
 	submit = SubmitField('Start the processing')	
-
 
 class UpdateNotesForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """

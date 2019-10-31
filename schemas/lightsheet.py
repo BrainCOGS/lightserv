@@ -14,6 +14,7 @@ else:
 schema = dj.schema('ahoag_lightsheet_demo')
 schema.drop()
 schema = dj.schema('ahoag_lightsheet_demo')
+
 @schema
 class User(dj.Lookup):
     definition = """
@@ -282,3 +283,45 @@ class UdiscoClearing(dj.Manual): # dj.Manual is one of the 4 datajoint table typ
     clearing_babb_wash1_notes = ""                           :   varchar(250)
     clearing_notes = ""                                      : varchar(500)
     """
+
+@schema
+class RawImageSet(dj.Manual):
+    definition = """ # a set of raw images for a given experiment and channel
+    -> Experiment
+    channel                      :   char(3)
+    ----
+    -> User
+    imager                       :   varchar(20) # netid of the person who did the imaging
+    numerical_aperture           :   float
+    exp_time                     :   smallint
+    image_resolution             :   enum("1.3x","4x")
+    foci                         :   varchar(50)
+    tiled                        :   boolean # 1 for yes, 0 for no
+    notes = ""                   :   varchar(1000)
+    """  
+
+@schema
+class ImageProcessing(dj.Manual):
+    definition = """ # Image Processing metadata for a run through the pipeline
+    -> RawImageSet
+    ----
+    -> User
+    output_directory             :   varchar(255) # root of output directory path on bucket
+    processor                    :   varchar(20) # netid of the person who started the image processing
+    spatial_scale                :   float
+    z_scale                      :   float
+    stitchingmethod              :   enum("blending")
+    blendtype                    :   enum("sigmoidal","flat")
+    atlas_name                   :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
+    atlas_file                   :   varchar(255) # path on bucket
+    annotation_file              :   varchar(255) # path on bucket
+    tiling_overlap = 0.0         :   float
+    intensity_correction         :   boolean
+    rawdata_dir                  :   varchar(255) # path on bucket
+    resizefactor                 :   tinyint
+    slurmjobfactor               :   tinyint
+    parameter_folder             :   varchar(255) # path on bucket to affine/spline parameters
+    imspector_version            :   varchar(64)
+    """  
+
+
