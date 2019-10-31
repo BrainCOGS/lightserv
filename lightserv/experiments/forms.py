@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import (StringField, SubmitField, TextAreaField,
-					 SelectField, BooleanField, IntegerField)
+					 SelectField, BooleanField, IntegerField,
+					 DecimalField)
 from wtforms.fields.html5 import DateField
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email, Optional
 from wtforms.widgets import html5
@@ -107,15 +108,18 @@ class StartProcessingForm(FlaskForm):
 	atlas_name = SelectField('Atlas for registration',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
 				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])
-	tiling_overlap = IntegerField('Tiling overlap (leave blank if no tiling used)',widget=html5.NumberInput(),
-		validators=[Optional()]) 
+	tiling_overlap = DecimalField('Tiling overlap (leave blank if no tiling used)',
+		places=2,validators=[Optional()]) 
 	intensity_correction = BooleanField('Perform intensity correction? (leave as default if unsure)',default=True)
 	
 	submit = SubmitField('Start the processing')	
 	
 	def validate_tiling_overlap(self,tiling_overlap):
-		if tiling_overlap.data < 0 or tiling_overlap.data >= 1:
-			raise ValidationError("Tiling overlap must be between 0.0 and 1.0")
+		try:
+			if tiling_overlap.data < 0 or tiling_overlap.data >= 1:
+				raise ValidationError("Tiling overlap must be between 0.0 and 1.0")
+		except:
+			raise ValidationError("Tiling overlap must be a number between 0.0 and 1.0")
 
 	
 		

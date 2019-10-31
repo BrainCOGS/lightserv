@@ -200,6 +200,7 @@ def start_processing(experiment_id):
 			''' Make the parameter dictionary from form input.'''
 			form_fields = [x for x in form._fields.keys() if 'submit' not in x and 'csrf_token' not in x]
 			processing_params_dict = {field:form[field].data for field in form_fields}
+			logger.debug(processing_params_dict)
 			logger.debug("Successfully captured form input into processing parameter dictionary")
 			logger.info(f"Sending processes to Celery")
 			run_step0.delay(experiment_id=experiment_id,processing_params_dict=processing_params_dict)
