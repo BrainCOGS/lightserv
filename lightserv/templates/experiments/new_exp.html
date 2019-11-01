@@ -103,23 +103,23 @@
 				<legend class='border-bottom'>Clearing Info</legend>
 				<div class="form-group">
 					<span> Will clearing protocol be the same for all samples?</span>
-					{% if form.samples.data %}
 
+					<!-- Change the style of button that was pressed
+					 to make it clear to the user -->
+					{% if form.samples.data %}
 						{% if form.custom_clearing.data == true %}
-							{{ form.uniform_clearing_submit(class="btn btn-info mt-2") }}
-							{{ form.custom_clearing_submit(class="btn btn-success mt-2") }}
-						{% else %}
-							{{ form.uniform_clearing_submit(class="btn btn-success mt-2") }}
+							{{ form.uniform_clearing_submit(class="btn btn-outline-info mt-2") }}
 							{{ form.custom_clearing_submit(class="btn btn-info mt-2") }}
+						{% else %}
+							{{ form.uniform_clearing_submit(class="btn btn-info mt-2") }}
+							{{ form.custom_clearing_submit(class="btn btn-outline-info mt-2") }}
 						{% endif %}
 
 					{% else %}
-						{{ form.uniform_clearing_submit(class="btn btn-info mt-2") }}
-						{{ form.custom_clearing_submit(class="btn btn-info mt-2") }}
+						{{ form.uniform_clearing_submit(class="btn btn-outline-info mt-2") }}
+						{{ form.custom_clearing_submit(class="btn btn-outline-info mt-2") }}
 					{% endif %}
 				</div>
-
-
 
 				<div>
 					{% for entry in form.samples %}
