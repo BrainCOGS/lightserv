@@ -51,67 +51,72 @@ def new_exp():
 	form = ExpForm(request.form)
 
 	form.correspondence_email.data = session['user'] + '@princeton.edu' 
-	if form.validate_on_submit():
-		submit_keys = [x for x in form._fields.keys() if 'submit' in x and form[x].data]
-		logger.debug(submit_keys)
-		submit_key = submit_keys[0]
-		
-		if submit_key == 'custom_clearing_submit':
-			logger.debug("Clearing is custom")
-			form.custom_clearing.data = True
-			nsamples = form.number_of_samples.data
-			# First pop off any existing sample fields 
-			while len(form.samples) > 0:
-				form.samples.pop_entry()
-			# make nsamples sets of sample fields
-			for ii in range(nsamples):
+	if request.method == 'POST':
+		if form.validate_on_submit():
+			submit_keys = [x for x in form._fields.keys() if 'submit' in x and form[x].data]
+			logger.debug(submit_keys)
+			submit_key = submit_keys[0]
+			
+			if submit_key == 'custom_clearing_submit':
+				logger.debug("Clearing is custom")
+				form.custom_clearing.data = True
+				nsamples = form.number_of_samples.data
+				# First pop off any existing sample fields 
+				while len(form.samples) > 0:
+					form.samples.pop_entry()
+				# make nsamples sets of sample fields
+				for ii in range(nsamples):
+					form.samples.append_entry()
+				return render_template('experiments/new_exp.html', title='new_experiment',
+			form=form,legend='New Experiment',column_name="samples-0-clearing_protocol")	
+
+			elif submit_key == 'uniform_clearing_submit':
+				logger.debug("Clearing is uniform")
+				form.custom_clearing.data = False
+				nsamples = form.number_of_samples.data
+				# First pop off any existing sample fields
+				while len(form.samples) > 0:
+					form.samples.pop_entry()
+				# Just make one set of sample fields
 				form.samples.append_entry()
-			return render_template('experiments/new_exp.html', title='new_experiment',
-		form=form,legend='New Experiment',column_name="samples-0-clearing_protocol")	
+				return render_template('experiments/new_exp.html', title='new_experiment',
+			form=form,legend='New Experiment',column_name="samples-0-clearing_protocol")	
 
-		if submit_key == 'uniform_clearing_submit':
-			logger.debug("Clearing is uniform")
-			form.custom_clearing.data = False
-			nsamples = form.number_of_samples.data
-			# First pop off any existing sample fields
-			while len(form.samples) > 0:
-				form.samples.pop_entry()
-			# Just make one set of sample fields
-			form.samples.append_entry()
-			return render_template('experiments/new_exp.html', title='new_experiment',
-		form=form,legend='New Experiment',column_name="samples-0-clearing_protocol")	
+			elif submit_key == 'submit': # The final submit button
 
-		elif submit_key == 'submit': # The final submit button
+				''' Create a new entry in the Experiment table based on form input.
+				'''
+				logger.debug("Final submission")
+				# username = session['user']
+				# ''' The fields that need to go in the database that are not in the form '''
+				# exp_dict = dict(labname=form.labname.data.lower(),
+				# 	correspondence_email=form.correspondence_email.data.lower(),
+				# 	title=form.title.data,description=form.description.data,species=form.species.data,
+				# 	perfusion_date=form.perfusion_date.data,expected_handoff_date=form.expected_handoff_date.data,
+				# 	clearing_protocol=form.clearing_protocol.data,antibody1=form.antibody1.data,
+				# 	antibody2=form.antibody2.data,channel488=form.channel488.data,
+				# 	channel555=form.channel555.data,channel647=form.channel647.data,
+				# 	channel790=form.channel790.data,image_resolution=form.image_resolution.data,
+				# 	username=username)
+				# if form.self_clearing.data == True: # otherwise keep as NULL
+				# 	clearer = username
+				# 	exp_dict['clearer'] = clearer
+				# all_usernames = db_lightsheet.User().fetch('username') 
+				# if username not in all_usernames:
+				# 	princeton_email = username + '@princeton.edu'
+				# 	user_dict = {'username':username,'princeton_email':princeton_email}
+				# 	db_lightsheet.User().insert1(user_dict)
 
-			''' Create a new entry in the Experiment table based on form input.
-			'''
-			username = session['user']
-			''' The fields that need to go in the database that are not in the form '''
-			exp_dict = dict(labname=form.labname.data.lower(),
-				correspondence_email=form.correspondence_email.data.lower(),
-				title=form.title.data,description=form.description.data,species=form.species.data,
-				perfusion_date=form.perfusion_date.data,expected_handoff_date=form.expected_handoff_date.data,
-				clearing_protocol=form.clearing_protocol.data,antibody1=form.antibody1.data,
-				antibody2=form.antibody2.data,channel488=form.channel488.data,
-				channel555=form.channel555.data,channel647=form.channel647.data,
-				channel790=form.channel790.data,image_resolution=form.image_resolution.data,
-				username=username)
-			if form.self_clearing.data == True: # otherwise keep as NULL
-				clearer = username
-				exp_dict['clearer'] = clearer
-			all_usernames = db_lightsheet.User().fetch('username') 
-			if username not in all_usernames:
-				princeton_email = username + '@princeton.edu'
-				user_dict = {'username':username,'princeton_email':princeton_email}
-				db_lightsheet.User().insert1(user_dict)
-
-			db_lightsheet.Experiment().insert1(exp_dict)
-			exp_id = db_lightsheet.Experiment().fetch("KEY")[-1]['experiment_id'] # gets the most recently added key
-			flash(Markup(f'Your experiment has started!\n \
-				Check your new experiment page: <a href="{url_for("experiments.exp",experiment_id=exp_id)}" \
-				class="alert-link" target="_blank">here</a> for your data when it becomes available.'),'success')
-			return redirect(url_for('main.home'))
-
+				# db_lightsheet.Experiment().insert1(exp_dict)
+				# exp_id = db_lightsheet.Experiment().fetch("KEY")[-1]['experiment_id'] # gets the most recently added key
+				# flash(Markup(f'Your experiment has started!\n \
+				# 	Check your new experiment page: <a href="{url_for("experiments.exp",experiment_id=exp_id)}" \
+				# 	class="alert-link" target="_blank">here</a> for your data when it becomes available.'),'success')
+				# return redirect(url_for('main.home'))
+		else:
+			logger.debug("Not validated!")
+			logger.debug(form.errors)
+			# logger.debug(form.samples.data)
 	return render_template('experiments/new_exp.html', title='new_experiment',
 		form=form,legend='New Experiment')	
 

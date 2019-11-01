@@ -8,6 +8,7 @@ from wtforms.widgets import html5, HiddenInput
 import os
 import glob
 from lightserv import db_lightsheet
+
 # from lightserv.models import Experiment
 
 def OptionalDateField(description='',validators=[]):
@@ -18,7 +19,6 @@ def OptionalDateField(description='',validators=[]):
 
 class SampleForm(FlaskForm):
 	""" The form for a sample within an experiment """
-
 	# Basic info
 	clearing_protocol = SelectField('Clearing Protocol:', choices= \
 		[('iDISCO abbreviated clearing','iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
@@ -57,7 +57,6 @@ class ExpForm(FlaskForm):
 	custom_clearing_submit = SubmitField('No') # The answer to "will your clearing be the same for all samples?"
 
 	submit = SubmitField('Submit request')	
-
 
 
 

@@ -2,6 +2,7 @@
 {% block content %}
 	<h1 align="center">New Request Form</h1>
 	 <div class="content-section">
+
 		<form method="POST" action="">
 			{{ form.hidden_tag() }}
 			<fieldset class="form-group">
@@ -98,18 +99,29 @@
 					{% endif %}
 				</div>
 
+				<hr class='class-3'>
+				<legend class='border-bottom'>Clearing Info</legend>
 				<div class="form-group">
-				<span> Will clearing protocol be the same for all samples?</span>
-				{{ form.uniform_clearing_submit(class="btn btn-info mt-2") }}
-				{{ form.custom_clearing_submit(class="btn btn-info mt-2") }}
+					<span> Will clearing protocol be the same for all samples?</span>
+					{% if form.samples.data %}
 
+						{% if form.custom_clearing.data == true %}
+							{{ form.uniform_clearing_submit(class="btn btn-info mt-2") }}
+							{{ form.custom_clearing_submit(class="btn btn-success mt-2") }}
+						{% else %}
+							{{ form.uniform_clearing_submit(class="btn btn-success mt-2") }}
+							{{ form.custom_clearing_submit(class="btn btn-info mt-2") }}
+						{% endif %}
+
+					{% else %}
+						{{ form.uniform_clearing_submit(class="btn btn-info mt-2") }}
+						{{ form.custom_clearing_submit(class="btn btn-info mt-2") }}
+					{% endif %}
 				</div>
 
 
-				<hr class='class-3'>
 
 				<div>
-					
 					{% for entry in form.samples %}
 						{% if form.custom_clearing.data == true %}
 					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} </legend>
@@ -170,7 +182,7 @@
 			<div class="form-group">
 				{{ form.submit(class="btn btn-success mt-2") }}
 			</div>
-
+	
 		</form>
 	</div>
 

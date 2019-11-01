@@ -2,6 +2,7 @@ import os,sys
 from flask import Flask, session
 from flask_login import LoginManager
 from flask_mail import Mail
+from flask_wtf.csrf import CSRFProtect
 from lightserv.config import Config
 import datajoint as dj
 from lightserv.tests.make_test_schemata import create_test_schema
@@ -46,6 +47,7 @@ mail = Mail()
 def create_app(config_class=Config):
 	""" Create the flask app instance"""
 	app = Flask(__name__)
+	csrf = CSRFProtect(app)
 	app.config.from_object(config_class)
 	cel.conf.update(app.config)
 	# db.init_app(app)
