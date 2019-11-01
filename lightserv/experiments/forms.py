@@ -28,6 +28,13 @@ class SampleForm(FlaskForm):
 	antibody1 = TextAreaField('Primary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
 	antibody2 = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
 
+	def validate_antibody1(self,antibody1):
+		''' Makes sure that primary antibody is not blank if immunostaining clearing protocol
+		is chosen  '''
+		if self.clearing_protocol.data == 'iDISCO+_immuno' and antibody1.data == '':
+			raise ValidationError('Antibody must be specified because you selected \
+				an immunostaining clearing protocol')
+
 
 class ExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
@@ -41,15 +48,16 @@ class ExpForm(FlaskForm):
 
 	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],validators=[InputRequired(),Length(max=50)]) # for choices first element of tuple is the value of the option, the second is the displayed text
 	number_of_samples = IntegerField('Number of samples',widget=html5.NumberInput(),validators=[InputRequired()])
-	sample_prefix = StringField('Sample prefix (your samples will be named "prefix-0, prefix-1, ...")',validators=[InputRequired(),Length(max=32)])
+	sample_prefix = StringField('Sample prefix (your samples will be named prefix-1, prefix-2, ...")',validators=[InputRequired(),Length(max=32)])
 
 	self_clearing = BooleanField('Check if you plan to do the clearing yourself',default=False)
 	samples = FieldList(FormField(SampleForm),min_entries=0,max_entries=15)
-	custom_clearing = BooleanField(widget=HiddenInput())
+	custom_clearing = BooleanField('Is clearing custom?')
 	uniform_clearing_submit = SubmitField('Yes') # The answer to "will your clearing be the same for all samples?"	
 	custom_clearing_submit = SubmitField('No') # The answer to "will your clearing be the same for all samples?"
 
 	submit = SubmitField('Submit request')	
+
 
 
 

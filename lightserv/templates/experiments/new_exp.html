@@ -109,11 +109,60 @@
 				<hr class='class-3'>
 
 				<div>
+					
 					{% for entry in form.samples %}
-				        <legend class="form-control-label">Sample {{ loop.index }} </legend>
+						{% if form.custom_clearing.data == true %}
+					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} </legend>
+					    {% elif form.custom_clearing.data == false %}
+					    	<legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} <br/>(Your respose below will apply to all of your samples) </legend>
+						{% endif %}
 				        <hr>
-				        {{ entry() }}
-				    {% endfor %}
+
+				        <div class="form-group">
+							{% if entry.clearing_protocol.flags.required %}*{% endif %}
+							{{ entry.clearing_protocol.label(class="form-control-label") }}
+							{% if entry.clearing_protocol.errors %}
+								{{ entry.clearing_protocol(class="form-control form-control-lg is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in entry.clearing_protocol.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ entry.clearing_protocol(class="form-control form-control-lg") }}
+							{% endif %}
+						</div>
+
+						<div class="form-group">
+							{% if entry.antibody1.flags.required %}*{% endif %}
+							{{ entry.antibody1.label(class="form-control-label") }}
+							{% if entry.antibody1.errors %}
+								{{ entry.antibody1(class="form-control form-control-lg is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in entry.antibody1.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ entry.antibody1(class="form-control form-control-lg") }}
+							{% endif %}
+						</div>
+
+						<div class="form-group">
+							{% if entry.antibody2.flags.required %}*{% endif %}
+							{{ entry.antibody2.label(class="form-control-label") }}
+							{% if entry.antibody2.errors %}
+								{{ entry.antibody2(class="form-control form-control-lg is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in entry.antibody2.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ entry.antibody2(class="form-control form-control-lg") }}
+							{% endif %}
+						</div>
+					{% endfor %}
 				</div>
 			</fieldset>
 			<hr class='class-3'>

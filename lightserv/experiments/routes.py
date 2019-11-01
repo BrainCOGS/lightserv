@@ -58,7 +58,7 @@ def new_exp():
 		
 		if submit_key == 'custom_clearing_submit':
 			logger.debug("Clearing is custom")
-			form.custom_clearing = True
+			form.custom_clearing.data = True
 			nsamples = form.number_of_samples.data
 			# First pop off any existing sample fields 
 			while len(form.samples) > 0:
@@ -71,7 +71,7 @@ def new_exp():
 
 		if submit_key == 'uniform_clearing_submit':
 			logger.debug("Clearing is uniform")
-			form.custom_clearing = True
+			form.custom_clearing.data = False
 			nsamples = form.number_of_samples.data
 			# First pop off any existing sample fields
 			while len(form.samples) > 0:
@@ -80,7 +80,6 @@ def new_exp():
 			form.samples.append_entry()
 			return render_template('experiments/new_exp.html', title='new_experiment',
 		form=form,legend='New Experiment',column_name="samples-0-clearing_protocol")	
-
 
 		elif submit_key == 'submit': # The final submit button
 
