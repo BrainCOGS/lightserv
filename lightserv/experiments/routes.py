@@ -80,7 +80,32 @@ def new_exp():
 				# Just make one set of sample fields
 				form.samples.append_entry()
 				return render_template('experiments/new_exp.html', title='new_experiment',
-			form=form,legend='New Experiment',column_name="samples-0-clearing_protocol")	
+			form=form,legend='New Experiment',column_name="samples-0-clearing_protocol")
+
+			elif submit_key == 'custom_imaging_submit':
+				logger.debug("Imaging is custom")
+				form.custom_imaging.data = True
+				nsamples = form.number_of_samples.data
+				# First pop off any existing imaging fields 
+				while len(form.imaging) > 0:
+					form.imaging.pop_entry()
+				# make nsamples sets of imaging fields
+				for ii in range(nsamples):
+					form.imaging.append_entry()
+				return render_template('experiments/new_exp.html', title='new_experiment',
+			form=form,legend='New Experiment',column_name="imaging-0-image_resolution")	
+
+			elif submit_key == 'uniform_imaging_submit':
+				logger.debug("Imaging is uniform")
+				form.custom_imaging.data = False
+				nsamples = form.number_of_samples.data
+				# First pop off any existing sample fields
+				while len(form.imaging) > 0:
+					form.imaging.pop_entry()
+				# Just make one set of sample fields
+				form.imaging.append_entry()
+				return render_template('experiments/new_exp.html', title='new_experiment',
+			form=form,legend='New Experiment',column_name="imaging-0-image_resolution")	
 
 			elif submit_key == 'submit': # The final submit button
 

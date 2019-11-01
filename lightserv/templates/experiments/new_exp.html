@@ -101,11 +101,11 @@
 				
 				<!-- CLEARING section -->
 				<hr class='class-3'>
-				<legend class='border-bottom'>Clearing Info</legend>
-				<div class="custom-control form-control-lg custom-checkbox">
-					{{ form.self_clearing(class="custom-control-input") }}
-					{{ form.self_clearing.label(class="custom-control-label") }}
-				</div>
+				<h3>Clearing Info</h3>
+				<div class="checkbox">
+                    {{ form.self_clearing(class="form-check-input") }}
+                    {{ form.self_clearing.label(class="form-check-label") }}
+                </div>
 				<div class="form-group">
 					<span> Will clearing protocol be the same for all samples?</span>
 
@@ -126,11 +126,8 @@
 					{% endif %}
 				</div>
 
+				<!-- Handle samples -->
 				<div>
-					
-					
-						
-
 					{% for entry in form.samples %}
 						{% if form.custom_clearing.data == true %}
 					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} </legend>
@@ -185,7 +182,6 @@
 						</div>
 
 						
-
 						<div class="form-group">
 							{% if entry.antibody1.flags.required %}*{% endif %}
 							{{ entry.antibody1.label(class="form-control-label") }}
@@ -217,6 +213,62 @@
 						</div>
 					{% endfor %}
 				</div>
+
+				<!-- IMAGING section -->
+				<hr class='class-3'>
+				<h3 class='border-bottom'>Imaging Info</h3>
+
+				<div class="checkbox">
+                        {{ form.self_imaging(class="form-check-input") }}
+                        {{ form.self_imaging.label(class="form-check-label") }}
+                </div>
+				<div class="form-group">
+					<span> Will imaging be the same for all samples?</span>
+					<!-- Change the style of button that was pressed
+					 to make it clear to the user -->
+					{% if form.imaging.data %}
+						{% if form.custom_imaging.data == true %}
+							{{ form.uniform_imaging_submit(class="btn btn-outline-info mt-2") }}
+							{{ form.custom_imaging_submit(class="btn btn-info mt-2") }}
+						{% else %}
+							{{ form.uniform_imaging_submit(class="btn btn-info mt-2") }}
+							{{ form.custom_imaging_submit(class="btn btn-outline-info mt-2") }}
+						{% endif %}
+
+					{% else %}
+						{{ form.uniform_imaging_submit(class="btn btn-outline-info mt-2") }}
+						{{ form.custom_imaging_submit(class="btn btn-outline-info mt-2") }}
+					{% endif %}
+				</div>
+
+				<div>
+					{% for entry in form.imaging %}
+						{% if form.custom_imaging.data == true %}
+					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} </legend>
+					    {% elif form.custom_imaging.data == false %}
+					    	<legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} <br/>(Your entries below will apply to all of your samples) </legend>
+						{% endif %}
+				        <hr>
+
+				        <div class="form-group">
+							{% if entry.image_resolution.flags.required %}*{% endif %}
+							{{ entry.image_resolution.label(class="form-control-label") }}
+							{% if entry.image_resolution.errors %}
+								{{ entry.image_resolution(class="form-control form-control-lg is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in entry.image_resolution.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ entry.image_resolution(class="form-control form-control-lg") }}
+							{% endif %}
+						</div>
+
+						
+					{% endfor %}
+				</div>
+
 			</fieldset>
 			<hr class='class-3'>
 			<hr class='class-4'>

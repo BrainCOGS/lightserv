@@ -297,6 +297,7 @@ class RawImageSet(dj.Manual):
     image_resolution             :   enum("1.3x","4x")
     foci                         :   varchar(50)
     tiled                        :   boolean # 1 for yes, 0 for no
+    purpose                      :   varchar(255)
     notes = ""                   :   varchar(1000)
     """  
 
