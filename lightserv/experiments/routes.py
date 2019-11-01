@@ -114,6 +114,13 @@ def new_exp():
 				# 	class="alert-link" target="_blank">here</a> for your data when it becomes available.'),'success')
 				# return redirect(url_for('main.home'))
 		else:
+
+			if 'samples' in form.errors:
+				for error_str in form.errors['samples']:
+					flash(error_str,'danger')
+			# 	error_str = '<br/>'.join(x for x in form.errors['samples']).html_safe
+			# flash[:error] = errors.join("\n") 
+			# flash('There were errors: <br/> abc','danger')
 			logger.debug("Not validated!")
 			logger.debug(form.errors)
 			# logger.debug(form.samples.data)

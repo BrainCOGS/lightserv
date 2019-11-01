@@ -38,7 +38,6 @@ class SampleForm(FlaskForm):
 
 class ExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
-
 	# Basic info
 	title = StringField('Title',validators=[InputRequired(),Length(max=100)])
 	description = TextAreaField('Description',validators=[InputRequired(),Length(max=250)])
@@ -58,7 +57,9 @@ class ExpForm(FlaskForm):
 
 	submit = SubmitField('Submit request')	
 
-
+	def validate_samples(self,samples):
+		if len(samples.data) == 0:
+			raise ValidationError("Please answer the question in the Clearing Info")
 
 class OldExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
