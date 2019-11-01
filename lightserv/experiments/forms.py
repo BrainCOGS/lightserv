@@ -58,7 +58,7 @@ class ExpForm(FlaskForm):
 	submit = SubmitField('Submit request')	
 
 	def validate_samples(self,samples):
-		if len(samples.data) == 0:
+		if len(samples.data) == 0 and not (self.uniform_clearing_submit.data == True or self.custom_clearing_submit == True):
 			raise ValidationError("Please answer the question in the Clearing Info")
 
 class OldExpForm(FlaskForm):
