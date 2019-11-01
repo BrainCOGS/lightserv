@@ -27,14 +27,15 @@ class SampleForm(FlaskForm):
 	     ('uDISCO','uDISCO'),('iDISCO_EdU','Wang Lab iDISCO Protocol-EdU')],validators=[InputRequired()]) 
 	antibody1 = TextAreaField('Primary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
 	antibody2 = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
-
+	perfusion_date = OptionalDateField('Perfusion Date (leave blank if unsure):')
+	expected_handoff_date = OptionalDateField('Expected date of hand-off (leave blank if not applicable or unsure):')
+	
 	def validate_antibody1(self,antibody1):
 		''' Makes sure that primary antibody is not blank if immunostaining clearing protocol
 		is chosen  '''
 		if self.clearing_protocol.data == 'iDISCO+_immuno' and antibody1.data == '':
 			raise ValidationError('Antibody must be specified because you selected \
 				an immunostaining clearing protocol')
-
 
 class ExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """

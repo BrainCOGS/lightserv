@@ -98,9 +98,14 @@
 						{{ form.sample_prefix(class="form-control form-control-lg") }}
 					{% endif %}
 				</div>
-
+				
+				<!-- CLEARING section -->
 				<hr class='class-3'>
 				<legend class='border-bottom'>Clearing Info</legend>
+				<div class="custom-control form-control-lg custom-checkbox">
+					{{ form.self_clearing(class="custom-control-input") }}
+					{{ form.self_clearing.label(class="custom-control-label") }}
+				</div>
 				<div class="form-group">
 					<span> Will clearing protocol be the same for all samples?</span>
 
@@ -122,13 +127,47 @@
 				</div>
 
 				<div>
+					
+					
+						
+
 					{% for entry in form.samples %}
 						{% if form.custom_clearing.data == true %}
 					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} </legend>
 					    {% elif form.custom_clearing.data == false %}
-					    	<legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} <br/>(Your respose below will apply to all of your samples) </legend>
+					    	<legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} <br/>(Your entries below will apply to all of your samples) </legend>
 						{% endif %}
 				        <hr>
+
+				        <div class="form-group">
+							{% if entry.perfusion_date.flags.required %}*{% endif %}
+							{{ entry.perfusion_date.label(class="form-control-label") }}
+							{% if entry.perfusion_date.errors %}
+								{{ entry.perfusion_date(class="form-control form-control-lg is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in entry.perfusion_date.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ entry.perfusion_date(class="form-control form-control-lg") }}
+							{% endif %}
+						</div>
+
+						<div class="form-group">
+							{% if entry.expected_handoff_date.flags.required %}*{% endif %}
+							{{ entry.expected_handoff_date.label(class="form-control-label") }}
+							{% if entry.expected_handoff_date.errors %}
+								{{ entry.expected_handoff_date(class="form-control form-control-lg is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in entry.expected_handoff_date.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ entry.expected_handoff_date(class="form-control form-control-lg") }}
+							{% endif %}
+						</div>
 
 				        <div class="form-group">
 							{% if entry.clearing_protocol.flags.required %}*{% endif %}
@@ -144,6 +183,8 @@
 								{{ entry.clearing_protocol(class="form-control form-control-lg") }}
 							{% endif %}
 						</div>
+
+						
 
 						<div class="form-group">
 							{% if entry.antibody1.flags.required %}*{% endif %}
