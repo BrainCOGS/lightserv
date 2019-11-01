@@ -68,7 +68,6 @@
 					{{ form.species(class="form-control form-control-lg border-bottom") }}
 				</div>
 
-
 				<div class="form-group">
 					{% if form.number_of_samples.flags.required %}*{% endif %}
 					{{ form.number_of_samples.label(class="form-control-label") }}
@@ -83,13 +82,55 @@
 						{{ form.number_of_samples(class="form-control form-control-lg") }}
 					{% endif %}
 				</div>
-	
+
+				<div class="form-group">
+					{% if form.sample_prefix.flags.required %}*{% endif %}
+					{{ form.sample_prefix.label(class="form-control-label") }}
+					{% if form.sample_prefix.errors %}
+						{{ form.sample_prefix(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.sample_prefix.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.sample_prefix(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+
+				<div class="form-group">
+				<span> Will clearing protocol be the same for all samples?</span>
+				{{ form.uniform_clearing_submit(class="btn btn-info mt-2") }}
+				{{ form.custom_clearing_submit(class="btn btn-info mt-2") }}
+
+				</div>
+
+
 				<hr class='class-3'>
-				<hr class='class-4'>
+
+				<div>
+					{% for entry in form.samples %}
+				        <legend class="form-control-label">Sample {{ loop.index }} </legend>
+				        <hr>
+				        {{ entry() }}
+				    {% endfor %}
+				</div>
 			</fieldset>
+			<hr class='class-3'>
+			<hr class='class-4'>
 			<div class="form-group">
-				{{ form.submit(class="btn btn-info mt-2") }}
+				{{ form.submit(class="btn btn-success mt-2") }}
 			</div>
+
 		</form>
 	</div>
+
+<!-- For focusing to a given tag -->
+{% if column_name %}
+	<script>
+	window.onload = function() {
+	  document.getElementById("{{column_name}}").focus();
+	};
+	</script>
+{% endif %}
 {% endblock content %}

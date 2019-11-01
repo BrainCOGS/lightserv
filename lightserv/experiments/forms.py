@@ -1,10 +1,10 @@
 from flask_wtf import FlaskForm
 from wtforms import (StringField, SubmitField, TextAreaField,
 					 SelectField, BooleanField, IntegerField,
-					 DecimalField)
+					 DecimalField, FieldList,FormField)
 from wtforms.fields.html5 import DateField
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email, Optional
-from wtforms.widgets import html5
+from wtforms.widgets import html5, HiddenInput
 import os
 import glob
 from lightserv import db_lightsheet
@@ -15,6 +15,19 @@ def OptionalDateField(description='',validators=[]):
 	validators.append(Optional())
 	field = DateField(description,validators)
 	return field
+
+class SampleForm(FlaskForm):
+	""" The form for a sample within an experiment """
+
+	# Basic info
+	clearing_protocol = SelectField('Clearing Protocol:', choices= \
+		[('iDISCO abbreviated clearing','iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
+		 ('iDISCO abbreviated clearing (rat)','Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
+	     ('iDISCO+_immuno','iDISCO+ (immunostaining)'),
+	     ('uDISCO','uDISCO'),('iDISCO_EdU','Wang Lab iDISCO Protocol-EdU')],validators=[InputRequired()]) 
+	antibody1 = TextAreaField('Primary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
+	antibody2 = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
+
 
 class ExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
@@ -28,7 +41,16 @@ class ExpForm(FlaskForm):
 
 	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],validators=[InputRequired(),Length(max=50)]) # for choices first element of tuple is the value of the option, the second is the displayed text
 	number_of_samples = IntegerField('Number of samples',widget=html5.NumberInput(),validators=[InputRequired()])
-	submit = SubmitField('Start the processing')	
+	sample_prefix = StringField('Sample prefix (your samples will be named "prefix-0, prefix-1, ...")',validators=[InputRequired(),Length(max=32)])
+
+	self_clearing = BooleanField('Check if you plan to do the clearing yourself',default=False)
+	samples = FieldList(FormField(SampleForm),min_entries=0,max_entries=15)
+	custom_clearing = BooleanField(widget=HiddenInput())
+	uniform_clearing_submit = SubmitField('Yes') # The answer to "will your clearing be the same for all samples?"	
+	custom_clearing_submit = SubmitField('No') # The answer to "will your clearing be the same for all samples?"
+
+	submit = SubmitField('Submit request')	
+
 
 
 class OldExpForm(FlaskForm):
