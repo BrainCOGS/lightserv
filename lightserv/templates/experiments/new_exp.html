@@ -113,11 +113,11 @@
 					</div>
 					<!-- Change the style of button that was pressed
 					 to make it clear to the user -->
-					{% if form.clearing_samples.data %}
-						{% if form.custom_clearing.data == true %}
+					{% if form.clearing_samples.data %} <!-- If a button was pressed !-->
+						{% if form.custom_clearing.data == 1 %} <!-- No highlighted !-->
 							{{ form.uniform_clearing_submit(class="btn btn-outline-info mt-2") }}
-							{{ form.custom_clearing_submit(class="btn btn-info mt-2") }}
-						{% else %}
+							{{ form.custom_clearing_submit(class="btn btn-info mt-2") }} 
+						{% elif form.custom_clearing.data == 0 %} <!-- Yes highlighted !-->
 							{{ form.uniform_clearing_submit(class="btn btn-info mt-2") }}
 							{{ form.custom_clearing_submit(class="btn btn-outline-info mt-2") }}
 						{% endif %}
@@ -228,18 +228,21 @@
 				<h3 class='border-bottom'>Imaging/Processing Info</h3>
 
 				<div class="checkbox">
-                        {{ form.self_imaging(class="form-check-input") }}
-                        {{ form.self_imaging.label(class="form-check-label") }}
+                    {{ form.self_imaging(class="form-check-input") }}
+                    {{ form.self_imaging.label(class="form-check-label") }}
                 </div>
 				<div class="form-group">
 					<span> Will imaging and processing be the same for all samples?</span>
+					<!-- <div class="form-group">
+						{{ form.custom_imaging() }}
+					</div> -->
 					<!-- Change the style of button that was pressed
 					 to make it clear to the user -->
 					{% if form.imaging_samples.data %}
-						{% if form.custom_imaging.data == true %}
+						{% if form.custom_imaging.data == 1 %}
 							{{ form.uniform_imaging_submit(class="btn btn-outline-info mt-2") }}
 							{{ form.custom_imaging_submit(class="btn btn-info mt-2") }}
-						{% else %}
+						{% elif form.custom_imaging.data == 0 %}
 							{{ form.uniform_imaging_submit(class="btn btn-info mt-2") }}
 							{{ form.custom_imaging_submit(class="btn btn-outline-info mt-2") }}
 						{% endif %}

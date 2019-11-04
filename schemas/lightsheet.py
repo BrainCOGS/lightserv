@@ -27,7 +27,7 @@ class User(dj.Lookup):
 @schema
 class Experiment(dj.Manual):
     definition = """ # Experiments performed using the light sheet microscope
-    title                        :   varchar(64)
+    experiment_name                        :   varchar(64)
     -> User  
     ----
     labname                      :   varchar(50)

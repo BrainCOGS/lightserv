@@ -75,14 +75,14 @@ class ExpForm(FlaskForm):
 
 	self_clearing = BooleanField('Check if you plan to do the clearing yourself',default=False)
 	clearing_samples = FieldList(FormField(ClearingForm),min_entries=0,max_entries=15)
-	custom_clearing = BooleanField('Is clearing custom?',default=False,widget=HiddenInput())
+	custom_clearing = IntegerField('Is clearing custom?',widget=HiddenInput(),default=0)
 	uniform_clearing_submit = SubmitField('Yes') # The answer to "will your clearing be the same for all samples?"	
 	custom_clearing_submit = SubmitField('No') # The answer to "will your clearing be the same for all samples?"
 
 	self_imaging = BooleanField('Check if you plan to do the imaging yourself',default=False)
 
 	imaging_samples = FieldList(FormField(ImagingForm),min_entries=0,max_entries=15)
-	custom_imaging = BooleanField('Is imaging custom?',default=False,widget=HiddenInput())
+	custom_imaging = IntegerField('Is imaging custom?',widget=HiddenInput(),default=0)
 	uniform_imaging_submit = SubmitField('Yes') # The answer to "will your imaging be the same for all samples?"	
 	custom_imaging_submit = SubmitField('No') # The answer to "will your imaging be the same for all samples?"
 
