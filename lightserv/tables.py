@@ -6,7 +6,8 @@ class ExpTable(Table):
     border = True
     allow_sort = True
     no_items = "No Experiments Yet"
-    html_attrs = {"style":'font-size:18px'} # gets assigned to table header
+    html_attrs = {"style":'font-size:18px',} # gets assigned to table header
+    table_id = 'vert_table' # override this when you make an instance if you dont want vertical layout by default
     # column_html_attrs = {'style':'text-align: center; min-width:10px', 'bgcolor':"#FF0000"} # gets assigned to both th and td
     column_html_attrs = [] # javascript tableswapper does not preserve these.
     classes = ["table-striped"] # gets assigned to table classes. 
@@ -40,6 +41,7 @@ class SamplesTable(Table):
     allow_sort = True
     no_items = "No Samples"
     html_attrs = {"style":'font-size:18px'} # gets assigned to table header
+    table_id = 'vert_table' # override this when you make an instance if you dont want vertical layout by default
     column_html_attrs = [] # javascript tableswapper does not preserve these.
     classes = ["table-striped"] # gets assigned to table classes. 
     # Striped is alternating bright and dark rows for visual ease.
