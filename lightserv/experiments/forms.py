@@ -17,8 +17,8 @@ def OptionalDateField(description='',validators=[]):
 	field = DateField(description,validators)
 	return field
 
-class SampleForm(FlaskForm):
-	""" The form for a sample within an experiment """
+class ClearingForm(FlaskForm):
+	""" The form for clearing a single sample within an experiment """
 	# Basic info
 	clearing_protocol = SelectField('Clearing Protocol:', choices= \
 		[('iDISCO abbreviated clearing','iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
@@ -38,7 +38,7 @@ class SampleForm(FlaskForm):
 				an immunostaining clearing protocol')
 
 class ImagingForm(FlaskForm):
-	""" The form for a sample within an experiment """
+	""" The form for imaging a single sample within an experiment """
 	# Basic info
 	image_resolution = SelectField('Image Resolution:', 
 		choices=[('1.3x','1.3x (low-res: good for site detection, whole brain c-fos quantification, or registration)'),
@@ -63,8 +63,8 @@ class ImagingForm(FlaskForm):
 class ExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 	# Basic info
-	title = StringField('Title',validators=[InputRequired(),Length(max=100)])
-	description = TextAreaField('Description',validators=[InputRequired(),Length(max=250)])
+	title = StringField('Title of experiment',validators=[InputRequired(),Length(max=100)])
+	description = TextAreaField('Description of experiment',validators=[InputRequired(),Length(max=250)])
 	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)])
 	correspondence_email = StringField('Correspondence email (default is princeton email)',
 		validators=[DataRequired(),Length(max=100),Email()])
@@ -74,23 +74,35 @@ class ExpForm(FlaskForm):
 	sample_prefix = StringField('Sample prefix (your samples will be named prefix-1, prefix-2, ...)',validators=[InputRequired(),Length(max=32)])
 
 	self_clearing = BooleanField('Check if you plan to do the clearing yourself',default=False)
-	samples = FieldList(FormField(SampleForm),min_entries=0,max_entries=15)
-	custom_clearing = BooleanField('Is clearing custom?')
+	clearing_samples = FieldList(FormField(ClearingForm),min_entries=0,max_entries=15)
+	custom_clearing = BooleanField('Is clearing custom?',default=False,widget=HiddenInput())
 	uniform_clearing_submit = SubmitField('Yes') # The answer to "will your clearing be the same for all samples?"	
 	custom_clearing_submit = SubmitField('No') # The answer to "will your clearing be the same for all samples?"
 
 	self_imaging = BooleanField('Check if you plan to do the imaging yourself',default=False)
 
-	imaging = FieldList(FormField(ImagingForm),min_entries=0,max_entries=15)
-	custom_imaging = BooleanField('Is imaging custom?')
+	imaging_samples = FieldList(FormField(ImagingForm),min_entries=0,max_entries=15)
+	custom_imaging = BooleanField('Is imaging custom?',default=False,widget=HiddenInput())
 	uniform_imaging_submit = SubmitField('Yes') # The answer to "will your imaging be the same for all samples?"	
 	custom_imaging_submit = SubmitField('No') # The answer to "will your imaging be the same for all samples?"
 
 	submit = SubmitField('Submit request')	
 
-	def validate_samples(self,samples):
-		if len(samples.data) == 0 and not (self.uniform_clearing_submit.data == True or self.custom_clearing_submit == True):
-			raise ValidationError("Please answer the question in the Clearing Info section first.")
+	def validate_clearing_samples(self,clearing_samples):
+		""" Make sure that user has answered the question of 
+		whether to use unique clearing before being able to submit the whole form
+		""" 
+		if self.submit.data == True:
+			if len(clearing_samples.data) == 0 and not (self.uniform_clearing_submit.data == True or self.custom_clearing_submit == True):
+				raise ValidationError("Please answer the question in the Clearing Info section first.")
+
+	def validate_imaging_samples(self,imaging_samples):
+		""" Make sure that user has answered the question of 
+		whether to use unique clearing before being able to submit the whole form
+		""" 
+		if self.submit.data == True:
+			if len(imaging_samples.data) == 0 and not (self.uniform_imaging_submit.data == True or self.custom_imaging_submit == True):
+				raise ValidationError("Please answer the question in the Imaging/Processing Info section first.")
 
 class OldExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """

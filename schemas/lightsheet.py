@@ -27,30 +27,50 @@ class User(dj.Lookup):
 @schema
 class Experiment(dj.Manual):
     definition = """ # Experiments performed using the light sheet microscope
-    experiment_id                :   smallint auto_increment    # allowed here are sql datatypes.
-    ----
+    title                        :   varchar(64)
     -> User  
+    ----
     labname                      :   varchar(50)
     correspondence_email = ''    :   varchar(100)
-    title                        :   varchar(100)
     description                  :   varchar(250)
     species                      :   varchar(50)
-    perfusion_date = NULL        :   date
-    expected_handoff_date = NULL :   date
-    clearer = NULL               :   varchar(20)
-    clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
-    clearing_progress            :   enum("incomplete","in progress","complete")
-    antibody1                    :   varchar(100)
-    antibody2                    :   varchar(100)
-    image_resolution             :   enum("1.3x","4x")
-    channel488                   :   enum("","registration","cell_detection","probe_detection","injection_detection")                    
-    channel555                   :   enum("","registration","cell_detection","probe_detection","injection_detection")
-    channel647                   :   enum("","registration","cell_detection","probe_detection","injection_detection")
-    channel790                   :   enum("","registration","cell_detection","probe_detection","injection_detection")
-    notes = ""                   :   varchar(1000)
-
+    number_of_samples            :   tinyint
+    sample_prefix                :   varchar(32)
     """  
     
+    class Sample(dj.Part):
+        definition = """ # Samples from a particular experiment
+        -> Experiment
+        sample_name                               :   varchar(64)                
+        ----
+        perfusion_date = NULL        :   date
+        expected_handoff_date = NULL :   date
+        clearer = NULL               :   varchar(20) # netid of person doing the clearing
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
+        clearing_progress            :   enum("incomplete","in progress","complete")
+        antibody1 = ''               :   varchar(100)
+        antibody2 = ''               :   varchar(100)
+        imager = NULL                :   varchar(20) # netid of person doing the imaging
+        image_resolution                          :   enum("1.3x","4x")
+        channel488_registration = 0               :   boolean                    
+        channel555_registration = 0               :   boolean                    
+        channel647_registration = 0               :   boolean                    
+        channel790_registration = 0               :   boolean                    
+        channel488_injection_detection = 0        :   boolean                    
+        channel555_injection_detection = 0        :   boolean                    
+        channel647_injection_detection = 0        :   boolean                    
+        channel790_injection_detection = 0        :   boolean
+        channel488_probe_detection = 0            :   boolean                    
+        channel555_probe_detection = 0            :   boolean                    
+        channel647_probe_detection = 0            :   boolean                    
+        channel790_probe_detection = 0            :   boolean
+        channel488_cell_detection = 0             :   boolean                    
+        channel555_cell_detection = 0             :   boolean                    
+        channel647_cell_detection = 0             :   boolean                    
+        channel790_cell_detection = 0             :   boolean
+        notes = ""                                :   varchar(1000)
+        """  
+
 @schema
 class IdiscoPlusClearing(dj.Manual): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
     definition = """ # Periodic calibration data of the light sheet microscope

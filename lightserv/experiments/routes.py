@@ -50,79 +50,123 @@ def new_exp():
 
 	form = ExpForm(request.form)
 
-	form.correspondence_email.data = session['user'] + '@princeton.edu' 
 	if request.method == 'POST':
 		if form.validate_on_submit():
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x and form[x].data]
 			logger.debug(submit_keys)
 			submit_key = submit_keys[0]
 			
-			if submit_key == 'custom_clearing_submit':
+			""" Handle multiple clearing/imaging yes/no button pressed """
+			if submit_key == 'custom_clearing_submit': # yes was pressed
 				logger.debug("Clearing is custom")
 				form.custom_clearing.data = True
 				nsamples = form.number_of_samples.data
 				# First pop off any existing sample fields 
-				while len(form.samples) > 0:
-					form.samples.pop_entry()
+				while len(form.clearing_samples.data) > 0:
+					form.clearing_samples.pop_entry()
 				# make nsamples sets of sample fields
 				for ii in range(nsamples):
-					form.samples.append_entry()
+					form.clearing_samples.append_entry()
 				return render_template('experiments/new_exp.html', title='new_experiment',
-			form=form,legend='New Experiment',column_name="samples-0-clearing_protocol")	
-
-			elif submit_key == 'uniform_clearing_submit':
+			form=form,legend='New Experiment',column_name="clearing_samples-0-clearing_protocol")	
+			
+			elif submit_key == 'uniform_clearing_submit': # no was pressed
 				logger.debug("Clearing is uniform")
 				form.custom_clearing.data = False
 				nsamples = form.number_of_samples.data
 				# First pop off any existing sample fields
-				while len(form.samples) > 0:
-					form.samples.pop_entry()
+				while len(form.clearing_samples.data) > 0:
+					form.clearing_samples.pop_entry()
 				# Just make one set of sample fields
-				form.samples.append_entry()
+				form.clearing_samples.append_entry()
 				return render_template('experiments/new_exp.html', title='new_experiment',
-			form=form,legend='New Experiment',column_name="samples-0-clearing_protocol")
-
-			elif submit_key == 'custom_imaging_submit':
+			form=form,legend='New Experiment',column_name="clearing_samples-0-clearing_protocol")
+			
+			elif submit_key == 'custom_imaging_submit': # yes was pressed
 				logger.debug("Imaging is custom")
 				form.custom_imaging.data = True
 				nsamples = form.number_of_samples.data
 				# First pop off any existing imaging fields 
-				while len(form.imaging) > 0:
-					form.imaging.pop_entry()
+				while len(form.imaging_samples.data) > 0:
+					form.imaging_samples.pop_entry()
 				# make nsamples sets of imaging fields
 				for ii in range(nsamples):
-					form.imaging.append_entry()
-				return render_template('experiments/new_exp.html', title='new_experiment',
-			form=form,legend='New Experiment',column_name="imaging-0-image_resolution")	
+					form.imaging_samples.append_entry()
 
-			elif submit_key == 'uniform_imaging_submit':
+				return render_template('experiments/new_exp.html', title='new_experiment',
+			form=form,legend='New Experiment',column_name="imaging_samples-0-image_resolution")	
+
+			elif submit_key == 'uniform_imaging_submit': # no was pressed
 				logger.debug("Imaging is uniform")
 				form.custom_imaging.data = False
 				nsamples = form.number_of_samples.data
 				# First pop off any existing sample fields
-				while len(form.imaging) > 0:
-					form.imaging.pop_entry()
+				while len(form.imaging_samples.data) > 0:
+					form.imaging_samples.pop_entry()
 				# Just make one set of sample fields
-				form.imaging.append_entry()
+				form.imaging_samples.append_entry()
 				return render_template('experiments/new_exp.html', title='new_experiment',
-			form=form,legend='New Experiment',column_name="imaging-0-image_resolution")	
+			form=form,legend='New Experiment',column_name="imaging_samples-0-image_resolution")	
 
 			elif submit_key == 'submit': # The final submit button
-
+				logger.debug("Final submission")
 				''' Create a new entry in the Experiment table based on form input.
 				'''
-				logger.debug("Final submission")
-				# username = session['user']
-				# ''' The fields that need to go in the database that are not in the form '''
-				# exp_dict = dict(labname=form.labname.data.lower(),
-				# 	correspondence_email=form.correspondence_email.data.lower(),
-				# 	title=form.title.data,description=form.description.data,species=form.species.data,
-				# 	perfusion_date=form.perfusion_date.data,expected_handoff_date=form.expected_handoff_date.data,
-				# 	clearing_protocol=form.clearing_protocol.data,antibody1=form.antibody1.data,
-				# 	antibody2=form.antibody2.data,channel488=form.channel488.data,
-				# 	channel555=form.channel555.data,channel647=form.channel647.data,
-				# 	channel790=form.channel790.data,image_resolution=form.image_resolution.data,
-				# 	username=username)
+				username = session['user']
+
+				""" Start a transaction for doing the inserts.
+					This is done to avoid inserting only into Experiment
+					table but not Sample table if there is an error """
+				connection = db_lightsheet.Experiment.connection
+				with connection.transaction:
+					exp_insert_dict = dict(title=form.title.data,username=username,labname=form.labname.data.lower(),
+						correspondence_email=form.correspondence_email.data.lower(),
+						description=form.description.data,species=form.species.data,
+						number_of_samples=form.number_of_samples.data,sample_prefix=form.sample_prefix.data)
+
+					db_lightsheet.Experiment().insert1(exp_insert_dict)
+					''' Figure out the experiment_id so we can use it for the samples table insert '''
+
+					experiment_id = db_lightsheet.Experiment()
+					''' Now loop through samples and get clearing and imaging parameters for each sample '''
+					clearing_samples = form.clearing_samples.data
+					imaging_samples = form.imaging_samples.data
+					number_of_samples = form.number_of_samples.data
+					for ii in range(number_of_samples):
+						sample_insert_dict = {}
+						if form.custom_clearing.data:
+							clearing_sample_dict = clearing_samples[ii]
+						else:
+							clearing_sample_dict = clearing_samples[0]
+						
+						if form.custom_imaging.data:
+							imaging_sample_dict = imaging_samples[ii]
+						else:
+							imaging_sample_dict = imaging_samples[0]
+
+						for key,val in clearing_sample_dict.items(): 
+							if val != None and key != 'csrf_token':
+								sample_insert_dict[key] = val
+						for key,val in imaging_sample_dict.items():
+							if val != None and key != 'csrf_token':
+								sample_insert_dict[key] = val
+						sample_name = form.sample_prefix.data + '-' + '%i' % (ii+1)
+						''' Add depedent primary keys '''
+						sample_insert_dict['title'] = form.title.data
+						sample_insert_dict['username'] = username 
+
+						sample_insert_dict['sample_name'] = sample_name
+						sample_insert_dict['clearing_progress'] = 'incomplete'
+						if form.self_clearing.data:
+							sample_insert_dict['clearer'] = username
+						if form.self_imaging.data:
+							sample_insert_dict['imager'] = username
+						
+						db_lightsheet.Experiment.Sample.insert1(sample_insert_dict)
+						print("new insert")
+						print(sample_insert_dict)
+						print()
+
 				# if form.self_clearing.data == True: # otherwise keep as NULL
 				# 	clearer = username
 				# 	exp_dict['clearer'] = clearer
@@ -140,15 +184,17 @@ def new_exp():
 				# return redirect(url_for('main.home'))
 		else:
 
-			if 'samples' in form.errors:
-				for error_str in form.errors['samples']:
+			if 'clearing_samples' in form.errors:
+				for error_str in form.errors['clearing_samples']:
 					flash(error_str,'danger')
-			# 	error_str = '<br/>'.join(x for x in form.errors['samples']).html_safe
-			# flash[:error] = errors.join("\n") 
-			# flash('There were errors: <br/> abc','danger')
+			if 'imaging_samples' in form.errors:
+				for error_str in form.errors['imaging_samples']:
+					flash(error_str,'danger')
+			
 			logger.debug("Not validated!")
 			logger.debug(form.errors)
 			# logger.debug(form.samples.data)
+	form.correspondence_email.data = session['user'] + '@princeton.edu' 
 	return render_template('experiments/new_exp.html', title='new_experiment',
 		form=form,legend='New Experiment')	
 

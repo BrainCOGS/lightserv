@@ -108,10 +108,12 @@
                 </div>
 				<div class="form-group">
 					<span> Will clearing protocol be the same for all samples?</span>
-
+					<div class="form-group">
+						{{ form.custom_clearing() }}
+					</div>
 					<!-- Change the style of button that was pressed
 					 to make it clear to the user -->
-					{% if form.samples.data %}
+					{% if form.clearing_samples.data %}
 						{% if form.custom_clearing.data == true %}
 							{{ form.uniform_clearing_submit(class="btn btn-outline-info mt-2") }}
 							{{ form.custom_clearing_submit(class="btn btn-info mt-2") }}
@@ -129,7 +131,7 @@
 				<!-- Handle clearing for each sample -->
 				<hr class='class-2'>
 				<div>
-					{% for entry in form.samples %}
+					{% for clearing_entry in form.clearing_samples %}
 						{% if form.custom_clearing.data == true %}
 					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} </legend>
 					    {% elif form.custom_clearing.data == false %}
@@ -138,78 +140,78 @@
 				        <hr>
 
 				        <div class="form-group">
-							{% if entry.perfusion_date.flags.required %}*{% endif %}
-							{{ entry.perfusion_date.label(class="form-control-label") }}
-							{% if entry.perfusion_date.errors %}
-								{{ entry.perfusion_date(class="form-control form-control-lg is-invalid") }}
+							{% if clearing_entry.perfusion_date.flags.required %}*{% endif %}
+							{{ clearing_entry.perfusion_date.label(class="form-control-label") }}
+							{% if clearing_entry.perfusion_date.errors %}
+								{{ clearing_entry.perfusion_date(class="form-control form-control-lg is-invalid") }}
 								<div class="invalid-feedback">
-									{% for error in entry.perfusion_date.errors %}
+									{% for error in clearing_entry.perfusion_date.errors %}
 										<span>{{ error }}</span>
 									{% endfor %}
 								</div>
 							{% else %}
-								{{ entry.perfusion_date(class="form-control form-control-lg") }}
+								{{ clearing_entry.perfusion_date(class="form-control form-control-lg") }}
 							{% endif %}
 						</div>
 
 						<div class="form-group">
-							{% if entry.expected_handoff_date.flags.required %}*{% endif %}
-							{{ entry.expected_handoff_date.label(class="form-control-label") }}
-							{% if entry.expected_handoff_date.errors %}
-								{{ entry.expected_handoff_date(class="form-control form-control-lg is-invalid") }}
+							{% if clearing_entry.expected_handoff_date.flags.required %}*{% endif %}
+							{{ clearing_entry.expected_handoff_date.label(class="form-control-label") }}
+							{% if clearing_entry.expected_handoff_date.errors %}
+								{{ clearing_entry.expected_handoff_date(class="form-control form-control-lg is-invalid") }}
 								<div class="invalid-feedback">
-									{% for error in entry.expected_handoff_date.errors %}
+									{% for error in clearing_entry.expected_handoff_date.errors %}
 										<span>{{ error }}</span>
 									{% endfor %}
 								</div>
 							{% else %}
-								{{ entry.expected_handoff_date(class="form-control form-control-lg") }}
+								{{ clearing_entry.expected_handoff_date(class="form-control form-control-lg") }}
 							{% endif %}
 						</div>
 
 				        <div class="form-group">
-							{% if entry.clearing_protocol.flags.required %}*{% endif %}
-							{{ entry.clearing_protocol.label(class="form-control-label") }}
-							{% if entry.clearing_protocol.errors %}
-								{{ entry.clearing_protocol(class="form-control form-control-lg is-invalid") }}
+							{% if clearing_entry.clearing_protocol.flags.required %}*{% endif %}
+							{{ clearing_entry.clearing_protocol.label(class="form-control-label") }}
+							{% if clearing_entry.clearing_protocol.errors %}
+								{{ clearing_entry.clearing_protocol(class="form-control form-control-lg is-invalid") }}
 								<div class="invalid-feedback">
-									{% for error in entry.clearing_protocol.errors %}
+									{% for error in clearing_entry.clearing_protocol.errors %}
 										<span>{{ error }}</span>
 									{% endfor %}
 								</div>
 							{% else %}
-								{{ entry.clearing_protocol(class="form-control form-control-lg") }}
+								{{ clearing_entry.clearing_protocol(class="form-control form-control-lg") }}
 							{% endif %}
 						</div>
 
 						
 						<div class="form-group">
-							{% if entry.antibody1.flags.required %}*{% endif %}
-							{{ entry.antibody1.label(class="form-control-label") }}
-							{% if entry.antibody1.errors %}
-								{{ entry.antibody1(class="form-control form-control-lg is-invalid") }}
+							{% if clearing_entry.antibody1.flags.required %}*{% endif %}
+							{{ clearing_entry.antibody1.label(class="form-control-label") }}
+							{% if clearing_entry.antibody1.errors %}
+								{{ clearing_entry.antibody1(class="form-control form-control-lg is-invalid") }}
 								<div class="invalid-feedback">
-									{% for error in entry.antibody1.errors %}
+									{% for error in clearing_entry.antibody1.errors %}
 										<span>{{ error }}</span>
 									{% endfor %}
 								</div>
 							{% else %}
-								{{ entry.antibody1(class="form-control form-control-lg") }}
+								{{ clearing_entry.antibody1(class="form-control form-control-lg") }}
 							{% endif %}
 						</div>
 
 						<div class="form-group">
-							{% if entry.antibody2.flags.required %}*{% endif %}
-							{{ entry.antibody2.label(class="form-control-label") }}
-							{% if entry.antibody2.errors %}
-								{{ entry.antibody2(class="form-control form-control-lg is-invalid") }}
+							{% if clearing_entry.antibody2.flags.required %}*{% endif %}
+							{{ clearing_entry.antibody2.label(class="form-control-label") }}
+							{% if clearing_entry.antibody2.errors %}
+								{{ clearing_entry.antibody2(class="form-control form-control-lg is-invalid") }}
 								<div class="invalid-feedback">
-									{% for error in entry.antibody2.errors %}
+									{% for error in clearing_entry.antibody2.errors %}
 										<span>{{ error }}</span>
 									{% endfor %}
 								</div>
 							{% else %}
-								{{ entry.antibody2(class="form-control form-control-lg") }}
+								{{ clearing_entry.antibody2(class="form-control form-control-lg") }}
 							{% endif %}
 						</div>
 
@@ -230,10 +232,10 @@
                         {{ form.self_imaging.label(class="form-check-label") }}
                 </div>
 				<div class="form-group">
-					<span> Will imaging be the same for all samples?</span>
+					<span> Will imaging and processing be the same for all samples?</span>
 					<!-- Change the style of button that was pressed
 					 to make it clear to the user -->
-					{% if form.imaging.data %}
+					{% if form.imaging_samples.data %}
 						{% if form.custom_imaging.data == true %}
 							{{ form.uniform_imaging_submit(class="btn btn-outline-info mt-2") }}
 							{{ form.custom_imaging_submit(class="btn btn-info mt-2") }}
@@ -251,7 +253,7 @@
 				<!-- Handle imaging for each sample -->
 				<hr class='class-2'>
 				<div>
-					{% for entry in form.imaging %}
+					{% for imaging_entry in form.imaging_samples %}
 						{% if form.custom_imaging.data == true %}
 					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} </legend>
 					    {% elif form.custom_imaging.data == false %}
@@ -260,17 +262,17 @@
 				        <hr>
 
 				        <div class="form-group">
-							{% if entry.image_resolution.flags.required %}*{% endif %}
-							{{ entry.image_resolution.label(class="form-control-label") }}
-							{% if entry.image_resolution.errors %}
-								{{ entry.image_resolution(class="form-control form-control-lg is-invalid") }}
+							{% if imaging_entry.image_resolution.flags.required %}*{% endif %}
+							{{ imaging_entry.image_resolution.label(class="form-control-label") }}
+							{% if imaging_entry.image_resolution.errors %}
+								{{ imaging_entry.image_resolution(class="form-control form-control-lg is-invalid") }}
 								<div class="invalid-feedback">
-									{% for error in entry.image_resolution.errors %}
+									{% for error in imaging_entry.image_resolution.errors %}
 										<span>{{ error }}</span>
 									{% endfor %}
 								</div>
 							{% else %}
-								{{ entry.image_resolution(class="form-control form-control-lg") }}
+								{{ imaging_entry.image_resolution(class="form-control form-control-lg") }}
 							{% endif %}
 						</div>
 
@@ -282,38 +284,36 @@
 			                    <th>Injection detection</th>
 			                    <th>Probe detection</th>
 			                    <th>Cell detection</th>
-
 			                </tr>
 			                <tr>   
 			                    <td>488</td>
-			                    <td>{{entry.channel488_registration}}</td>
-			                    <td>{{entry.channel488_injection_detection}}</td>
-			                    <td>{{entry.channel488_probe_detection}}</td>
-			                    <td>{{entry.channel488_cell_detection}}</td>
+			                    <td>{{imaging_entry.channel488_registration}}</td>
+			                    <td>{{imaging_entry.channel488_injection_detection}}</td>
+			                    <td>{{imaging_entry.channel488_probe_detection}}</td>
+			                    <td>{{imaging_entry.channel488_cell_detection}}</td>
 
 			                </tr>
 			                <tr>   
 			                    <td>555</td>
-			                    <td>{{entry.channel555_registration}}</td>
-			                    <td>{{entry.channel555_injection_detection}}</td>
-			                    <td>{{entry.channel555_probe_detection}}</td>
-			                    <td>{{entry.channel555_cell_detection}}</td>
+			                    <td>{{imaging_entry.channel555_registration}}</td>
+			                    <td>{{imaging_entry.channel555_injection_detection}}</td>
+			                    <td>{{imaging_entry.channel555_probe_detection}}</td>
+			                    <td>{{imaging_entry.channel555_cell_detection}}</td>
 
 			                </tr>
 			                <tr>   
 			                    <td>647</td>
-			                    <td>{{entry.channel647_registration}}</td>
-			                    <td>{{entry.channel647_injection_detection}}</td>
-			                    <td>{{entry.channel647_probe_detection}}</td>
-			                    <td>{{entry.channel647_cell_detection}}</td>
+			                    <td>{{imaging_entry.channel647_registration}}</td>
+			                    <td>{{imaging_entry.channel647_injection_detection}}</td>
+			                    <td>{{imaging_entry.channel647_probe_detection}}</td>
+			                    <td>{{imaging_entry.channel647_cell_detection}}</td>
 			                </tr>
 			                <tr>   
 			                    <td>790</td>
-			                    <td>{{entry.channel790_registration}}</td>
-			                    <td>{{entry.channel790_injection_detection}}</td>
-			                    <td>{{entry.channel790_probe_detection}}</td>
-			                    <td>{{entry.channel790_cell_detection}}</td>
-
+			                    <td>{{imaging_entry.channel790_registration}}</td>
+			                    <td>{{imaging_entry.channel790_injection_detection}}</td>
+			                    <td>{{imaging_entry.channel790_probe_detection}}</td>
+			                    <td>{{imaging_entry.channel790_cell_detection}}</td>
 			                </tr>
 			            </table>
 			            {% if not loop.last %}
