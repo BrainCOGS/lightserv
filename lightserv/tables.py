@@ -12,27 +12,15 @@ class ExpTable(Table):
     classes = ["table-striped"] # gets assigned to table classes. 
     # Striped is alternating bright and dark rows for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
-    title = Col('title',column_html_attrs=column_html_attrs,)
+    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
     description = Col('description',column_html_attrs=column_html_attrs)
     species = Col('species',column_html_attrs=column_html_attrs)
-    perfusion_date = Col('perfusion_date',column_html_attrs=column_html_attrs)
-    expected_handoff_date = Col('expected_handoff_date',column_html_attrs=column_html_attrs) 
-    clearer = Col('clearer',column_html_attrs=column_html_attrs)
-    clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
-    clearing_progress = Col('clearing_progress',column_html_attrs=column_html_attrs)
-    antibody1 = Col('primary_antibody',column_html_attrs=column_html_attrs)
-    antibody2 = Col('secondary_antibody',column_html_attrs=column_html_attrs)
-    channel488 = Col('channel488',column_html_attrs=column_html_attrs)
-    channel555 = Col('channel555',column_html_attrs=column_html_attrs)
-    channel647 = Col('channel647',column_html_attrs=column_html_attrs)
-    channel790 = Col('channel790',column_html_attrs=column_html_attrs)
+    number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
+    sample_prefix = Col('sample prefix')
 
-    url_kwargs = {'clearing_protocol':'clearing_protocol','experiment_id':'experiment_id',}
+    url_kwargs = {'username':'username','experiment_name':'experiment_name'}
     anchor_attrs = {'target':"_blank",}
     
-    clearing_link = LinkCol('Edit clearing','clearing.clearing_entry',url_kwargs=url_kwargs,
-        anchor_attrs=anchor_attrs,allow_sort=False)
     experiment_link = LinkCol('View experiment', 'experiments.exp',url_kwargs=url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False)
     

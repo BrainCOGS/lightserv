@@ -221,11 +221,12 @@ def delete_exp(experiment_id):
 	flash('Your experiment has been deleted!', 'success')
 	return redirect(url_for('main.home'))
 
-@experiments.route("/exp/<int:experiment_id>",)
+@experiments.route("/exp/<username>/<experiment_name>",)
 @logged_in
-def exp(experiment_id):
+def exp(username,experiment_name):
 	""" A route for displaying a single experiment. Also acts as a gateway to start data processing. """
-	exp_contents = db_lightsheet.Experiment() & f'experiment_id="{experiment_id}"'
+	exp_contents = db_lightsheet.Experiment() & \
+	 f'experiment_name="{experiment_name}"' & f'username="{username}"'
 	exp_table = ExpTable(exp_contents)
 
 	try:

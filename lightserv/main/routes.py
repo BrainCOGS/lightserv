@@ -46,7 +46,7 @@ def home():
 	else:
 		exp_contents = db_lightsheet.Experiment() & f'username="{username}"'
 		legend = 'Your light sheet experiments'
-	sort = request.args.get('sort', 'experiment_id') # first is the variable name, second is default value
+	sort = request.args.get('sort', 'experiment_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sorted_results = sorted(exp_contents.fetch(as_dict=True),
 		key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
