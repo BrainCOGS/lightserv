@@ -203,7 +203,7 @@ def new_exp():
 	return render_template('experiments/new_exp.html', title='new_experiment',
 		form=form,legend='New Experiment')	
 
-@experiments.route("/exp/<int:experiment_id>/delete", methods=['POST'])
+@experiments.route("/exp/<username>/<experiment_name>/delete", methods=['POST'])
 @logged_in
 def delete_exp(experiment_id):
 	""" A route which will delete an experiment from the database """
@@ -265,39 +265,9 @@ def update_notes(experiment_id):
 		form.notes.data = current_notes
 	return render_template('experiments/update_notes.html',form=form,exp_table=exp_table)
 
-@experiments.route("/exp/<int:experiment_id>/rawdata_link",)
+@experiments.route("/exp/<username>/<experiment_name>/start_processing",methods=['GET','POST'])
 @logged_in
-def exp_rawdata(experiment_id):
-	""" An incomplete route for making a neuroglancer link to view the raw data from an experiment """
-	try: 
-		vol = cloudvolume.CloudVolume('file:///home/ahoag/ngdemo/demo_bucket/demo_dataset/190715_an31_devcno_03082019_1d3x_488_017na_1hfds_z10um_100msec_16-55-48/')
-		# vol = cloudvolume.CloudVolume('file:///home/ahoag/ngdemo/demo_bucket/demo_dataset/demo_layer_singletif/')
-		image_data = np.transpose(vol[:][...,0],(2,1,0)) # can take a few seconds
-		viewer = neuroglancer.Viewer()
-		# This volume handle can be used to notify the viewer that the data has changed.
-		volume = neuroglancer.LocalVolume(
-				 data=image_data, # need it in z,y,x order, strangely
-				 voxel_size=[40000,40000,40000],
-				 voxel_offset = [0, 0, 1], # x,y,z in nm not voxels
-				 volume_type='image'
-				 )
-		with viewer.txn() as s:
-			s.layers['image'] = neuroglancer.ImageLayer(source=volume,
-			shader = '''
-void main() {
-float v = toNormalized(getDataValue(0)) * 20.0;
-emitRGBA(vec4(v, 0.0, 0.0, v));
-		}
-		''')
-	
-	except:
-		flash('Something went wrong making viewer','danger')
-		return redirect(url_for('experiments.exp',experiment_id=experiment_id))
-	return render_template('experiments/datalink.html',viewer=viewer)
-
-@experiments.route("/exp/start_processing/<experiment_id>",methods=['GET','POST'])
-@logged_in
-def start_processing(experiment_id):
+def start_processing(username,experiment_name):
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
 	logger.info(f"{session['user']} accessed start_processing route")
 	exp_contents = db_lightsheet.Experiment() & f'experiment_id={experiment_id}'
