@@ -43,6 +43,22 @@ class ImagingForm(FlaskForm):
 	image_resolution = SelectField('Image Resolution:', 
 		choices=[('1.3x','1.3x (low-res: good for site detection, whole brain c-fos quantification, or registration)'),
 	('4x','4x (high-res: good for tracing, cell detection)')],validators=[InputRequired()]) # for choices first element of tuple is the value of the option, the second is the displayed text
+	channel488_registration = BooleanField('Registration',default=False)
+	channel488_injection_detection = BooleanField('Registration',default=False)
+	channel488_probe_detection = BooleanField('Registration',default=False)
+	channel488_cell_detection = BooleanField('Registration',default=False)
+	channel555_registration = BooleanField('Registration',default=False)
+	channel555_injection_detection = BooleanField('Registration',default=False)
+	channel555_probe_detection = BooleanField('Registration',default=False)
+	channel555_cell_detection = BooleanField('Registration',default=False)
+	channel647_registration = BooleanField('Registration',default=False)
+	channel647_injection_detection = BooleanField('Registration',default=False)
+	channel647_probe_detection = BooleanField('Registration',default=False)
+	channel647_cell_detection = BooleanField('Registration',default=False)
+	channel790_registration = BooleanField('Registration',default=False)
+	channel790_injection_detection = BooleanField('Registration',default=False)
+	channel790_probe_detection = BooleanField('Registration',default=False)
+	channel790_cell_detection = BooleanField('Registration',default=False)
 
 class ExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
@@ -74,7 +90,7 @@ class ExpForm(FlaskForm):
 
 	def validate_samples(self,samples):
 		if len(samples.data) == 0 and not (self.uniform_clearing_submit.data == True or self.custom_clearing_submit == True):
-			raise ValidationError("Please answer the question in the Clearing Info")
+			raise ValidationError("Please answer the question in the Clearing Info section first.")
 
 class OldExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """

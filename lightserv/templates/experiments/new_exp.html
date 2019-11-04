@@ -101,7 +101,7 @@
 				
 				<!-- CLEARING section -->
 				<hr class='class-3'>
-				<h3>Clearing Info</h3>
+				<h3 class='border-bottom'>Clearing Info</h3>
 				<div class="checkbox">
                     {{ form.self_clearing(class="form-check-input") }}
                     {{ form.self_clearing.label(class="form-check-label") }}
@@ -126,7 +126,8 @@
 					{% endif %}
 				</div>
 
-				<!-- Handle samples -->
+				<!-- Handle clearing for each sample -->
+				<hr class='class-2'>
 				<div>
 					{% for entry in form.samples %}
 						{% if form.custom_clearing.data == true %}
@@ -211,12 +212,18 @@
 								{{ entry.antibody2(class="form-control form-control-lg") }}
 							{% endif %}
 						</div>
+
+					{% if not loop.last %}
+						<br/>
+		            	<hr class='class-2'>
+		            {% endif %}
+
 					{% endfor %}
 				</div>
 
 				<!-- IMAGING section -->
 				<hr class='class-3'>
-				<h3 class='border-bottom'>Imaging Info</h3>
+				<h3 class='border-bottom'>Imaging/Processing Info</h3>
 
 				<div class="checkbox">
                         {{ form.self_imaging(class="form-check-input") }}
@@ -241,6 +248,8 @@
 					{% endif %}
 				</div>
 
+				<!-- Handle imaging for each sample -->
+				<hr class='class-2'>
 				<div>
 					{% for entry in form.imaging %}
 						{% if form.custom_imaging.data == true %}
@@ -265,7 +274,52 @@
 							{% endif %}
 						</div>
 
-						
+						<h4> Select all imaging purposes: </h4>
+						<table class="table table-bordered table-striped text-center mb-4">
+			                <tr>
+			                    <th>Channel wavelength(nm)</th>
+			                    <th>Registration</th>
+			                    <th>Injection detection</th>
+			                    <th>Probe detection</th>
+			                    <th>Cell detection</th>
+
+			                </tr>
+			                <tr>   
+			                    <td>488</td>
+			                    <td>{{entry.channel488_registration}}</td>
+			                    <td>{{entry.channel488_injection_detection}}</td>
+			                    <td>{{entry.channel488_probe_detection}}</td>
+			                    <td>{{entry.channel488_cell_detection}}</td>
+
+			                </tr>
+			                <tr>   
+			                    <td>555</td>
+			                    <td>{{entry.channel555_registration}}</td>
+			                    <td>{{entry.channel555_injection_detection}}</td>
+			                    <td>{{entry.channel555_probe_detection}}</td>
+			                    <td>{{entry.channel555_cell_detection}}</td>
+
+			                </tr>
+			                <tr>   
+			                    <td>647</td>
+			                    <td>{{entry.channel647_registration}}</td>
+			                    <td>{{entry.channel647_injection_detection}}</td>
+			                    <td>{{entry.channel647_probe_detection}}</td>
+			                    <td>{{entry.channel647_cell_detection}}</td>
+			                </tr>
+			                <tr>   
+			                    <td>790</td>
+			                    <td>{{entry.channel790_registration}}</td>
+			                    <td>{{entry.channel790_injection_detection}}</td>
+			                    <td>{{entry.channel790_probe_detection}}</td>
+			                    <td>{{entry.channel790_cell_detection}}</td>
+
+			                </tr>
+			            </table>
+			            {% if not loop.last %}
+			            	<br/>
+			            	<hr class='class-2'>
+			            {% endif %}
 					{% endfor %}
 				</div>
 
