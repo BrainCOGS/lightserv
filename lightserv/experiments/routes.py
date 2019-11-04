@@ -5,7 +5,7 @@ from flask import (render_template, url_for, flash,
 # from lightserv import db_lightsheet
 # from lightserv.models import Experiment
 from lightserv.experiments.forms import ExpForm, UpdateNotesForm, StartProcessingForm
-from lightserv.tables import ExpTable
+from lightserv.tables import ExpTable, SamplesTable
 from lightserv import db_lightsheet
 from lightserv.main.utils import logged_in
 from lightserv import cel
@@ -21,6 +21,7 @@ import numpy as np
 
 import pymysql
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -106,7 +107,6 @@ def new_exp():
 				# Just make one set of sample fields
 				form.imaging_samples.append_entry()
 			
-
 			elif submit_key == 'submit': # The final submit button
 				logger.debug("Final submission")
 				''' Create a new entry in the Experiment table based on form input.
@@ -122,7 +122,11 @@ def new_exp():
 						correspondence_email=form.correspondence_email.data.lower(),
 						description=form.description.data,species=form.species.data,
 						number_of_samples=form.number_of_samples.data,sample_prefix=form.sample_prefix.data)
-
+					now = datetime.now()
+					date = now.strftime("%Y-%m-%d")
+					time = now.strftime("%H:%M:%S") 
+					exp_insert_dict['date_submitted'] = date
+					exp_insert_dict['time_submitted'] = time
 					db_lightsheet.Experiment().insert1(exp_insert_dict)
 					''' Figure out the experiment_id so we can use it for the samples table insert '''
 
@@ -166,26 +170,11 @@ def new_exp():
 						print("new insert")
 						print(sample_insert_dict)
 						print()
-						return redirect(url_for('main.home'))
-			print(form.custom_clearing.data)
-			print(form.custom_imaging.data)	
-			return render_template("experiments/new_exp.html",form=form,column_name=column_name)
-				# if form.self_clearing.data == True: # otherwise keep as NULL
-				# 	clearer = username
-				# 	exp_dict['clearer'] = clearer
-				# all_usernames = db_lightsheet.User().fetch('username') 
-				# if username not in all_usernames:
-				# 	princeton_email = username + '@princeton.edu'
-				# 	user_dict = {'username':username,'princeton_email':princeton_email}
-				# 	db_lightsheet.User().insert1(user_dict)
+					return redirect(url_for('main.home'))
 
-				# db_lightsheet.Experiment().insert1(exp_dict)
-				# exp_id = db_lightsheet.Experiment().fetch("KEY")[-1]['experiment_id'] # gets the most recently added key
-				# flash(Markup(f'Your experiment has started!\n \
-				# 	Check your new experiment page: <a href="{url_for("experiments.exp",experiment_id=exp_id)}" \
-				# 	class="alert-link" target="_blank">here</a> for your data when it becomes available.'),'success')
-				# return redirect(url_for('main.home'))
-		else:
+			return render_template("experiments/new_exp.html",form=form,column_name=column_name)
+				
+		else: # post request but not validated
 
 			if 'clearing_samples' in form.errors:
 				for error_str in form.errors['clearing_samples']:
@@ -228,6 +217,8 @@ def exp(username,experiment_name):
 	exp_contents = db_lightsheet.Experiment() & \
 	 f'experiment_name="{experiment_name}"' & f'username="{username}"'
 	exp_table = ExpTable(exp_contents)
+	samples_contents = db_lightsheet.Experiment.Sample() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
+	samples_table = SamplesTable(samples_contents)
 
 	try:
 		if exp_contents.fetch1('username') != session['user'] and session['user'] != 'ahoag':
@@ -236,7 +227,7 @@ def exp(username,experiment_name):
 	except:
 		flash(f'Page does not exist for Dataset: "{experiment_id}"','danger')
 		return redirect(url_for('main.home'))
-	return render_template('experiments/exp.html',exp_contents=exp_contents,exp_table=exp_table)
+	return render_template('experiments/exp.html',exp_contents=exp_contents,exp_table=exp_table,samples_table=samples_table)
 
 @experiments.route("/exp/<int:experiment_id>/notes", methods=['GET','POST'])
 @logged_in

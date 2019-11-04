@@ -30,6 +30,8 @@ class Experiment(dj.Manual):
     -> User  
     experiment_name                        :   varchar(64)
     ----
+    date_submitted               :   date     # The date it was submitted as a request
+    time_submitted               :   time     # The time it was submitted as a request
     labname                      :   varchar(50)
     correspondence_email = ''    :   varchar(100)
     description                  :   varchar(250)

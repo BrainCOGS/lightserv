@@ -17,6 +17,54 @@ class ExpTable(Table):
     species = Col('species',column_html_attrs=column_html_attrs)
     number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
     sample_prefix = Col('sample prefix')
+    date_submitted = Col('date submitted')
+    time_submitted = Col('time submitted')
+
+    url_kwargs = {'username':'username','experiment_name':'experiment_name'}
+    anchor_attrs = {'target':"_blank",}
+    
+    experiment_link = LinkCol('View experiment', 'experiments.exp',url_kwargs=url_kwargs,
+        anchor_attrs=anchor_attrs,allow_sort=False)
+    
+    def sort_url(self, col_key, reverse=False):
+        if col_key == 'experiment_link':
+            return url_for('main.home')
+        if reverse:
+            direction = 'desc'
+        else:
+            direction = 'asc'
+        return url_for('main.home', sort=col_key, direction=direction)
+
+class SamplesTable(Table):
+    border = True
+    allow_sort = True
+    no_items = "No Samples"
+    html_attrs = {"style":'font-size:18px'} # gets assigned to table header
+    column_html_attrs = [] # javascript tableswapper does not preserve these.
+    classes = ["table-striped"] # gets assigned to table classes. 
+    # Striped is alternating bright and dark rows for visual ease.
+    username = Col('username',column_html_attrs=column_html_attrs)
+    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
+    clearer = Col('clearer',column_html_attrs=column_html_attrs)
+    imager = Col('imager',column_html_attrs=column_html_attrs)
+    image_resolution = Col("image image_resolution",column_html_attrs=column_html_attrs)
+    channel488_registration = Col('channel488_registration',column_html_attrs=column_html_attrs)                     
+    channel555_registration = Col('channel555_registration',column_html_attrs=column_html_attrs)                     
+    channel647_registration = Col('channel647_registration',column_html_attrs=column_html_attrs)                     
+    channel790_registration = Col('channel790_registration',column_html_attrs=column_html_attrs)                     
+    channel488_injection_detection = Col('channel488_injection_detection',column_html_attrs=column_html_attrs)                     
+    channel555_injection_detection = Col('channel555_injection_detection',column_html_attrs=column_html_attrs)                     
+    channel647_injection_detection = Col('channel647_injection_detection',column_html_attrs=column_html_attrs)                     
+    channel790_injection_detection = Col('channel790_injection_detection',column_html_attrs=column_html_attrs) 
+    channel488_probe_detection = Col('channel488_probe_detection',column_html_attrs=column_html_attrs)                     
+    channel555_probe_detection = Col('channel555_probe_detection',column_html_attrs=column_html_attrs)                     
+    channel647_probe_detection = Col('channel647_probe_detection',column_html_attrs=column_html_attrs)                     
+    channel790_probe_detection = Col('channel790_probe_detection',column_html_attrs=column_html_attrs) 
+    channel488_cell_detection = Col('channel488_cell_detection',column_html_attrs=column_html_attrs)                     
+    channel555_cell_detection = Col('channel555_cell_detection',column_html_attrs=column_html_attrs)                     
+    channel647_cell_detection = Col('channel647_cell_detection',column_html_attrs=column_html_attrs)                     
+    channel790_cell_detection = Col('channel790_cell_detection',column_html_attrs=column_html_attrs) 
 
     url_kwargs = {'username':'username','experiment_name':'experiment_name'}
     anchor_attrs = {'target':"_blank",}
