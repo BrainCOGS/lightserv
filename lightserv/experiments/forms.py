@@ -85,21 +85,13 @@ class ExpForm(FlaskForm):
 
 	submit = SubmitField('Submit request')	
 
-	def validate_clearing_samples(self,clearing_samples):
-		""" Make sure that user has answered the question of 
-		whether to use unique clearing before being able to submit the whole form
+	def validate_submit(self,submit):
+		""" Make sure that user has filled out sample setup section
 		""" 
 		if self.submit.data == True:
-			if len(clearing_samples.data) == 0 and not (self.uniform_clearing_submit.data == True or self.custom_clearing_submit == True):
-				raise ValidationError("Please answer the question in the Clearing Info section first.")
+			if len(self.clearing_samples.data) == 0 or  len(self.imaging_samples.data) == 0:
+				raise ValidationError("You must fill out and submit the 'Samples setup' section first.")
 
-	def validate_imaging_samples(self,imaging_samples):
-		""" Make sure that user has answered the question of 
-		whether to use unique clearing before being able to submit the whole form
-		""" 
-		if self.submit.data == True:
-			if len(imaging_samples.data) == 0 and not (self.uniform_imaging_submit.data == True or self.custom_imaging_submit == True):
-				raise ValidationError("Please answer the question in the Imaging/Processing Info section first.")
 
 class OldExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """

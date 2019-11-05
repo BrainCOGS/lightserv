@@ -45,9 +45,11 @@ class SamplesTable(Table):
     column_html_attrs = [] # javascript tableswapper does not preserve these.
     classes = ["table-striped"] # gets assigned to table classes. 
     # Striped is alternating bright and dark rows for visual ease.
-    username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
     sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
+    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    username = Col('username',column_html_attrs=column_html_attrs)
+    clearing_progress = Col('clearing_progress',column_html_attrs)
+    clearing_protocol = Col('clearing_protocol',column_html_attrs)
     clearer = Col('clearer',column_html_attrs=column_html_attrs)
     imager = Col('imager',column_html_attrs=column_html_attrs)
     image_resolution = Col("image image_resolution",column_html_attrs=column_html_attrs)
@@ -68,10 +70,11 @@ class SamplesTable(Table):
     channel647_cell_detection = Col('channel647_cell_detection',column_html_attrs=column_html_attrs)                     
     channel790_cell_detection = Col('channel790_cell_detection',column_html_attrs=column_html_attrs) 
 
-    url_kwargs = {'username':'username','experiment_name':'experiment_name'}
+    url_kwargs = {'username':'username','experiment_name':'experiment_name',
+    'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
     anchor_attrs = {'target':"_blank",}
     
-    experiment_link = LinkCol('View experiment', 'experiments.exp',url_kwargs=url_kwargs,
+    clearing_link = LinkCol('Start/edit clearing', 'clearing.clearing_entry',url_kwargs=url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False)
     
     def sort_url(self, col_key, reverse=False):
@@ -120,9 +123,8 @@ class ClearingTable(Table):
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
-    title = Col('title',column_html_attrs=column_html_attrs,)
-    description = Col('description',column_html_attrs=column_html_attrs)
+    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
     clearing_progress = Col('clearing_progress',column_html_attrs=column_html_attrs)
 

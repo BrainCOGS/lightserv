@@ -6,7 +6,7 @@
 			{{ form.hidden_tag() }}
 			{% set day_dictionary = {'dehydr':'Dehydration','rehydr':'Rehydration','blocking':'Blocking','antibody1':'Primary Antibody','antibody2':'Secondary Antibody','clearing':'Clearing','wash1':'Wash','wash2':'Wash'} %}
 			<fieldset class="form-group">
-				<legend class="border-bottom mb-4">Clearing protocol: {{form.title}}</br></br>Entry log for experiment_id={{experiment_id}}:</legend>
+				<legend class="border-bottom mb-4">Clearing protocol: {{form.title}}</br></br>Entry log for experiment_name={{ experiment_name }}:</legend>
 				<div>
 					{{ form.exp_notes.label(id='larger')}}
 					{% if form.exp_notes.errors %}

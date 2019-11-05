@@ -163,7 +163,7 @@ def new_exp():
 						if form.self_imaging.data:
 							sample_insert_dict['imager'] = username
 						
-						db_lightsheet.Experiment.Sample.insert1(sample_insert_dict)
+						db_lightsheet.Sample().insert1(sample_insert_dict)
 						logger.info("new insert")
 						logger.info(sample_insert_dict)
 						logger.info('')
@@ -171,11 +171,8 @@ def new_exp():
 			
 		else: # post request but not validated
 
-			if 'clearing_samples' in form.errors:
-				for error_str in form.errors['clearing_samples']:
-					flash(error_str,'danger')
-			if 'imaging_samples' in form.errors:
-				for error_str in form.errors['imaging_samples']:
+			if 'submit' in form.errors:
+				for error_str in form.errors['submit']:
 					flash(error_str,'danger')
 			
 			logger.debug("Not validated!")
@@ -214,7 +211,7 @@ def exp(username,experiment_name):
 	 f'experiment_name="{experiment_name}"' & f'username="{username}"'
 	exp_table = ExpTable(exp_contents)
 	exp_table.table_id = 'horizontal' # to override vertical layout
-	samples_contents = db_lightsheet.Experiment.Sample() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
+	samples_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
 	samples_table = SamplesTable(samples_contents)
 	samples_table.table_id = 'vertical'
 	try:

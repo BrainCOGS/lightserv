@@ -3,7 +3,12 @@
 	{{ table }}
 	{% if clearing_contents %}
 		<input id = "tableSwapper" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
-		<script src="{{ url_for('static',filename='javascript/tableswapper.js') }}" defer="defer"></script>
+		<script type="text/javascript" defer="defer">
+
+		   $("#tableSwapper").click(function() {
+		   MYLIBRARY.swapTable("{{table.table_id}}");
+		});
+		</script>
 	{% endif %}
 
 {% endblock content %}

@@ -36,28 +36,33 @@ logger.addHandler(file_handler)
 
 clearing = Blueprint('clearing',__name__)
 
-@clearing.route("/clearing/clearing_entry/<clearing_protocol>/<experiment_id>",methods=['GET','POST'])
+@clearing.route("/clearing/clearing_entry/<username>/<experiment_name>/<sample_name>/<clearing_protocol>/",
+	methods=['GET','POST'])
 @logged_in_as_clearer
-def clearing_entry(clearing_protocol,experiment_id): 
-	exp_contents = db_lightsheet.Experiment() & f'experiment_id={experiment_id}' & f'clearing_protocol="{clearing_protocol}"'							
-
-	if not exp_contents:
-		flash(f'Experiment must exist for experiment_id={experiment_id} with \
+def clearing_entry(username,experiment_name,sample_name,clearing_protocol): 
+	# print(username,experiment_name,sample_name,clearing_protocol)
+	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'clearing_protocol="{clearing_protocol}"'								
+	# print(sample_contents)
+	if not sample_contents:
+		flash(f'Experiment must exist for experiment_name={experiment_name}, sample_name={sample_name} with \
 			clearing_protocol="{clearing_protocol}" before clearing can be done. \
 			Please submit a new request for this experiment first. ','danger')
 		return redirect(url_for('experiments.new_exp'))
-	dj.Table._update(exp_contents,'clearing_progress','in progress')
-	clearing_table = ClearingTable(exp_contents)
+	dj.Table._update(sample_contents,'clearing_progress','in progress')
+	clearing_table = ClearingTable(sample_contents)
 	form = determine_clearing_form(clearing_protocol,existing_form=request.form)
 	
 	dbTable = determine_clearing_dbtable(clearing_protocol)
 	''' Check to see if there is an entry in the db yet. If not create one with all NULL values.
 	They will get updated as the user fills out the form '''
-	clearing_contents = dbTable() & f'experiment_id="{experiment_id}"'
+	clearing_contents = dbTable() & f'experiment_name="{experiment_name}"' & \
+	 	f'username="{username}"' & f'sample_name="{sample_name}"'
+	# print(clearing_contents)
 	if not clearing_contents:
-		experiment_username = exp_contents.fetch1('username')
-		insert_dict = {'experiment_id':experiment_id,
-						'username':experiment_username,'clearer':session['user']}
+		sample_username = sample_contents.fetch1('username')
+		insert_dict = {'experiment_name':experiment_name,
+						'username':sample_username,'sample_name':sample_name}
 		dbTable().insert1(insert_dict)
 		logger.info("Created clearing database entry")
 	
@@ -76,17 +81,18 @@ def clearing_entry(clearing_protocol,experiment_id):
 						form_data_dict = form.data
 						clearing_contents_dict = clearing_contents.fetch1()
 						''' The fields that need to go in the database that are not in the form '''
-						base_entry_dict = {'experiment_id':experiment_id,
+						base_entry_dict = {'experiment_name':experiment_name,
 										   'username':clearing_contents_dict['username'],
-						                   'clearer':clearing_contents_dict['clearer']}
-						clearing_entry_dict = {key:form_data_dict[key] for key in form_data_dict.keys() if key in clearing_contents_dict.keys()}
+						                   'sample_name':clearing_contents_dict['sample_name']}
+						clearing_entry_dict = {key:form_data_dict[key] for key in form_data_dict.keys() \
+							if key in clearing_contents_dict.keys()}
 						for k in base_entry_dict:
 							clearing_entry_dict[k] = base_entry_dict[k]
 						clearing_contents.delete_quick()
 						dbTable().insert1(clearing_entry_dict)	
-						dj.Table._update(exp_contents,'clearing_progress','complete')						
+						dj.Table._update(sample_contents,'clearing_progress','complete')						
 						flash("Clearing form was successfully completed.",'success')
-						return redirect(url_for('clearing.clearing_table',experiment_id=experiment_id))
+						return redirect(url_for('main.home'))
 					elif re.search("^(?!perfusion).*_date_submit$",key) != None:
 						column_name = key.split('_submit')[0]
 						date = form[column_name].data
@@ -127,17 +133,17 @@ def clearing_entry(clearing_protocol,experiment_id):
 
 	''' Populate form with current database contents '''
 	# logger.debug("Current non-null contents of the database:")
-	clearing_contents = dbTable() & f'experiment_id={experiment_id}'
-	clearing_contents_dict = clearing_contents.fetch1()
-	form_fieldnames = form._fields.keys()
-	for key in clearing_contents_dict.keys():
-		val = clearing_contents_dict[key]
-		if key in form_fieldnames and val:
-			logger.debug(f"key={key},val={val}")
-			# logger.debug(val)
-			form[key].data = val
+	# clearing_contents = dbTable() & f'experiment_id={experiment_id}'
+	# clearing_contents_dict = clearing_contents.fetch1()
+	# form_fieldnames = form._fields.keys()
+	# for key in clearing_contents_dict.keys():
+	# 	val = clearing_contents_dict[key]
+	# 	if key in form_fieldnames and val:
+	# 		logger.debug(f"key={key},val={val}")
+	# 		# logger.debug(val)
+	# 		form[key].data = val
 	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,
-		form=form,clearing_table=clearing_table,experiment_id=experiment_id,
+		form=form,clearing_table=clearing_table,experiment_name=experiment_name,
 		column_name=column_name)
 
 @clearing.route("/clearing/clearing_table/<experiment_id>",methods=['GET'])

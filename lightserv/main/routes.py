@@ -40,7 +40,7 @@ main = Blueprint('main',__name__)
 def home(): 
 	username = session['user']
 	logger.info(f"{username} accessed home page")
-	if username in ['ahoag','zmd','ll3']:
+	if username in ['ahoag','zmd','ll3','kellyms','jduva']:
 		exp_contents = db_lightsheet.Experiment()
 		legend = 'All light sheet experiments'
 	else:

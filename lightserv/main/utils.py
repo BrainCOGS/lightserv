@@ -43,12 +43,15 @@ def logged_in_as_clearer(f):
 
 		if 'user' in session:
 			username = session['user']
-			if username in ['ll3','zmd','jduva']:
+			if username in ['ll3','zmd','jduva','ahoag','kellyms']:
 				logger.info(f"{session['user']} is a designated clearer")
 				return f(*args, **kwargs)
 			else:
-				experiment_id = kwargs['experiment_id']
-				exp_contents = db_lightsheet.Experiment() & f'experiment_id={experiment_id}'
+				experiment_name = kwargs['experiment_name']
+				sample_name = kwargs['sample_name']
+				username = kwargs['username']
+				exp_contents = db_lightsheet.Sample() & f'experiment_name={experiment_name}' & \
+				 	f'username="{username}"' & f'sample_name="{sample_name}"'
 				clearer = exp_contents.fetch1('clearer')
 				if username == clearer:
 					logger.info(f"{username} is the clearer.")
