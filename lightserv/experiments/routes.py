@@ -47,10 +47,11 @@ experiments = Blueprint('experiments',__name__)
 @logged_in
 def new_exp():
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
-	logger.info(f"{session['user']} accessed new experiment form")
+	username = session['user']
+	logger.info(f"{username} accessed new experiment form")
 
 	form = ExpForm(request.form)
-
+	
 	if request.method == 'POST':
 		if form.validate_on_submit():
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x and form[x].data]
@@ -58,55 +59,37 @@ def new_exp():
 			submit_key = submit_keys[0]
 			
 			""" Handle multiple clearing/imaging yes/no button pressed """
-			if submit_key == 'uniform_clearing_submit': # yes was pressed
-				column_name = 'clearing_samples-0-clearing_protocol'
-
-				logger.debug("Clearing is uniform")
-				form.custom_clearing.data = 0
+			if submit_key == 'sample_submit_button': # The sample setup button
 				nsamples = form.number_of_samples.data
-				# First pop off any existing sample fields
-				while len(form.clearing_samples.data) > 0:
-					form.clearing_samples.pop_entry()
-				# Just make one set of sample fields
-				form.clearing_samples.append_entry()
-			
-			elif submit_key == 'custom_clearing_submit': # yno was pressed
-				column_name = 'clearing_samples-0-clearing_protocol'
-				logger.debug("Clearing is custom")
-				form.custom_clearing.data = 1
-				nsamples = form.number_of_samples.data
-				# First pop off any existing sample fields 
-				while len(form.clearing_samples.data) > 0:
-					form.clearing_samples.pop_entry()
-				# make nsamples sets of sample fields
-				for ii in range(nsamples):
+				if form.uniform_clearing.data == True: # UNIFORM clearing
+					logger.info("Clearing is uniform")
+					while len(form.clearing_samples.data) > 0:
+						form.clearing_samples.pop_entry()
+					# Just make one set of sample fields
 					form.clearing_samples.append_entry()
+				else: # CUSTOM clearing
+					logger.info("Clearing is custom")
+					while len(form.clearing_samples.data) > 0:
+						form.clearing_samples.pop_entry()
+					# make nsamples sets of sample fields
+					for ii in range(nsamples):
+						form.clearing_samples.append_entry()
 
-					
-			elif submit_key == 'custom_imaging_submit': # yes was pressed
-				column_name = 'imaging_samples-0-image_resolution'
-
-				logger.debug("Imaging is custom")
-				form.custom_imaging.data = 1
-				nsamples = form.number_of_samples.data
-				# First pop off any existing imaging fields 
-				while len(form.imaging_samples.data) > 0:
-					form.imaging_samples.pop_entry()
-				# make nsamples sets of imaging fields
-				for ii in range(nsamples):
+				if form.uniform_imaging.data == True: # UNIFORM imaging
+					logger.info("imaging is uniform")
+					while len(form.imaging_samples.data) > 0:
+						form.imaging_samples.pop_entry()
+					# Just make one set of sample fields
 					form.imaging_samples.append_entry()
+				else: # CUSTOM imaging
+					logger.info("imaging is custom")
+					while len(form.imaging_samples.data) > 0:
+						form.imaging_samples.pop_entry()
+					# make nsamples sets of sample fields
+					for ii in range(nsamples):
+						form.imaging_samples.append_entry()
+				column_name = 'clearing_samples-0-clearing_protocol'
 
-			elif submit_key == 'uniform_imaging_submit': # no was pressed
-				column_name = 'imaging_samples-0-image_resolution'
-				logger.debug("Imaging is uniform")
-				form.custom_imaging.data = 0
-				nsamples = form.number_of_samples.data
-				# First pop off any existing sample fields
-				while len(form.imaging_samples.data) > 0:
-					form.imaging_samples.pop_entry()
-				# Just make one set of sample fields
-				form.imaging_samples.append_entry()
-			
 			elif submit_key == 'submit': # The final submit button
 				logger.debug("Final submission")
 				''' Create a new entry in the Experiment table based on form input.
@@ -118,10 +101,12 @@ def new_exp():
 					table but not Sample table if there is an error """
 				connection = db_lightsheet.Experiment.connection
 				with connection.transaction:
-					exp_insert_dict = dict(experiment_name=form.title.data,username=username,labname=form.labname.data.lower(),
+					exp_insert_dict = dict(experiment_name=form.experiment_name.data,
+						username=username,labname=form.labname.data.lower(),
 						correspondence_email=form.correspondence_email.data.lower(),
 						description=form.description.data,species=form.species.data,
-						number_of_samples=form.number_of_samples.data,sample_prefix=form.sample_prefix.data)
+						number_of_samples=form.number_of_samples.data,
+						sample_prefix=form.sample_prefix.data)
 					now = datetime.now()
 					date = now.strftime("%Y-%m-%d")
 					time = now.strftime("%H:%M:%S") 
@@ -135,17 +120,29 @@ def new_exp():
 					clearing_samples = form.clearing_samples.data
 					imaging_samples = form.imaging_samples.data
 					number_of_samples = form.number_of_samples.data
+					''' First need to figure out if clearing and imaging 
+					were custom or uniform for each sample '''
+					if len(clearing_samples) == number_of_samples:
+						uniform_clearing = False
+					else:
+						uniform_clearing = True
+
+					if len(imaging_samples) == number_of_samples:
+						uniform_imaging = False
+					else:
+						uniform_imaging = True
+
 					for ii in range(number_of_samples):
 						sample_insert_dict = {}
-						if form.custom_clearing.data == True:
-							clearing_sample_dict = clearing_samples[ii]
-						else:
+						if uniform_clearing == True:
 							clearing_sample_dict = clearing_samples[0]
-
-						if form.custom_imaging.data == True:
-							imaging_sample_dict = imaging_samples[ii]
 						else:
+							clearing_sample_dict = clearing_samples[ii]
+
+						if uniform_imaging == True:
 							imaging_sample_dict = imaging_samples[0]
+						else:
+							imaging_sample_dict = imaging_samples[ii]
 
 						for key,val in clearing_sample_dict.items(): 
 							if val != None and key != 'csrf_token':
@@ -155,7 +152,7 @@ def new_exp():
 								sample_insert_dict[key] = val
 						sample_name = form.sample_prefix.data + '-' + '%i' % (ii+1)
 						''' Add depedent primary keys '''
-						sample_insert_dict['experiment_name'] = form.title.data
+						sample_insert_dict['experiment_name'] = form.experiment_name.data
 						sample_insert_dict['username'] = username 
 
 						sample_insert_dict['sample_name'] = sample_name
@@ -169,11 +166,9 @@ def new_exp():
 						db_lightsheet.Experiment.Sample.insert1(sample_insert_dict)
 						logger.info("new insert")
 						logger.info(sample_insert_dict)
-						logger.info()
+						logger.info('')
 					return redirect(url_for('main.home'))
-
-			return render_template("experiments/new_exp.html",form=form,column_name=column_name)
-				
+			
 		else: # post request but not validated
 
 			if 'clearing_samples' in form.errors:
@@ -186,11 +181,12 @@ def new_exp():
 			logger.debug("Not validated!")
 			logger.debug(form.errors)
 			# logger.debug(form.samples.data)
-	form.correspondence_email.data = session['user'] + '@princeton.edu' 
-	print(form.custom_clearing.data == True)
-	print(form.custom_imaging.data == True)	
+	if not form.correspondence_email.data:	
+		form.correspondence_email.data = session['user'] + '@princeton.edu' 
+	if 'column_name' not in locals():
+		column_name = ''
 	return render_template('experiments/new_exp.html', title='new_experiment',
-		form=form,legend='New Experiment')	
+		form=form,legend='New Experiment',column_name=column_name)	
 
 @experiments.route("/exp/<username>/<experiment_name>/delete", methods=['POST'])
 @logged_in
@@ -262,9 +258,13 @@ def update_notes(experiment_id):
 def start_processing(username,experiment_name):
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
 	logger.info(f"{session['user']} accessed start_processing route")
-	exp_contents = db_lightsheet.Experiment() & f'experiment_id={experiment_id}'
-	assert len(exp_contents) == 1
-	channels = [488,555,647,790]
+	exp_contents = (db_lightsheet.Experiment() &\
+	 f'username="{username}"' & f'experiment_name="{experiment_name}"')
+	logger.info(exp_contents)
+
+	# print(exp_contents)
+	# assert len(exp_contents) == 1
+	# channels = [488,555,647,790]
 	channel_query_strs = ['channel%i' % channel for channel in channels]
 
 	channels = ['registration','injection_detection','probe_detection','cell_detection']

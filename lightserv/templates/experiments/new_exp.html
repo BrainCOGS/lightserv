@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
-	<h1 align="center">New Request Form</h1>
+	<h1 id='primary_header' align="center">New Request Form</h1>
 	 <div class="content-section">
 
 		<form method="POST" action="">
@@ -36,17 +36,17 @@
 					{% endif %}
 				</div>
 				<div class="form-group">
-					{% if form.title.flags.required %}*{% endif %}
-					{{ form.title.label(class="form-control-label") }}
-					{% if form.title.errors %}
-						{{ form.title(class="form-control form-control-lg is-invalid") }}
+					{% if form.experiment_name.flags.required %}*{% endif %}
+					{{ form.experiment_name.label(class="form-control-label") }}
+					{% if form.experiment_name.errors %}
+						{{ form.experiment_name(class="form-control form-control-lg is-invalid") }}
 						<div class="invalid-feedback">
-							{% for error in form.title.errors %}
+							{% for error in form.experiment_name.errors %}
 								<span>{{ error }}</span>
 							{% endfor %}
 						</div>
 					{% else %}
-						{{ form.title(class="form-control form-control-lg") }}
+						{{ form.experiment_name(class="form-control form-control-lg") }}
 					{% endif %}
 				</div>
 				<div class="form-group">
@@ -101,40 +101,39 @@
 				
 				<!-- CLEARING section -->
 				<hr class='class-3'>
-				<h3 class='border-bottom'>Clearing Info</h3>
+				<h3 class='border-bottom'>Samples setup</h3>
 				<div class="checkbox">
                     {{ form.self_clearing(class="form-check-input") }}
                     {{ form.self_clearing.label(class="form-check-label") }}
                 </div>
-				<div class="form-group">
-					<span> Will clearing protocol be the same for all samples?</span>
-					<div class="form-group">
-						{{ form.custom_clearing() }}
-					</div>
-					<!-- Change the style of button that was pressed
-					 to make it clear to the user -->
-					{% if form.clearing_samples.data %} <!-- If a button was pressed !-->
-						{% if form.custom_clearing.data == 1 %} <!-- No highlighted !-->
-							{{ form.uniform_clearing_submit(class="btn btn-outline-info mt-2") }}
-							{{ form.custom_clearing_submit(class="btn btn-info mt-2") }} 
-						{% elif form.custom_clearing.data == 0 %} <!-- Yes highlighted !-->
-							{{ form.uniform_clearing_submit(class="btn btn-info mt-2") }}
-							{{ form.custom_clearing_submit(class="btn btn-outline-info mt-2") }}
-						{% endif %}
-
-					{% else %}
-						{{ form.uniform_clearing_submit(class="btn btn-outline-info mt-2") }}
-						{{ form.custom_clearing_submit(class="btn btn-outline-info mt-2") }}
-					{% endif %}
+				<div class="checkbox">
+					{{ form.uniform_clearing(class="form-check-input") }}
+					{{ form.uniform_clearing.label(class="form-check-label") }}
+				</div>
+				<div class="checkbox">
+                    {{ form.self_imaging(class="form-check-input") }}
+                    {{ form.self_imaging.label(class="form-check-label") }}
+                </div>
+				<div class="checkbox">
+					{{ form.uniform_imaging(class="form-check-input") }}
+					{{ form.uniform_imaging.label(class="form-check-label") }}
 				</div>
 
+				<div class="form-group">
+					{{ form.sample_submit_button(class="btn btn-success mt-2") }}
+				</div>
 				<!-- Handle clearing for each sample -->
-				<hr class='class-2'>
+				
+				{% if form.clearing_samples.data|length > 0 %}
+					<hr class='class-2'>
+					<h3 class='border-bottom'>Clearing setup</h3>
+				{% endif %}
 				<div>
 					{% for clearing_entry in form.clearing_samples %}
-						{% if form.custom_clearing.data == true %}
+						{% if form.uniform_clearing.data == false %}
 					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} </legend>
-					    {% elif form.custom_clearing.data == false %}
+						
+					    {% else %}
 					    	<legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} <br/>(Your entries below will apply to all of your samples) </legend>
 						{% endif %}
 				        <hr>
@@ -224,42 +223,18 @@
 				</div>
 
 				<!-- IMAGING section -->
-				<hr class='class-3'>
-				<h3 class='border-bottom'>Imaging/Processing Info</h3>
-
-				<div class="checkbox">
-                    {{ form.self_imaging(class="form-check-input") }}
-                    {{ form.self_imaging.label(class="form-check-label") }}
-                </div>
-				<div class="form-group">
-					<span> Will imaging and processing be the same for all samples?</span>
-					<!-- <div class="form-group">
-						{{ form.custom_imaging() }}
-					</div> -->
-					<!-- Change the style of button that was pressed
-					 to make it clear to the user -->
-					{% if form.imaging_samples.data %}
-						{% if form.custom_imaging.data == 1 %}
-							{{ form.uniform_imaging_submit(class="btn btn-outline-info mt-2") }}
-							{{ form.custom_imaging_submit(class="btn btn-info mt-2") }}
-						{% elif form.custom_imaging.data == 0 %}
-							{{ form.uniform_imaging_submit(class="btn btn-info mt-2") }}
-							{{ form.custom_imaging_submit(class="btn btn-outline-info mt-2") }}
-						{% endif %}
-
-					{% else %}
-						{{ form.uniform_imaging_submit(class="btn btn-outline-info mt-2") }}
-						{{ form.custom_imaging_submit(class="btn btn-outline-info mt-2") }}
-					{% endif %}
-				</div>
 
 				<!-- Handle imaging for each sample -->
-				<hr class='class-2'>
+				
+				{% if form.imaging_samples.data|length > 0 %}
+					<hr class='class-2'>
+					<h3 class='border-bottom'>Imaging/Processing setup</h3>
+				{% endif %}
 				<div>
 					{% for imaging_entry in form.imaging_samples %}
-						{% if form.custom_imaging.data == true %}
+						{% if custom_imaging == 1 %}
 					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} </legend>
-					    {% elif form.custom_imaging.data == false %}
+					    {% else %}
 					    	<legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} <br/>(Your entries below will apply to all of your samples) </legend>
 						{% endif %}
 				        <hr>

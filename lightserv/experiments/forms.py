@@ -63,28 +63,25 @@ class ImagingForm(FlaskForm):
 class ExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 	# Basic info
-	title = StringField('Title of experiment',validators=[InputRequired(),Length(max=100)])
+	experiment_name = StringField('Name of experiment',validators=[InputRequired(),Length(max=100)])
 	description = TextAreaField('Description of experiment',validators=[InputRequired(),Length(max=250)])
 	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)])
 	correspondence_email = StringField('Correspondence email (default is princeton email)',
 		validators=[DataRequired(),Length(max=100),Email()])
 
 	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],validators=[InputRequired(),Length(max=50)]) # for choices first element of tuple is the value of the option, the second is the displayed text
-	number_of_samples = IntegerField('Number of samples',widget=html5.NumberInput(),validators=[InputRequired()])
+	number_of_samples = IntegerField('Number of samples (a.k.a. tubes)',widget=html5.NumberInput(),validators=[InputRequired()])
 	sample_prefix = StringField('Sample prefix (your samples will be named prefix-1, prefix-2, ...)',validators=[InputRequired(),Length(max=32)])
-
+	""" Clearing """
 	self_clearing = BooleanField('Check if you plan to do the clearing yourself',default=False)
 	clearing_samples = FieldList(FormField(ClearingForm),min_entries=0,max_entries=15)
-	custom_clearing = IntegerField('Is clearing custom?',widget=HiddenInput(),default=0)
-	uniform_clearing_submit = SubmitField('Yes') # The answer to "will your clearing be the same for all samples?"	
-	custom_clearing_submit = SubmitField('No') # The answer to "will your clearing be the same for all samples?"
-
+	uniform_clearing = BooleanField('Check if clearing will be the same for all samples',default=False)
+	
+	""" Imaging """
 	self_imaging = BooleanField('Check if you plan to do the imaging yourself',default=False)
-
 	imaging_samples = FieldList(FormField(ImagingForm),min_entries=0,max_entries=15)
-	custom_imaging = IntegerField('Is imaging custom?',widget=HiddenInput(),default=0)
-	uniform_imaging_submit = SubmitField('Yes') # The answer to "will your imaging be the same for all samples?"	
-	custom_imaging_submit = SubmitField('No') # The answer to "will your imaging be the same for all samples?"
+	uniform_imaging = BooleanField('Check if imaging will be the same for all samples',default=False)
+	sample_submit_button = SubmitField('Setup samples')
 
 	submit = SubmitField('Submit request')	
 
