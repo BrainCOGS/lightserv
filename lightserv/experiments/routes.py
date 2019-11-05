@@ -220,7 +220,7 @@ def exp(username,experiment_name):
 	exp_table.table_id = 'horizontal' # to override vertical layout
 	samples_contents = db_lightsheet.Experiment.Sample() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
 	samples_table = SamplesTable(samples_contents)
-
+	samples_table.table_id = 'vertical'
 	try:
 		if exp_contents.fetch1('username') != session['user'] and session['user'] != 'ahoag':
 			flash('You do not have permission to see dataset: {}'.format(experiment_id),'danger')

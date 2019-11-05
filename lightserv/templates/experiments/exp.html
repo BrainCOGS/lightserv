@@ -16,7 +16,7 @@
 	        {% endif %}
 		</article>
 		{{ exp_table }}
-		<input id = "tableSwapper" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
+		<input id = "tableSwapper1" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
 		
 		<hr class='class-4'>
 		<h3>Your samples for this experiment: </h3>
@@ -52,6 +52,17 @@
 		  </div>
 
 
-	<script src="{{ url_for('static',filename='javascript/tableswapper.js') }}" defer="defer"></script>
+	<script src="{{ url_for('static',filename='javascript/library.js') }}"></script>
+	<script type="text/javascript" defer="defer">
 
+		   $("#tableSwapper1").click(function() {
+		   MYLIBRARY.swapTable("{{exp_table.table_id}}");
+		});
+
+		   $("#tableSwapper2").click(function() {
+		   MYLIBRARY.swapTable("{{samples_table.table_id}}");
+		});
+
+		    MYLIBRARY.defaultVertLayout(); // If table id begins with "vertical" then it will have vertical layout by default
+		</script>
 	{% endblock content %}
