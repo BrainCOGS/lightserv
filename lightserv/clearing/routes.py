@@ -169,11 +169,13 @@ def clearing_table(username,experiment_name,sample_name,clearing_protocol):
 		flash(f"No sample contents for experiment_name={experiment_name}, sample_name={sample_name}\
 			   with clearing_protocol={clearing_protocol} for username={username}",'danger')
 		return redirect(url_for('main.home'))
-	 
+	overview_table = ClearingTable(sample_contents)
+	clearing_table.table_id = 'horizontal'
 	dbTable = determine_clearing_dbtable(clearing_protocol)
 	db_contents = dbTable() & f'experiment_name="{experiment_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"'
 	table = determine_clearing_table(clearing_protocol)(db_contents)
 	table.table_id = 'vertical'
 
-	return render_template('clearing/clearing_table.html',clearing_contents=db_contents,table=table)
+	return render_template('clearing/clearing_table.html',overview_table=overview_table,
+		clearing_contents=db_contents,table=table)

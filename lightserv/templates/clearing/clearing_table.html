@@ -1,14 +1,27 @@
 {% extends "layout.html" %}
 {% block content %}
+	<legend>Sample overview:</legend>
+	{{ overview_table }}
+	{% if clearing_contents %}
+		<input id = "tableSwapper1" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
+		<hr class='class-4'>
+
+	{% endif %}
+		
+	<legend>Clearing entry:</legend>
+
 	{{ table }}
 	{% if clearing_contents %}
-		<input id = "tableSwapper" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
-		<script type="text/javascript" defer="defer">
+		<input id = "tableSwapper2" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
+	{% endif %}
+	<script type="text/javascript" defer="defer">
 
-		   $("#tableSwapper").click(function() {
+		   $("#tableSwapper1").click(function() {
+		   MYLIBRARY.swapTable("{{overview_table.table_id}}");
+		});
+
+		   $("#tableSwapper2").click(function() {
 		   MYLIBRARY.swapTable("{{table.table_id}}");
 		});
-		</script>
-	{% endif %}
-
+	</script>
 {% endblock content %}
