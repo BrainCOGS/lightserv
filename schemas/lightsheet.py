@@ -76,7 +76,7 @@ class Sample(dj.Manual):
 
 
 	class IdiscoPlusClearing(dj.Part): # 
-		definition = """ # IDISCO+ clearing table
+		definition = """ # iDISCO+ clearing table
 		-> Sample           
 		----
 		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
@@ -182,7 +182,7 @@ class Sample(dj.Manual):
 		"""
 
 	class IdiscoAbbreviatedClearing(dj.Part): 
-		definition = """ # Idisco abbreviated clearing table
+		definition = """ # iDISCO abbreviated clearing table
 		-> Sample           
 		----
 		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
@@ -217,94 +217,89 @@ class Sample(dj.Manual):
 		clearing_notes = ""                                      :   varchar(500)
 		"""
 
-@schema
-class IdiscoAbbreviatedRatClearing(dj.Manual): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
-	definition = """ # Abbreviated Rat clearing table
-	-> Experiment              # experiment_id, the primary key from the Experiment() table
-	----
-	-> User                    # username, the researcher's netid from the User() table
-	clearer                                                  :   varchar(20)   # the netid of the person who did the clearing
-	exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
-	time_pbs_wash1 = NULL                                    :   datetime
-	pbs_wash1_notes = ""                                     :   varchar(250)
-	time_pbs_wash2 = NULL                                    :   datetime
-	pbs_wash2_notes = ""                                     :   varchar(250)
-	time_pbs_wash3 = NULL                                    :   datetime
-	pbs_wash3_notes = ""                                     :   varchar(250)
-	time_dehydr_methanol_20percent_wash1 = NULL                 :   datetime
-	dehydr_methanol_20percent_wash1_notes = ""                  :   varchar(250)
-	time_dehydr_methanol_20percent_wash2 = NULL                 :   datetime
-	dehydr_methanol_20percent_wash2_notes = ""                  :   varchar(250)
-	time_dehydr_methanol_40percent_wash1 = NULL                 :   datetime
-	dehydr_methanol_40percent_wash1_notes = ""                  :   varchar(250)
-	time_dehydr_methanol_40percent_wash2 = NULL                 :   datetime
-	dehydr_methanol_40percent_wash2_notes = ""                  :   varchar(250)
-	time_dehydr_methanol_60percent_wash1 = NULL                 :   datetime
-	dehydr_methanol_60percent_wash1_notes = ""                  :   varchar(250)
-	time_dehydr_methanol_80percent_wash1 = NULL                 :   datetime
-	dehydr_methanol_80percent_wash1_notes = ""                  :   varchar(250)
-	time_dehydr_methanol_80percent_wash2 = NULL                 :   datetime
-	dehydr_methanol_80percent_wash2_notes = ""                  :   varchar(250)
-	time_dehydr_methanol_100percent_wash1 = NULL                :   datetime
-	dehydr_methanol_100percent_wash1_notes = ""                 :   varchar(250)
-	time_dehydr_methanol_100percent_wash2 = NULL                :   datetime
-	dehydr_methanol_100percent_wash2_notes = ""                 :   varchar(250)
-	time_dehydr_h202_wash1 = NULL                            :   datetime
-	dehydr_h202_wash1_notes = ""                             :   varchar(250)
-	time_dehydr_methanol_100percent_wash3 = NULL                :   datetime
-	dehydr_methanol_100percent_wash3_notes = ""                 :   varchar(250)
-	time_dehydr_methanol_100percent_wash4 = NULL                :   datetime
-	dehydr_methanol_100percent_wash4_notes = ""                 :   varchar(250)
-	time_dehydr_methanol_100percent_wash5 = NULL                :   datetime
-	dehydr_methanol_100percent_wash5_notes = ""                 :   varchar(250)
-	time_dehydr_dcm_66percent_methanol_33percent = NULL         :   datetime
-	dehydr_dcm_66percent_methanol_33percent_notes = ""          :   varchar(250)
-	time_dehydr_dcm_wash1 = NULL                             :   datetime
-	dehydr_dcm_wash1_notes = ""                              :   varchar(250)
-	time_dehydr_dcm_wash2 = NULL                             :   datetime
-	dehydr_dcm_wash2_notes = ""                              :   varchar(250)
-	time_dehydr_dbe_wash1 = NULL                             :   datetime
-	dehydr_dbe_wash1_notes = ""                              :   varchar(250)
-	time_dehydr_dbe_wash2 = NULL                             :   datetime
-	dehydr_dbe_wash2_notes = ""                              :   varchar(250)
-	clearing_notes = ""                                      : varchar(500)
-	"""
 
-@schema
-class UdiscoClearing(dj.Manual): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
-	definition = """ # uDISCO clearing table
-	-> Experiment              # experiment_id, the primary key from the Experiment() table
-	----
-	-> User                    # username, the researcher's netid from the User() table
-	clearer                                                  :   varchar(20)   # the netid of the person who did the clearing
-	exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
-	time_dehydr_pbs_wash1 = NULL                             :   datetime
-	dehydr_pbs_wash1_notes = ""                              :   varchar(250)
-	time_dehydr_butanol_30percent = NULL                     :   datetime
-	dehydr_butanol_30percent_notes = ""                      :   varchar(250)
-	time_dehydr_butanol_50percent = NULL                     :   datetime
-	dehydr_butanol_50percent_notes = ""                      :   varchar(250)
-	time_dehydr_butanol_70percent = NULL                     :   datetime
-	dehydr_butanol_70percent_notes = ""                      :   varchar(250)
-	time_dehydr_butanol_80percent = NULL                     :   datetime
-	dehydr_butanol_80percent_notes = ""                      :   varchar(250)
-	time_dehydr_butanol_90percent = NULL                     :   datetime
-	dehydr_butanol_90percent_notes = ""                      :   varchar(250)
-	time_dehydr_butanol_96percent = NULL                     :   datetime
-	dehydr_butanol_96percent_notes = ""                      :   varchar(250)
-	time_dehydr_butanol_100percent = NULL                    :   datetime
-	dehydr_butanol_100percent_notes = ""                     :   varchar(250)
-	time_clearing_dcm_wash1 = NULL                           :   datetime
-	clearing_dcm_wash1_notes = ""                            :   varchar(250)
-	time_clearing_babb_wash1 = NULL                          :   datetime
-	clearing_babb_wash1_notes = ""                           :   varchar(250)
-	clearing_notes = ""                                      : varchar(500)
-	"""
+	class IdiscoAbbreviatedRatClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
+		definition = """ # iDISCO Abbreviated Rat clearing table
+		-> Sample              # experiment_id, the primary key from the Experiment() table
+		----
+		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+		time_pbs_wash1 = NULL                                    :   datetime
+		pbs_wash1_notes = ""                                     :   varchar(250)
+		time_pbs_wash2 = NULL                                    :   datetime
+		pbs_wash2_notes = ""                                     :   varchar(250)
+		time_pbs_wash3 = NULL                                    :   datetime
+		pbs_wash3_notes = ""                                     :   varchar(250)
+		time_dehydr_methanol_20percent_wash1 = NULL                 :   datetime
+		dehydr_methanol_20percent_wash1_notes = ""                  :   varchar(250)
+		time_dehydr_methanol_20percent_wash2 = NULL                 :   datetime
+		dehydr_methanol_20percent_wash2_notes = ""                  :   varchar(250)
+		time_dehydr_methanol_40percent_wash1 = NULL                 :   datetime
+		dehydr_methanol_40percent_wash1_notes = ""                  :   varchar(250)
+		time_dehydr_methanol_40percent_wash2 = NULL                 :   datetime
+		dehydr_methanol_40percent_wash2_notes = ""                  :   varchar(250)
+		time_dehydr_methanol_60percent_wash1 = NULL                 :   datetime
+		dehydr_methanol_60percent_wash1_notes = ""                  :   varchar(250)
+		time_dehydr_methanol_80percent_wash1 = NULL                 :   datetime
+		dehydr_methanol_80percent_wash1_notes = ""                  :   varchar(250)
+		time_dehydr_methanol_80percent_wash2 = NULL                 :   datetime
+		dehydr_methanol_80percent_wash2_notes = ""                  :   varchar(250)
+		time_dehydr_methanol_100percent_wash1 = NULL                :   datetime
+		dehydr_methanol_100percent_wash1_notes = ""                 :   varchar(250)
+		time_dehydr_methanol_100percent_wash2 = NULL                :   datetime
+		dehydr_methanol_100percent_wash2_notes = ""                 :   varchar(250)
+		time_dehydr_h202_wash1 = NULL                            :   datetime
+		dehydr_h202_wash1_notes = ""                             :   varchar(250)
+		time_dehydr_methanol_100percent_wash3 = NULL                :   datetime
+		dehydr_methanol_100percent_wash3_notes = ""                 :   varchar(250)
+		time_dehydr_methanol_100percent_wash4 = NULL                :   datetime
+		dehydr_methanol_100percent_wash4_notes = ""                 :   varchar(250)
+		time_dehydr_methanol_100percent_wash5 = NULL                :   datetime
+		dehydr_methanol_100percent_wash5_notes = ""                 :   varchar(250)
+		time_dehydr_dcm_66percent_methanol_33percent = NULL         :   datetime
+		dehydr_dcm_66percent_methanol_33percent_notes = ""          :   varchar(250)
+		time_dehydr_dcm_wash1 = NULL                             :   datetime
+		dehydr_dcm_wash1_notes = ""                              :   varchar(250)
+		time_dehydr_dcm_wash2 = NULL                             :   datetime
+		dehydr_dcm_wash2_notes = ""                              :   varchar(250)
+		time_dehydr_dbe_wash1 = NULL                             :   datetime
+		dehydr_dbe_wash1_notes = ""                              :   varchar(250)
+		time_dehydr_dbe_wash2 = NULL                             :   datetime
+		dehydr_dbe_wash2_notes = ""                              :   varchar(250)
+		clearing_notes = ""                                      : varchar(500)
+		"""
 
-@schema
+	class UdiscoClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
+		definition = """ # uDISCO clearing table
+		-> Sample              # experiment_id, the primary key from the Experiment() table
+		----
+		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+		time_dehydr_pbs_wash1 = NULL                             :   datetime
+		dehydr_pbs_wash1_notes = ""                              :   varchar(250)
+		time_dehydr_butanol_30percent = NULL                     :   datetime
+		dehydr_butanol_30percent_notes = ""                      :   varchar(250)
+		time_dehydr_butanol_50percent = NULL                     :   datetime
+		dehydr_butanol_50percent_notes = ""                      :   varchar(250)
+		time_dehydr_butanol_70percent = NULL                     :   datetime
+		dehydr_butanol_70percent_notes = ""                      :   varchar(250)
+		time_dehydr_butanol_80percent = NULL                     :   datetime
+		dehydr_butanol_80percent_notes = ""                      :   varchar(250)
+		time_dehydr_butanol_90percent = NULL                     :   datetime
+		dehydr_butanol_90percent_notes = ""                      :   varchar(250)
+		time_dehydr_butanol_96percent = NULL                     :   datetime
+		dehydr_butanol_96percent_notes = ""                      :   varchar(250)
+		time_dehydr_butanol_100percent = NULL                    :   datetime
+		dehydr_butanol_100percent_notes = ""                     :   varchar(250)
+		time_clearing_dcm_wash1 = NULL                           :   datetime
+		clearing_dcm_wash1_notes = ""                            :   varchar(250)
+		time_clearing_babb_wash1 = NULL                          :   datetime
+		clearing_babb_wash1_notes = ""                           :   varchar(250)
+		clearing_notes = ""                                      : varchar(500)
+		"""
+
+
 class RawImageSet(dj.Manual):
 	definition = """ # a set of raw images for a given experiment and channel
-	-> Experiment
+	-> Sample
 	channel                      :   char(3)
 	----
 	-> User
@@ -318,7 +313,7 @@ class RawImageSet(dj.Manual):
 	notes = ""                   :   varchar(1000)
 	"""  
 
-@schema
+
 class ImageProcessing(dj.Manual):
 	definition = """ # Image Processing metadata for a run through the pipeline
 	-> RawImageSet
@@ -343,22 +338,3 @@ class ImageProcessing(dj.Manual):
 	"""  
 
 
-# @schema
-# class ArrayResponse(dj.Computed):
-# 	definition = """
-# 	array: int
-# 	"""
-	
-# 	class ElectrodeResponse(dj.Part):
-# 		definition = """
-# 		-> master
-# 		electrode: int    # electrode number on the probe
-# 		"""
-
-# 	class ChannelResponse(dj.Part):
-# 		definition = """
-# 		-> ElectrodeResponse
-# 		channel: int
-# 		---
-# 		response: longblob  # response of a channel
-# 		"""

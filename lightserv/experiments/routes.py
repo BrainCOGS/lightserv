@@ -101,6 +101,9 @@ def new_exp():
 					table but not Sample table if there is an error """
 				connection = db_lightsheet.Experiment.connection
 				with connection.transaction:
+					princeton_email = username + '@princeton.edu'
+					user_insert_dict = dict(username=username,princeton_email=princeton_email)
+					db_lightsheet.User().insert1(user_insert_dict,skip_duplicates=True)
 					exp_insert_dict = dict(experiment_name=form.experiment_name.data,
 						username=username,labname=form.labname.data.lower(),
 						correspondence_email=form.correspondence_email.data.lower(),
