@@ -51,13 +51,27 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 		return redirect(url_for('experiments.new_exp'))
 	dj.Table._update(sample_contents,'clearing_progress','in progress')
 	clearing_table = ClearingTable(sample_contents)
-	form = determine_clearing_form(clearing_protocol,existing_form=request.form)
 	
 	dbTable = determine_clearing_dbtable(clearing_protocol)
 	''' Check to see if there is an entry in the db yet. If not create one with all NULL values.
 	They will get updated as the user fills out the form '''
 	clearing_contents = dbTable() & f'experiment_name="{experiment_name}"' & \
 	 	f'username="{username}"' & f'sample_name="{sample_name}"'
+	''' If there are contents and the form is blank, then that means the user is accessing the form 
+	to edit it from a previous session and we should pre-load the current contents of the db '''
+	if clearing_contents and (not request.form):
+		print("We should autofill")
+		fill_dict = {'exp_notes':'some_notes'}
+		form = determine_clearing_form(clearing_protocol,existing_form=request.form)
+		for key,val in list(clearing_contents.fetch1().items()):
+			if key in form._fields.keys():
+				form[key].data = val	
+	else:
+		form = determine_clearing_form(clearing_protocol,existing_form=request.form)
+
+	# print(clearing_contents)
+	# print(request.form)
+	
 	# print(clearing_contents)
 	if not clearing_contents:
 		sample_username = sample_contents.fetch1('username')
