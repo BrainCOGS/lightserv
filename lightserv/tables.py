@@ -135,56 +135,155 @@ class IdiscoPlusTable(Table):
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
+    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     time_dehydr_pbs_wash1 = Col('time_dehydr_pbs_wash1',)
+    dehydr_pbs_wash1_notes = Col('dehydr_pbs_wash1_notes',)
+    
     time_dehydr_pbs_wash2 = Col('time_dehydr_pbs_wash2',)
+    dehydr_pbs_wash2_notes = Col('dehydr_pbs_wash2_notes',)
+    
     time_dehydr_pbs_wash3 = Col('time_dehydr_pbs_wash3',)
+    dehydr_pbs_wash3_ntoes = Col('dehydr_pbs_wash3_ntoes',)
+    
     time_dehydr_methanol_20percent_wash1           = Col('time_dehydr_methanol_20percent_wash1',)
+    dehydr_methanol_20percent_wash1_notes           = Col('dehydr_methanol_20percent_wash1_notes',)
+    
     time_dehydr_methanol_40percent_wash1           = Col('time_dehydr_methanol_40percent_wash1',)
+    dehydr_methanol_40percent_wash1_notes           = Col('dehydr_methanol_40percent_wash1_notes',)
+    
     time_dehydr_methanol_60percent_wash1           = Col('time_dehydr_methanol_60percent_wash1',)
+    dehydr_methanol_60percent_wash1_noes           = Col('dehydr_methanol_60percent_wash1_noes',)
+    
     time_dehydr_methanol_80percent_wash1           = Col('time_dehydr_methanol_80percent_wash1',)
+    dehydr_methanol_80percent_wash1_notes           = Col('dehydr_methanol_80percent_wash1_notes',)
+    
     time_dehydr_methanol_100percent_wash1          = Col('time_dehydr_methanol_100percent_wash1',)
+    dehydr_methanol_100percent_wash1_notes          = Col('dehydr_methanol_100percent_wash1_notes',)
+    
     time_dehydr_methanol_100percent_wash2          = Col('time_dehydr_methanol_100percent_wash2',)
+    dehydr_methanol_100percent_wash2_notes          = Col('dehydr_methanol_100percent_wash2_notes',)
+    
     time_dehydr_h202_wash1                      = Col('time_dehydr_h202_wash1',)
+    dehydr_h202_wash1_notes                      = Col('dehydr_h202_wash1_notes',)
+    
     time_rehydr_methanol_100percent_wash1          = Col('time_rehydr_methanol_100percent_wash1',)
+    rehydr_methanol_100percent_wash1_notes          = Col('rehydr_methanol_100percent_wash1_notes',)
+    
     time_rehydr_methanol_80percent_wash1           = Col('time_rehydr_methanol_80percent_wash1',)
+    rehydr_methanol_80percent_wash1_notes           = Col('rehydr_methanol_80percent_wash1_notes',)
+    
     time_rehydr_methanol_60percent_wash1           = Col('time_rehydr_methanol_60percent_wash1',)
+    rehydr_methanol_60percent_wash1_notes           = Col('rehydr_methanol_60percent_wash1_notes',)
+    
     time_rehydr_methanol_40percent_wash1           = Col('time_rehydr_methanol_40percent_wash1',)
+    rehydr_methanol_40percent_wash1_notes           = Col('rehydr_methanol_40percent_wash1_notes',)
+    
     time_rehydr_methanol_20percent_wash1           = Col('time_rehydr_methanol_20percent_wash1',)
+    rehydr_methanol_20percent_wash1_notes           = Col('rehydr_methanol_20percent_wash1_notes',)
+    
     time_rehydr_pbs_wash1                       = Col('time_rehydr_pbs_wash1',)
+    rehydr_pbs_wash1_notes                       = Col('rehydr_pbs_wash1_notes',)
+    
     time_rehydr_sodium_azide_wash1              = Col('time_rehydr_sodium_azide_wash1',)
+    rehydr_sodium_azide_wash1_notes              = Col('rehydr_sodium_azide_wash1_notes',)
+    
     time_rehydr_sodium_azide_wash2              = Col('time_rehydr_sodium_azide_wash2',)
+    rehydr_sodium_azide_wash2_notes              = Col('rehydr_sodium_azide_wash2_notes',)
+    
     time_rehydr_glycine_wash1                   = Col('time_rehydr_glycine_wash1',)
+    rehydr_glycine_wash1_notes                   = Col('rehydr_glycine_wash1_notes',)
+    
     time_blocking_start_roomtemp                = Col('time_blocking_start_roomtemp')
+    blocking_start_roomtemp_notes                = Col('blocking_start_roomtemp_notes')
+    
     time_blocking_donkey_serum                  = Col('time_blocking_donkey_serum')
+    blocking_donkey_serum_notes                  = Col('blocking_donkey_serum_notes')
+    
     time_antibody1_start_roomtemp               = Col('time_antibody1_start_roomtemp')
+    antibody1_start_roomtemp_notes               = Col('antibody1_start_roomtemp_notes')
+    
     time_antibody1_ptwh_wash1                   = Col('time_antibody1_ptwh_wash1')
+    antibody1_ptwh_wash1_notes                   = Col('antibody1_ptwh_wash1_notes')
+    
     time_antibody1_ptwh_wash2                   = Col('time_antibody1_ptwh_wash2')
+    antibody1_ptwh_wash2_notes                   = Col('antibody1_ptwh_wash2_notes')
+    
     time_antibody1_added                        = Col('time_antibody1_added')
+    antibody1_added_notes                        = Col('antibody1_added_notes')
+    
     time_wash1_start_roomtemp                   = Col('time_wash1_start_roomtemp')
+    wash1_start_roomtemp_notes                   = Col('wash1_start_roomtemp_notes')
+    
     time_wash1_ptwh_wash1                       = Col('time_wash1_ptwh_wash1')
+    wash1_ptwh_wash1_notes                       = Col('wash1_ptwh_wash1_notes')
+    
     time_wash1_ptwh_wash2                       = Col('time_wash1_ptwh_wash2')
+    wash1_ptwh_wash2_notes                       = Col('wash1_ptwh_wash2_notes')
+    
     time_wash1_ptwh_wash3                       = Col('time_wash1_ptwh_wash3')
+    wash1_ptwh_wash3_notes                       = Col('wash1_ptwh_wash3_notes')
+    
     time_wash1_ptwh_wash4                       = Col('time_wash1_ptwh_wash4')
+    wash1_ptwh_wash4_notes                       = Col('wash1_ptwh_wash4_notes')
+    
     time_wash1_ptwh_wash5                       = Col('time_wash1_ptwh_wash5')
+    wash1_ptwh_wash5_notes                       = Col('wash1_ptwh_wash5_notes')
+    
     time_antibody2_added                        = Col('time_antibody2_added')
+    antibody2_added_notes                        = Col('antibody2_added_notes')
+    
     time_wash2_start_roomtemp                   = Col('time_wash2_start_roomtemp')
+    wash2_start_roomtemp_notes                   = Col('wash2_start_roomtemp_notes')
+    
     time_wash2_ptwh_wash1                       = Col('time_wash2_ptwh_wash1')
+    wash2_ptwh_wash1_notes                       = Col('wash2_ptwh_wash1_notes')
+    
     time_wash2_ptwh_wash2                       = Col('time_wash2_ptwh_wash2')
+    wash2_ptwh_wash2_notes                       = Col('wash2_ptwh_wash2_notes')
+    
     time_wash2_ptwh_wash3                       = Col('time_wash2_ptwh_wash3')
+    wash2_ptwh_wash3_notes                       = Col('wash2_ptwh_wash3_notes')
+    
     time_wash2_ptwh_wash4                       = Col('time_wash2_ptwh_wash4')
+    wash2_ptwh_wash4_notes                       = Col('wash2_ptwh_wash4_notes')
+    
     time_wash2_ptwh_wash5                       = Col('time_wash2_ptwh_wash5')
+    wash2_ptwh_wash5_notes                       = Col('wash2_ptwh_wash5_notes')
+    
     time_clearing_methanol_20percent_wash1         = Col('time_clearing_methanol_20percent_wash1')
+    clearing_methanol_20percent_wash1_notes         = Col('clearing_methanol_20percent_wash1_notes')
+    
     time_clearing_methanol_40percent_wash1         = Col('time_clearing_methanol_40percent_wash1')
+    clearing_methanol_40percent_wash1_notes         = Col('clearing_methanol_40percent_wash1_notes')
+    
     time_clearing_methanol_60percent_wash1         = Col('time_clearing_methanol_60percent_wash1')
+    clearing_methanol_60percent_wash1_notes         = Col('clearing_methanol_60percent_wash1_notes')
+    
     time_clearing_methanol_80percent_wash1         = Col('time_clearing_methanol_80percent_wash1')
+    clearing_methanol_80percent_wash1_notes         = Col('clearing_methanol_80percent_wash1_notes')
+    
     time_clearing_methanol_100percent_wash1        = Col('time_clearing_methanol_100percent_wash1')
+    clearing_methanol_100percent_wash1_notes        = Col('clearing_methanol_100percent_wash1_notes')
+    
     time_clearing_methanol_100percent_wash2        = Col('time_clearing_methanol_100percent_wash2')
+    clearing_methanol_100percent_wash2_ntoes        = Col('clearing_methanol_100percent_wash2_ntoes')
+    
     time_clearing_dcm_66percent_methanol_33percent = Col('time_clearing_dcm_66percent_methanol_33percent')
+    clearing_dcm_66percent_methanol_33percent_notes = Col('clearing_dcm_66percent_methanol_33percent_notes')
+    
     time_clearing_dcm_wash1                     = Col('time_clearing_dcm_wash1')
+    clearing_dcm_wash1_notes                     = Col('clearing_dcm_wash1_notes')
+    
     time_clearing_dcm_wash2                     = Col('time_clearing_dcm_wash2')
+    clearing_dcm_wash2_notes                     = Col('clearing_dcm_wash2_notes')
+    
     time_clearing_dbe                           = Col('time_clearing_dbe')
+    clearing_dbe_ntoes                           = Col('clearing_dbe_ntoes')
+    
     time_clearing_new_tubes                     = Col('time_clearing_new_tubes')
+    clearing_new_tubes_notes                     = Col('clearing_new_tubes_notes')
+    
     clearing_notes                              = Col('clearing_notes')
    
 class IdiscoAbbreviatedTable(Table):
@@ -194,22 +293,49 @@ class IdiscoAbbreviatedTable(Table):
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
+    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
+    exp_notes = Col('exp_notes')
     time_pbs_wash1 = Col('time_pbs_wash1',)
+    pbs_wash1_notes = Col('pbs_wash1_notes',)
     time_pbs_wash2 = Col('time_pbs_wash2',)
+    pbs_wash2_notes = Col('pbs_wash2_notes',)
     time_pbs_wash3 = Col('time_pbs_wash3',)
+    pbs_wash3_notes = Col('pbs_wash3_notes',)
+    
     time_dehydr_methanol_20percent_wash1           = Col('time_dehydr_methanol_20percent_wash1',)
+    dehydr_methanol_20percent_wash1_notes          = Col('dehydr_methanol_20percent_wash1_notes',)
+    
     time_dehydr_methanol_40percent_wash1           = Col('time_dehydr_methanol_40percent_wash1',)
+    dehydr_methanol_40percent_wash1_notes          = Col('dehydr_methanol_40percent_wash1_notes',)
+    
     time_dehydr_methanol_60percent_wash1           = Col('time_dehydr_methanol_60percent_wash1',)
+    dehydr_methanol_60percent_wash1_notes          = Col('dehydr_methanol_60percent_wash1_notes',)
+    
     time_dehydr_methanol_80percent_wash1           = Col('time_dehydr_methanol_80percent_wash1',)
+    dehydr_methanol_80percent_wash1_notes          = Col('dehydr_methanol_80percent_wash1_notes',)
+    
     time_dehydr_methanol_100percent_wash1          = Col('time_dehydr_methanol_100percent_wash1',)
+    dehydr_methanol_100percent_wash1_notes         = Col('dehydr_methanol_100percent_wash1_notes',)
+    
     time_dehydr_methanol_100percent_wash2          = Col('time_dehydr_methanol_100percent_wash2',)
+    dehydr_methanol_100percent_wash2_notes         = Col('dehydr_methanol_100percent_wash2_notes',)
+    
     time_dehydr_dcm_66percent_methanol_33percent   = Col('time_dehydr_dcm_66percent_methanol_33percent',)
+    dehydr_dcm_66percent_methanol_33percent_notes  = Col('dehydr_dcm_66percent_methanol_33percent_notes',)
+    
     time_dehydr_dcm_wash1   = Col('time_dehydr_dcm_wash1')
+    dehydr_dcm_wash1_notes  = Col('dehydr_dcm_wash1_notes')
+    
     time_dehydr_dcm_wash2   = Col('time_dehydr_dcm_wash2')
+    dehydr_dcm_wash2_notes  = Col('dehydr_dcm_wash2_notes')
+    
     time_dehydr_dbe_wash1   = Col('time_dehydr_dbe_wash1')
+    dehydr_dbe_wash1_notes  = Col('dehydr_dbe_wash1_notes')
+    
     time_dehydr_dbe_wash2   = Col('time_dehydr_dbe_wash2')
-    clearing_notes                              = Col('clearing_notes')
+    dehydr_dbe_wash2_notes  = Col('dehydr_dbe_wash2_notes')
+    clearing_notes          = Col('clearing_notes')
 
 class IdiscoAbbreviatedRatTable(Table):
     border = True
@@ -218,7 +344,8 @@ class IdiscoAbbreviatedRatTable(Table):
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
+    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     time_pbs_wash1 = Col('time_pbs_wash1',)
     time_pbs_wash2 = Col('time_pbs_wash2',)
     time_pbs_wash3 = Col('time_pbs_wash3',)
@@ -251,7 +378,8 @@ class UdiscoTable(Table):
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_id = Col('experiment_id',column_html_attrs=column_html_attrs)
+    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     time_dehydr_pbs_wash1 = Col('time_dehydr_pbs_wash1')
     time_dehydr_butanol_30percent = Col('time_dehydr_butanol_30percent')
     time_dehydr_butanol_50percent = Col('time_dehydr_butanol_50percent')
