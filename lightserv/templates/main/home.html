@@ -11,6 +11,11 @@
 			<button type="submit" class="btn btn-info mt-4 mb-4">Start a new experiment</button>
 		</form>
 
-		<script src="{{ url_for('static',filename='javascript/tableswapper.js') }}" defer="defer"></script>
+	<script type="text/javascript" defer="defer">
 
+		   $("#tableSwapper").click(function() {
+		   MYLIBRARY.swapTable("{{exp_table.table_id}}");
+		});
+
+	</script>
 	{% endblock content %}

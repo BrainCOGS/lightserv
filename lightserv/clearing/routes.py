@@ -160,18 +160,20 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 		form=form,clearing_table=clearing_table,experiment_name=experiment_name,
 		column_name=column_name)
 
-@clearing.route("/clearing/clearing_table/<experiment_id>",methods=['GET'])
+@clearing.route("/clearing/clearing_table/<username>/<experiment_name>/<sample_name>/<clearing_protocol>/",methods=['GET'])
 @logged_in_as_clearer
-def clearing_table(experiment_id): 
-	exp_contents = db_lightsheet.Experiment() & f'experiment_id="{experiment_id}"'
-	if not exp_contents:
-		flash(f"experiment_id={experiment_id} does not exist.\
-			   It must exist for clearing for this experiment to exist.",'danger')
+def clearing_table(username,experiment_name,sample_name,clearing_protocol): 
+	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'clearing_protocol="{clearing_protocol}"'		
+	if not sample_contents:
+		flash(f"No sample contents for experiment_name={experiment_name}, sample_name={sample_name}\
+			   with clearing_protocol={clearing_protocol} for username={username}",'danger')
 		return redirect(url_for('main.home'))
 	 
-	clearing_protocol = exp_contents.fetch1('clearing_protocol')
 	dbTable = determine_clearing_dbtable(clearing_protocol)
-	db_contents = dbTable() & f'experiment_id = {experiment_id}'
+	db_contents = dbTable() & f'experiment_name="{experiment_name}"' & \
+	 		f'username="{username}"' & f'sample_name="{sample_name}"'
 	table = determine_clearing_table(clearing_protocol)(db_contents)
+	table.table_id = 'vertical'
 
 	return render_template('clearing/clearing_table.html',clearing_contents=db_contents,table=table)
