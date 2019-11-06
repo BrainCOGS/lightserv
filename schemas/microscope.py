@@ -35,11 +35,11 @@ class Microscope(dj.Lookup):
     loc_on_table                :   varchar(16)
     microscope_description=''   :   varchar(2047)
     """
-    contents = [
-        ['light sheet microscope','Bezos Center','','','','Lavision Ultramicroscope II'],
-        ['light sheet microscope2','Bezos Center','','','','Future light sheet microscope'],
-        ['confocal microscope','McDonnell Center','','','','']
-    ]
+    # contents = [
+    #     ['light sheet microscope','Bezos Center','','','','Lavision Ultramicroscope II'],
+    #     ['light sheet microscope2','Bezos Center','','','','Future light sheet microscope'],
+    #     ['confocal microscope','McDonnell Center','','','','']
+    # ]
 
 @schema
 class Laser(dj.Manual):
