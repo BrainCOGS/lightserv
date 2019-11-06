@@ -153,7 +153,7 @@ class Sample(dj.Manual):
 		time_wash2_ptwh_wash3 = NULL                             :   datetime
 		wash2_ptwh_wash3_notes = ""                              :   varchar(250)
 		time_wash2_ptwh_wash4 = NULL                             :   datetime
-		wash2_ptwh_wash3_notes = ""                              :   varchar(250)
+		wash2_ptwh_wash4_notes = ""                              :   varchar(250)
 		time_wash2_ptwh_wash5 = NULL                             :   datetime
 		wash2_ptwh_wash5_notes = ""                              :   varchar(250)
 		time_clearing_methanol_20percent_wash1 = NULL               :   datetime
@@ -293,6 +293,105 @@ class Sample(dj.Manual):
 		clearing_dcm_wash1_notes = ""                            :   varchar(250)
 		time_clearing_babb_wash1 = NULL                          :   datetime
 		clearing_babb_wash1_notes = ""                           :   varchar(250)
+		clearing_notes = ""                                      : varchar(500)
+		"""
+
+	class IdiscoEdUClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
+		definition = """ # uDISCO clearing table
+		-> Sample              # experiment_id, the primary key from the Experiment() table
+		----
+		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+		time_dehydr_pbs_wash1 = NULL                             :   datetime
+		dehydr_pbs_wash1_notes = ""                              :   varchar(250)
+		time_dehydr_pbs_wash2 = NULL                             :   datetime
+		dehydr_pbs_wash2_notes = ""                              :   varchar(250)
+		time_dehydr_pbs_wash3 = NULL                             :   datetime
+		dehydr_pbs_wash3_notes = ""                              :   varchar(250)
+
+		time_dehydr_methanol_20percent_wash1 = NULL              :   datetime
+		dehydr_methanol_20percent_wash1_notes = ""               :   varchar(250)
+		time_dehydr_methanol_40percent_wash1 = NULL              :   datetime
+		dehydr_methanol_40percent_wash1_notes = ""               :   varchar(250)
+		time_dehydr_methanol_60percent_wash1 = NULL              :   datetime
+		dehydr_methanol_60percent_wash1_notes = ""               :   varchar(250)
+		time_dehydr_methanol_80percent_wash1 = NULL              :   datetime
+		dehydr_methanol_80percent_wash1_notes = ""               :   varchar(250)
+		time_dehydr_methanol_100percent_wash1 = NULL             :   datetime
+		dehydr_methanol_100percent_wash1_notes = ""              :   varchar(250)
+		time_dehydr_methanol_100percent_wash2 = NULL             :   datetime
+		dehydr_methanol_100percent_wash2_notes = ""              :   varchar(250)
+		
+		time_dehydr_h202_wash1 = NULL                            :   datetime
+		dehydr_h202_wash1_notes = ""                             :   varchar(250)
+		time_rehydr_methanol_100percent_wash1 = NULL             :   datetime
+		rehydr_methanol_100percent_wash1_notes = ""              :   varchar(250)
+		time_rehydr_methanol_80percent_wash1 = NULL              :   datetime
+		rehydr_methanol_80percent_wash1_notes = ""               :   varchar(250)
+		time_rehydr_methanol_60percent_wash1 = NULL              :   datetime
+		rehydr_methanol_60percent_wash1_notes = ""               :   varchar(250)
+		time_rehydr_methanol_40percent_wash1 = NULL              :   datetime
+		rehydr_methanol_40percent_wash1_notes = ""               :   varchar(250)
+		time_rehydr_methanol_20percent_wash1 = NULL              :   datetime
+		rehydr_methanol_20percent_wash1_notes = ""               :   varchar(250)
+		
+		time_rehydr_pbs_wash1 = NULL                             :   datetime
+		rehydr_pbs_wash1_notes = ""                              :   varchar(250)
+		time_rehydr_sodium_azide_wash1 = NULL                    :   datetime
+		rehydr_sodium_azide_wash1_notes = ""                     :   varchar(250)
+		time_rehydr_sodium_azide_wash2 = NULL                    :   datetime
+		rehydr_sodium_azide_wash2_notes = ""                     :   varchar(250)
+		time_rehydr_glycine_wash1 = NULL                         :   datetime
+		rehydr_glycine_wash1_notes = ""                          :   varchar(250)
+		
+		time_wash1_start_roomtemp = NULL                         :   datetime
+		wash1_start_roomtemp_notes = ""                          :   varchar(250)
+		time_wash1_ptwh_wash1 = NULL                             :   datetime
+		wash1_ptwh_wash1_notes = ""                              :   varchar(250)
+		time_wash1_ptwh_wash2 = NULL                             :   datetime
+		wash1_ptwh_wash2_notes = ""                              :   varchar(250)
+		time_wash1_ptwh_wash3 = NULL                             :   datetime
+		wash1_ptwh_wash3_notes = ""                              :   varchar(250)
+		time_wash1_ptwh_wash4 = NULL                             :   datetime
+		wash1_ptwh_wash4_notes = ""                              :   varchar(250)
+		time_wash1_ptwh_wash5 = NULL                             :   datetime
+		wash1_ptwh_wash5_notes = ""                              :   varchar(250)
+
+		time_edu_click_chemistry = NULL                          :   datetime
+		edu_click_chemistry_notes = ""                           :   varchar(250)
+
+		time_wash2_ptwh_wash1 = NULL                             :   datetime
+		wash2_ptwh_wash1_notes = ""                              :   varchar(250)
+		time_wash2_ptwh_wash2 = NULL                             :   datetime
+		wash2_ptwh_wash2_notes = ""                              :   varchar(250)
+		time_wash2_ptwh_wash3 = NULL                             :   datetime
+		wash2_ptwh_wash3_notes = ""                              :   varchar(250)
+		time_wash2_ptwh_wash4 = NULL                             :   datetime
+		wash2_ptwh_wash4_notes = ""                              :   varchar(250)
+		time_wash2_ptwh_wash5 = NULL                             :   datetime
+		wash2_ptwh_wash5_notes = ""                              :   varchar(250)
+		
+		time_clearing_methanol_20percent_wash1 = NULL            :   datetime
+		clearing_methanol_20percent_wash1_notes = ""             :   varchar(250)
+		time_clearing_methanol_40percent_wash1 = NULL            :   datetime
+		clearing_methanol_40percent_wash1_notes = ""             :   varchar(250)
+		time_clearing_methanol_60percent_wash1 = NULL            :   datetime
+		clearing_methanol_60percent_wash1_notes = ""             :   varchar(250)
+		time_clearing_methanol_80percent_wash1 = NULL            :   datetime
+		clearing_methanol_80percent_wash1_notes = ""             :   varchar(250)
+		time_clearing_methanol_100percent_wash1 = NULL           :   datetime
+		clearing_methanol_100percent_wash1_notes = ""            :   varchar(250)
+		time_clearing_methanol_100percent_wash2 = NULL           :   datetime
+		clearing_methanol_100percent_wash2_notes = ""            :   varchar(250)
+		time_clearing_dcm_66percent_methanol_33percent = NULL    :   datetime
+		clearing_dcm_66percent_methanol_33percent_notes = ""     :   varchar(250)
+		time_clearing_dcm_wash1 = NULL                           :   datetime
+		clearing_dcm_wash1_notes = ""                            :   varchar(250)
+		time_clearing_dcm_wash2 = NULL                           :   datetime
+		clearing_dcm_wash2_notes = ""                            :   varchar(250)
+		time_clearing_dbe = NULL                                 :   datetime
+		clearing_dbe_notes = ""                                  :   varchar(250)
+		time_clearing_new_tubes = NULL                           :   datetime
+		clearing_new_tubes_notes = ""                            :   varchar(250)
 		clearing_notes = ""                                      : varchar(500)
 		"""
 

@@ -2,7 +2,8 @@ from flask import redirect, url_for
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 									  iDiscoAbbreviatedRatForm, uDiscoForm, iDiscoEduForm )
 from lightserv.tables import (IdiscoPlusTable,IdiscoAbbreviatedTable,
-							  IdiscoAbbreviatedRatTable,UdiscoTable)
+							  IdiscoAbbreviatedRatTable,UdiscoTable,
+							  IdiscoEdUTable)
 from lightserv import db_lightsheet
 import os.path
 import pickle
@@ -22,8 +23,7 @@ def determine_clearing_form(clearing_protocol,existing_form):
 		form = iDiscoPlusImmunoForm(existing_form)
 	elif clearing_protocol == 'iDISCO_EdU':
 		form = iDiscoEduForm()
-	else:
-		return None
+
 	return form
 
 def determine_clearing_dbtable(clearing_protocol):
@@ -35,8 +35,9 @@ def determine_clearing_dbtable(clearing_protocol):
 		dbtable = db_lightsheet.Sample.IdiscoAbbreviatedRatClearing
 	elif clearing_protocol == 'uDISCO':
 		dbtable = db_lightsheet.Sample.UdiscoClearing
-	else:
-		dbtable = None
+	elif clearing_protocol == 'iDISCO_EdU':
+		dbtable = db_lightsheet.Sample.IdiscoEdUClearing
+
 	return dbtable
 
 def determine_clearing_table(clearing_protocol):
@@ -48,8 +49,8 @@ def determine_clearing_table(clearing_protocol):
 		table = IdiscoAbbreviatedRatTable
 	elif clearing_protocol == 'uDISCO':
 		table = UdiscoTable
-	else:
-		table = None
+	elif clearing_protocol == 'iDISCO_EdU':
+		table = IdiscoEdUTable
 	return table	
 
 def add_clearing_calendar_entry(date,summary):
