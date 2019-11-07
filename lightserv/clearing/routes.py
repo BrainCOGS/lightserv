@@ -57,6 +57,7 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 	They will get updated as the user fills out the form '''
 	clearing_contents = dbTable() & f'experiment_name="{experiment_name}"' & \
 	 	f'username="{username}"' & f'sample_name="{sample_name}"'
+	
 	''' If there are contents and the form is blank, then that means the user is accessing the form 
 	to edit it from a previous session and we should pre-load the current contents of the db '''
 	if clearing_contents and (not request.form):
@@ -145,17 +146,6 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 	else:
 		column_name = None
 
-	''' Populate form with current database contents '''
-	# logger.debug("Current non-null contents of the database:")
-	# clearing_contents = dbTable() & f'experiment_id={experiment_id}'
-	# clearing_contents_dict = clearing_contents.fetch1()
-	# form_fieldnames = form._fields.keys()
-	# for key in clearing_contents_dict.keys():
-	# 	val = clearing_contents_dict[key]
-	# 	if key in form_fieldnames and val:
-	# 		logger.debug(f"key={key},val={val}")
-	# 		# logger.debug(val)
-	# 		form[key].data = val
 	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,
 		form=form,clearing_table=clearing_table,experiment_name=experiment_name,
 		column_name=column_name)
