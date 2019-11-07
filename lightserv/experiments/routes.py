@@ -7,9 +7,10 @@ from flask import (render_template, url_for, flash,
 from lightserv.experiments.forms import ExpForm, UpdateNotesForm, StartProcessingForm
 from lightserv.tables import ExpTable, SamplesTable
 from lightserv import db_lightsheet
-from lightserv.main.utils import logged_in
+from lightserv.main.utils import logged_in, table_sorter
 from lightserv import cel
 
+from functools import partial
 # from lightsheet_py3
 import glob
 
@@ -199,35 +200,41 @@ def new_exp():
 	return render_template('experiments/new_exp.html', title='new_experiment',
 		form=form,legend='New Experiment',column_name=column_name)	
 
-@experiments.route("/exp/<username>/<experiment_name>/delete", methods=['POST'])
-@logged_in
-def delete_exp(experiment_id):
-	""" A route which will delete an experiment from the database """
-	exp_contents = db_lightsheet.Experiment() & f'experiment_id="{experiment_id}"'
-
-	if exp_contents.fetch1('username') != session['user']:
-		abort(403)
-	try:
-		exp_contents.delete_quick() # does not query user for confirmation like delete() does - that is handled in the form.
-	except pymysql.err.IntegrityError:
-		flash('You cannot delete an experiment without deleting its dependencies (e.g. clearing entries). \
-			Delete all dependencies first.','danger')
-		return redirect(url_for('main.home'))
-
-	flash('Your experiment has been deleted!', 'success')
-	return redirect(url_for('main.home'))
-
 @experiments.route("/exp/<username>/<experiment_name>",)
 @logged_in
 def exp(username,experiment_name):
 	""" A route for displaying a single experiment. Also acts as a gateway to start data processing. """
 	exp_contents = db_lightsheet.Experiment() & \
-	 f'experiment_name="{experiment_name}"' & f'username="{username}"'
-	exp_table = ExpTable(exp_contents)
-	exp_table.table_id = 'horizontal' # to override vertical layout
+	f'experiment_name="{experiment_name}"' & f'username="{username}"'
 	samples_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
-	samples_table = SamplesTable(samples_contents)
-	samples_table.table_id = 'vertical'
+
+	# The first time page is loaded, sort, reverse, table_id are all not set so they become their default
+	sort = request.args.get('sort', 'experiment_name') # first is the variable name, second is default value
+	reverse = (request.args.get('direction', 'asc') == 'desc')
+	table_id = request.args.get('table_id', '')
+	exp_table_id = 'horizontal_exp_table'
+	samples_table_id = 'vertical_samples_table'
+	if table_id == exp_table_id:
+		sorted_results = sorted(exp_contents.fetch(as_dict=True),
+			key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
+
+		exp_table = ExpTable(sorted_results,sort_by=sort,
+						  sort_reverse=reverse)
+		samples_table = SamplesTable(samples_contents)
+	elif table_id == samples_table_id:
+		sorted_results = sorted(samples_contents.fetch(as_dict=True),
+			key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
+
+		samples_table = SamplesTable(sorted_results,sort_by=sort,
+						  sort_reverse=reverse)
+		exp_table = ExpTable(exp_contents)
+	else:
+		samples_table = SamplesTable(samples_contents)
+		exp_table = ExpTable(exp_contents)
+
+	samples_table.table_id = samples_table_id
+	exp_table.table_id = exp_table_id
+
 	try:
 		if exp_contents.fetch1('username') != session['user'] and session['user'] != 'ahoag':
 			flash('You do not have permission to see dataset: {}'.format(experiment_id),'danger')

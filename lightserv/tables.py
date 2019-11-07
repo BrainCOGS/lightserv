@@ -1,5 +1,5 @@
 # import flask_table
-from flask import url_for,flash,redirect
+from flask import url_for,flash,redirect, request
 from flask_table import Table, Col, LinkCol
 
 class ExpTable(Table):
@@ -28,13 +28,13 @@ class ExpTable(Table):
         anchor_attrs=anchor_attrs,allow_sort=False)
     
     def sort_url(self, col_key, reverse=False):
-        if col_key == 'experiment_link':
-            return url_for('main.home')
         if reverse:
             direction = 'desc'
         else:
             direction = 'asc'
-        return url_for('main.home', sort=col_key, direction=direction)
+        next_url = request.url.split('?')[0]
+        next_url += f'?sort={col_key}&direction={direction}&table_id={self.table_id}'
+        return next_url
 
 class SamplesTable(Table):
     border = True
@@ -79,14 +79,15 @@ class SamplesTable(Table):
     view_clearing_link = LinkCol('View clearing log', 'clearing.clearing_table',url_kwargs=url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False)
     
-    def sort_url(self, col_key, reverse=False):
-        if col_key == 'experiment_link':
-            return url_for('main.home')
+    def sort_url(self, col_key, reverse=False,):
         if reverse:
             direction = 'desc'
         else:
             direction = 'asc'
-        return url_for('main.home', sort=col_key, direction=direction)
+
+        next_url = request.url.split('?')[0]
+        next_url += f'?sort={col_key}&direction={direction}&table_id={self.table_id}'
+        return next_url
 
 class MicroscopeCalibrationTable(Table):
     ''' Define the microscope objective swap 
