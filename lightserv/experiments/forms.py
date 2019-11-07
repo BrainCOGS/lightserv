@@ -63,6 +63,7 @@ class ImagingForm(FlaskForm):
 class ExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 	# Basic info
+	max_number_of_samples = 50
 	experiment_name = StringField('Name of experiment',validators=[InputRequired(),Length(max=100)])
 	description = TextAreaField('Description of experiment',validators=[InputRequired(),Length(max=250)])
 	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)])
@@ -74,12 +75,12 @@ class ExpForm(FlaskForm):
 	sample_prefix = StringField('Sample prefix (your samples will be named prefix-1, prefix-2, ...)',validators=[InputRequired(),Length(max=32)])
 	""" Clearing """
 	self_clearing = BooleanField('Check if you plan to do the clearing yourself',default=False)
-	clearing_samples = FieldList(FormField(ClearingForm),min_entries=0,max_entries=15)
+	clearing_samples = FieldList(FormField(ClearingForm),min_entries=0,max_entries=max_number_of_samples)
 	uniform_clearing = BooleanField('Check if clearing will be the same for all samples',default=False)
 	
 	""" Imaging """
 	self_imaging = BooleanField('Check if you plan to do the imaging yourself',default=False)
-	imaging_samples = FieldList(FormField(ImagingForm),min_entries=0,max_entries=15)
+	imaging_samples = FieldList(FormField(ImagingForm),min_entries=0,max_entries=max_number_of_samples)
 	uniform_imaging = BooleanField('Check if imaging will be the same for all samples',default=False)
 	sample_submit_button = SubmitField('Setup samples')
 
@@ -92,6 +93,12 @@ class ExpForm(FlaskForm):
 			if len(self.clearing_samples.data) == 0 or  len(self.imaging_samples.data) == 0:
 				raise ValidationError("You must fill out and submit the 'Samples setup' section first.")
 
+	def validate_number_of_samples(self,number_of_samples):
+		if number_of_samples.data > self.max_number_of_samples:
+			raise ValidationError(f"Please limit your requested number of samples \
+			to {self.max_number_of_samples} or less")
+		elif number_of_samples.data < 1:
+			raise ValidationError("You must have at least one sample to submit a request")
 
 class OldExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
