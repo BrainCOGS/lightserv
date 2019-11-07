@@ -74,8 +74,8 @@ class UpdateSwapLogEntryForm(FlaskForm):
 
 class MicroscopeActionSelectForm(FlaskForm):
 	""" The form for selecting whether we are doing microscope maintenance or data entry """
-	action = SelectField('Choose what to do:', choices=[('microscope_maintenance','Microscope maintenance'),
-		('enter_data','Enter new data')],default='value')
+	action = SelectField('Choose what to do:', choices=[('enter_data','Enter new data'),
+		('microscope_maintenance','Microscope maintenance')],default='value')
 	submit = SubmitField('Submit')	
 
 class DataEntrySelectForm(FlaskForm):
