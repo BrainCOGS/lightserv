@@ -109,6 +109,18 @@ class ExpForm(FlaskForm):
 			raise ValidationError(f'There already exists an experiment name "{experiment_name.data}" \
 				for your username. Please rename your experiment')
 
+	def validate_clearing_samples(self,clearing_samples):
+		print(clearing_samples.data)
+		for sample_dict in clearing_samples.data:
+			clearing_protocol_sample = sample_dict['clearing_protocol']
+			if clearing_protocol_sample == 'iDISCO abbreviated clearing (rat)' and self.species.data != 'rat':
+				raise ValidationError("This clearing protocol can only be used with rats")
+			if clearing_protocol_sample != 'iDISCO abbreviated clearing (rat)' and self.species.data == 'rat':
+				raise ValidationError(f"""At least one of the clearing protocols you chose is not applicable for rats. 
+				 The only clearing protocol currently available for rats is: 
+				  'Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)'
+				  """)
+
 def Directory_validator(form,field):
 	''' Makes sure that the raw data directories exist on jukebox  '''
 	if not os.path.isdir(field.data):
