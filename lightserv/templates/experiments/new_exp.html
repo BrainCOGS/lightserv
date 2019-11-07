@@ -232,7 +232,7 @@
 				{% endif %}
 				<div>
 					{% for imaging_entry in form.imaging_samples %}
-						{% if custom_imaging == 1 %}
+						{% if form.uniform_imaging.data == false %}
 					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} </legend>
 					    {% else %}
 					    	<legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} <br/>(Your entries below will apply to all of your samples) </legend>
