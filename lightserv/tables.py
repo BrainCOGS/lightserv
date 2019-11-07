@@ -547,9 +547,6 @@ class IdiscoEdUTable(Table):
 
     time_edu_click_chemistry                    = Col('time_edu_click_chemistry')
     edu_click_chemistry_notes                    = Col('edu_click_chemistry_notes')
-    
-    time_wash2_start_roomtemp                   = Col('time_wash2_start_roomtemp')
-    wash2_start_roomtemp_notes                   = Col('wash2_start_roomtemp_notes')
 
     time_wash2_ptwh_wash1                       = Col('time_wash2_ptwh_wash1')
     wash2_ptwh_wash1_notes                       = Col('wash2_ptwh_wash1_notes')

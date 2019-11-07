@@ -627,8 +627,7 @@ class iDiscoEduForm(FlaskForm):
 	
 	wash2_date = OptionalDateField('Day 4: Wash')
 	wash2_date_submit = SubmitField('Push date to calendar (optional)')
-	time_wash2_start_roomtemp = OptionalDateTimeLocalField('Sample R@RT for ~1.5hrs')
-	time_wash2_start_roomtemp_submit = SubmitField('Update')
+	
 	wash2_start_roomtemp_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	wash2_start_roomtemp_notes_submit = SubmitField('Update Notes')
 	time_wash2_ptwh_wash1 = OptionalDateTimeLocalField('PTwH 10 min')
