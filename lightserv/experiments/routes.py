@@ -181,6 +181,11 @@ def new_exp():
 			logger.debug("Not validated!")
 			logger.debug(form.errors)
 			# logger.debug(form.samples.data)
+			if 'clearing_samples' in form.errors:
+				for field_dict in form.errors['clearing_samples']:
+					for key,val in list(field_dict.items()):
+						for error_str in val:
+							flash(error_str,'danger')
 	if not form.correspondence_email.data:	
 		form.correspondence_email.data = session['user'] + '@princeton.edu' 
 	if 'column_name' not in locals():
