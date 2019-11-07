@@ -204,8 +204,16 @@ def new_exp():
 @logged_in
 def exp(username,experiment_name):
 	""" A route for displaying a single experiment. Also acts as a gateway to start data processing. """
+	
 	exp_contents = db_lightsheet.Experiment() & \
 	f'experiment_name="{experiment_name}"' & f'username="{username}"'
+	try:
+		if exp_contents.fetch1('username') != session['user'] and session['user'] != 'ahoag':
+			flash('You do not have permission to see this experiment','danger')
+			return redirect(url_for('main.home'))
+	except:
+		flash(f'Page does not exist for this experiment: "{experiment_name}"','danger')
+		return redirect(url_for('main.home'))
 	samples_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
 
 	# The first time page is loaded, sort, reverse, table_id are all not set so they become their default
@@ -235,13 +243,6 @@ def exp(username,experiment_name):
 	samples_table.table_id = samples_table_id
 	exp_table.table_id = exp_table_id
 
-	try:
-		if exp_contents.fetch1('username') != session['user'] and session['user'] != 'ahoag':
-			flash('You do not have permission to see dataset: {}'.format(experiment_id),'danger')
-			return redirect(url_for('main.home'))
-	except:
-		flash(f'Page does not exist for Dataset: "{experiment_id}"','danger')
-		return redirect(url_for('main.home'))
 	return render_template('experiments/exp.html',exp_contents=exp_contents,exp_table=exp_table,samples_table=samples_table)
 
 @experiments.route("/exp/<int:experiment_id>/notes", methods=['GET','POST'])
