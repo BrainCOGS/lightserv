@@ -147,8 +147,8 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 		column_name = None
 
 	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,
-		form=form,clearing_table=clearing_table,experiment_name=experiment_name,
-		column_name=column_name)
+		form=form,clearing_table=clearing_table,username=username,experiment_name=experiment_name,
+		sample_name=sample_name,column_name=column_name)
 
 @clearing.route("/clearing/clearing_table/<username>/<experiment_name>/<sample_name>/<clearing_protocol>/",methods=['GET'])
 @logged_in_as_clearer

@@ -117,9 +117,7 @@ def new_exp():
 					exp_insert_dict['date_submitted'] = date
 					exp_insert_dict['time_submitted'] = time
 					db_lightsheet.Experiment().insert1(exp_insert_dict)
-					''' Figure out the experiment_id so we can use it for the samples table insert '''
-
-					experiment_id = db_lightsheet.Experiment()
+				
 					''' Now loop through samples and get clearing and imaging parameters for each sample '''
 					clearing_samples = form.clearing_samples.data
 					imaging_samples = form.imaging_samples.data
@@ -245,32 +243,6 @@ def exp(username,experiment_name):
 
 	return render_template('experiments/exp.html',exp_contents=exp_contents,exp_table=exp_table,samples_table=samples_table)
 
-@experiments.route("/exp/<int:experiment_id>/notes", methods=['GET','POST'])
-@logged_in
-def update_notes(experiment_id):
-	""" A route for updating notes in a single experiment """
-	if 'user' not in session:
-		return redirect('users.login')
-	form = UpdateNotesForm()
-	exp_contents = db_lightsheet.Experiment() & f'experiment_id="{experiment_id}"'
-	exp_table = ExpTable(exp_contents)
-
-	if form.validate_on_submit():
-		''' Enter the entered notes into this experiment's notes column'''
-		''' To update entry, need to first delete the entry and then add it 
-		again with the additional data '''
-
-		update_insert_dict = exp_contents.fetch1()
-		update_insert_dict['notes']=form.notes.data
-		exp_contents.delete_quick()
-
-		db_lightsheet.Experiment().insert1(update_insert_dict)
-		flash(f"Your notes have been updated",'success')
-		return redirect(url_for('experiments.exp',experiment_id=experiment_id))
-	elif request.method == 'GET':
-		current_notes = exp_contents.fetch1('notes')
-		form.notes.data = current_notes
-	return render_template('experiments/update_notes.html',form=form,exp_table=exp_table)
 
 @experiments.route("/exp/<username>/<experiment_name>/start_processing",methods=['GET','POST'])
 @logged_in
@@ -291,7 +263,7 @@ def start_processing(username,experiment_name):
 	used_imaging_channels = [channel for channel in channel_response_dict.keys() if channel_response_dict[channel]]
 	if len(used_imaging_channels) == 0:
 		flash("This experiment has no images so no data processing can be done",'danger')
-		return redirect(url_for('experiments.exp',experiment_id=experiment_id))
+		return redirect(url_for('experiments.exp',username=username,experiment_name=experiment_name))
 
 	exp_table = ExpTable(exp_contents)
 	form = StartProcessingForm()
@@ -305,7 +277,7 @@ def start_processing(username,experiment_name):
 			logger.debug(processing_params_dict)
 			logger.debug("Successfully captured form input into processing parameter dictionary")
 			logger.info(f"Sending processes to Celery")
-			run_step0.delay(experiment_id=experiment_id,processing_params_dict=processing_params_dict)
+			run_step0.delay(username=username,experiment_name=experient_name,processing_params_dict=processing_params_dict)
 			flash('Your data processing has begun. You will receive an email \
 				when the first steps are completed.','success')
 			return redirect(url_for('main.home'))
@@ -317,17 +289,18 @@ def start_processing(username,experiment_name):
 		form=form,exp_table=exp_table,used_imaging_channels=used_imaging_channels)	
 
 @cel.task()
-def run_step0(experiment_id,processing_params_dict):
+def run_step0(username,experiment_name,processing_params_dict):
 	""" An asynchronous celery task (runs in a background process) which runs step 0 
 	in the light sheet pipeline. 
 	"""
 	import tifffile
 	from xml.etree import ElementTree as ET 
-	exp_contents = db_lightsheet.Experiment & f'experiment_id={experiment_id}'
+	exp_contents = db_lightsheet.Experiment & f'username={username}' \
+	& f'experiment_name={experiment_name}'
 	username = exp_contents.fetch1('username')
 	''' Now add to parameter dictionary the other needed info to run the code '''
 	username = exp_contents.fetch('username')
-	raw_path = f'/jukebox/LightSheetData/lightserv_test/{username}/exp_{experiment_id}'  
+	raw_path = f'/jukebox/LightSheetData/lightserv_test/{username}/exp_{experiment_name}'  
 	''' Make the "inputdictionary", i.e. the mapping between directory and function '''
 	processing_params_dict['inputdictionary'] = {}
 	input_dictionary = {}
@@ -364,7 +337,7 @@ def run_step0(experiment_id,processing_params_dict):
 		else:
 			input_dictionary[rawdata_dir] = [input_list]
 	# Output directory for processed files
-	output_directory = f'/jukebox/LightSheetData/{username}/experiment_{experiment_id}'
+	output_directory = f'/jukebox/LightSheetData/{username}/experiment_{experiment_name}/processed'
 	
 	# Figure out xyz scale from metadata of 0th z plane of last rawdata directory (is the same for all directories)
 	# Grab the metadata tags from the 0th z plane

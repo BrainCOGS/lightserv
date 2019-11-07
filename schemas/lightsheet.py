@@ -220,7 +220,7 @@ class Sample(dj.Manual):
 
 	class IdiscoAbbreviatedRatClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
 		definition = """ # iDISCO Abbreviated Rat clearing table
-		-> Sample              # experiment_id, the primary key from the Experiment() table
+		-> Sample              
 		----
 		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
 		time_pbs_wash1 = NULL                                    :   datetime
@@ -270,7 +270,7 @@ class Sample(dj.Manual):
 
 	class UdiscoClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
 		definition = """ # uDISCO clearing table
-		-> Sample              # experiment_id, the primary key from the Experiment() table
+		-> Sample              
 		----
 		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
 		time_dehydr_pbs_wash1 = NULL                             :   datetime
@@ -298,7 +298,7 @@ class Sample(dj.Manual):
 
 	class IdiscoEdUClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
 		definition = """ # uDISCO clearing table
-		-> Sample              # experiment_id, the primary key from the Experiment() table
+		-> Sample              
 		----
 		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
 		time_dehydr_pbs_wash1 = NULL                             :   datetime
