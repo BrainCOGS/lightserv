@@ -1,3 +1,4 @@
+from flask import session
 from flask_wtf import FlaskForm
 from wtforms import (StringField, SubmitField, TextAreaField,
 					 SelectField, BooleanField, IntegerField,
@@ -87,18 +88,26 @@ class ExpForm(FlaskForm):
 	submit = SubmitField('Submit request')	
 
 	def validate_submit(self,submit):
-		""" Make sure that user has filled out sample setup section
-		""" 
+		""" Make sure that user has filled out sample setup section """ 
 		if self.submit.data == True:
 			if len(self.clearing_samples.data) == 0 or  len(self.imaging_samples.data) == 0:
 				raise ValidationError("You must fill out and submit the 'Samples setup' section first.")
 
 	def validate_number_of_samples(self,number_of_samples):
+		""" Make sure number_of_samples is > 0 and < max_number_of_samples """
 		if number_of_samples.data > self.max_number_of_samples:
 			raise ValidationError(f"Please limit your requested number of samples \
 			to {self.max_number_of_samples} or less")
 		elif number_of_samples.data < 1:
 			raise ValidationError("You must have at least one sample to submit a request")
+
+	def validate_experiment_name(self,experiment_name):
+		""" Make sure experiment name is unique """
+		username = session['user']
+		current_experiment_names = (db_lightsheet.Experiment() & f'username="{username}"').fetch('experiment_name')
+		if experiment_name.data in current_experiment_names:
+			raise ValidationError(f'There already exists an experiment name "{experiment_name.data}" \
+				for your username. Please rename your experiment')
 
 class OldExpForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """

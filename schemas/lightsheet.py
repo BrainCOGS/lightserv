@@ -48,12 +48,12 @@ class Sample(dj.Manual):
 	----
 	perfusion_date = NULL        :   date
 	expected_handoff_date = NULL :   date
-	clearer = NULL               :   varchar(20) # netid of person doing the clearing
+	clearer = "not yet assigned" :   varchar(20) # netid of person doing the clearing
 	clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
 	clearing_progress            :   enum("incomplete","in progress","complete")
 	antibody1 = ''               :   varchar(100)
 	antibody2 = ''               :   varchar(100)
-	imager = NULL                :   varchar(20) # netid of person doing the imaging
+	imager = "not yet assigned"  :   varchar(20) # netid of person doing the imaging
 	image_resolution                          :   enum("1.3x","4x")
 	channel488_registration = 0               :   boolean                    
 	channel555_registration = 0               :   boolean                    

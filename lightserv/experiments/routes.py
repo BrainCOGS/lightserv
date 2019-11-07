@@ -51,7 +51,7 @@ def new_exp():
 	logger.info(f"{username} accessed new experiment form")
 
 	form = ExpForm(request.form)
-	
+
 	if request.method == 'POST':
 		if form.validate_on_submit():
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x and form[x].data]
