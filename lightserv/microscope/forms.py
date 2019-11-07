@@ -108,17 +108,9 @@ class NewLaserForm(FlaskForm):
 
 class NewChannelForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
-	microscopes = db_microscope.Microscope().fetch('microscope_name')
+	# microscopes = (db_microscope.Microscope() & 'center="Bezos Center"').fetch('microscope_name')
 	microscope_name = SelectField('Microscope name',
-		choices=[(microscope,microscope) for microscope in microscopes],validators=[InputRequired()])
-	channel_name = StringField('Channel name',validators=[InputRequired(),Length(max=16)])
-	submit = SubmitField('Submit new entry')
-
-class NewChannelForm(FlaskForm):
-	""" The form for requesting a new experiment/dataset """
-	microscopes = db_microscope.Microscope().fetch('microscope_name')
-	microscope_name = SelectField('Microscope name',
-		choices=[(microscope,microscope) for microscope in microscopes],validators=[InputRequired()])
+		choices=[],validators=[InputRequired()])
 	channel_name = StringField('Channel name',validators=[InputRequired(),Length(max=16)])
 	submit = SubmitField('Submit new entry')
 

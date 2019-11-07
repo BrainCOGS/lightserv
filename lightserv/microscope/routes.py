@@ -59,6 +59,10 @@ def data_entry_selector():
 @logged_in
 def data_entry(data_entry_type):
     form = data_entry_form_picker(data_entry_type)
+
+    if data_entry_type == 'new_channel':
+        microscopes = db_microscope.Microscope().fetch('microscope_name')
+        form.microscope_name.choices = [(microscope,microscope) for microscope in microscopes]
     if form.validate_on_submit():
         form_fields = [x for x in form._fields.keys() if 'submit' not in x and 'csrf_token' not in x]
         insert_dict = {field:form[field].data for field in form_fields}
@@ -163,7 +167,6 @@ def update_entry(entrynum):
     form = UpdateSwapLogEntryForm() 
     microscope_contents = db.Microscope & f'entrynum = {entrynum}'
 
-   
     if form.validate_on_submit():
         date = form.date.data
         username = session['user']
