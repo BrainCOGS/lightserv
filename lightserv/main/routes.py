@@ -35,6 +35,14 @@ logger.addHandler(file_handler)
 main = Blueprint('main',__name__)
 
 @main.route("/") 
+@main.route("/welcome")
+@logged_in
+def welcome(): 
+
+	return render_template('main/welcome.html',)
+
+
+
 @main.route("/home")
 @logged_in
 def home(): 
