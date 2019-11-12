@@ -1,24 +1,27 @@
 {% extends "layout.html" %}
 	{% block content %}
-	<h3 align="center" class="mb-4">Welcome to the Light Sheet Microscopy Core Facility Portal</h3>
+	<h3 align="center" class="mb-4">Welcome to the U19 Core Facility Portal at the Princeton Neuroscience Institue</h3>
 	<h5> What is the Core Facility? </h5>
 	<p>
-		The Core Facility at the Princeton Neuroscience Institute performs whole-brain clearing and imaging for a variety of tissue types. See our <a href="#">gallery</a> for examples. Our imaging facility consists of a <a href="https://www.lavisionbiotec.com/products/UltraMicroscope.html">Lavision Biotec UltraMicroscope II</a> light sheet microscope to provide aligned, volumetric images. This optical microscope has two imaging resolutions (1.3x and 4x) and four wavelength channels (centered at 488nm, 555nm, 647nm and 790nm).
+		The Core Facility performs whole-brain clearing and imaging for a variety of tissue types upon request. See our <a href="#">gallery</a> for example tissue types that we have processed in the core facility. Our imaging facility consists of a <a href="https://www.lavisionbiotec.com/products/UltraMicroscope.html">Lavision Biotec UltraMicroscope II</a> light sheet microscope to provide aligned, volumetric images. This optical microscope has two imaging resolutions (1.3x and 4x) and four wavelength channels (centered at 488, 555, 647 and 790 nm).
 	</p>
 
 	<h5> How to use this portal? </h5>
 	<p>
-		If you are interested in using our services, please fill out a <a href="#">new request form</a>. You will be asked to provide the details of your request, such as how many samples you would like cleared and imaged, as well as the clearing and imaging parameters to use for each sample.
+		If you are interested in using our services, please fill out a <a href="#">new request form</a>. A "request" is a collection of tubes from a single species that you would like cleared and imaged. The idea is to group tubes that are in some way related in a single request, such as brains of mouse subjects that came from the same behavioral experiment. In the form, you will be asked to provide the details of your request, such as how many tubes you would like cleared and imaged, as well as the clearing and imaging parameters to use for each tube. 
 	</p>
 
-	<h5> What do we provide you? </h5>
+	<h5> What data products do we provide? </h5>
 	<p>
-		We will provide you the raw images of your samples obtained with the light sheet microscope at the wavelengths of your choice. We also have a processing pipeline which can perform downsampling and  registration of your sample to a reference atlas of your choice. We also provide tools for visualizing and annotating your multi-dimensional data. 
+		The default data products are raw light sheet images at each wavelength specified when you filled out the request form. You can also elect to use our automated processing pipeline which can perform downsampling and registration of your images to a reference atlas of your choice. 
+	</p>
+	<p>
+		At your <a href="{{url_for('main.home')}}">Home</a> page, you will see an overview and status updates on all of your requests ongoing and completed requests. The parameters of your clearing and imaging data are automatically stored in a datajoint database upon your completion of the new request form for access external to this site. Contact us for more details.  
 	</p>
 
 	<h5> How to contact us? </h5>
-	<p>
-		Please email us at <a href = "#">lightservhelper@gmail.com</a> with any questions about new or ongoing requests.
+	<p class="mb-4">
+		Please email us at <a href = "#">lightservhelper@gmail.com</a> with any questions about new or ongoing requests, or to simply provide feedback on your experience with this portal.
 	</p>
 
 	{% endblock content %}
