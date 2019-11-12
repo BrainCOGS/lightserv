@@ -5,7 +5,7 @@ from flask import (render_template, url_for, flash,
 # from lightserv import db_lightsheet
 # from lightserv.models import Experiment
 from lightserv.experiments.forms import ExpForm, UpdateNotesForm, StartProcessingForm
-from lightserv.tables import ExpTable, SamplesTable
+from lightserv.tables import ExpTable, SamplesTable, DemoTable
 from lightserv import db_lightsheet
 from lightserv.main.utils import logged_in, table_sorter
 from lightserv import cel
@@ -240,8 +240,8 @@ def exp(username,experiment_name):
 
 	samples_table.table_id = samples_table_id
 	exp_table.table_id = exp_table_id
-
-	return render_template('experiments/exp.html',exp_contents=exp_contents,exp_table=exp_table,samples_table=samples_table)
+	demo_table = DemoTable(samples_contents)
+	return render_template('experiments/exp.html',exp_contents=exp_contents,exp_table=demo_table,samples_table=samples_table)
 
 
 @experiments.route("/exp/<username>/<experiment_name>/start_processing",methods=['GET','POST'])

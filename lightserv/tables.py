@@ -1,6 +1,7 @@
 # import flask_table
 from flask import url_for,flash,redirect, request
-from flask_table import Table, Col, LinkCol, ButtonCol
+from flask_table import create_table,Table, Col, LinkCol, ButtonCol
+
 
 class ExpTable(Table):
     border = True
@@ -36,6 +37,9 @@ class ExpTable(Table):
         next_url += f'?sort={col_key}&direction={direction}&table_id={self.table_id}'
         return next_url
 
+DemoTable = create_table('demotable')
+DemoTable.add_column('experiment_name',Col('experiment_name'))
+
 class SamplesTable(Table):
     border = True
     allow_sort = True
@@ -70,7 +74,6 @@ class SamplesTable(Table):
     channel555_cell_detection = Col('channel555_cell_detection',column_html_attrs=column_html_attrs)                     
     channel647_cell_detection = Col('channel647_cell_detection',column_html_attrs=column_html_attrs)                     
     channel790_cell_detection = Col('channel790_cell_detection',column_html_attrs=column_html_attrs) 
-
     clearing_url_kwargs = {'username':'username','experiment_name':'experiment_name',
     'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
     imaging_url_kwargs = {'username':'username','experiment_name':'experiment_name',
