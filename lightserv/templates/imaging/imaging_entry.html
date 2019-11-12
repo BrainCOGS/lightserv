@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block content %}
+<h3>Sample overview:</h3>
+	{{ imaging_table }}
+
+<hr class='class-1'>
+<h3>Imaging instructions:</h3>
+
+<div>
+	<legend>Image resolution: {{ sample_dict['image_resolution'] }}</legend>
+</div>
+
+{% for channel in used_channels %}
+	<legend> Imaging required in channel: {{ channel }}</legend>
+{% endfor %}
+
+{% if column_name %}
+	<script>
+	window.onload = function() {
+	  document.getElementById("{{column_name}}").focus();
+	};
+	</script>
+{% endif %}
+
+
+{% endblock content %}

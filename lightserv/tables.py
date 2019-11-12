@@ -1,6 +1,6 @@
 # import flask_table
 from flask import url_for,flash,redirect, request
-from flask_table import Table, Col, LinkCol
+from flask_table import Table, Col, LinkCol, ButtonCol
 
 class ExpTable(Table):
     border = True
@@ -52,7 +52,8 @@ class SamplesTable(Table):
     clearing_protocol = Col('clearing_protocol',column_html_attrs)
     clearer = Col('clearer',column_html_attrs=column_html_attrs)
     imager = Col('imager',column_html_attrs=column_html_attrs)
-    image_resolution = Col("image image_resolution",column_html_attrs=column_html_attrs)
+    imaging_progress = Col('imaging_progress',column_html_attrs)
+    image_resolution = Col("image_resolution",column_html_attrs=column_html_attrs)
     channel488_registration = Col('channel488_registration',column_html_attrs=column_html_attrs)                     
     channel555_registration = Col('channel555_registration',column_html_attrs=column_html_attrs)                     
     channel647_registration = Col('channel647_registration',column_html_attrs=column_html_attrs)                     
@@ -70,15 +71,18 @@ class SamplesTable(Table):
     channel647_cell_detection = Col('channel647_cell_detection',column_html_attrs=column_html_attrs)                     
     channel790_cell_detection = Col('channel790_cell_detection',column_html_attrs=column_html_attrs) 
 
-    url_kwargs = {'username':'username','experiment_name':'experiment_name',
+    clearing_url_kwargs = {'username':'username','experiment_name':'experiment_name',
     'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
+    imaging_url_kwargs = {'username':'username','experiment_name':'experiment_name',
+    'sample_name':'sample_name'}
     anchor_attrs = {'target':"_blank",}
-    
-    start_clearing_link = LinkCol('Start/edit clearing', 'clearing.clearing_entry',url_kwargs=url_kwargs,
+    start_clearing_link = LinkCol('Start/edit clearing', 'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False)
-    view_clearing_link = LinkCol('View clearing log', 'clearing.clearing_table',url_kwargs=url_kwargs,
+    view_clearing_link = LinkCol('View clearing log', 'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False)
-    
+    start_imaging_link = LinkCol('Start/edit imaging', 'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
+        anchor_attrs=anchor_attrs,allow_sort=False)
+   
     def sort_url(self, col_key, reverse=False,):
         if reverse:
             direction = 'desc'
@@ -129,7 +133,21 @@ class ClearingTable(Table):
     experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
     sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
+    clearer = Col('clearer',column_html_attrs=column_html_attrs)
     clearing_progress = Col('clearing_progress',column_html_attrs=column_html_attrs)
+
+class ImagingTable(Table):
+    border = True
+    no_items = "No Imaging Yet"
+    html_attrs = {"style":'font-size:14px'} # gets assigned to table header
+    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    username = Col('username',column_html_attrs=column_html_attrs)
+    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
+    image_resolution = Col('image_resolution',column_html_attrs=column_html_attrs)
+    imager = Col('imager',column_html_attrs=column_html_attrs)
+    imaging_progress = Col('imaging_progress',column_html_attrs=column_html_attrs)
 
 class IdiscoPlusTable(Table):
     border = True

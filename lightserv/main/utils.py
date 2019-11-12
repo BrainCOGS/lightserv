@@ -1,6 +1,7 @@
 from flask import session,request,url_for,redirect, flash
 from functools import wraps
 from lightserv import db_lightsheet
+import datajoint as dj
 
 import logging
 
@@ -41,25 +42,79 @@ def logged_in_as_clearer(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
 
-		if 'user' in session:
+		if 'user' in session: # user is logged in 
 			username = session['user']
-			if username in ['ll3','zmd','jduva','ahoag','kellyms']:
-				logger.info(f"{session['user']} is a designated clearer")
-				return f(*args, **kwargs)
-			else:
-				experiment_name = kwargs['experiment_name']
-				sample_name = kwargs['sample_name']
-				username = kwargs['username']
-				exp_contents = db_lightsheet.Sample() & f'experiment_name={experiment_name}' & \
-				 	f'username="{username}"' & f'sample_name="{sample_name}"'
-				clearer = exp_contents.fetch1('clearer')
-				if username == clearer:
-					logger.info(f"{username} is the clearer.")
-					return f(*args, **kwargs)	
+			
+			experiment_name = kwargs['experiment_name']
+			sample_name = kwargs['sample_name']
+			username = kwargs['username']
+			sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+			 	f'username="{username}"' & f'sample_name="{sample_name}"'
+			clearer = sample_contents.fetch1('clearer')
+			''' check to see if user assigned themself as clearer '''
+			if clearer == "not yet assigned":
+				logger.info("Clearing entry form accessed with clearer not yet assigned. ")
+				''' now check to see if user is a designated clearer ''' 
+				if username in ['ll3','zmd','jduva','ahoag','kellyms']: # 
+					dj.Table._update(sample_contents,'clearer',username)
+					logger.info(f"{username} is a designated clearer and is now assigned as the clearer")
+					return f(*args, **kwargs)
+				else: # user is not a designated clearer and did not self assign
+					logger.info(f"""{username} is not a designated clearer and did not specify themselves
+					 as the clearer when submitting request. Denying them access""")
+					flash('''You do not have permission to access the clearing form for this experiment. 
+						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
+					return redirect(url_for('main.home'))
+			else: # clearer is assigned - only allow access to clearing entry to them
+				if clearer == username:
+					logger.info(f"{username} is the rightful clearer and accessed the clearing entry form")
+					return f(*args, **kwargs)
 				else:
-					logger.info(f"{username} is neither the clearer nor a designated clearer. Denying them access")
-					flash('''You do not have permission to access this. 
-						Ask a site or clearing admin to be granted access.''','warning')
+					logger.info(f"""{username} is not the clearer. Denying them access""")
+					flash('''The clearer has already been assigned for this entry and you are not them.  
+						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
+					return redirect(url_for('main.home'))
+
+		else:
+			next_url = request.url
+			login_url = '%s?next=%s' % (url_for('main.login'), next_url)
+			return redirect(login_url)
+	return decorated_function
+
+def logged_in_as_imager(f):
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		if 'user' in session: # user is logged in 
+			username = session['user']
+			
+			experiment_name = kwargs['experiment_name']
+			sample_name = kwargs['sample_name']
+			username = kwargs['username']
+			sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+			 	f'username="{username}"' & f'sample_name="{sample_name}"'
+			imager = sample_contents.fetch1('imager')
+			''' check to see if user assigned themself as imager '''
+			if imager == "not yet assigned":
+				logger.info("Imaging entry form accessed with imager not yet assigned. ")
+				''' now check to see if user is a designated imager ''' 
+				if username in ['zmd','jduva','ahoag','kellyms']: # 
+					dj.Table._update(sample_contents,'imager',username)
+					logger.info(f"{username} is a designated imager and is now assigned as the imager")
+					return f(*args, **kwargs)
+				else: # user is not a designated imager and did not self assign
+					logger.info(f"""{username} is not a designated imager and did not specify themselves
+					 as the imager when submitting request. Denying them access""")
+					flash('''You do not have permission to access the imaging form for this experiment. 
+						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
+					return redirect(url_for('main.home'))
+			else: # imager is assigned - only allow access to imaging entry to them
+				if imager == username:
+					logger.info(f"{username} is the rightful imager and accessed the imaging entry form")
+					return f(*args, **kwargs)
+				else:
+					logger.info(f"""{username} is not the imager. Denying them access""")
+					flash('''The imager has already been assigned for this entry and you are not them.  
+						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
 					return redirect(url_for('main.home'))
 		else:
 			next_url = request.url

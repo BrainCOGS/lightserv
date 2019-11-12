@@ -70,10 +70,6 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 	else:
 		form = determine_clearing_form(clearing_protocol,existing_form=request.form)
 
-	# print(clearing_contents)
-	# print(request.form)
-	
-	# print(clearing_contents)
 	if not clearing_contents:
 		sample_username = sample_contents.fetch1('username')
 		insert_dict = {'experiment_name':experiment_name,

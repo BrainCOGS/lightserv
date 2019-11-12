@@ -54,6 +54,7 @@ class Sample(dj.Manual):
 	antibody1 = ''               :   varchar(100)
 	antibody2 = ''               :   varchar(100)
 	imager = "not yet assigned"  :   varchar(20) # netid of person doing the imaging
+    imaging_progress             :   enum("incomplete","in progress","complete")
 	image_resolution                          :   enum("1.3x","4x")
 	channel488_registration = 0               :   boolean                    
 	channel555_registration = 0               :   boolean                    
@@ -411,7 +412,6 @@ class RawImageSet(dj.Manual):
 	purpose                      :   varchar(255)
 	notes = ""                   :   varchar(1000)
 	"""  
-
 
 class ImageProcessing(dj.Manual):
 	definition = """ # Image Processing metadata for a run through the pipeline
