@@ -33,7 +33,7 @@
 						
 							<div class="navbar-nav mr-auto">
 								<a class="nav-item nav-link" href="{{ url_for('main.home') }}">Home</a>
-								<a class="nav-item nav-link" href="{{ url_for('ontology.interactive_ontology')}}" target="_blank">Interactive Ontology</a>
+								<!-- <a class="nav-item nav-link" href="{{ url_for('ontology.interactive_ontology')}}" target="_blank">Interactive Ontology</a> -->
 								{% if session['user'] == 'ahoag' or session['user'] == 'zmd' %}
 									<a class="nav-item nav-link" href="{{ url_for('microscope.landing_page')}}" target="_blank">Microscope Management</a>
 								{% endif %}
