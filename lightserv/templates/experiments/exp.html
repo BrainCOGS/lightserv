@@ -1,8 +1,7 @@
 {% extends "layout.html" %}
 	{% block content %}
-		<article class="media content-section">
-			<legend>Experiment: {{ exp_contents.fetch1('experiment_name') }}</a>
-		</article>
+		
+		<h3>Experiment overview: </h3>
 		{{ exp_table }}
 		<input id = "tableSwapper1" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
 		

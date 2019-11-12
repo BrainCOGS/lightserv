@@ -50,10 +50,10 @@ def home():
 	logger.info(f"{username} accessed home page")
 	if username in ['ahoag','zmd','ll3','kellyms','jduva']:
 		exp_contents = db_lightsheet.Experiment()
-		legend = 'All light sheet experiments'
+		legend = 'All core facility requests'
 	else:
 		exp_contents = db_lightsheet.Experiment() & f'username="{username}"'
-		legend = 'Your light sheet experiments'
+		legend = 'Your core facility requests'
 	sort = request.args.get('sort', 'experiment_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sorted_results = sorted(exp_contents.fetch(as_dict=True),
