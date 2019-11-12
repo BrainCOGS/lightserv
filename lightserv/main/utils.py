@@ -44,7 +44,8 @@ def logged_in_as_clearer(f):
 
 		if 'user' in session: # user is logged in 
 			username = session['user']
-			
+			if username == 'ahoag': # admin rights
+				return f(*args, **kwargs)
 			experiment_name = kwargs['experiment_name']
 			sample_name = kwargs['sample_name']
 			username = kwargs['username']
@@ -66,7 +67,7 @@ def logged_in_as_clearer(f):
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
 					return redirect(url_for('main.home'))
 			else: # clearer is assigned - only allow access to clearing entry to them
-				if clearer == username:
+				if username == clearer:
 					logger.info(f"{username} is the rightful clearer and accessed the clearing entry form")
 					return f(*args, **kwargs)
 				else:
@@ -86,7 +87,8 @@ def logged_in_as_imager(f):
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
 			username = session['user']
-			
+			if username == 'ahoag': # admin rights
+				return f(*args, **kwargs)
 			experiment_name = kwargs['experiment_name']
 			sample_name = kwargs['sample_name']
 			username = kwargs['username']

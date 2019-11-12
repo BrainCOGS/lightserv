@@ -18,14 +18,6 @@ def OptionalDateTimeLocalField(description='',validators=[],format=datetimeforma
 	field = DateTimeLocalField(description,validators,format=format)
 	return field
 
-class NewImagingForm(FlaskForm):
+class ImagingForm(FlaskForm):
 	""" The form for entering clearing information """
-	title = 'iDISCO+ Immunostaining'
-	exp_notes = TextAreaField('Experiment Notes: If anything unusual happened during the \
-		experiment that might affect clearing, please note it here.',validators=[Length(max=500)])
-	exp_notes_submit = SubmitField('Update')
-	
-	dehydr_date = OptionalDateField('Day 1: Dehydration')
-	dehydr_date_submit = SubmitField('Push date to calendar (optional)')
-	time_dehydr_pbs_wash1 = OptionalDateTimeLocalField('1xPBS 30 min R@RT')
-	time_dehydr_pbs_wash1_submit = SubmitField('Update')
+	submit = SubmitField('Click when imaging is complete and all files are on bucket')

@@ -6,6 +6,7 @@ from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 								  logged_in_as_imager)
 from lightserv.tables import ImagingTable
+from .forms import ImagingForm
 import numpy as np
 import datajoint as dj
 import re
@@ -34,6 +35,7 @@ imaging = Blueprint('imaging',__name__)
 @imaging.route("/imaging/imaging_entry/<username>/<experiment_name>/<sample_name>",methods=['GET','POST'])
 @logged_in_as_imager
 def imaging_entry(username,experiment_name,sample_name): 
+	form = ImagingForm()
 	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"'								
 	if not sample_contents:
@@ -42,8 +44,9 @@ def imaging_entry(username,experiment_name,sample_name):
 			Please submit a new request for this experiment first. """,'danger')
 		return redirect(url_for('experiments.new_exp'))
 	dj.Table._update(sample_contents,'imaging_progress','in progress')
-	imaging_table = ImagingTable(sample_contents)
+
 	sample_dict = sample_contents.fetch1()
+	imaging_table = ImagingTable(sample_contents)
 	''' Now figure out which channels need to be imaged '''
 	used_channels = []
 	for channel in ['488','555','647','790']:
@@ -54,8 +57,5 @@ def imaging_entry(username,experiment_name,sample_name):
 				used_channels.append(channel)
 				continue
 
-			
-
-
-	return render_template('imaging/imaging_entry.html',
+	return render_template('imaging/imaging_entry.html',form=form,
 		used_channels=used_channels,sample_dict=sample_dict,imaging_table=imaging_table)

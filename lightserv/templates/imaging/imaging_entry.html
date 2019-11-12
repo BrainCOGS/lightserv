@@ -14,6 +14,15 @@
 	<legend> Imaging required in channel: {{ channel }}</legend>
 {% endfor %}
 
+<form method="POST" action="">
+	{{ form.hidden_tag() }}
+	<fieldset class="form-group">
+		<div class="form-group">
+			{{ form.submit(class="btn btn-lg btn-success mt-2") }}
+		</div>
+	</fieldset>
+</form>
+
 {% if column_name %}
 	<script>
 	window.onload = function() {
