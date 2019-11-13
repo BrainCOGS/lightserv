@@ -94,6 +94,15 @@ class SamplesTable(Table):
         next_url += f'?sort={col_key}&direction={direction}&table_id={self.table_id}'
         return next_url
 
+class HeadingCol(LinkCol):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.allow_sort = False
+    def td_format(self, content):
+        html = '<a>----------</a>'
+        return html
+
+
 def create_dynamic_samples_table(contents,table_id,name='Dynamic Samples Table', **sort_kwargs):
     def dynamic_sort_url(self, col_key, reverse=False):
         if reverse:
@@ -129,11 +138,15 @@ def create_dynamic_samples_table(contents,table_id,name='Dynamic Samples Table',
     table_class.add_column('experiment_name',Col('experiment_name'))
     table_class.add_column('username',Col('username'))
     for column_name in colnames:
+        if column_name == 'clearer':
+             table_class.add_column('x',HeadingCol('Clearing parameters',endpoint='main.welcome'))
+        if column_name == 'imager':
+             table_class.add_column('y',HeadingCol('Imaging parameters',endpoint='main.home'))
         if 'channel' in column_name:
             vals = contents.fetch(column_name)
             if not any(vals):
                 continue
-        table_class.add_column(column_name,Col(column_name))
+        table_class.add_column(column_name,Col(column_name),)
     """ Now add in the link columns """
     clearing_url_kwargs = {'username':'username','experiment_name':'experiment_name',
     'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
