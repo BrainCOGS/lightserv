@@ -5,7 +5,7 @@ from flask import (render_template, url_for, flash,
 # from lightserv import db_lightsheet
 # from lightserv.models import Experiment
 from lightserv.experiments.forms import ExpForm, UpdateNotesForm, StartProcessingForm
-from lightserv.tables import ExpTable, SamplesTable, DemoTable
+from lightserv.tables import ExpTable, SamplesTable, create_dynamic_samples_table
 from lightserv import db_lightsheet
 from lightserv.main.utils import logged_in, table_sorter
 from lightserv import cel
@@ -213,35 +213,48 @@ def exp(username,experiment_name):
 		flash(f'Page does not exist for this experiment: "{experiment_name}"','danger')
 		return redirect(url_for('main.home'))
 	samples_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
+	print(samples_contents)
+	''' Get rid of the rows where none of the channels are used '''
+	# samples_dict_list = samples_contents.fetch(as_dict=True)
+	# print(samples_dict)
+	# for channel in ['488','555','647','790']:
+	# 	for mode in ['registration','injection_detection','probe_detection','cell_detection']:
+	# 		key = 'channel' + channel + '_' + mode
+	# 		used_flags = [samples_dict_list[ii][key] for ii in range(len(samples_dict_list))]
+	# 		if not any(used_flags):
+	# 			for sample_dict in samples_dict_list:
+	# 				sample_dict.pop(key,'None')
+			# print(key,used_flags)
+
 
 	# The first time page is loaded, sort, reverse, table_id are all not set so they become their default
 	sort = request.args.get('sort', 'experiment_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	table_id = request.args.get('table_id', '')
+
 	exp_table_id = 'horizontal_exp_table'
 	samples_table_id = 'vertical_samples_table'
-	if table_id == exp_table_id:
+	# samples_table_id = 'test_samples_table'
+	# print(samples_contents.fetch(as_dict=True))
+	if table_id == exp_table_id: # the click was in the experiment table
 		sorted_results = sorted(exp_contents.fetch(as_dict=True),
 			key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
 
 		exp_table = ExpTable(sorted_results,sort_by=sort,
 						  sort_reverse=reverse)
-		samples_table = SamplesTable(samples_contents)
-	elif table_id == samples_table_id:
-		sorted_results = sorted(samples_contents.fetch(as_dict=True),
-			key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
-
-		samples_table = SamplesTable(sorted_results,sort_by=sort,
-						  sort_reverse=reverse)
+		samples_table = create_dynamic_samples_table(samples_contents,table_id=samples_table_id)
+	elif table_id == samples_table_id: # the click was in the samples table
+		samples_table = create_dynamic_samples_table(samples_contents,
+			sort_by=sort,sort_reverse=reverse,table_id=samples_table_id)
 		exp_table = ExpTable(exp_contents)
 	else:
-		samples_table = SamplesTable(samples_contents)
+		samples_table = create_dynamic_samples_table(samples_contents,table_id=samples_table_id)
 		exp_table = ExpTable(exp_contents)
 
 	samples_table.table_id = samples_table_id
 	exp_table.table_id = exp_table_id
-	demo_table = DemoTable(samples_contents)
-	return render_template('experiments/exp.html',exp_contents=exp_contents,exp_table=demo_table,samples_table=samples_table)
+	return render_template('experiments/exp.html',exp_contents=exp_contents,
+		exp_table=exp_table,samples_table=samples_table)
 
 
 @experiments.route("/exp/<username>/<experiment_name>/start_processing",methods=['GET','POST'])
@@ -258,7 +271,6 @@ def start_processing(username,experiment_name):
 	# channels = [488,555,647,790]
 	channel_query_strs = ['channel%i' % channel for channel in channels]
 
-	channels = ['registration','injection_detection','probe_detection','cell_detection']
 	channel_response_dict = exp_contents.fetch(*channel_query_strs,as_dict=True)[0]
 	used_imaging_channels = [channel for channel in channel_response_dict.keys() if channel_response_dict[channel]]
 	if len(used_imaging_channels) == 0:

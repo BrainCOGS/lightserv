@@ -1,7 +1,8 @@
 # import flask_table
 from flask import url_for,flash,redirect, request
 from flask_table import create_table,Table, Col, LinkCol, ButtonCol
-
+from functools import partial
+from lightserv.main.utils import table_sorter
 
 class ExpTable(Table):
     border = True
@@ -37,8 +38,6 @@ class ExpTable(Table):
         next_url += f'?sort={col_key}&direction={direction}&table_id={self.table_id}'
         return next_url
 
-DemoTable = create_table('demotable')
-DemoTable.add_column('experiment_name',Col('experiment_name'))
 
 class SamplesTable(Table):
     border = True
@@ -95,6 +94,55 @@ class SamplesTable(Table):
         next_url = request.url.split('?')[0]
         next_url += f'?sort={col_key}&direction={direction}&table_id={self.table_id}'
         return next_url
+
+def create_dynamic_samples_table(contents,table_id,name='Dynamic Samples Table', **sort_kwargs):
+    def dynamic_sort_url(self, col_key, reverse=False):
+        if reverse:
+            direction = 'desc'
+        else:
+            direction = 'asc'
+
+        next_url = request.url.split('?')[0]
+        next_url += f'?sort={col_key}&direction={direction}&table_id={table_id}'
+        return next_url
+
+    options = dict(
+        border = True,
+        allow_sort = True,
+        no_items = "No Samples",
+        html_attrs = {"style":'font-size:18px'}, 
+        table_id = table_id,
+        classes = ["table-striped"]
+        ) 
+
+    table_class = create_table(name,options=options)
+    table_class.sort_url = dynamic_sort_url
+    sort = sort_kwargs.get('sort_by','sample_name')
+    reverse = sort_kwargs.get('sort_reverse',False)
+    colnames = contents.fetch(as_dict=True)[0].keys()
+    for column_name in colnames:
+        if 'channel' in column_name:
+            vals = contents.fetch(column_name)
+            if not any(vals):
+                continue
+        table_class.add_column(column_name,Col(column_name))
+    # experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    # username = Col('username',column_html_attrs=column_html_attrs)
+    # clearing_progress = Col('clearing_progress',column_html_attrs)
+    # clearing_protocol = Col('clearing_protocol',column_html_attrs)
+    # clearer = Col('clearer',column_html_attrs=column_html_attrs)
+    # imager = Col('imager',column_html_attrs=column_html_attrs)
+    # imaging_progress = Col('imaging_progress',column_html_attrs)
+    # image_resolution = Col("image_resolution",column_html_attrs=column_html_attrs)
+    # if "Mercer" not in contents.fetch('county'):
+    #     table_class.add_column('county',Col('county'))
+    sorted_contents = sorted(contents.fetch(as_dict=True),
+            key=partial(table_sorter,sort_key=sort),reverse=reverse)
+    table = table_class(sorted_contents)
+    table.sort_by = sort
+    table.sort_reverse = reverse
+    
+    return table 
 
 class MicroscopeCalibrationTable(Table):
     ''' Define the microscope objective swap 
