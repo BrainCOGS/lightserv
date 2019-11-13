@@ -55,7 +55,7 @@ class Sample(dj.Manual):
 	antibody2 = ''               :   varchar(100)
 	imager = "not yet assigned"  :   varchar(20) # netid of person doing the imaging
     imaging_progress             :   enum("incomplete","in progress","complete")
-	image_resolution                          :   enum("1.3x","4x")
+	image_resolution                          :   enum("1.3x","4x","1.1x","2x")
 	channel488_registration = 0               :   boolean                    
 	channel555_registration = 0               :   boolean                    
 	channel647_registration = 0               :   boolean                    
