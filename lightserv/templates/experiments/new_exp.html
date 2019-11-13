@@ -98,8 +98,10 @@
 						{{ form.sample_prefix(class="form-control form-control-lg") }}
 					{% endif %}
 				</div>
-				
-				<!-- CLEARING section -->
+
+				<!-- ############### -->
+				<!-- SAMPLES section -->
+				<!-- ############### -->
 				<hr class='class-3'>
 				<h3 class='border-bottom'>Samples setup</h3>
 				<div class="checkbox">
@@ -122,7 +124,10 @@
 				<div class="form-group">
 					{{ form.sample_submit_button(class="btn btn-success mt-2") }}
 				</div>
-				<!-- Handle clearing for each sample -->
+				
+				<!-- ################ -->
+				<!-- CLEARING section -->
+				<!-- ################ -->
 				
 				{% if form.clearing_samples.data|length > 0 %}
 					<hr class='class-2'>
@@ -214,6 +219,21 @@
 							{% endif %}
 						</div>
 
+						<div class="form-group">
+							{% if clearing_entry.notes_for_clearer.flags.required %}*{% endif %}
+							{{ clearing_entry.notes_for_clearer.label(class="form-control-label") }}
+							{% if clearing_entry.notes_for_clearer.errors %}
+								{{ clearing_entry.notes_for_clearer(class="form-control form-control-lg is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in clearing_entry.notes_for_clearer.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ clearing_entry.notes_for_clearer(class="form-control form-control-lg") }}
+							{% endif %}
+						</div>
+
 					{% if not loop.last %}
 						<br/>
 		            	<hr class='class-2'>
@@ -222,9 +242,9 @@
 					{% endfor %}
 				</div>
 
+				<!-- ############### -->
 				<!-- IMAGING section -->
-
-				<!-- Handle imaging for each sample -->
+				<!-- ############### -->
 				
 				{% if form.imaging_samples.data|length > 0 %}
 					<hr class='class-2'>
@@ -294,6 +314,21 @@
 			                    <td>{{imaging_entry.channel790_cell_detection}}</td>
 			                </tr>
 			            </table>
+
+			             <div class="form-group">
+							{% if imaging_entry.notes_for_imager.flags.required %}*{% endif %}
+							{{ imaging_entry.notes_for_imager.label(class="form-control-label") }}
+							{% if imaging_entry.notes_for_imager.errors %}
+								{{ imaging_entry.notes_for_imager(class="form-control form-control-lg is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in imaging_entry.notes_for_imager.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ imaging_entry.notes_for_imager(class="form-control form-control-lg") }}
+							{% endif %}
+						</div>
 			            {% if not loop.last %}
 			            	<br/>
 			            	<hr class='class-2'>

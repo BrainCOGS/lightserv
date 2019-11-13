@@ -19,8 +19,9 @@ def OptionalDateField(description='',validators=[]):
 	return field
 
 class ClearingForm(FlaskForm):
-	""" The form for clearing a single sample within an experiment """
-	# Basic info
+	""" A form that is used in ExpForm() via a FormField Fieldlist
+	so I dont have to write the clearing parameters out for each sample 
+	"""
 	clearing_protocol = SelectField('Clearing Protocol:', choices= \
 		[('iDISCO abbreviated clearing','iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
 		 ('iDISCO abbreviated clearing (rat)','Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
@@ -28,8 +29,9 @@ class ClearingForm(FlaskForm):
 	     ('uDISCO','uDISCO'),('iDISCO_EdU','Wang Lab iDISCO Protocol-EdU')],validators=[InputRequired()]) 
 	antibody1 = TextAreaField('Primary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
 	antibody2 = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
-	perfusion_date = OptionalDateField('Perfusion Date (leave blank if unsure):')
-	expected_handoff_date = OptionalDateField('Expected date of hand-off (leave blank if not applicable or unsure):')
+	perfusion_date = OptionalDateField('Perfusion Date (MM/DD/YYYY; leave blank if unsure):')
+	expected_handoff_date = OptionalDateField('Expected date of hand-off (MM/DD/YYYY; leave blank if not sure or not applicable):')
+	notes_for_clearer = TextAreaField('Notes for clearing  -- max 1024 characters --',validators=[Length(max=1024)])
 
 	def validate_antibody1(self,antibody1):
 		''' Makes sure that primary antibody is not blank if immunostaining clearing protocol
@@ -39,8 +41,9 @@ class ClearingForm(FlaskForm):
 				an immunostaining clearing protocol')
 
 class ImagingForm(FlaskForm):
-	""" The form for imaging a single sample within an experiment """
-	# Basic info
+	""" A form that is used in ExpForm() via a FormField Fieldlist
+	so I dont have to write the clearing parameters out for each sample
+	"""
 	image_resolution = SelectField('Image Resolution:', 
 		choices=[('1.3x','1.3x'),
 	('4x','4x'),('1.1x','1.1x'),('2x','2x')],validators=[InputRequired()]) 
@@ -60,10 +63,11 @@ class ImagingForm(FlaskForm):
 	channel790_injection_detection = BooleanField('Registration',default=False)
 	channel790_probe_detection = BooleanField('Registration',default=False)
 	channel790_cell_detection = BooleanField('Registration',default=False)
+	notes_for_imager = TextAreaField('Notes for imaging (e.g. exposure time, tiling scheme) -- max 1024 characters --',validators=[Length(max=1024)])
 
-class ExpForm(FlaskForm):
-	""" The form for requesting a new experiment/dataset """
-	# Basic info
+
+class NewRequestForm(FlaskForm):
+	""" The form for a new request """
 	max_number_of_samples = 50
 	experiment_name = StringField('Name of experiment',validators=[InputRequired(),Length(max=100)])
 	description = TextAreaField('Description of experiment',validators=[InputRequired(),Length(max=250)])

@@ -4,7 +4,7 @@ from flask import (render_template, url_for, flash,
 # from flask_login import current_user, login_required
 # from lightserv import db_lightsheet
 # from lightserv.models import Experiment
-from lightserv.experiments.forms import ExpForm, UpdateNotesForm, StartProcessingForm
+from lightserv.experiments.forms import NewRequestForm, UpdateNotesForm, StartProcessingForm
 from lightserv.tables import ExpTable, SamplesTable, create_dynamic_samples_table
 from lightserv import db_lightsheet
 from lightserv.main.utils import logged_in, table_sorter
@@ -51,7 +51,7 @@ def new_exp():
 	username = session['user']
 	logger.info(f"{username} accessed new experiment form")
 
-	form = ExpForm(request.form)
+	form = NewRequestForm(request.form)
 
 	if request.method == 'POST':
 		if form.validate_on_submit():

@@ -118,7 +118,10 @@ def create_dynamic_samples_table(contents,table_id,name='Dynamic Samples Table',
     table_class.sort_url = dynamic_sort_url
     sort = sort_kwargs.get('sort_by','sample_name')
     reverse = sort_kwargs.get('sort_reverse',False)
-    colnames = contents.fetch(as_dict=True)[0].keys()
+    """ Now loop through all columns and add them to the table,
+    only adding the imaging modes if they are used in at least one
+    sample """
+    colnames = contents.heading.attributes.keys()
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
