@@ -41,7 +41,6 @@ def logged_in(f):
 def logged_in_as_clearer(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
-
 		if 'user' in session: # user is logged in 
 			username = session['user']
 			if username == 'ahoag': # admin rights
@@ -75,7 +74,6 @@ def logged_in_as_clearer(f):
 					flash('''The clearer has already been assigned for this entry and you are not them.  
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
 					return redirect(url_for('main.home'))
-
 		else:
 			next_url = request.url
 			login_url = '%s?next=%s' % (url_for('main.login'), next_url)
@@ -135,8 +133,27 @@ def check_clearing_completed(f):
 		 	f'username="{username}"' & f'sample_name="{sample_name}"'
 		clearing_progress = sample_contents.fetch1('clearing_progress')
 		if clearing_progress != 'complete':
-			flash(f"Clearing must be completed for sample_name={sample_name} \
-				before imaging can be done",'warning')
+			flash(f"Clearing must be completed first for sample_name={sample_name}",'warning')
+			return redirect(url_for('experiments.exp',username=username,
+				experiment_name=experiment_name,
+				sample_name=sample_name))
+		else:
+			return f(*args, **kwargs)
+	return decorated_function
+
+
+def check_imaging_completed(f):
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		experiment_name = kwargs['experiment_name']
+		sample_name = kwargs['sample_name']
+		username = kwargs['username']
+		sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+		 	f'username="{username}"' & f'sample_name="{sample_name}"'
+		imaging_progress = sample_contents.fetch1('imaging_progress')
+		if imaging_progress != 'complete':
+			print("imaging not complete")
+			flash(f"Imaging must be completed first for sample_name={sample_name}",'warning')
 			return redirect(url_for('experiments.exp',username=username,
 				experiment_name=experiment_name,
 				sample_name=sample_name))

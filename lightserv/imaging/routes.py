@@ -33,10 +33,12 @@ logger.addHandler(file_handler)
 imaging = Blueprint('imaging',__name__)
 
 @imaging.route("/imaging/imaging_entry/<username>/<experiment_name>/<sample_name>",methods=['GET','POST'])
+@logged_in
 @logged_in_as_imager
 @check_clearing_completed
 def imaging_entry(username,experiment_name,sample_name): 
-	form = ImagingForm()
+	form = ImagingForm(request.form)
+
 	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"'								
 	if not sample_contents:
@@ -44,6 +46,14 @@ def imaging_entry(username,experiment_name,sample_name):
 			sample_name={sample_name} before imaging can be done. 
 			Please submit a new request for this experiment first. """,'danger')
 		return redirect(url_for('experiments.new_exp'))
+
+	if form.validate_on_submit():
+		logger.info("form validated")
+		dj.Table._update(sample_contents,'imaging_progress','complete')
+		flash("Imaging is complete. The processing pipeline is now ready to run.","success")
+		return redirect(url_for('experiments.exp',username=username,
+			experiment_name=experiment_name,sample_name=sample_name))
+
 	dj.Table._update(sample_contents,'imaging_progress','in progress')
 
 	sample_dict = sample_contents.fetch1()

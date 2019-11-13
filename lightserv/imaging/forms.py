@@ -20,4 +20,5 @@ def OptionalDateTimeLocalField(description='',validators=[],format=datetimeforma
 
 class ImagingForm(FlaskForm):
 	""" The form for entering clearing information """
-	submit = SubmitField('Click when imaging is complete and all files are on bucket')
+	imaging_notes = TextAreaField('')
+	submit = SubmitField('Click when imaging is complete and all files are on bucket in the folder above')

@@ -103,7 +103,7 @@ class HeadingCol(LinkCol):
         return html
 
 
-def create_dynamic_samples_table(contents,table_id,name='Dynamic Samples Table', **sort_kwargs):
+def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynamic Samples Table', **sort_kwargs):
     def dynamic_sort_url(self, col_key, reverse=False):
         if reverse:
             direction = 'desc'
@@ -138,6 +138,8 @@ def create_dynamic_samples_table(contents,table_id,name='Dynamic Samples Table',
     table_class.add_column('experiment_name',Col('experiment_name'))
     table_class.add_column('username',Col('username'))
     for column_name in colnames:
+        if column_name in ignore_columns:
+            continue
         if column_name == 'clearer':
              table_class.add_column('x',HeadingCol('Clearing parameters',endpoint='main.welcome'))
         if column_name == 'imager':
@@ -152,13 +154,19 @@ def create_dynamic_samples_table(contents,table_id,name='Dynamic Samples Table',
     'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
     imaging_url_kwargs = {'username':'username','experiment_name':'experiment_name',
     'sample_name':'sample_name'}
+    processing_url_kwargs = {'username':'username','experiment_name':'experiment_name','sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
     anchor_attrs = {'target':"_blank",}
     table_class.add_column('start_clearing_link',
         LinkCol('Start/edit clearing', 'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False))
-    table_class.add_column('view_clearing_link',LinkCol('View clearing log', 'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
+    table_class.add_column('view_clearing_link',LinkCol('View clearing log', 
+        'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
        anchor_attrs=anchor_attrs,allow_sort=False))
-    table_class.add_column('start_imaging_link',LinkCol('Start/edit imaging', 'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
+    table_class.add_column('start_imaging_link',LinkCol('Start/edit imaging',
+     'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
+        anchor_attrs=anchor_attrs,allow_sort=False))
+    table_class.add_column('data_processing_link',LinkCol('Start processing pipeline', 
+        'experiments.start_processing',url_kwargs=processing_url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False))
    
     sorted_contents = sorted(contents.fetch(as_dict=True),
@@ -168,6 +176,22 @@ def create_dynamic_samples_table(contents,table_id,name='Dynamic Samples Table',
     table.sort_reverse = reverse
     
     return table 
+
+
+class SamplesForProcessingTable(Table):
+    border = True
+    allow_sort = False
+    no_items = "No Samples"
+    html_attrs = {"style":'font-size:18px'} # gets assigned to table header
+    column_html_attrs = [] # javascript tableswapper does not preserve these.
+    classes = ["table-striped"] # gets assigned to table classes. 
+    # Striped is alternating bright and dark rows for visual ease.
+    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
+    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    username = Col('username',column_html_attrs=column_html_attrs)
+    imager = Col('imager',column_html_attrs=column_html_attrs)
+    imaging_progress = Col('imaging_progress',column_html_attrs)
+    image_resolution = Col("image_resolution",column_html_attrs=column_html_attrs)
 
 class MicroscopeCalibrationTable(Table):
     ''' Define the microscope objective swap 

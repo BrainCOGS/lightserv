@@ -5,9 +5,11 @@ from flask import (render_template, url_for, flash,
 # from lightserv import db_lightsheet
 # from lightserv.models import Experiment
 from lightserv.experiments.forms import NewRequestForm, UpdateNotesForm, StartProcessingForm
-from lightserv.tables import ExpTable, SamplesTable, create_dynamic_samples_table
+from lightserv.tables import (ExpTable, SamplesTable, 
+	create_dynamic_samples_table,SamplesForProcessingTable)
 from lightserv import db_lightsheet
-from lightserv.main.utils import logged_in, table_sorter
+from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_imager,
+	check_clearing_completed,check_imaging_completed)
 from lightserv import cel
 
 from functools import partial
@@ -200,11 +202,12 @@ def new_exp():
 
 @experiments.route("/exp/<username>/<experiment_name>",)
 @logged_in
+@logged_in_as_imager
 def exp(username,experiment_name):
 	""" A route for displaying a single experiment. Also acts as a gateway to start data processing. """
 	
-	exp_contents = db_lightsheet.Experiment() & \
-	f'experiment_name="{experiment_name}"' & f'username="{username}"'
+	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+	 		f'username="{username}"' & f'sample_name="{sample_name}"'	
 	try:
 		if exp_contents.fetch1('username') != session['user'] and session['user'] != 'ahoag':
 			flash('You do not have permission to see this experiment','danger')
@@ -214,17 +217,6 @@ def exp(username,experiment_name):
 		return redirect(url_for('main.home'))
 	samples_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
 	''' Get rid of the rows where none of the channels are used '''
-	# samples_dict_list = samples_contents.fetch(as_dict=True)
-	# print(samples_dict)
-	# for channel in ['488','555','647','790']:
-	# 	for mode in ['registration','injection_detection','probe_detection','cell_detection']:
-	# 		key = 'channel' + channel + '_' + mode
-	# 		used_flags = [samples_dict_list[ii][key] for ii in range(len(samples_dict_list))]
-	# 		if not any(used_flags):
-	# 			for sample_dict in samples_dict_list:
-	# 				sample_dict.pop(key,'None')
-			# print(key,used_flags)
-
 
 	# The first time page is loaded, sort, reverse, table_id are all not set so they become their default
 	sort = request.args.get('sort', 'experiment_name') # first is the variable name, second is default value
@@ -233,8 +225,7 @@ def exp(username,experiment_name):
 
 	exp_table_id = 'horizontal_exp_table'
 	samples_table_id = 'vertical_samples_table'
-	# samples_table_id = 'test_samples_table'
-	# print(samples_contents.fetch(as_dict=True))
+
 	if table_id == exp_table_id: # the click was in the experiment table
 		sorted_results = sorted(exp_contents.fetch(as_dict=True),
 			key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
@@ -256,27 +247,26 @@ def exp(username,experiment_name):
 		exp_table=exp_table,samples_table=samples_table)
 
 
-@experiments.route("/exp/<username>/<experiment_name>/start_processing",methods=['GET','POST'])
+@experiments.route("/exp/<username>/<experiment_name>/<sample_name>/start_processing",methods=['GET','POST'])
 @logged_in
-def start_processing(username,experiment_name):
+@check_clearing_completed
+@check_imaging_completed
+@logged_in_as_imager
+def start_processing(username,experiment_name,sample_name):
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
 	logger.info(f"{session['user']} accessed start_processing route")
-	exp_contents = (db_lightsheet.Experiment() &\
-	 f'username="{username}"' & f'experiment_name="{experiment_name}"')
-	logger.info(exp_contents)
-
-	# print(exp_contents)
-	# assert len(exp_contents) == 1
-	# channels = [488,555,647,790]
-	channel_query_strs = ['channel%i' % channel for channel in channels]
-
-	channel_response_dict = exp_contents.fetch(*channel_query_strs,as_dict=True)[0]
-	used_imaging_channels = [channel for channel in channel_response_dict.keys() if channel_response_dict[channel]]
-	if len(used_imaging_channels) == 0:
-		flash("This experiment has no images so no data processing can be done",'danger')
-		return redirect(url_for('experiments.exp',username=username,experiment_name=experiment_name))
-
-	exp_table = ExpTable(exp_contents)
+	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+	 		f'username="{username}"' & f'sample_name="{sample_name}"'		
+	
+	sample_contents_dict = sample_contents.fetch1()
+	processing_keys = []
+	for key in sample_contents_dict.keys():
+		if 'channel' in key and sample_contents_dict[key] == 1:
+			processing_keys.append(key)
+	sample_table_id = 'horizontal_sample_table'
+	# sample_table = create_dynamic_samples_table(sample_contents,table_id=sample_table_id)
+	sample_table = SamplesForProcessingTable(sample_contents)
+	sample_table.table_id = sample_table_id
 	form = StartProcessingForm()
 	if request.method == 'POST':
 		logger.debug("POST request")
@@ -297,7 +287,7 @@ def start_processing(username,experiment_name):
 			logger.debug(form.errors)
 			flash("There were errors in the form. Check form for details.",'danger')
 	return render_template('experiments/start_processing.html',
-		form=form,exp_table=exp_table,used_imaging_channels=used_imaging_channels)	
+		form=form,sample_table=sample_table)	
 
 @cel.task()
 def run_step0(username,experiment_name,processing_params_dict):

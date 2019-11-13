@@ -1,6 +1,9 @@
 {% extends "layout.html" %}
 {% block content %}
-	<h2>Image Processing Request Form</h2>
+	<h3> Your sample table for reference: </h3>
+	{{ sample_table }}
+
+	<h2 class="mt-4" align="center">Image Processing Request Form</h2>
 	 <div class="content-section">
 		<form method="POST" action=""> <!-- action="" means submit post request back to same route -->
 			{{ form.hidden_tag() }}
@@ -84,16 +87,6 @@
 			</div>
 		</form>
 	</div>
-	<h3> Your experiment table for reference: </h3>
-	{{ exp_table }}
-	<input id = "tableSwapper" type="button"  class="btn btn-sm btn-secondary mt-1 mb-4" value="Click to change table orientation (vertical/horizontal)"/>
+	
 
-	<script type="text/javascript" defer="defer">
-
-		   $("#tableSwapper").click(function() {
-		   MYLIBRARY.swapTable("{{exp_table.table_id}}");
-		});
-
-
-	</script>
 {% endblock content %}

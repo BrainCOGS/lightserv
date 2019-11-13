@@ -10,15 +10,28 @@
 	<legend>Image resolution: {{ sample_dict['image_resolution'] }}</legend>
 </div>
 
-{% for channel in used_channels %}
-	<legend> Imaging required in channel: {{ channel }}</legend>
-{% endfor %}
+
+<legend> Imaging required in channels: {{ used_channels|join(', ') }}</legend>
+
+<div>
+	<legend>Notes from the researcher:</legend>
+	<p>
+		{{ sample_dict['notes_for_imager'] }}
+	</p>
+</div>
+
+<div>
+	<h5>Download the raw data files to:</h5>
+	<p>
+		/jukebox/LightSheetData/{{sample_dict['username']}}/{{sample_dict['experiment_name']}}/{{sample_dict['sample_name']}}
+	</p>
+</div>
 
 <form method="POST" action="">
 	{{ form.hidden_tag() }}
 	<fieldset class="form-group">
 		<div class="form-group">
-			{{ form.submit(class="btn btn-lg btn-success mt-2") }}
+			{{ form.submit(class="btn btn-lg btn-info mt-2") }}
 		</div>
 	</fieldset>
 </form>
