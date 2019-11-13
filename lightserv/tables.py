@@ -38,7 +38,6 @@ class ExpTable(Table):
         next_url += f'?sort={col_key}&direction={direction}&table_id={self.table_id}'
         return next_url
 
-
 class SamplesTable(Table):
     border = True
     allow_sort = True
@@ -120,22 +119,32 @@ def create_dynamic_samples_table(contents,table_id,name='Dynamic Samples Table',
     sort = sort_kwargs.get('sort_by','sample_name')
     reverse = sort_kwargs.get('sort_reverse',False)
     colnames = contents.fetch(as_dict=True)[0].keys()
+    """ Add the columns that you want to go first here.
+    It is OK if they get duplicated in the loop below -- they
+    will not be added twice """
+    table_class.add_column('sample_name',Col('sample_name'))
+    table_class.add_column('experiment_name',Col('experiment_name'))
+    table_class.add_column('username',Col('username'))
     for column_name in colnames:
         if 'channel' in column_name:
             vals = contents.fetch(column_name)
             if not any(vals):
                 continue
         table_class.add_column(column_name,Col(column_name))
-    # experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
-    # username = Col('username',column_html_attrs=column_html_attrs)
-    # clearing_progress = Col('clearing_progress',column_html_attrs)
-    # clearing_protocol = Col('clearing_protocol',column_html_attrs)
-    # clearer = Col('clearer',column_html_attrs=column_html_attrs)
-    # imager = Col('imager',column_html_attrs=column_html_attrs)
-    # imaging_progress = Col('imaging_progress',column_html_attrs)
-    # image_resolution = Col("image_resolution",column_html_attrs=column_html_attrs)
-    # if "Mercer" not in contents.fetch('county'):
-    #     table_class.add_column('county',Col('county'))
+    """ Now add in the link columns """
+    clearing_url_kwargs = {'username':'username','experiment_name':'experiment_name',
+    'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
+    imaging_url_kwargs = {'username':'username','experiment_name':'experiment_name',
+    'sample_name':'sample_name'}
+    anchor_attrs = {'target':"_blank",}
+    table_class.add_column('start_clearing_link',
+        LinkCol('Start/edit clearing', 'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
+        anchor_attrs=anchor_attrs,allow_sort=False))
+    table_class.add_column('view_clearing_link',LinkCol('View clearing log', 'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
+       anchor_attrs=anchor_attrs,allow_sort=False))
+    table_class.add_column('start_imaging_link',LinkCol('Start/edit imaging', 'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
+        anchor_attrs=anchor_attrs,allow_sort=False))
+   
     sorted_contents = sorted(contents.fetch(as_dict=True),
             key=partial(table_sorter,sort_key=sort),reverse=reverse)
     table = table_class(sorted_contents)

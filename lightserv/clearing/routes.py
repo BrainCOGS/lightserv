@@ -103,7 +103,8 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 						dbTable().insert1(clearing_entry_dict)	
 						dj.Table._update(sample_contents,'clearing_progress','complete')						
 						flash("Clearing form was successfully completed.",'success')
-						return redirect(url_for('main.home'))
+						return redirect(url_for('experiments.exp',username=username,
+							experiment_name=experiment_name))
 					elif re.search("^(?!perfusion).*_date_submit$",key) != None:
 						column_name = key.split('_submit')[0]
 						date = form[column_name].data

@@ -213,7 +213,6 @@ def exp(username,experiment_name):
 		flash(f'Page does not exist for this experiment: "{experiment_name}"','danger')
 		return redirect(url_for('main.home'))
 	samples_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
-	print(samples_contents)
 	''' Get rid of the rows where none of the channels are used '''
 	# samples_dict_list = samples_contents.fetch(as_dict=True)
 	# print(samples_dict)
