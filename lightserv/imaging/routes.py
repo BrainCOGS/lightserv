@@ -4,7 +4,7 @@ from flask import (render_template, url_for, flash,
 from lightserv import db_lightsheet
 
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,
-								  logged_in_as_imager)
+								  logged_in_as_imager,check_clearing_completed)
 from lightserv.tables import ImagingTable
 from .forms import ImagingForm
 import numpy as np
@@ -34,6 +34,7 @@ imaging = Blueprint('imaging',__name__)
 
 @imaging.route("/imaging/imaging_entry/<username>/<experiment_name>/<sample_name>",methods=['GET','POST'])
 @logged_in_as_imager
+@check_clearing_completed
 def imaging_entry(username,experiment_name,sample_name): 
 	form = ImagingForm()
 	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \

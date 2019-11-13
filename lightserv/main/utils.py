@@ -123,3 +123,23 @@ def logged_in_as_imager(f):
 			login_url = '%s?next=%s' % (url_for('main.login'), next_url)
 			return redirect(login_url)
 	return decorated_function
+
+
+def check_clearing_completed(f):
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		experiment_name = kwargs['experiment_name']
+		sample_name = kwargs['sample_name']
+		username = kwargs['username']
+		sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+		 	f'username="{username}"' & f'sample_name="{sample_name}"'
+		clearing_progress = sample_contents.fetch1('clearing_progress')
+		if clearing_progress != 'complete':
+			flash(f"Clearing must be completed for sample_name={sample_name} \
+				before imaging can be done",'warning')
+			return redirect(url_for('experiments.exp',username=username,
+				experiment_name=experiment_name,
+				sample_name=sample_name))
+		else:
+			return f(*args, **kwargs)
+	return decorated_function
