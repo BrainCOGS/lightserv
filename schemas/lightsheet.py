@@ -74,12 +74,14 @@ class Sample(dj.Manual):
 	channel555_cell_detection = 0             :   boolean                    
 	channel647_cell_detection = 0             :   boolean                    
 	channel790_cell_detection = 0             :   boolean
-    notes_for_imager = ""                    :   varchar(1024)
-    stitching_method              :   enum("blending","terastitcher")
-	blend_type                    :   enum("sigmoidal","flat")
-	atlas_name                   :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
-	tiling_overlap = 0.0         :   float
-	intensity_correction         :   boolean
+    notes_for_imager = ""                     :   varchar(1024)
+    processor = "not yet assigned"            :  varchar(20) # netid of person doing the processing
+    processing_progress                       :   enum("incomplete","in progress","complete")
+    stitching_method                          :   enum("blending","terastitcher")
+	blend_type                                :   enum("sigmoidal","flat")
+	atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
+	tiling_overlap = 0.0                      :   float
+	intensity_correction                      :   boolean
 	"""  
 
 
