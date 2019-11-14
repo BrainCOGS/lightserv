@@ -1,7 +1,7 @@
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup)
-from lightserv import db_lightsheet
+from lightserv import db_lightsheet, mail, cel
 
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 								  logged_in_as_imager,check_clearing_completed)
@@ -11,7 +11,7 @@ import numpy as np
 import datajoint as dj
 import re
 import datetime
-
+from flask_mail import Message
 import logging
 
 logger = logging.getLogger(__name__)
@@ -48,25 +48,38 @@ def imaging_entry(username,experiment_name,sample_name):
 		return redirect(url_for('experiments.new_exp'))
 
 	if form.validate_on_submit():
+
 		logger.info("form validated")
+		imaging_progress = sample_contents.fetch1('imaging_progress')
+		if imaging_progress == 'complete':
+			return redirect(url_for('imaging.imaging_entry',username=username,
+			experiment_name=experiment_name,sample_name=sample_name))
 		dj.Table._update(sample_contents,'imaging_progress','complete')
 		correspondence_email = (db_lightsheet.Experiment() &\
 		 f'experiment_name="{experiment_name}"').fetch1('correspondence_email')
 		path_to_data = f'/jukebox/LightSheetData/lightserv_testing/{username}/{experiment_name}/{sample_name}'
 		msg = Message('Lightserv automated email',
-                  sender='lightservhelper@gmail.com',
-                  recipients=['ahoag@princeton.edu']) # keep it to me while in DEV phase
-	    msg.body = f"""The raw data for your experiment named "{experiment_name}", sample named 
-	    "{sample_name}" are now available on bucket here: {path_to_data}
-	    """
-	    mail.send(msg)
+		          sender='lightservhelper@gmail.com',
+		          recipients=['ahoag@princeton.edu']) # keep it to me while in DEV phase
+		msg.body = ('This is an automated email sent from lightserv, the Light Sheet Microscopy portal. '
+					'The raw data for your experiment:\n'
+					f'experiment_name: "{experiment_name}"\n'
+					f'sample_name: "{sample_name}"\n'
+					f'are now available on bucket here: {path_to_data}')
+		mail.send(msg)
 		flash(f"""Imaging is complete. An email has been sent to {correspondence_email} 
-			saying their raw data is now available.
+			informing them that their raw data is now available on bucket.
 			The processing pipeline is now ready to run. ""","success")
 		return redirect(url_for('experiments.exp',username=username,
 			experiment_name=experiment_name,sample_name=sample_name))
 
-	dj.Table._update(sample_contents,'imaging_progress','in progress')
+	''' If imaging is already complete (from before), then dont change imaging_progress '''
+	imaging_progress = sample_contents.fetch1('imaging_progress')
+	if imaging_progress == 'complete':
+		flash("Imaging is already complete for this sample. "
+			"This page is read only and hitting submit will do nothing",'warning')
+	else:
+		dj.Table._update(sample_contents,'imaging_progress','in progress')
 
 	sample_dict = sample_contents.fetch1()
 	imaging_table = ImagingTable(sample_contents)

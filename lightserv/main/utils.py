@@ -43,8 +43,8 @@ def logged_in_as_clearer(f):
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
 			username = session['user']
-			if username == 'ahoag': # admin rights
-				return f(*args, **kwargs)
+			# if username == 'ahoag': # admin rights
+			# 	return f(*args, **kwargs)
 			experiment_name = kwargs['experiment_name']
 			sample_name = kwargs['sample_name']
 			username = kwargs['username']
@@ -85,8 +85,8 @@ def logged_in_as_imager(f):
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
 			username = session['user']
-			if username == 'ahoag': # admin rights
-				return f(*args, **kwargs)
+			# if username == 'ahoag': # admin rights
+			# 	return f(*args, **kwargs)
 			experiment_name = kwargs['experiment_name']
 			sample_name = kwargs['sample_name']
 			username = kwargs['username']
