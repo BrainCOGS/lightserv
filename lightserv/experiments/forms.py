@@ -83,6 +83,8 @@ class ImagingForm(FlaskForm):
 		except:
 			raise ValidationError("Tiling overlap must be a number between 0.0 and 1.0")
 
+
+
 class NewRequestForm(FlaskForm):
 	""" The form for a new request """
 	max_number_of_samples = 50
@@ -132,16 +134,28 @@ class NewRequestForm(FlaskForm):
 				for your username. Please rename your experiment')
 
 	def validate_clearing_samples(self,clearing_samples):
-		print(clearing_samples.data)
+		""" Make sure that there are no samples where the clearing protocol is impossible
+		given the species. 
+		"""
 		for sample_dict in clearing_samples.data:
 			clearing_protocol_sample = sample_dict['clearing_protocol']
 			if clearing_protocol_sample == 'iDISCO abbreviated clearing (rat)' and self.species.data != 'rat':
-				raise ValidationError("This clearing protocol can only be used with rats")
+				raise ValidationError("One of the clearing protocols selected can only be used with rats")
 			if clearing_protocol_sample != 'iDISCO abbreviated clearing (rat)' and self.species.data == 'rat':
 				raise ValidationError(f"""At least one of the clearing protocols you chose is not applicable for rats. 
 				 The only clearing protocol currently available for rats is: 
 				  'Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)'
 				  """)
+
+	def validate_imaging_samples(self,imaging_samples):
+		""" Make sure that at least one imaging channel was selected for each sample
+		"""
+
+		for sample_dict in imaging_samples.data:
+			''' collect the 0s and 1s from all channel modes '''
+			all_mode_values = [sample_dict[key] for key in sample_dict.keys() if 'channel' in key ]
+			if not any(all_mode_values): # if all are 0				
+				raise ValidationError("Each sample must have at least one imaging channel selected.")
 
 def Directory_validator(form,field):
 	''' Makes sure that the raw data directories exist on jukebox  '''

@@ -5,8 +5,8 @@ from flask import (render_template, url_for, flash,
 # from lightserv import db_lightsheet
 # from lightserv.models import Experiment
 from lightserv.experiments.forms import NewRequestForm, UpdateNotesForm, StartProcessingForm
-from lightserv.tables import (ExpTable, SamplesTable, 
-	create_dynamic_samples_table,SamplesForProcessingTable)
+from lightserv.tables import (ExpTable, create_dynamic_samples_table,
+	SamplesForProcessingTable)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_imager,
 	check_clearing_completed,check_imaging_completed)
@@ -182,9 +182,30 @@ def new_exp():
 			logger.debug("Not validated! See error dict below:")
 			logger.debug(form.errors)
 			logger.debug("")
-			flash_str = 'There were errors below. Correct them before proceeding.'
+			flash_str = 'There were errors below. Correct them before proceeding'
 			flash(flash_str,'danger')
-			
+			""" deal with errors in the samples section - those will not always 
+			show up in the proper place """
+			if 'clearing_samples' in form.errors:
+				for obj in form.errors['clearing_samples']:
+					if isinstance(obj,dict):
+
+						for key,val in list(obj.items()):
+							for error_str in val:
+								flash(error_str,'danger')
+					elif isinstance(obj,str):
+						flash(obj,'danger')
+			elif 'imaging_samples' in form.errors:
+				for obj in form.errors['imaging_samples']:
+					if isinstance(obj,dict):
+						for key,val in list(obj.items()):
+							for error_str in val:
+								flash(error_str,'danger')
+					elif isinstance(obj,str):
+						flash(obj,'danger')
+			if 'number_of_samples' in form.errors:
+				for error_str in form.errors['number_of_samples']:
+					flash(error_str,'danger')
 	if not form.correspondence_email.data:	
 		form.correspondence_email.data = session['user'] + '@princeton.edu' 
 	if 'column_name' not in locals():

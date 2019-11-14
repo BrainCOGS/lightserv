@@ -54,7 +54,6 @@ class Sample(dj.Manual):
 	antibody1 = ''               :   varchar(100)
 	antibody2 = ''               :   varchar(100)
 	notes_for_clearer = ""                    :   varchar(1024)
-
 	imager = "not yet assigned"  :   varchar(20) # netid of person doing the imaging
     imaging_progress             :   enum("incomplete","in progress","complete")
 	image_resolution                          :   enum("1.3x","4x","1.1x","2x")
@@ -75,7 +74,7 @@ class Sample(dj.Manual):
 	channel647_cell_detection = 0             :   boolean                    
 	channel790_cell_detection = 0             :   boolean
     notes_for_imager = ""                     :   varchar(1024)
-    processor = "not yet assigned"            :  varchar(20) # netid of person doing the processing
+    processor = "not yet assigned"            :   varchar(20) # netid of person doing the processing
     processing_progress                       :   enum("incomplete","in progress","complete")
     stitching_method                          :   enum("blending","terastitcher")
 	blend_type                                :   enum("sigmoidal","flat")
