@@ -168,26 +168,7 @@ def Directory_validator(form,field):
 
 class StartProcessingForm(FlaskForm):
 	""" The form for requesting to start the data processing """
-	stitching_method = SelectField('Stitching method',choices=[('blending','blending')],
-		validators=[InputRequired()])
-	blend_type = SelectField('Blend type',choices=[('sigmoidal','sigmoidal'),('flat','flat')],
-		validators=[InputRequired()])
-	atlas_name = SelectField('Atlas for registration',
-		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
-				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])
-	tiling_overlap = DecimalField('Tiling overlap (leave blank if no tiling used)',
-		places=2,validators=[Optional()]) 
-	intensity_correction = BooleanField('Perform intensity correction? (leave as default if unsure)',default=True)
-	
-	submit = SubmitField('Start the processing')	
-	
-	def validate_tiling_overlap(self,tiling_overlap):
-		try:
-			if tiling_overlap.data < 0 or tiling_overlap.data >= 1:
-				raise ValidationError("Tiling overlap must be between 0.0 and 1.0")
-		except:
-			raise ValidationError("Tiling overlap must be a number between 0.0 and 1.0")
-
+	submit = SubmitField('Start the processing pipeline for this sample')	
 	
 		
 class OldStartProcessingForm(FlaskForm):

@@ -50,7 +50,19 @@ def imaging_entry(username,experiment_name,sample_name):
 	if form.validate_on_submit():
 		logger.info("form validated")
 		dj.Table._update(sample_contents,'imaging_progress','complete')
-		flash("Imaging is complete. The processing pipeline is now ready to run.","success")
+		correspondence_email = (db_lightsheet.Experiment() &\
+		 f'experiment_name="{experiment_name}"').fetch1('correspondence_email')
+		path_to_data = f'/jukebox/LightSheetData/lightserv_testing/{username}/{experiment_name}/{sample_name}'
+		msg = Message('Lightserv automated email',
+                  sender='lightservhelper@gmail.com',
+                  recipients=['ahoag@princeton.edu']) # keep it to me while in DEV phase
+	    msg.body = f"""The raw data for your experiment named "{experiment_name}", sample named 
+	    "{sample_name}" are now available on bucket here: {path_to_data}
+	    """
+	    mail.send(msg)
+		flash(f"""Imaging is complete. An email has been sent to {correspondence_email} 
+			saying their raw data is now available.
+			The processing pipeline is now ready to run. ""","success")
 		return redirect(url_for('experiments.exp',username=username,
 			experiment_name=experiment_name,sample_name=sample_name))
 

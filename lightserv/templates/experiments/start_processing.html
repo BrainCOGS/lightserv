@@ -1,92 +1,13 @@
 {% extends "layout.html" %}
 {% block content %}
-	<h3> Your sample table for reference: </h3>
+	<h5> The following processing parameters will be used to run the pipeline automatically for this sample. Please check that these look OK before running the pipeline: </h5>
 	{{ sample_table }}
 
-	<h2 class="mt-4" align="center">Image Processing Request Form</h2>
-	 <div class="content-section">
-		<form method="POST" action=""> <!-- action="" means submit post request back to same route -->
-			{{ form.hidden_tag() }}
-			<fieldset class="form-group">
-				<legend class="border-bottom mb-2 mt-4">Stitching and Blending</legend>
-				<div class="form-group">
-					{% if form.stitching_method.flags.required %}*{% endif %}
-
-					{{ form.stitching_method.label(class="form-control-label") }}
-					{% if form.stitching_method.errors %}
-						{{ form.stitching_method(class="form-control form-control-lg is-invalid") }}
-						<div class="invalid-feedback">
-							{% for error in form.stitching_method.errors %}
-								<span>{{ error }}</span>
-							{% endfor %}
-						</div>
-					{% else %}
-						{{ form.stitching_method(class="form-control form-control-lg") }}
-					{% endif %}
-				</div>
-
-				<div class="form-group">
-					{% if form.blend_type.flags.required %}*{% endif %}
-
-					{{ form.blend_type.label(class="form-control-label") }}
-					{% if form.blend_type.errors %}
-						{{ form.blend_type(class="form-control form-control-lg is-invalid") }}
-						<div class="invalid-feedback">
-							{% for error in form.blend_type.errors %}
-								<span>{{ error }}</span>
-							{% endfor %}
-						</div>
-					{% else %}
-						{{ form.blend_type(class="form-control form-control-lg") }}
-					{% endif %}
-				</div>
-
-				<div class="form-group">
-					{% if form.tiling_overlap.flags.required %}*{% endif %}
-
-					{{ form.tiling_overlap.label(class="form-control-label") }}
-					{% if form.tiling_overlap.errors %}
-						{{ form.tiling_overlap(class="form-control form-control-lg is-invalid") }}
-						<div class="invalid-feedback">
-							{% for error in form.tiling_overlap.errors %}
-								<span>{{ error }}</span>
-							{% endfor %}
-						</div>
-					{% else %}
-						{{ form.tiling_overlap(class="form-control form-control-lg") }}
-					{% endif %}
-				</div>
-
-				<legend class="border-bottom mb-2 mt-4">Registration</legend>
-
-				<div class="form-group">
-					{% if form.atlas_name.flags.required %}*{% endif %}
-
-					{{ form.atlas_name.label(class="form-control-label") }}
-					{% if form.atlas_name.errors %}
-						{{ form.atlas_name(class="form-control form-control-lg is-invalid") }}
-						<div class="invalid-feedback">
-							{% for error in form.atlas_name.errors %}
-								<span>{{ error }}</span>
-							{% endfor %}
-						</div>
-					{% else %}
-						{{ form.atlas_name(class="form-control form-control-lg") }}
-					{% endif %}
-				</div>
-
-
-
-				<div class="form-check">
-					{{ form.intensity_correction(class="form-check-input mb-4") }}
-					{{ form.intensity_correction.label(class="form-check-label mb-4") }}
-				</div>
-			</fieldset>
-			<div class="form-group">
-				{{ form.submit(class="btn btn-info mt-2") }}
-			</div>
-		</form>
-	</div>
-	
+	<form method="POST" action="" class="mt-4"> <!-- action="" means submit post request back to same route -->
+		{{ form.hidden_tag() }}
+		<div class="form-group">
+			{{ form.submit(class="btn btn-info mt-2") }}
+		</div>
+	</form>
 
 {% endblock content %}

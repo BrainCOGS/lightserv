@@ -6,11 +6,12 @@ from flask import (render_template, url_for, flash,
 # from lightserv.models import Experiment
 from lightserv.experiments.forms import NewRequestForm, UpdateNotesForm, StartProcessingForm
 from lightserv.tables import (ExpTable, create_dynamic_samples_table,
-	SamplesForProcessingTable)
+	create_dynamic_samples_table_for_processing)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_imager,
 	check_clearing_completed,check_imaging_completed)
-from lightserv import cel
+from lightserv import cel,mail
+
 
 from functools import partial
 # from lightsheet_py3
@@ -252,7 +253,6 @@ def exp(username,experiment_name):
 	return render_template('experiments/exp.html',exp_contents=exp_contents,
 		exp_table=exp_table,samples_table=samples_table)
 
-
 @experiments.route("/exp/<username>/<experiment_name>/<sample_name>/start_processing",methods=['GET','POST'])
 @logged_in
 @check_clearing_completed
@@ -265,49 +265,47 @@ def start_processing(username,experiment_name,sample_name):
 	 		f'username="{username}"' & f'sample_name="{sample_name}"'		
 	
 	sample_contents_dict = sample_contents.fetch1()
+	print(sample_contents_dict)
 	processing_keys = []
 	for key in sample_contents_dict.keys():
 		if 'channel' in key and sample_contents_dict[key] == 1:
 			processing_keys.append(key)
-	sample_table_id = 'horizontal_sample_table'
-	# sample_table = create_dynamic_samples_table(sample_contents,table_id=sample_table_id)
-	sample_table = SamplesForProcessingTable(sample_contents)
+	sample_table_id = 'vertical_sample_table'
+	sample_table = create_dynamic_samples_table_for_processing(sample_contents,table_id=sample_table_id)
 	sample_table.table_id = sample_table_id
 	form = StartProcessingForm()
-	if request.method == 'POST':
-		logger.debug("POST request")
-		if form.validate_on_submit():
-			logger.debug("Validated")
-			''' Make the parameter dictionary from form input.'''
-			form_fields = [x for x in form._fields.keys() if 'submit' not in x and 'csrf_token' not in x]
-			processing_params_dict = {field:form[field].data for field in form_fields}
-			logger.debug(processing_params_dict)
-			logger.debug("Successfully captured form input into processing parameter dictionary")
-			logger.info(f"Sending processes to Celery")
-			run_step0.delay(username=username,experiment_name=experient_name,processing_params_dict=processing_params_dict)
-			flash('Your data processing has begun. You will receive an email \
-				when the first steps are completed.','success')
-			return redirect(url_for('main.home'))
-		else:
-			logger.debug("Not validated!")
-			logger.debug(form.errors)
-			flash("There were errors in the form. Check form for details.",'danger')
+	
+	if form.validate_on_submit():
+		logger.debug("Validated")
+		''' Make the parameter dictionary from form input.'''
+
+		logger.info(f"Starting step0 process with Celery")
+		run_step0.delay(username=username,experiment_name=experiment_name,sample_name=sample_name)
+		flash('Your data processing has begun. You will receive an email \
+			when the first steps are completed.','success')
+		return redirect(url_for('experiments.exp',username=username,
+			experiment_name=experiment_name,sample_name=sample_name))
+	
 	return render_template('experiments/start_processing.html',
 		form=form,sample_table=sample_table)	
 
 @cel.task()
-def run_step0(username,experiment_name,processing_params_dict):
+def run_step0(username,experiment_name,sample_name):
 	""" An asynchronous celery task (runs in a background process) which runs step 0 
-	in the light sheet pipeline. 
+	in the light sheet pipeline -- i.e. makes the parameter dictionary pickle file
+	and grabs a bunch of metadata from the raw files to store in the database.  
 	"""
+
 	import tifffile
 	from xml.etree import ElementTree as ET 
-	exp_contents = db_lightsheet.Experiment & f'username={username}' \
-	& f'experiment_name={experiment_name}'
-	username = exp_contents.fetch1('username')
-	''' Now add to parameter dictionary the other needed info to run the code '''
+
+	''' Fetch the processing params from the table to run the code '''
+
+	sample_contents = db_lightsheet.Experiment & f'username="{username}"' \
+	& f'experiment_name="{experiment_name}"'  & f'sample_name="{sample_name}"'
+	sample_contents_dict = sample_contents.fetch1() 
 	username = exp_contents.fetch('username')
-	raw_path = f'/jukebox/LightSheetData/lightserv_test/{username}/exp_{experiment_name}'  
+	raw_path = f'/jukebox/LightSheetData/lightserv_testing/{username}/exp_{experiment_name}'  
 	''' Make the "inputdictionary", i.e. the mapping between directory and function '''
 	processing_params_dict['inputdictionary'] = {}
 	input_dictionary = {}

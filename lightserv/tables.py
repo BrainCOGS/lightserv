@@ -124,22 +124,50 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     
     return table 
 
+def create_dynamic_samples_table_for_processing(contents,table_id,ignore_columns=[],
+    name='Dynamic Samples Table for Processing'):
+    options = dict(
+        border = True,
+        allow_sort = False,
+        no_items = "No Samples",
+        html_attrs = {"style":'font-size:18px'}, 
+        table_id = table_id,
+        classes = ["table-striped"]
+        ) 
 
-class SamplesForProcessingTable(Table):
-    border = True
-    allow_sort = False
-    no_items = "No Samples"
-    html_attrs = {"style":'font-size:18px'} # gets assigned to table header
-    column_html_attrs = [] # javascript tableswapper does not preserve these.
-    classes = ["table-striped"] # gets assigned to table classes. 
-    # Striped is alternating bright and dark rows for visual ease.
-    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
-    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
-    username = Col('username',column_html_attrs=column_html_attrs)
-    imager = Col('imager',column_html_attrs=column_html_attrs)
-    imaging_progress = Col('imaging_progress',column_html_attrs)
-    image_resolution = Col("image_resolution",column_html_attrs=column_html_attrs)
+    table_class = create_table(name,options=options)
+    """ Now loop through all columns and add them to the table,
+    only adding the imaging modes if they are used in at least one
+    sample """
+    colnames = contents.heading.attributes.keys()
+    """ Add the columns that you want to go first here.
+    It is OK if they get duplicated in the loop below -- they
+    will not be added twice """
+    table_class.add_column('sample_name',Col('sample_name'))
+    table_class.add_column('experiment_name',Col('experiment_name'))
+    table_class.add_column('username',Col('username'))
+    table_class.add_column('stitching_method',Col('stitching_method'))
+    table_class.add_column('blend_type',Col('blend_type'))
+    table_class.add_column('atlas_name',Col('atlas_name'))
+    table_class.add_column('tiling_overlap',Col('tiling_overlap'))
+    table_class.add_column('intensity_correction',Col('intensity_correction'))
+    table_class.add_column('channel information',HeadingCol('Channel information',endpoint='main.home'))
 
+    for column_name in colnames:
+        if column_name in ignore_columns:
+            continue
+        if 'channel' in column_name:
+            vals = contents.fetch(column_name)
+            if not any(vals):
+                continue
+        else:
+            continue
+        table_class.add_column(column_name,Col(column_name),)
+   
+
+    table = table_class(contents)
+    
+    return table 
 class MicroscopeCalibrationTable(Table):
     ''' Define the microscope objective swap 
     entry log table. Cannot be sorted by date because 
