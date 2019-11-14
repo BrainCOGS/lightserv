@@ -141,9 +141,11 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
         if column_name in ignore_columns:
             continue
         if column_name == 'clearer':
-             table_class.add_column('x',HeadingCol('Clearing parameters',endpoint='main.welcome'))
+             table_class.add_column('clearing',HeadingCol('Clearing parameters',endpoint='main.welcome'))
         if column_name == 'imager':
-             table_class.add_column('y',HeadingCol('Imaging parameters',endpoint='main.home'))
+             table_class.add_column('imaging',HeadingCol('Imaging parameters',endpoint='main.home'))
+        if column_name == 'stitching_method':
+             table_class.add_column('processing',HeadingCol('Image processing parameters',endpoint='main.home'))
         if 'channel' in column_name:
             vals = contents.fetch(column_name)
             if not any(vals):

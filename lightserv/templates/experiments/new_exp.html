@@ -329,12 +329,82 @@
 								{{ imaging_entry.notes_for_imager(class="form-control form-control-lg") }}
 							{% endif %}
 						</div>
+
+						<div class="form-group">
+							{% if imaging_entry.stitching_method.flags.required %}*{% endif %}
+							{{ imaging_entry.stitching_method.label(class="form-control-label") }}
+							{% if imaging_entry.stitching_method.errors %}
+								{{ imaging_entry.stitching_method(class="form-control form-control-lg is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in imaging_entry.stitching_method.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ imaging_entry.stitching_method(class="form-control form-control-lg") }}
+							{% endif %}
+						</div>
+
+						<div class="form-group">
+							{% if imaging_entry.blend_type.flags.required %}*{% endif %}
+							{{ imaging_entry.blend_type.label(class="form-control-label") }}
+							{% if imaging_entry.blend_type.errors %}
+								{{ imaging_entry.blend_type(class="form-control form-control-lg is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in imaging_entry.blend_type.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ imaging_entry.blend_type(class="form-control form-control-lg") }}
+							{% endif %}
+						</div>
+
+						<div class="form-group">
+							{% if imaging_entry.atlas_name.flags.required %}*{% endif %}
+							{{ imaging_entry.atlas_name.label(class="form-control-label") }}
+							{% if imaging_entry.atlas_name.errors %}
+								{{ imaging_entry.atlas_name(class="form-control form-control-lg is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in imaging_entry.atlas_name.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ imaging_entry.atlas_name(class="form-control form-control-lg") }}
+							{% endif %}
+						</div>
+
+						<div class="form-group">
+							{% if imaging_entry.tiling_overlap.flags.required %}*{% endif %}
+							{{ imaging_entry.tiling_overlap.label(class="form-control-label") }}
+							{% if imaging_entry.tiling_overlap.errors %}
+								{{ imaging_entry.tiling_overlap(class="form-control form-control-lg is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in imaging_entry.tiling_overlap.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ imaging_entry.tiling_overlap(class="form-control form-control-lg") }}
+							{% endif %}
+						</div>
+
+						<div class="checkbox">
+		                    {{ imaging_entry.intensity_correction(class="form-check-input") }}
+		                    {{ imaging_entry.intensity_correction.label(class="form-check-label") }}
+		                </div>
+
+
 			            {% if not loop.last %}
 			            	<br/>
 			            	<hr class='class-2'>
 			            {% endif %}
 					{% endfor %}
 				</div>
+
+
+
 
 			</fieldset>
 			<hr class='class-3'>

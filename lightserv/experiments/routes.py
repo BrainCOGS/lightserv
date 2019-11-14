@@ -61,7 +61,7 @@ def new_exp():
 			logger.debug(submit_keys)
 			submit_key = submit_keys[0]
 			
-			""" Handle multiple clearing/imaging yes/no button pressed """
+			""" Handle "setup samples" button pressed """
 			if submit_key == 'sample_submit_button': # The sample setup button
 				nsamples = form.number_of_samples.data
 				if form.uniform_clearing.data == True: # UNIFORM clearing
@@ -179,20 +179,12 @@ def new_exp():
 				for error_str in form.errors['submit']:
 					flash(error_str,'danger')
 			
-			logger.debug("Not validated!")
+			logger.debug("Not validated! See error dict below:")
 			logger.debug(form.errors)
-			# logger.debug(form.samples.data)
-			if 'clearing_samples' in form.errors:
-				for obj in form.errors['clearing_samples']:
-					if isinstance(obj,dict):
-						for key,val in list(field_dict.items()):
-							for error_str in val:
-								flash(error_str,'danger')
-					elif isinstance(obj,str):
-						flash(obj,'danger')
-			if 'number_of_samples' in form.errors:
-				for error_str in form.errors['number_of_samples']:
-					flash(error_str,'danger')
+			logger.debug("")
+			flash_str = 'There were errors below. Correct them before proceeding.'
+			flash(flash_str,'danger')
+			
 	if not form.correspondence_email.data:	
 		form.correspondence_email.data = session['user'] + '@princeton.edu' 
 	if 'column_name' not in locals():
@@ -202,19 +194,12 @@ def new_exp():
 
 @experiments.route("/exp/<username>/<experiment_name>",)
 @logged_in
-@logged_in_as_imager
 def exp(username,experiment_name):
 	""" A route for displaying a single experiment. Also acts as a gateway to start data processing. """
 	
-	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"'	
-	try:
-		if exp_contents.fetch1('username') != session['user'] and session['user'] != 'ahoag':
-			flash('You do not have permission to see this experiment','danger')
-			return redirect(url_for('main.home'))
-	except:
-		flash(f'Page does not exist for this experiment: "{experiment_name}"','danger')
-		return redirect(url_for('main.home'))
+	exp_contents = db_lightsheet.Experiment() & f'experiment_name="{experiment_name}"' & \
+	 		f'username="{username}"'
+	print(exp_contents)
 	samples_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
 	''' Get rid of the rows where none of the channels are used '''
 

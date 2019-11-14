@@ -42,7 +42,7 @@ class ClearingForm(FlaskForm):
 
 class ImagingForm(FlaskForm):
 	""" A form that is used in ExpForm() via a FormField Fieldlist
-	so I dont have to write the clearing parameters out for each sample
+	so I dont have to write the imaging parameters out for each sample
 	"""
 	image_resolution = SelectField('Image Resolution:', 
 		choices=[('1.3x','1.3x'),
@@ -63,8 +63,25 @@ class ImagingForm(FlaskForm):
 	channel790_injection_detection = BooleanField('Registration',default=False)
 	channel790_probe_detection = BooleanField('Registration',default=False)
 	channel790_cell_detection = BooleanField('Registration',default=False)
-	notes_for_imager = TextAreaField('Notes for imaging (e.g. exposure time, tiling scheme) -- max 1024 characters --',validators=[Length(max=1024)])
+	notes_for_imager = TextAreaField('''Notes for imaging 
+		(e.g. exposure time, tiling scheme) -- max 1024 characters --''',validators=[Length(max=1024)])
+	stitching_method = SelectField('Stitching method',choices=[('blending','blending'),
+		('terastitcher','terastitcher')],validators=[InputRequired()])
+	blend_type = SelectField('Blend type',choices=[('sigmoidal','sigmoidal'),('flat','flat')],
+		validators=[InputRequired()])
+	atlas_name = SelectField('Atlas for registration',
+		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
+				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])
+	tiling_overlap = DecimalField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
+		places=2,validators=[Optional()],default=0.1) 
+	intensity_correction = BooleanField('Perform intensity correction? (leave as default if unsure)',default=True)
 
+	def validate_tiling_overlap(self,tiling_overlap):
+		try:
+			if tiling_overlap.data < 0 or tiling_overlap.data >= 1:
+				raise ValidationError("Tiling overlap must be between 0.0 and 1.0")
+		except:
+			raise ValidationError("Tiling overlap must be a number between 0.0 and 1.0")
 
 class NewRequestForm(FlaskForm):
 	""" The form for a new request """
@@ -86,7 +103,8 @@ class NewRequestForm(FlaskForm):
 	""" Imaging """
 	self_imaging = BooleanField('Check if you plan to do the imaging yourself',default=False)
 	imaging_samples = FieldList(FormField(ImagingForm),min_entries=0,max_entries=max_number_of_samples)
-	uniform_imaging = BooleanField('Check if imaging will be the same for all samples',default=False)
+	uniform_imaging = BooleanField('Check if imaging/processing will be the same for all samples',default=False)
+
 	sample_submit_button = SubmitField('Setup samples')
 
 	submit = SubmitField('Submit request')	
