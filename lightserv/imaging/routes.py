@@ -4,8 +4,9 @@ from flask import (render_template, url_for, flash,
 from lightserv import db_lightsheet, mail, cel
 
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,
-								  logged_in_as_imager,check_clearing_completed)
-from lightserv.tables import ImagingTable
+								  logged_in_as_imager,check_clearing_completed,
+								  image_manager)
+from lightserv.tables import ImagingTable, dynamic_imaging_management_table
 from .forms import ImagingForm
 import numpy as np
 import datajoint as dj
@@ -31,6 +32,22 @@ logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
 imaging = Blueprint('imaging',__name__)
+
+@imaging.route("/imaging/imaging_manager",methods=['GET','POST'])
+@image_manager
+def imaging_manager(): 
+	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
+	reverse = (request.args.get('direction', 'asc') == 'desc')
+	samples_contents = db_lightsheet.Sample()
+	exp_contents = db_lightsheet.Experiment()
+	joined_contents = (exp_contents * samples_contents)
+	contents_for_table = joined_contents.proj('species','imager',
+	'imaging_progress','image_resolution',
+	datetime_submitted='TIMESTAMP(date_submitted,time_submitted)') # will pick up the primary keys by default
+	table_id = 'horizontal_image_management_table'
+	table = dynamic_imaging_management_table(contents_for_table,table_id=table_id,
+		sort_by=sort,sort_reverse=reverse)
+	return render_template('imaging/image_management.html',table=table)
 
 @imaging.route("/imaging/imaging_entry/<username>/<experiment_name>/<sample_name>",methods=['GET','POST'])
 @logged_in

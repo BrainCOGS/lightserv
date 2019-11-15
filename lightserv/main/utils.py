@@ -142,6 +142,23 @@ def logged_in_as_imager(f):
 			return redirect(login_url)
 	return decorated_function
 
+def image_manager(f):
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		if 'user' in session: # user is logged in 
+			username = session['user']
+			if username in ['ahoag','jduva','zmd']: # admin rights
+				return f(*args, **kwargs)
+			else:
+				flash("You do not have access to this page. \
+					Please email us at lightservhelper@gmail.com if you think there has been a mistake.")
+				return redirect(url_for('main.welcome'))
+		else:
+			next_url = request.url
+			login_url = '%s?next=%s' % (url_for('main.login'), next_url)
+			return redirect(login_url)
+	return decorated_function
+
 
 def check_clearing_completed(f):
 	@wraps(f)

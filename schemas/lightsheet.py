@@ -74,6 +74,7 @@ class Sample(dj.Manual):
 	channel647_cell_detection = 0             :   boolean                    
 	channel790_cell_detection = 0             :   boolean
     notes_for_imager = ""                     :   varchar(1024)
+    imaging_date                              :   date
     processor = "not yet assigned"            :   varchar(20) # netid of person doing the processing
     processing_progress                       :   enum("incomplete","in progress","complete")
     stitching_method                          :   enum("blending","terastitcher")

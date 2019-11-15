@@ -84,7 +84,6 @@ class ImagingForm(FlaskForm):
 			raise ValidationError("Tiling overlap must be a number between 0.0 and 1.0")
 
 
-
 class NewRequestForm(FlaskForm):
 	""" The form for a new request """
 	max_number_of_samples = 50
