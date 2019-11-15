@@ -44,14 +44,20 @@ def imaging_manager():
 	proj_contents = joined_contents.proj('species','imager','clearing_progress',
 	'imaging_progress','image_resolution',
 	datetime_submitted='TIMESTAMP(date_submitted,time_submitted)') # will pick up the primary keys by default
-	''' First get all entities that are ready to be imaged '''
-	contents_ready_to_image = proj_contents & 'clearing_progress="complete"' & 'imaging_progress!="complete"'
+	''' First get all entities that are currently being imaged '''
+	contents_being_imaged = proj_contents & 'imaging_progress="in progress"'
+	being_imaged_table_id = 'horizontal_being_imaged_table'
+	table_being_imaged = dynamic_imaging_management_table(contents_being_imaged,
+		table_id=being_imaged_table_id,
+		sort_by=sort,sort_reverse=reverse)
+	''' Next get all entities that are ready to be imaged '''
+	contents_ready_to_image = proj_contents & 'clearing_progress="complete"' & 'imaging_progress="incomplete"'
 	ready_to_image_table_id = 'horizontal_ready_to_image_table'
 	table_ready_to_image = dynamic_imaging_management_table(contents_ready_to_image,
 		table_id=ready_to_image_table_id,
 		sort_by=sort,sort_reverse=reverse)
 	''' Now get all entities on deck (currently being cleared) '''
-	contents_on_deck = proj_contents & 'clearing_progress="in progress"' & 'imaging_progress!="complete"'
+	contents_on_deck = proj_contents & 'clearing_progress!="complete"' & 'imaging_progress!="complete"'
 	on_deck_table_id = 'horizontal_on_deck_table'
 	table_on_deck = dynamic_imaging_management_table(contents_on_deck,table_id=on_deck_table_id,
 		sort_by=sort,sort_reverse=reverse)
@@ -62,7 +68,8 @@ def imaging_manager():
 		table_id=already_imaged_table_id,
 		sort_by=sort,sort_reverse=reverse)
 	
-	return render_template('imaging/image_management.html',table_ready_to_image=table_ready_to_image,
+	return render_template('imaging/image_management.html',table_being_imaged=table_being_imaged,
+		table_ready_to_image=table_ready_to_image,
 		table_on_deck=table_on_deck,table_already_imaged=table_already_imaged)
 
 @imaging.route("/imaging/imaging_entry/<username>/<experiment_name>/<sample_name>",methods=['GET','POST'])

@@ -34,6 +34,12 @@ hr.class-4 {
             border-bottom: 5px solid #698596;
             margin-top: 1rem;
         } 
+hr.class-5 { 
+            border-top: 5px solid #698596;
+            border-bottom: 5px solid #698596;
+            margin-top: 1rem;
+            margin-botton: 1rem;
+        } 
 
 
 .bg-steel {
