@@ -36,6 +36,12 @@ logger.addHandler(file_handler)
 
 clearing = Blueprint('clearing',__name__)
 
+@clearing.route("/clearing/clearing_home",
+	methods=['GET','POST'])
+@logged_in_as_clearer
+def clearing_entry(): 
+	# print(username,experiment_name,sample_name,clearing_protocol)
+	pass
 @clearing.route("/clearing/clearing_entry/<username>/<experiment_name>/<sample_name>/<clearing_protocol>/",
 	methods=['GET','POST'])
 @logged_in_as_clearer
