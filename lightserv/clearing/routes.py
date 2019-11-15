@@ -51,7 +51,7 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 			clearing_protocol="{clearing_protocol}" before clearing can be done. \
 			Please submit a new request for this experiment first. ','danger')
 		return redirect(url_for('experiments.new_exp'))
-	dj.Table._update(sample_contents,'clearing_progress','in progress')
+	
 	clearing_table = ClearingTable(sample_contents)
 	
 	dbTable = determine_clearing_dbtable(clearing_protocol)
@@ -79,12 +79,15 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 		dbTable().insert1(insert_dict)
 		logger.info("Created clearing database entry")
 	
-
 	''' Handle user's post requests '''
 	if request.method == 'POST':
 		logger.debug("Post request")
 		if form.validate_on_submit():
 			logger.debug("Form validated")
+			clearing_progress = sample_contents.fetch1('clearing_progress')
+			if clearing_progress == 'complete':
+				return redirect(url_for('clearing.clearing_entry',username=username,
+			experiment_name=experiment_name,sample_name=sample_name,clearing_protocol=clearing_protocol))
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x]
 			for key in submit_keys:
 				if form[key].data:
@@ -133,17 +136,24 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 						next_index = this_index + 1 if 'notes' in column_name else this_index+2
 						column_name = submit_keys[next_index].split('_submit')[0]
 						break
-			else:
+			else: # if none of the submit keys were found
 				column_name=None
-		else:
+		else: # form not validated
 			''' Find the first form field where there was an error and set the column_name to it 
 			so the focus is set there upon reload of page '''
 			logger.debug(form.errors)
 			for error in form['time_pbs_wash1'].errors:
 				logger.debug(error)
 			column_name = list(form.errors.keys())[0]
-	else:
+	else: # not a post request
 		column_name = None
+
+	clearing_progress = sample_contents.fetch1('clearing_progress')
+	if clearing_progress == 'complete':
+		flash("clearing is already complete for this sample. "
+			"This page is read only and hitting any of the buttons will not update the clearing log",'warning')
+	else:
+		dj.Table._update(sample_contents,'clearing_progress','in progress')
 
 	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,
 		form=form,clearing_table=clearing_table,username=username,experiment_name=experiment_name,
