@@ -1,6 +1,12 @@
 {% extends "layout.html" %}
 {% block content %}
-<h3>Imaging Management Table:</h3>
-	{{ table }}
+<h3>Samples ready to image:</h3>
+	{{ table_ready_to_image }}
+
+<h3>Samples currently being cleared:</h3>
+	{{ table_on_deck }}
+
+<h3>Samples already imaged:</h3>
+	{{ table_already_imaged }}
 
 {% endblock content %}

@@ -34,8 +34,12 @@
 							<div class="navbar-nav mr-auto">
 								<a class="nav-item nav-link" href="{{ url_for('main.home') }}">Home</a>
 								<!-- <a class="nav-item nav-link" href="{{ url_for('ontology.interactive_ontology')}}" target="_blank">Interactive Ontology</a> -->
-								{% if session['user'] == 'ahoag' or session['user'] == 'zmd' or session['user'] == 'thiberge' %}
+								{% if session['user'] == 'ahoag' or session['user'] == 'zmd' or session['user'] == 'jduva' or session['user'] == 'thiberge' %}
 									<a class="nav-item nav-link" href="{{ url_for('microscope.landing_page')}}" target="_blank">Microscope Management</a>
+								{% endif %}
+
+								{% if session['user'] == 'ahoag' or session['user'] == 'zmd' or session['user'] == 'jduva' %}
+									<a class="nav-item nav-link" href="{{ url_for('imaging.imaging_manager')}}" target="_blank">Imaging Management</a>
 								{% endif %}
 							</div>
 						
