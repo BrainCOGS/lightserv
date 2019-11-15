@@ -61,7 +61,7 @@ def imaging_entry(username,experiment_name,sample_name):
 		msg = Message('Lightserv automated email',
 		          sender='lightservhelper@gmail.com',
 		          recipients=['ahoag@princeton.edu']) # keep it to me while in DEV phase
-		msg.body = ('This is an automated email sent from lightserv, the Light Sheet Microscopy portal. '
+		msg.body = ('Hello!\n    This is an automated email sent from lightserv, the Light Sheet Microscopy portal. '
 					'The raw data for your experiment:\n'
 					f'experiment_name: "{experiment_name}"\n'
 					f'sample_name: "{sample_name}"\n'
@@ -95,3 +95,40 @@ def imaging_entry(username,experiment_name,sample_name):
 
 	return render_template('imaging/imaging_entry.html',form=form,
 		used_channels=used_channels,sample_dict=sample_dict,imaging_table=imaging_table)
+
+
+
+# @cel.task()
+# def collect_metadata_from_sample(username,experiment_name,sample_name):
+# 	""" An asynchronous celery task (runs in a background process) which 
+# 	collects the raw data from all sets of raw images taken for a given sample
+# 	"""
+
+# 	import tifffile
+# 	from xml.etree import ElementTree as ET 
+
+# 	''' Fetch the processing params from the table to run the code '''
+
+# 	sample_contents = db_lightsheet.Experiment & f'username="{username}"' \
+# 	& f'experiment_name="{experiment_name}"'  & f'sample_name="{sample_name}"'
+# 	sample_contents_dict = sample_contents.fetch1() 
+# 	username = exp_contents.fetch('username')
+# 	raw_basepath = f'/jukebox/LightSheetData/lightserv_testing/{username}/{experiment_name}/{sample_name}'  
+	
+# 	''' First load all metadata ''' 
+	
+# 	z0_planes = glob.glob(raw_basepath + '/*RawDataStack*Z0000*.tif')
+# 	for z0_plane in z0_planes:
+# 		with tifffile.TiffFile(z0_plane) as tif:
+# 			tags = tif.pages[0].tags
+# 		xml_description=tags['ImageDescription'].value
+# 		root = ET.fromstring(xml_description)
+		
+
+# 	''' Figure out how many sets of raw images there should be and loop through them 
+# 	to find and enter the metadata for each '''
+
+
+# 	used_imaging_modes = [key for key in sample_contents_dict.keys() \
+# 	            if key[0:7] == 'channel' and sample_contents_dict[key] == 1]
+# 	for imaging_mode in used_imaging_modes:

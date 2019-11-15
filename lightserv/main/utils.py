@@ -64,7 +64,7 @@ def logged_in_as_clearer(f):
 					 as the clearer when submitting request. Denying them access""")
 					flash('''You do not have permission to access the clearing form for this experiment. 
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
-					return redirect(url_for('main.home'))
+					return redirect(url_for('main.welcome'))
 			else: # clearer is assigned - only allow access to clearing entry to them
 				if username == clearer:
 					logger.info(f"{username} is the rightful clearer and accessed the clearing entry form")
@@ -73,7 +73,27 @@ def logged_in_as_clearer(f):
 					logger.info(f"""{username} is not the clearer. Denying them access""")
 					flash('''The clearer has already been assigned for this entry and you are not them.  
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
-					return redirect(url_for('main.home'))
+					return redirect(url_for('main.welcome'))
+		else:
+			next_url = request.url
+			login_url = '%s?next=%s' % (url_for('main.login'), next_url)
+			return redirect(login_url)
+	return decorated_function
+
+
+def logged_in_as_clearing_manager(f):
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		if 'user' in session: # user is logged in 
+			username = session['user']
+			if username in ['ahoag','ll3','zmd']: # the clearing managers and admins
+				return f(*args, **kwargs)
+			else:
+				logger.info(f"""{username} is not a clearing manager. Denying them access""")
+				flash('''You do not have access to this page.  
+					Please email us at lightservhelper@gmail.com if you think there has been a mistake.''',
+					'warning')
+				return redirect(url_for('main.welcome'))
 		else:
 			next_url = request.url
 			login_url = '%s?next=%s' % (url_for('main.login'), next_url)
@@ -106,7 +126,7 @@ def logged_in_as_imager(f):
 					 as the imager when submitting request. Denying them access""")
 					flash('''You do not have permission to access the imaging form for this experiment. 
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
-					return redirect(url_for('main.home'))
+					return redirect(url_for('main.welcome'))
 			else: # imager is assigned - only allow access to imaging entry to them
 				if imager == username:
 					logger.info(f"{username} is the rightful imager and accessed the imaging entry form")
@@ -115,7 +135,7 @@ def logged_in_as_imager(f):
 					logger.info(f"""{username} is not the imager. Denying them access""")
 					flash('''The imager has already been assigned for this entry and you are not them.  
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
-					return redirect(url_for('main.home'))
+					return redirect(url_for('main.welcome'))
 		else:
 			next_url = request.url
 			login_url = '%s?next=%s' % (url_for('main.login'), next_url)

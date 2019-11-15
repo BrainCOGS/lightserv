@@ -100,12 +100,12 @@ class NewRequestForm(FlaskForm):
 	""" Clearing """
 	self_clearing = BooleanField('Check if you plan to do the clearing yourself',default=False)
 	clearing_samples = FieldList(FormField(ClearingForm),min_entries=0,max_entries=max_number_of_samples)
-	uniform_clearing = BooleanField('Check if clearing will be the same for all samples',default=False)
+	uniform_clearing = BooleanField('Check if clearing will be the same for all samples',default=True)
 	
 	""" Imaging """
 	self_imaging = BooleanField('Check if you plan to do the imaging yourself',default=False)
 	imaging_samples = FieldList(FormField(ImagingForm),min_entries=0,max_entries=max_number_of_samples)
-	uniform_imaging = BooleanField('Check if imaging/processing will be the same for all samples',default=False)
+	uniform_imaging = BooleanField('Check if imaging/processing will be the same for all samples',default=True)
 
 	sample_submit_button = SubmitField('Setup samples')
 

@@ -1,16 +1,13 @@
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup)
-# from flask_login import current_user, login_required
-# from lightserv import db_lightsheet
-# from lightserv.models import Experiment
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 									  iDiscoAbbreviatedRatForm, uDiscoForm,  iDiscoEduForm )
 from lightserv.tables import ClearingTable,IdiscoPlusTable
 from lightserv import db_lightsheet
 from .utils import (determine_clearing_form, add_clearing_calendar_entry,
 				   determine_clearing_dbtable, determine_clearing_table) 
-from lightserv.main.utils import logged_in, logged_in_as_clearer
+from lightserv.main.utils import logged_in, logged_in_as_clearer, logged_in_as_clearing_manager
 import numpy as np
 import datajoint as dj
 import re
@@ -36,12 +33,11 @@ logger.addHandler(file_handler)
 
 clearing = Blueprint('clearing',__name__)
 
-@clearing.route("/clearing/clearing_home",
-	methods=['GET','POST'])
-@logged_in_as_clearer
-def clearing_entry(): 
-	# print(username,experiment_name,sample_name,clearing_protocol)
-	pass
+@clearing.route("/clearing/clearing_manager",methods=['GET','POST'])
+@logged_in_as_clearing_manager
+def clearing_manager(): 
+	return "Hello"
+
 @clearing.route("/clearing/clearing_entry/<username>/<experiment_name>/<sample_name>/<clearing_protocol>/",
 	methods=['GET','POST'])
 @logged_in_as_clearer
