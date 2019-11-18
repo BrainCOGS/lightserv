@@ -48,8 +48,6 @@ class HeadingCol(LinkCol):
         html = '<a>----------</a>'
         return html
 
-
-
 def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynamic Samples Table', **sort_kwargs):
     def dynamic_sort_url(self, col_key, reverse=False):
         if reverse:
@@ -300,7 +298,7 @@ class ImagingTable(Table):
     username = Col('username',column_html_attrs=column_html_attrs)
     experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
     sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
-    image_resolution = Col('image_resolution',column_html_attrs=column_html_attrs)
+    image_resolution_requested = Col('image_resolution_requested',column_html_attrs=column_html_attrs)
     imager = Col('imager',column_html_attrs=column_html_attrs)
     imaging_progress = Col('imaging_progress',column_html_attrs=column_html_attrs)
 

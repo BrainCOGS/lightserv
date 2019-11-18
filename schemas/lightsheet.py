@@ -56,7 +56,14 @@ class Sample(dj.Manual):
 	notes_for_clearer = ""                    :   varchar(1024)
 	imager = "not yet assigned"  :   varchar(20) # netid of person doing the imaging
     imaging_progress             :   enum("incomplete","in progress","complete")
-	image_resolution                          :   enum("1.3x","4x","1.1x","2x")
+	channel488_resolution_requested = NULL    :   enum("1.3x","4x","1.1x","2x")
+	channel555_resolution_requested = NULL    :   enum("1.3x","4x","1.1x","2x")
+	channel647_resolution_requested = NULL    :   enum("1.3x","4x","1.1x","2x")
+	channel790_resolution_requested = NULL    :   enum("1.3x","4x","1.1x","2x")
+	channel488_resolution_used = NULL         :   enum("1.3x","4x","1.1x","2x")
+	channel555_resolution_used = NULL         :   enum("1.3x","4x","1.1x","2x")
+	channel647_resolution_used = NULL         :   enum("1.3x","4x","1.1x","2x")
+	channel790_resolution_used = NULL         :   enum("1.3x","4x","1.1x","2x")
 	channel488_registration = 0               :   boolean                    
 	channel555_registration = 0               :   boolean                    
 	channel647_registration = 0               :   boolean                    

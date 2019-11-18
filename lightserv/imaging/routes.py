@@ -95,6 +95,7 @@ def imaging_entry(username,experiment_name,sample_name):
 			return redirect(url_for('imaging.imaging_entry',username=username,
 			experiment_name=experiment_name,sample_name=sample_name))
 		dj.Table._update(sample_contents,'imaging_progress','complete')
+		dj.Table._update(sample_contents,'image_resolution_used',form.image_resolution_used.data)
 		correspondence_email = (db_lightsheet.Experiment() &\
 		 f'experiment_name="{experiment_name}"').fetch1('correspondence_email')
 		path_to_data = f'/jukebox/LightSheetData/lightserv_testing/{username}/{experiment_name}/{sample_name}'
@@ -118,8 +119,11 @@ def imaging_entry(username,experiment_name,sample_name):
 	if imaging_progress == 'complete':
 		flash("Imaging is already complete for this sample. "
 			"This page is read only and hitting submit will do nothing",'warning')
+		form.image_resolution_used.data = sample_contents.fetch1('image_resolution_used')
 	else:
 		dj.Table._update(sample_contents,'imaging_progress','in progress')
+		form.image_resolution_used.data = sample_contents.fetch1('image_resolution_requested')
+
 
 	sample_dict = sample_contents.fetch1()
 	imaging_table = ImagingTable(sample_contents)

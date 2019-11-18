@@ -150,13 +150,13 @@ def new_exp():
 							imaging_sample_dict = imaging_samples[ii]
 
 						for key,val in clearing_sample_dict.items(): 
-							if val != None and key != 'csrf_token':
+							if val != None and val != 'None' and key != 'csrf_token':
 								sample_insert_dict[key] = val
 						for key,val in imaging_sample_dict.items():
-							if val != None and key != 'csrf_token':
+							if val != None and val != 'None' and key != 'csrf_token':
 								sample_insert_dict[key] = val
 						sample_name = form.sample_prefix.data + '-' + f'{ii+1}'.zfill(3)
-						''' Add depedent primary keys '''
+						''' Add primary keys that are not in the form '''
 						sample_insert_dict['experiment_name'] = form.experiment_name.data
 						sample_insert_dict['username'] = username 
 
@@ -174,7 +174,7 @@ def new_exp():
 						logger.info('')
 					return redirect(url_for('main.home'))
 			
-		else: # post request but not validated
+		else: # post request but not validated. Need to handle some errors
 
 			if 'submit' in form.errors:
 				for error_str in form.errors['submit']:

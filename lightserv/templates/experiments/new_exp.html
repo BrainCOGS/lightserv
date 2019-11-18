@@ -259,25 +259,11 @@
 						{% endif %}
 				        <hr>
 
-				        <div class="form-group">
-							{% if imaging_entry.image_resolution.flags.required %}*{% endif %}
-							{{ imaging_entry.image_resolution.label(class="form-control-label") }}
-							{% if imaging_entry.image_resolution.errors %}
-								{{ imaging_entry.image_resolution(class="form-control form-control-lg is-invalid") }}
-								<div class="invalid-feedback">
-									{% for error in imaging_entry.image_resolution.errors %}
-										<span>{{ error }}</span>
-									{% endfor %}
-								</div>
-							{% else %}
-								{{ imaging_entry.image_resolution(class="form-control form-control-lg") }}
-							{% endif %}
-						</div>
-
 						<h4> Select all imaging channels and their uses: </h4>
 						<table class="table table-bordered table-striped text-center mb-4">
 			                <tr>
 			                    <th>Channel wavelength(nm)</th>
+			                    <th>Image resolution</th>
 			                    <th>Registration</th>
 			                    <th>Injection detection</th>
 			                    <th>Probe detection</th>
@@ -285,6 +271,7 @@
 			                </tr>
 			                <tr>   
 			                    <td>488</td>
+			                    <td>{{imaging_entry.channel488_resolution_requested}}</td>
 			                    <td>{{imaging_entry.channel488_registration}}</td>
 			                    <td>{{imaging_entry.channel488_injection_detection}}</td>
 			                    <td>{{imaging_entry.channel488_probe_detection}}</td>
@@ -293,6 +280,7 @@
 			                </tr>
 			                <tr>   
 			                    <td>555</td>
+			                    <td>{{imaging_entry.channel555_resolution_requested}}</td>
 			                    <td></td>
 			                    <td>{{imaging_entry.channel555_injection_detection}}</td>
 			                    <td>{{imaging_entry.channel555_probe_detection}}</td>
@@ -301,6 +289,7 @@
 			                </tr>
 			                <tr>   
 			                    <td>647</td>
+			                    <td>{{imaging_entry.channel647_resolution_requested}}</td>
 			                    <td></td>
 			                    <td>{{imaging_entry.channel647_injection_detection}}</td>
 			                    <td>{{imaging_entry.channel647_probe_detection}}</td>
@@ -308,6 +297,7 @@
 			                </tr>
 			                <tr>   
 			                    <td>790</td>
+			                    <td>{{imaging_entry.channel790_resolution_requested}}</td>
 			                    <td></td>
 			                    <td>{{imaging_entry.channel790_injection_detection}}</td>
 			                    <td>{{imaging_entry.channel790_probe_detection}}</td>
@@ -375,26 +365,10 @@
 							{% endif %}
 						</div>
 
-						<div class="form-group">
-							{% if imaging_entry.tiling_overlap.flags.required %}*{% endif %}
-							{{ imaging_entry.tiling_overlap.label(class="form-control-label") }}
-							{% if imaging_entry.tiling_overlap.errors %}
-								{{ imaging_entry.tiling_overlap(class="form-control form-control-lg is-invalid") }}
-								<div class="invalid-feedback">
-									{% for error in imaging_entry.tiling_overlap.errors %}
-										<span>{{ error }}</span>
-									{% endfor %}
-								</div>
-							{% else %}
-								{{ imaging_entry.tiling_overlap(class="form-control form-control-lg") }}
-							{% endif %}
-						</div>
-
 						<div class="checkbox">
 		                    {{ imaging_entry.intensity_correction(class="form-check-input") }}
 		                    {{ imaging_entry.intensity_correction.label(class="form-check-label") }}
 		                </div>
-
 
 			            {% if not loop.last %}
 			            	<br/>
@@ -402,8 +376,6 @@
 			            {% endif %}
 					{% endfor %}
 				</div>
-
-
 
 
 			</fieldset>

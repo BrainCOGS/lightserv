@@ -40,25 +40,38 @@ class ClearingForm(FlaskForm):
 			raise ValidationError('Antibody must be specified because you selected \
 				an immunostaining clearing protocol')
 
+
 class ImagingForm(FlaskForm):
 	""" A form that is used in ExpForm() via a FormField Fieldlist
 	so I dont have to write the imaging parameters out for each sample
 	"""
-	image_resolution = SelectField('Image Resolution:', 
-		choices=[('1.3x','1.3x'),
-	('4x','4x'),('1.1x','1.1x'),('2x','2x')],validators=[InputRequired()]) 
-	channel488_registration = BooleanField('Registration',default=False)
+	channel488_resolution_requested = SelectField('Image Resolution:', 
+		choices=[('None',''),('1.3x','1.3x'),
+	('4x','4x'),('1.1x','1.1x'),('2x','2x')],default='1.3x')  
+	channel488_registration = BooleanField('Registration',default=True)
 	channel488_injection_detection = BooleanField('Registration',default=False)
 	channel488_probe_detection = BooleanField('Registration',default=False)
 	channel488_cell_detection = BooleanField('Registration',default=False)
+
+	channel555_resolution_requested = SelectField('Image Resolution:', 
+		choices=[('None',''),('1.3x','1.3x'),
+	('4x','4x'),('1.1x','1.1x'),('2x','2x')]) 
 	channel555_registration = BooleanField('Registration',default=False)
 	channel555_injection_detection = BooleanField('Registration',default=False)
 	channel555_probe_detection = BooleanField('Registration',default=False)
 	channel555_cell_detection = BooleanField('Registration',default=False)
+	
+	channel647_resolution_requested = SelectField('Image Resolution:', 
+		choices=[('None',''),('1.3x','1.3x'),
+	('4x','4x'),('1.1x','1.1x'),('2x','2x')]) 
 	channel647_registration = BooleanField('Registration',default=False)
 	channel647_injection_detection = BooleanField('Registration',default=False)
 	channel647_probe_detection = BooleanField('Registration',default=False)
 	channel647_cell_detection = BooleanField('Registration',default=False)
+
+	channel790_resolution_requested = SelectField('Image Resolution:', 
+		choices=[('None',''),('1.3x','1.3x'),
+	('4x','4x'),('1.1x','1.1x'),('2x','2x')]) 
 	channel790_registration = BooleanField('Registration',default=False)
 	channel790_injection_detection = BooleanField('Registration',default=False)
 	channel790_probe_detection = BooleanField('Registration',default=False)
@@ -72,16 +85,8 @@ class ImagingForm(FlaskForm):
 	atlas_name = SelectField('Atlas for registration',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
 				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])
-	tiling_overlap = DecimalField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
-		places=2,validators=[Optional()],default=0.1) 
 	intensity_correction = BooleanField('Perform intensity correction? (leave as default if unsure)',default=True)
 
-	def validate_tiling_overlap(self,tiling_overlap):
-		try:
-			if tiling_overlap.data < 0 or tiling_overlap.data >= 1:
-				raise ValidationError("Tiling overlap must be between 0.0 and 1.0")
-		except:
-			raise ValidationError("Tiling overlap must be a number between 0.0 and 1.0")
 
 
 class NewRequestForm(FlaskForm):
@@ -129,8 +134,8 @@ class NewRequestForm(FlaskForm):
 		username = session['user']
 		current_experiment_names = (db_lightsheet.Experiment() & f'username="{username}"').fetch('experiment_name')
 		if experiment_name.data in current_experiment_names:
-			raise ValidationError(f'There already exists an experiment name "{experiment_name.data}" \
-				for your username. Please rename your experiment')
+			raise ValidationError(f'There already exists an experiment named "{experiment_name.data}" \
+				for your account. Please rename your experiment')
 
 	def validate_clearing_samples(self,clearing_samples):
 		""" Make sure that there are no samples where the clearing protocol is impossible
@@ -148,13 +153,25 @@ class NewRequestForm(FlaskForm):
 
 	def validate_imaging_samples(self,imaging_samples):
 		""" Make sure that at least one imaging channel was selected for each sample
+		and that if a box is checked for an imaging mode, then a resolution must also
+		be picked
 		"""
 
 		for sample_dict in imaging_samples.data:
+			''' Find any channel modes that were clicked '''
+			all_used_channels = set([key[7:10] for key in sample_dict.keys() \
+				if 'channel' in key and sample_dict[key] == 1])
+			for channel in all_used_channels:
+				resolution_requested = sample_dict[f'channel{channel}_resolution_requested']
+				if resolution_requested == 'None' or resolution_requested == None:
+					raise ValidationError(f" You did not specify an imaging resolution for channel {channel}"
+											f" but you checked one of the imaging boxes for this channel.")
 			''' collect the 0s and 1s from all channel modes '''
+
 			all_mode_values = [sample_dict[key] for key in sample_dict.keys() if 'channel' in key ]
 			if not any(all_mode_values): # if all are 0				
 				raise ValidationError("Each sample must have at least one imaging channel selected.")
+
 
 def Directory_validator(form,field):
 	''' Makes sure that the raw data directories exist on jukebox  '''
