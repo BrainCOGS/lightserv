@@ -31,17 +31,13 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
-
 main = Blueprint('main',__name__)
 
 @main.route("/") 
 @main.route("/welcome")
 @logged_in
 def welcome(): 
-
 	return render_template('main/welcome.html',)
-
-
 
 @main.route("/home")
 @logged_in

@@ -64,7 +64,7 @@ class ImagingForm(FlaskForm):
 	channel790_probe_detection = BooleanField('Registration',default=False)
 	channel790_cell_detection = BooleanField('Registration',default=False)
 	notes_for_imager = TextAreaField('''Notes for imaging 
-		(e.g. exposure time, tiling scheme) -- max 1024 characters --''',validators=[Length(max=1024)])
+		(e.g. z resolution, exposure time, tiling scheme) -- max 1024 characters --''',validators=[Length(max=1024)])
 	stitching_method = SelectField('Stitching method',choices=[('blending','blending'),
 		('terastitcher','terastitcher')],validators=[InputRequired()])
 	blend_type = SelectField('Blend type',choices=[('sigmoidal','sigmoidal'),('flat','flat')],

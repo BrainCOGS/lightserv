@@ -155,7 +155,7 @@ def new_exp():
 						for key,val in imaging_sample_dict.items():
 							if val != None and key != 'csrf_token':
 								sample_insert_dict[key] = val
-						sample_name = form.sample_prefix.data + '-' + '%i' % (ii+1)
+						sample_name = form.sample_prefix.data + '-' + f'{ii+1}'.zfill(3)
 						''' Add depedent primary keys '''
 						sample_insert_dict['experiment_name'] = form.experiment_name.data
 						sample_insert_dict['username'] = username 
