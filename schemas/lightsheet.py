@@ -56,30 +56,6 @@ class Sample(dj.Manual):
 	notes_for_clearer = ""                    :   varchar(1024)
 	imager = "not yet assigned"  :   varchar(20) # netid of person doing the imaging
     imaging_progress             :   enum("incomplete","in progress","complete")
-	channel488_resolution_requested = NULL    :   enum("1.3x","4x","1.1x","2x")
-	channel555_resolution_requested = NULL    :   enum("1.3x","4x","1.1x","2x")
-	channel647_resolution_requested = NULL    :   enum("1.3x","4x","1.1x","2x")
-	channel790_resolution_requested = NULL    :   enum("1.3x","4x","1.1x","2x")
-	channel488_resolution_used = NULL         :   enum("1.3x","4x","1.1x","2x")
-	channel555_resolution_used = NULL         :   enum("1.3x","4x","1.1x","2x")
-	channel647_resolution_used = NULL         :   enum("1.3x","4x","1.1x","2x")
-	channel790_resolution_used = NULL         :   enum("1.3x","4x","1.1x","2x")
-	channel488_registration = 0               :   boolean                    
-	channel555_registration = 0               :   boolean                    
-	channel647_registration = 0               :   boolean                    
-	channel790_registration = 0               :   boolean                    
-	channel488_injection_detection = 0        :   boolean                    
-	channel555_injection_detection = 0        :   boolean                    
-	channel647_injection_detection = 0        :   boolean                    
-	channel790_injection_detection = 0        :   boolean
-	channel488_probe_detection = 0            :   boolean                    
-	channel555_probe_detection = 0            :   boolean                    
-	channel647_probe_detection = 0            :   boolean                    
-	channel790_probe_detection = 0            :   boolean
-	channel488_cell_detection = 0             :   boolean                    
-	channel555_cell_detection = 0             :   boolean                    
-	channel647_cell_detection = 0             :   boolean                    
-	channel790_cell_detection = 0             :   boolean
     notes_for_imager = ""                     :   varchar(1024)
     imaging_date = NULL                       :   date
     processor = "not yet assigned"            :   varchar(20) # netid of person doing the processing
@@ -87,9 +63,23 @@ class Sample(dj.Manual):
     stitching_method                          :   enum("blending","terastitcher")
 	blend_type                                :   enum("sigmoidal","flat")
 	atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
-	tiling_overlap = 0.0                      :   float
-	intensity_correction                      :   boolean
+	intensity_correction = 1                  :   boolean
 	"""  
+
+	class ImagingChannel(dj.Part):
+		definition = """ # Samples from a particular experiment
+		-> Sample
+		channel_name                              :   varchar(64)                
+		----
+		registration = 0                          :   boolean
+		injection_detection = 0                   :   boolean
+		probe_detection = 0                       :   boolean
+		cell_detection = 0                        :   boolean
+		image_resolution_requested = NULL         :   enum("1.3x","4x","1.1x","2x")
+		image_resolution_used = NULL              :   enum("1.3x","4x","1.1x","2x")
+		tiling_scheme = '1x1'                     :   char(3)
+		tiling_overlap = 0.0                      :   float
+		"""
 
 	class IdiscoPlusClearing(dj.Part): # 
 		definition = """ # iDISCO+ clearing table
@@ -232,7 +222,6 @@ class Sample(dj.Manual):
 		dehydr_dbe_wash2_notes = ""                              :   varchar(250)
 		clearing_notes = ""                                      :   varchar(500)
 		"""
-
 
 	class IdiscoAbbreviatedRatClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
 		definition = """ # iDISCO Abbreviated Rat clearing table

@@ -2,7 +2,7 @@ from flask import session
 from flask_wtf import FlaskForm
 from wtforms import (StringField, SubmitField, TextAreaField,
 					 SelectField, BooleanField, IntegerField,
-					 DecimalField, FieldList,FormField)
+					 DecimalField, FieldList,FormField,HiddenField)
 from wtforms.fields.html5 import DateField
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email, Optional
 from wtforms.widgets import html5, HiddenInput
@@ -40,44 +40,25 @@ class ClearingForm(FlaskForm):
 			raise ValidationError('Antibody must be specified because you selected \
 				an immunostaining clearing protocol')
 
+class ChannelForm(FlaskForm):
+	channel_name = HiddenField('Channel Name')
+	image_resolution_requested = SelectField('Image Resolution:', 
+		choices=[('None',''),('1.3x','1.3x'),
+	('4x','4x'),('1.1x','1.1x'),('2x','2x')],default='')  
+	registration = BooleanField('Registration',default=False)
+	injection_detection = BooleanField('Registration',default=False)
+	probe_detection = BooleanField('Registration',default=False)
+	cell_detection = BooleanField('Registration',default=False)
+
 
 class ImagingForm(FlaskForm):
 	""" A form that is used in ExpForm() via a FormField Fieldlist
 	so I dont have to write the imaging parameters out for each sample
 	"""
-	channel488_resolution_requested = SelectField('Image Resolution:', 
-		choices=[('None',''),('1.3x','1.3x'),
-	('4x','4x'),('1.1x','1.1x'),('2x','2x')],default='1.3x')  
-	channel488_registration = BooleanField('Registration',default=True)
-	channel488_injection_detection = BooleanField('Registration',default=False)
-	channel488_probe_detection = BooleanField('Registration',default=False)
-	channel488_cell_detection = BooleanField('Registration',default=False)
-
-	channel555_resolution_requested = SelectField('Image Resolution:', 
-		choices=[('None',''),('1.3x','1.3x'),
-	('4x','4x'),('1.1x','1.1x'),('2x','2x')]) 
-	channel555_registration = BooleanField('Registration',default=False)
-	channel555_injection_detection = BooleanField('Registration',default=False)
-	channel555_probe_detection = BooleanField('Registration',default=False)
-	channel555_cell_detection = BooleanField('Registration',default=False)
+	channels = FieldList(FormField(ChannelForm),min_entries=4,max_entries=4)
 	
-	channel647_resolution_requested = SelectField('Image Resolution:', 
-		choices=[('None',''),('1.3x','1.3x'),
-	('4x','4x'),('1.1x','1.1x'),('2x','2x')]) 
-	channel647_registration = BooleanField('Registration',default=False)
-	channel647_injection_detection = BooleanField('Registration',default=False)
-	channel647_probe_detection = BooleanField('Registration',default=False)
-	channel647_cell_detection = BooleanField('Registration',default=False)
-
-	channel790_resolution_requested = SelectField('Image Resolution:', 
-		choices=[('None',''),('1.3x','1.3x'),
-	('4x','4x'),('1.1x','1.1x'),('2x','2x')]) 
-	channel790_registration = BooleanField('Registration',default=False)
-	channel790_injection_detection = BooleanField('Registration',default=False)
-	channel790_probe_detection = BooleanField('Registration',default=False)
-	channel790_cell_detection = BooleanField('Registration',default=False)
 	notes_for_imager = TextAreaField('''Notes for imaging 
-		(e.g. z resolution, exposure time, tiling scheme) -- max 1024 characters --''',validators=[Length(max=1024)])
+		(e.g. z resolution, exposure time, tiling scheme for each channel) -- max 1024 characters --''',validators=[Length(max=1024)])
 	stitching_method = SelectField('Stitching method',choices=[('blending','blending'),
 		('terastitcher','terastitcher')],validators=[InputRequired()])
 	blend_type = SelectField('Blend type',choices=[('sigmoidal','sigmoidal'),('flat','flat')],
@@ -88,19 +69,18 @@ class ImagingForm(FlaskForm):
 	intensity_correction = BooleanField('Perform intensity correction? (leave as default if unsure)',default=True)
 
 
-
 class NewRequestForm(FlaskForm):
 	""" The form for a new request """
 	max_number_of_samples = 50
-	experiment_name = StringField('Name of experiment',validators=[InputRequired(),Length(max=100)])
-	description = TextAreaField('Description of experiment',validators=[InputRequired(),Length(max=250)])
-	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)])
+	experiment_name = StringField('Name of experiment',validators=[InputRequired(),Length(max=100)],default="test")
+	description = TextAreaField('Description of experiment',validators=[InputRequired(),Length(max=250)],default='test')
+	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)],default="Braincogs")
 	correspondence_email = StringField('Correspondence email (default is princeton email)',
 		validators=[DataRequired(),Length(max=100),Email()])
 
 	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],validators=[InputRequired(),Length(max=50)]) # for choices first element of tuple is the value of the option, the second is the displayed text
-	number_of_samples = IntegerField('Number of samples (a.k.a. tubes)',widget=html5.NumberInput(),validators=[InputRequired()])
-	sample_prefix = StringField('Sample prefix (your samples will be named prefix-1, prefix-2, ...)',validators=[InputRequired(),Length(max=32)])
+	number_of_samples = IntegerField('Number of samples (a.k.a. tubes)',widget=html5.NumberInput(),validators=[InputRequired()],default=2)
+	sample_prefix = StringField('Sample prefix (your samples will be named prefix-1, prefix-2, ...)',validators=[InputRequired(),Length(max=32)],default='sample')
 	""" Clearing """
 	self_clearing = BooleanField('Check if you plan to do the clearing yourself',default=False)
 	clearing_samples = FieldList(FormField(ClearingForm),min_entries=0,max_entries=max_number_of_samples)

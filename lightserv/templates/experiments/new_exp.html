@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
+	{% set channel_wavelengths = ['488','555','647','790'] %}
 	<h1 id='primary_header' align="center">New Request Form</h1>
 	 <div class="content-section">
 
@@ -269,40 +270,20 @@
 			                    <th>Probe detection</th>
 			                    <th>Cell detection</th>
 			                </tr>
-			                <tr>   
-			                    <td>488</td>
-			                    <td>{{imaging_entry.channel488_resolution_requested}}</td>
-			                    <td>{{imaging_entry.channel488_registration}}</td>
-			                    <td>{{imaging_entry.channel488_injection_detection}}</td>
-			                    <td>{{imaging_entry.channel488_probe_detection}}</td>
-			                    <td>{{imaging_entry.channel488_cell_detection}}</td>
 
-			                </tr>
-			                <tr>   
-			                    <td>555</td>
-			                    <td>{{imaging_entry.channel555_resolution_requested}}</td>
-			                    <td></td>
-			                    <td>{{imaging_entry.channel555_injection_detection}}</td>
-			                    <td>{{imaging_entry.channel555_probe_detection}}</td>
-			                    <td>{{imaging_entry.channel555_cell_detection}}</td>
-
-			                </tr>
-			                <tr>   
-			                    <td>647</td>
-			                    <td>{{imaging_entry.channel647_resolution_requested}}</td>
-			                    <td></td>
-			                    <td>{{imaging_entry.channel647_injection_detection}}</td>
-			                    <td>{{imaging_entry.channel647_probe_detection}}</td>
-			                    <td>{{imaging_entry.channel647_cell_detection}}</td>
-			                </tr>
-			                <tr>   
-			                    <td>790</td>
-			                    <td>{{imaging_entry.channel790_resolution_requested}}</td>
-			                    <td></td>
-			                    <td>{{imaging_entry.channel790_injection_detection}}</td>
-			                    <td>{{imaging_entry.channel790_probe_detection}}</td>
-			                    <td>{{imaging_entry.channel790_cell_detection}}</td>
-			                </tr>
+			                {% for channel_entry in imaging_entry.channels %}
+				                <!-- Render the channel_name which is a hidden field just so it is set -->
+			                	{{ channel_entry.channel_name() }} 
+			                	{% set channel_wavelength = channel_wavelengths[loop.index-1] %}
+				                <tr>   
+				                    <td>{{channel_wavelength}}</td>
+				                    <td>{{channel_entry.image_resolution_requested}}</td>
+				                    <td>{{channel_entry.registration}}</td>
+				                    <td>{{channel_entry.injection_detection}}</td>
+				                    <td>{{channel_entry.probe_detection}}</td>
+				                    <td>{{channel_entry.cell_detection}}</td>
+				                </tr>
+			               {% endfor %}
 			            </table>
 
 			             <div class="form-group">

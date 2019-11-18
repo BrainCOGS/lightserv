@@ -298,7 +298,6 @@ class ImagingTable(Table):
     username = Col('username',column_html_attrs=column_html_attrs)
     experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
     sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
-    image_resolution_requested = Col('image_resolution_requested',column_html_attrs=column_html_attrs)
     imager = Col('imager',column_html_attrs=column_html_attrs)
     imaging_progress = Col('imaging_progress',column_html_attrs=column_html_attrs)
 

@@ -92,6 +92,19 @@ def new_exp():
 					# make nsamples sets of sample fields
 					for ii in range(nsamples):
 						form.imaging_samples.append_entry()
+				# Now loop through all samples and for each one make 4 new channel formfields
+				for sample in form.imaging_samples:
+					while len(sample.channels) > 0:
+						sample.channels.pop_entry()
+					for x in range(4):
+						sample.channels.append_entry()
+						channel_name = ['488','555','647','790'][x]
+						sample.channels[x].channel_name.data = channel_name
+						# Make the default for channel 488 to be 1.3x imaging with registration checked
+						if channel_name == '488':
+							sample.channels[x].image_resolution_requested.data = "1.3x"
+							sample.channels[x].registration.data = 1
+
 				column_name = 'clearing_samples-0-clearing_protocol'
 
 			elif submit_key == 'submit': # The final submit button
@@ -102,7 +115,7 @@ def new_exp():
 
 				""" Start a transaction for doing the inserts.
 					This is done to avoid inserting only into Experiment
-					table but not Sample table if there is an error """
+					table but not Sample and ImagingChannel tables if there is an error """
 				connection = db_lightsheet.Experiment.connection
 				with connection.transaction:
 					princeton_email = username + '@princeton.edu'
@@ -138,24 +151,8 @@ def new_exp():
 						uniform_imaging = True
 
 					for ii in range(number_of_samples):
-						sample_insert_dict = {}
-						if uniform_clearing == True:
-							clearing_sample_dict = clearing_samples[0]
-						else:
-							clearing_sample_dict = clearing_samples[ii]
-
-						if uniform_imaging == True:
-							imaging_sample_dict = imaging_samples[0]
-						else:
-							imaging_sample_dict = imaging_samples[ii]
-
-						for key,val in clearing_sample_dict.items(): 
-							if val != None and val != 'None' and key != 'csrf_token':
-								sample_insert_dict[key] = val
-						for key,val in imaging_sample_dict.items():
-							if val != None and val != 'None' and key != 'csrf_token':
-								sample_insert_dict[key] = val
 						sample_name = form.sample_prefix.data + '-' + f'{ii+1}'.zfill(3)
+						sample_insert_dict = {}
 						''' Add primary keys that are not in the form '''
 						sample_insert_dict['experiment_name'] = form.experiment_name.data
 						sample_insert_dict['username'] = username 
@@ -167,8 +164,43 @@ def new_exp():
 							sample_insert_dict['clearer'] = username
 						if form.self_imaging.data:
 							sample_insert_dict['imager'] = username
+						if uniform_clearing == True:
+							clearing_sample_dict = clearing_samples[0]
+						else:
+							clearing_sample_dict = clearing_samples[ii]
+
+						if uniform_imaging == True:
+							imaging_sample_dict = imaging_samples[0]
+						else:
+							imaging_sample_dict = imaging_samples[ii]
+
+						for key,val in clearing_sample_dict.items(): 
+							if val != None and val !='None' and key != 'csrf_token':
+								sample_insert_dict[key] = val
+						for key,val in imaging_sample_dict.items():
+							
+							if key == 'channels':
+								channel_insert_list = []
+								for imaging_channel_dict in imaging_sample_dict[key]:
+									if imaging_channel_dict['image_resolution_requested'] == 'None':
+										continue
+									channel_insert_dict = {}
+									channel_insert_dict['experiment_name'] = form.experiment_name.data	
+									channel_insert_dict['username'] = username
+									channel_insert_dict['sample_name'] = sample_name
+									for key,val in imaging_channel_dict.items(): 
+										if key == 'csrf_token':
+											continue
+										channel_insert_dict[key] = val
+									channel_insert_list.append(channel_insert_dict)
+									""" add all of the necessary primary keys not in the form """
+									
+							elif val != None and val != 'None' and key != 'csrf_token':
+								sample_insert_dict[key] = val
 						
 						db_lightsheet.Sample().insert1(sample_insert_dict)
+						print(channel_insert_list)
+						db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
 						logger.info("new insert")
 						logger.info(sample_insert_dict)
 						logger.info('')
