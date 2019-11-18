@@ -21,6 +21,10 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
+imaging_admins = ['ahoag','jduva','zmd']
+
+
+
 def table_sorter(dic,sort_key):
     if type(dic[sort_key]) == str:
         return dic[sort_key].lower()
@@ -105,8 +109,6 @@ def logged_in_as_imager(f):
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
 			username = session['user']
-			# if username == 'ahoag': # admin rights
-			# 	return f(*args, **kwargs)
 			experiment_name = kwargs['experiment_name']
 			sample_name = kwargs['sample_name']
 			username = kwargs['username']
@@ -117,7 +119,7 @@ def logged_in_as_imager(f):
 			if imager == "not yet assigned":
 				logger.info("Imaging entry form accessed with imager not yet assigned. ")
 				''' now check to see if user is a designated imager ''' 
-				if username in ['zmd','jduva','ahoag','kellyms']: # 
+				if username in imaging_admins: # 
 					dj.Table._update(sample_contents,'imager',username)
 					logger.info(f"{username} is a designated imager and is now assigned as the imager")
 					return f(*args, **kwargs)
@@ -127,14 +129,31 @@ def logged_in_as_imager(f):
 					flash('''You do not have permission to access the imaging form for this experiment. 
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
 					return redirect(url_for('main.welcome'))
-			else: # imager is assigned - only allow access to imaging entry to them
-				if imager == username:
-					logger.info(f"{username} is the rightful imager and accessed the imaging entry form")
+			else: # imager is assigned 
+				if imager in imaging_admins: # one of the admins started the form
+					if username in imaging_admins: # one of the admins is accessing the form
+						
+						if username != imager:
+							logger.info(f"""{username} accessed the form of which {imager} is the imager""")
+							flash("While you have access to this page, "
+								  "you are not the primary imager "
+								  "so please proceed with caution.",'warning')
+							return f(*args, **kwargs)
+						else:
+							logger.info(f"""{username} is the rightful imager and so is allowed access""")
+							return f(*args, **kwargs)
+					else:
+						flash(("The imager has already been assigned for this entry "
+							  "and you are not them. Please email us at lightservhelper@gmail.com "  
+						      "if you think there has been a mistake."),'warning')
+				elif imager == username:
+					logger.info(f"{username} is the rightful imager and so is allowed access")
 					return f(*args, **kwargs)
 				else:
 					logger.info(f"""{username} is not the imager. Denying them access""")
-					flash('''The imager has already been assigned for this entry and you are not them.  
-						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
+					flash(("The imager has already been assigned for this entry "
+							  "and you are not them. Please email us at lightservhelper@gmail.com "  
+						      "if you think there has been a mistake."),'warning')
 					return redirect(url_for('main.welcome'))
 		else:
 			next_url = request.url
