@@ -64,6 +64,7 @@ class Sample(dj.Manual):
 	blend_type                                :   enum("sigmoidal","flat")
 	atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
 	intensity_correction = 1                  :   boolean
+	notes_from_imaging = ""                  :   varchar(1024)
 	"""  
 
 	class ImagingChannel(dj.Part):

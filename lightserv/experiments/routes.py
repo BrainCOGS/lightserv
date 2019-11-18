@@ -199,7 +199,6 @@ def new_exp():
 								sample_insert_dict[key] = val
 						
 						db_lightsheet.Sample().insert1(sample_insert_dict)
-						print(channel_insert_list)
 						db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
 						logger.info("new insert")
 						logger.info(sample_insert_dict)

@@ -292,7 +292,7 @@ class ClearingTable(Table):
 class ImagingTable(Table):
     border = True
     no_items = "No Imaging Yet"
-    html_attrs = {"style":'font-size:14px'} # gets assigned to table header
+    html_attrs = {"style":'font-size:18px'} # gets assigned to table header
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)

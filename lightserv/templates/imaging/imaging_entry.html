@@ -4,42 +4,79 @@
 		{{ imaging_table }}
 
 	<hr class='class-1'>
-	<h3>Imaging instructions:</h3>
 
-	<legend> Imaging requested in channels: {{ used_channels|join(', ') }}</legend>
+	<h3>Imaging setup:</h3>
+	<h5>Notes from the researcher:</h5>
 
-	<div>
-		<legend>Image resolution requested: {{ sample_dict['image_resolution_requested'] }}</legend>
-	</div>
-
-
-	<div>
-		<legend>Notes from the researcher:</legend>
+	<div class='content-section'>
 		<p>
-			{{ sample_dict['notes_for_imager'] }}
+			{% if sample_dict['notes_for_imager'] %}
+				{{ sample_dict['notes_for_imager'] }}
+			{% else %}
+				No special notes
+			{% endif %}
 		</p>
 	</div>
-
-	<hr class='class-1'>
-	<h3>Enter the imaging parameters that you used:</h3>
 	<form method="POST" action="">
 	{{ form.hidden_tag() }}
 	<fieldset class="form-group">
-	<div class="form-group">
-		{% if form.image_resolution_used.flags.required %}*{% endif %}
-		{{ form.image_resolution_used.label(class="form-control-label") }}
-		{% if form.image_resolution_used.errors %}
-			{{ form.image_resolution_used(class="form-control form-control-lg is-invalid") }}
+	<table class="table table-bordered table-striped text-center mb-4">
+        <tr>
+            <th>Channel wavelength(nm)</th>
+            <th>Image resolution requested</th>
+            <th>*Image resolution used</th>
+           	<th>*Tiling scheme </th>
+           	<th>*Tiling overlap </th>
+           	<th>*Z_step (microns) </th>
+           	<th>*Number of Z planes </th>
+        </tr>
+
+	{% for ii in range(channel_contents_dict|length) %}
+		{% set channel_entry = form.channels[ii] %}
+		{% set channel_content = channel_contents_dict[ii] %}
+		{% set channel_name = channel_content['channel_name'] %}
+		<!-- Render the hidden field for channel_name so it propagates through submission -->
+		{{ channel_entry.channel_name() }}
+			<tr>   
+			    <td>{{channel_name}}</td>
+			    <td>{{channel_content.image_resolution_requested}}</td>
+			    <td>{{channel_entry.image_resolution_used}}</td>
+			    <td>
+			    	<div class="form-group">
+						{% if channel_entry.tiling_scheme.errors %}
+							{{ channel_entry.tiling_scheme(class="form-control form-control-sm is-invalid") }}
+							<div class="invalid-feedback">
+								{% for error in channel_entry.tiling_scheme.errors %}
+									<span>{{ error }}</span>
+								{% endfor %}
+							</div>
+						{% else %}
+							{{ channel_entry.tiling_scheme(class="form-control form-control-sm") }}
+							Some more text
+						{% endif %}
+					</div>
+				</td>
+			    <td>{{channel_entry.tiling_overlap(class='form-control form-control-sm')}}</td>
+			    <td>{{channel_entry.z_resolution(class='form-control form-control-sm')}}</td>
+			    <td>{{channel_entry.number_of_z_planes(class='form-control form-control-sm')}}</td>
+			</tr>
+	{% endfor %}
+    </table>
+
+    <div class="form-group">
+		{% if form.notes_from_imaging.flags.required %}*{% endif %}
+		{{ form.notes_from_imaging.label(class="form-control-label") }}
+		{% if form.notes_from_imaging.errors %}
+			{{ form.notes_from_imaging(class="form-control form-control-lg is-invalid") }}
 			<div class="invalid-feedback">
-				{% for error in form.image_resolution_used.errors %}
+				{% for error in form.notes_from_imaging.errors %}
 					<span>{{ error }}</span>
 				{% endfor %}
 			</div>
 		{% else %}
-			{{ form.image_resolution_used(class="form-control form-control-lg") }}
+			{{ form.notes_from_imaging(class="form-control form-control-lg") }}
 		{% endif %}
 	</div>
-
 	<hr class='class-1'>
 
 	<div>
