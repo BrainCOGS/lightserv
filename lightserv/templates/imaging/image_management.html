@@ -1,31 +1,33 @@
 {% extends "layout.html" %}
 {% block content %}
+
 <hr class="class-5">	
 
 <h3>Samples ready to be imaged:</h3>
-<div style="padding:5px;display:inline-block;">
-	{{ table_ready_to_image }}
+<div style="display:inline-block;">
+
+ {{ table_ready_to_image }}
+
 	</div>
 
 <hr class="class-5">	
 
 <h3>Samples currently being imaged:</h3>
-<div style="padding:5px;display:inline-block;">
+<div style="display:inline-block;">
 	{{ table_being_imaged }}
 <div>
 
 <hr class="class-5">	
 
 <h3>Samples on deck (in clearing stage):</h3>
-<div style="padding:5px;display:inline-block;">
+<div style="display:inline-block;">
 	{{ table_on_deck }}
 </div>
 
 <hr class="class-5">	
 
-
 <h3>Samples already imaged:</h3>
-<div style="padding:5px;display:inline-block;">
+<div style="display:inline-block;">
 	{{ table_already_imaged }}
 </div>
 

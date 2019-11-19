@@ -210,20 +210,19 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
+    table_class.add_column('datetime_submitted',Col('datetime_submitted'))
     table_class.add_column('experiment_name',Col('experiment_name'))
     table_class.add_column('sample_name',Col('sample_name'))
     table_class.add_column('username',Col('username'))
     table_class.add_column('imager',Col('imager'))
+    
     if table_class == 'horizontal_ready_to_image_table':
         table_class.add_column('imaging_progress',BoldTextCol('imaging_progress'))
     else: 
         table_class.add_column('clearing_progress',Col('clearing_progress'))
         table_class.add_column('imaging_progress',Col('imaging_progress'))
 
-    table_class.add_column('species',Col('species'))
-
-    table_class.add_column('image_resolution',Col('image_resolution'))
-    table_class.add_column('datetime_submitted',Col('datetime_submitted'))
+    table_class.add_column('species',Col('species'))    
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
     imaging_url_kwargs = {'username':'username','experiment_name':'experiment_name',

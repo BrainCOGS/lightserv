@@ -42,7 +42,7 @@ def imaging_manager():
 	exp_contents = db_lightsheet.Experiment()
 	joined_contents = (exp_contents * samples_contents) 
 	proj_contents = joined_contents.proj('species','imager','clearing_progress',
-	'imaging_progress','image_resolution',
+	'imaging_progress',
 	datetime_submitted='TIMESTAMP(date_submitted,time_submitted)') # will pick up the primary keys by default
 	''' First get all entities that are currently being imaged '''
 	contents_being_imaged = proj_contents & 'imaging_progress="in progress"'
