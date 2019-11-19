@@ -48,11 +48,11 @@ class ChannelForm(FlaskForm):
 			raise ValidationError("Tiling scheme is not in correct format."
 								  " Make sure it is like: 1x1 with no spaces.")
 		try:
-			n_rows = int(tiling_scheme.lower().split('x')[0])
-			n_columns = int(tiling_scheme.lower().split('x')[0])
+			n_rows = int(tiling_scheme.data.lower().split('x')[0])
+			n_columns = int(tiling_scheme.data.lower().split('x')[1])
 		except:
 			raise ValidationError("Tiling scheme is not in correct format."
-								  " Make sure it is like: 2x3 with no spaces.")	
+								  " Make sure it is like: 1x1 with no spaces.")	
 		if self.image_resolution_used.data in ['1.1x','1.3x']:
 			if n_rows > 2 or n_columns > 2:
 				raise ValidationError("Tiling scheme must not exceed 2x2 for this resolution")

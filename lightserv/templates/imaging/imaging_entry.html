@@ -17,6 +17,7 @@
 			{% endif %}
 		</p>
 	</div>
+	<h5>For you to complete:</h5>
 	<form method="POST" action="">
 	{{ form.hidden_tag() }}
 	<fieldset class="form-group">
@@ -31,9 +32,9 @@
            	<th>*Number of Z planes </th>
         </tr>
 
-	{% for ii in range(channel_contents_dict|length) %}
+	{% for ii in range(channel_content_dict_list|length) %}
 		{% set channel_entry = form.channels[ii] %}
-		{% set channel_content = channel_contents_dict[ii] %}
+		{% set channel_content = channel_content_dict_list[ii] %}
 		{% set channel_name = channel_content['channel_name'] %}
 		<!-- Render the hidden field for channel_name so it propagates through submission -->
 		{{ channel_entry.channel_name() }}
@@ -52,11 +53,23 @@
 							</div>
 						{% else %}
 							{{ channel_entry.tiling_scheme(class="form-control form-control-sm") }}
-							Some more text
 						{% endif %}
 					</div>
 				</td>
-			    <td>{{channel_entry.tiling_overlap(class='form-control form-control-sm')}}</td>
+			    <td>
+					<div class="form-group">
+						{% if channel_entry.tiling_overlap.errors %}
+							{{ channel_entry.tiling_overlap(class="form-control form-control-sm is-invalid") }}
+							<div class="invalid-feedback">
+								{% for error in channel_entry.tiling_overlap.errors %}
+									<span>{{ error }}</span>
+								{% endfor %}
+							</div>
+						{% else %}
+							{{ channel_entry.tiling_overlap(class="form-control form-control-sm") }}
+						{% endif %}
+					</div>
+			    </td>
 			    <td>{{channel_entry.z_resolution(class='form-control form-control-sm')}}</td>
 			    <td>{{channel_entry.number_of_z_planes(class='form-control form-control-sm')}}</td>
 			</tr>

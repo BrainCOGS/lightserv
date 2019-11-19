@@ -252,7 +252,6 @@ def exp(username,experiment_name):
 	
 	exp_contents = db_lightsheet.Experiment() & f'experiment_name="{experiment_name}"' & \
 	 		f'username="{username}"'
-	print(exp_contents)
 	samples_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
 	''' Get rid of the rows where none of the channels are used '''
 

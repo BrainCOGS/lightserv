@@ -86,22 +86,35 @@ def imaging_entry(username,experiment_name,sample_name):
 			sample_name={sample_name} before imaging can be done. 
 			Please submit a new request for this experiment first. """,'danger')
 		return redirect(url_for('experiments.new_exp'))
+	''' If imaging is already complete (from before), then dont change imaging_progress '''
+	imaging_progress = sample_contents.fetch1('imaging_progress')
+	logger.info(imaging_progress)
+	if imaging_progress == 'complete':
+		logger.info("Imaging already complete but accessing the imaging entry page anyway")
+		flash("Imaging is already complete for this sample. "
+			"This page is read only and hitting submit will do nothing",'warning')
+	else:
+		dj.Table._update(sample_contents,'imaging_progress','in progress')
+
 	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'experiment_name="{experiment_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"')
+	channel_content_dict_list = channel_contents.fetch(as_dict=True)
+	logger.info(channel_content_dict_list)
 	if request.method == 'POST':
+		logger.info("Post request")
 		if form.validate_on_submit():
-			logger.info("Validated")
 			logger.info("form validated")
 			imaging_progress = sample_contents.fetch1('imaging_progress')
 			if imaging_progress == 'complete':
-				return redirect(url_for('imaging.imaging_entry',username=username,
+				logger.info("Imaging is already complete so hitting the done button again did nothing")
+				return redirect(url_for('experiments.exp',username=username,
 				experiment_name=experiment_name,sample_name=sample_name))
-			dj.Table._update(sample_contents,'imaging_progress','complete')
 			""" Loop through the channels in the form  
 			and update the existing table entry """
 			for form_channel_dict in form.channels.data:
+				logger.info(form_channel_dict)
 				channel_name = form_channel_dict['channel_name']
-				channel_content = channel_contents & f'channel_name="{channel_name}'
+				channel_content = channel_contents & f'channel_name="{channel_name}"'
 				dj.Table._update(channel_content,'image_resolution_used',form_channel_dict['image_resolution_used'])
 			correspondence_email = (db_lightsheet.Experiment() &\
 			 f'experiment_name="{experiment_name}"').fetch1('correspondence_email')
@@ -118,29 +131,30 @@ def imaging_entry(username,experiment_name,sample_name):
 			flash(f"""Imaging is complete. An email has been sent to {correspondence_email} 
 				informing them that their raw data is now available on bucket.
 				The processing pipeline is now ready to run. ""","success")
+			dj.Table._update(sample_contents,'imaging_progress','complete')
 			return redirect(url_for('experiments.exp',username=username,
 				experiment_name=experiment_name,sample_name=sample_name))
 		else:
 			logger.info("Not validated")
 			logger.info(form.errors)
 			for channel in form.channels:
-				print(channel.tiling_scheme)
-	''' If imaging is already complete (from before), then dont change imaging_progress '''
-	imaging_progress = sample_contents.fetch1('imaging_progress')
-	if imaging_progress == 'complete':
-		flash("Imaging is already complete for this sample. "
-			"This page is read only and hitting submit will do nothing",'warning')
-	else:
-		dj.Table._update(sample_contents,'imaging_progress','in progress')
+				print(channel.tiling_scheme.errors)
+	elif request.method == 'GET': # get request
+
+		while len(form.channels) > 0:
+			form.channels.pop_entry()
+		for channel_content_dict in channel_content_dict_list:
+			logger.info("In loop")
+			form.channels.append_entry()
+			channel_name = channel_content_dict['channel_name']
+			logger.info(form.channels.data)
+			form.channels[-1].channel_name.data = channel_name
+			logger.info(form.channels.data)
+
 
 	sample_dict = sample_contents.fetch1()
 	imaging_table = ImagingTable(sample_contents)
-	channel_contents_dict = channel_contents.fetch(as_dict=True)
-	''' Now figure out which channels need to be imaged '''
-	while len(form.channels) > 0:
-		form.channels.pop_entry()
-	for ii in range(len(channel_contents_dict)):
-		form.channels.append_entry()
+
 
 	return render_template('imaging/imaging_entry.html',form=form,
-		channel_contents_dict=channel_contents_dict,sample_dict=sample_dict,imaging_table=imaging_table)
+		channel_content_dict_list=channel_content_dict_list,sample_dict=sample_dict,imaging_table=imaging_table)

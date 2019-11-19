@@ -58,7 +58,7 @@ class ImagingForm(FlaskForm):
 	channels = FieldList(FormField(ChannelForm),min_entries=4,max_entries=4)
 	
 	notes_for_imager = TextAreaField('''Notes for imaging 
-		(e.g. z resolution, exposure time, tiling scheme for each channel) -- max 1024 characters --''',validators=[Length(max=1024)])
+		(e.g. z step size, exposure time, tiling scheme for each channel) -- max 1024 characters --''',validators=[Length(max=1024)])
 	stitching_method = SelectField('Stitching method',choices=[('blending','blending'),
 		('terastitcher','terastitcher')],validators=[InputRequired()])
 	blend_type = SelectField('Blend type',choices=[('sigmoidal','sigmoidal'),('flat','flat')],
