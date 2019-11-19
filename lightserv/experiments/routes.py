@@ -238,10 +238,14 @@ def new_exp():
 			if 'number_of_samples' in form.errors:
 				for error_str in form.errors['number_of_samples']:
 					flash(error_str,'danger')
+	""" Make default checkboxes -- can't be done in forms.py unfortunately: https://github.com/lepture/flask-wtf/issues/362 """
+	form.uniform_clearing.data = True
+	form.uniform_imaging.data = True
 	if not form.correspondence_email.data:	
 		form.correspondence_email.data = session['user'] + '@princeton.edu' 
 	if 'column_name' not in locals():
 		column_name = ''
+
 	return render_template('experiments/new_exp.html', title='new_experiment',
 		form=form,legend='New Experiment',column_name=column_name)	
 
