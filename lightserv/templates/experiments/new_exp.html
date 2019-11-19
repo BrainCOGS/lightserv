@@ -138,6 +138,8 @@
 				<div>
 					{% for clearing_entry in form.clearing_samples %}
 						{% if form.uniform_clearing.data == false %}
+							<!-- Render the hiddenfield sample_name to keep track of it in debugging -->
+							{{ clearing_entry.sample_name }}
 					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} </legend>
 						
 					    {% else %}
@@ -254,6 +256,8 @@
 				{% endif %}
 				<div>
 					{% for imaging_entry in form.imaging_samples %}
+						<!-- Render the hiddenfield sample_name to keep track of it in debugging -->
+						{{ imaging_entry.sample_name }}
 						{% if form.uniform_imaging.data == false %}
 					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} </legend>
 					    {% else %}

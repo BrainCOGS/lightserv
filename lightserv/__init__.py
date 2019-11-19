@@ -59,6 +59,7 @@ def create_app(config_class=Config):
 	from lightserv.ontology.routes import ontology
 	from lightserv.clearing.routes import clearing
 	from lightserv.imaging.routes import imaging
+	from lightserv.processing.routes import processing
 	from lightserv.microscope.routes import microscope
 	from lightserv.errors.handlers import errors
 
@@ -68,6 +69,7 @@ def create_app(config_class=Config):
 	app.register_blueprint(ontology)
 	app.register_blueprint(clearing)
 	app.register_blueprint(imaging)
+	app.register_blueprint(processing)
 
 	app.register_blueprint(microscope)
 	app.register_blueprint(errors)

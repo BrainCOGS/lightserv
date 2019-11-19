@@ -7,21 +7,19 @@ import os
 # The default config
 class Config(object):
 	SECRET_KEY = os.environ.get('SECRET_KEY')
-	SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI')
 	MAIL_SERVER = 'smtp.googlemail.com'
 	MAIL_PORT = 587
 	MAIL_USE_TLS = True
 	MAIL_USERNAME = os.environ.get('EMAIL_USER')
 	MAIL_PASSWORD = os.environ.get('EMAIL_PASS')
+	IMAGING_MODES = ['registration','injection_detection','probe_detection','cell_detection']
+
 	# APPLICATION_ROOT = "/v01"
 
 
 class BaseConfig(object):
 	DEBUG = False
-	# shortened for readability
-	SECRET_KEY = '\xbf\xb0\x11\xb1\xcd\xf9\xba\x8bp\x0c...'
-	SQLALCHEMY_DATABASE_URI = 'sqlite:///site.db'
-	SQLALCHEMY_TRACK_MODIFICATIONS = False # to turn that annoying warning off
+	SECRET_KEY = os.environ.get('SECRET_KEY')
 
 class TestConfig(BaseConfig):
 	DEBUG = True
