@@ -143,15 +143,17 @@ def create_dynamic_samples_table_for_processing(contents,table_id,ignore_columns
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
-    table_class.add_column('sample_name',Col('sample_name'))
-    table_class.add_column('experiment_name',Col('experiment_name'))
     table_class.add_column('username',Col('username'))
-    table_class.add_column('stitching_method',Col('stitching_method'))
-    table_class.add_column('blend_type',Col('blend_type'))
-    table_class.add_column('atlas_name',Col('atlas_name'))
-    table_class.add_column('tiling_overlap',Col('tiling_overlap'))
-    table_class.add_column('intensity_correction',Col('intensity_correction'))
-    table_class.add_column('channel information',HeadingCol('Channel information',endpoint='main.home'))
+    table_class.add_column('experiment_name',Col('experiment_name'))
+    table_class.add_column('sample_name',Col('sample_name'))
+    table_class.add_column('processor',Col('processor'))
+    table_class.add_column('processing_progress',Col('processing_progress'))
+    # table_class.add_column('stitching_method',Col('stitching_method'))
+    # table_class.add_column('blend_type',Col('blend_type'))
+    # table_class.add_column('atlas_name',Col('atlas_name'))
+    # table_class.add_column('tiling_overlap',Col('tiling_overlap'))
+    # table_class.add_column('intensity_correction',Col('intensity_correction'))
+    # table_class.add_column('channel information',HeadingCol('Channel information',endpoint='main.home'))
 
     for column_name in colnames:
         if column_name in ignore_columns:

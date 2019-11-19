@@ -115,7 +115,17 @@ def imaging_entry(username,experiment_name,sample_name):
 				logger.info(form_channel_dict)
 				channel_name = form_channel_dict['channel_name']
 				channel_content = channel_contents & f'channel_name="{channel_name}"'
-				dj.Table._update(channel_content,'image_resolution_used',form_channel_dict['image_resolution_used'])
+				channel_content_dict = channel_content.fetch1()
+				''' Make a copy of the current row in a new dictionary which we will insert '''
+				insert_dict = {}
+				for key,val in channel_content_dict.items():
+					insert_dict[key] = val
+				''' Now replace the values in the dict from the form input '''
+				for key,val in form_channel_dict.items():
+					if key in channel_content_dict.keys():
+						insert_dict[key] = val
+				logger.info("Inserting {}".format(insert_dict))
+				db_lightsheet.Sample.ImagingChannel().insert1(insert_dict,replace=True)
 			correspondence_email = (db_lightsheet.Experiment() &\
 			 f'experiment_name="{experiment_name}"').fetch1('correspondence_email')
 			path_to_data = f'/jukebox/LightSheetData/lightserv_testing/{username}/{experiment_name}/{sample_name}'
@@ -132,6 +142,7 @@ def imaging_entry(username,experiment_name,sample_name):
 				informing them that their raw data is now available on bucket.
 				The processing pipeline is now ready to run. ""","success")
 			dj.Table._update(sample_contents,'imaging_progress','complete')
+
 			return redirect(url_for('experiments.exp',username=username,
 				experiment_name=experiment_name,sample_name=sample_name))
 		else:

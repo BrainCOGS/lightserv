@@ -8,9 +8,10 @@ from lightserv.experiments.forms import NewRequestForm, UpdateNotesForm, StartPr
 from lightserv.tables import (ExpTable, create_dynamic_samples_table,
 	create_dynamic_samples_table_for_processing)
 from lightserv import db_lightsheet
-from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_imager,
+from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed)
 from lightserv import cel,mail
+import datajoint as dj
 
 
 from functools import partial
@@ -291,36 +292,62 @@ def exp(username,experiment_name):
 @logged_in
 @check_clearing_completed
 @check_imaging_completed
-@logged_in_as_imager
+@logged_in_as_processor
 def start_processing(username,experiment_name,sample_name):
-	""" Route for a user to enter a new experiment via a form and submit that experiment """
+	""" Route for the person assigned as data processor for a sample 
+	to start the data processing. """
 	logger.info(f"{session['user']} accessed start_processing route")
 	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"'		
-	sample_contents_dict = sample_contents.fetch1()
-	print(sample_contents_dict)
+	sample_dict = sample_contents.fetch1()
 
 	processing_keys = []
-	for key in sample_contents_dict.keys():
-		if 'channel' in key and sample_contents_dict[key] == 1:
+	for key in sample_dict.keys():
+		if 'channel' in key and sample_dict[key] == 1:
 			processing_keys.append(key)
-	sample_table_id = 'vertical_sample_table'
+	sample_table_id = 'horizontal_sample_table'
 	sample_table = create_dynamic_samples_table_for_processing(sample_contents,table_id=sample_table_id)
 	sample_table.table_id = sample_table_id
+	
+	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'experiment_name="{experiment_name}"' & \
+	 		f'username="{username}"' & f'sample_name="{sample_name}"')
+	channel_content_dict_list = channel_contents.fetch(as_dict=True)
+
 	form = StartProcessingForm()
 	
-	if form.validate_on_submit():
-		logger.debug("Validated")
-		''' Make the parameter dictionary from form input.'''
+	processing_progress = sample_contents.fetch1('processing_progress')
 
-		logger.info(f"Starting step0 process with Celery")
-		run_step0.delay(username=username,experiment_name=experiment_name,sample_name=sample_name)
-		flash('Your data processing has begun. You will receive an email \
-			when the first steps are completed.','success')
-		return redirect(url_for('experiments.exp',username=username,
+	if processing_progress == 'complete':
+		logger.info("processing already complete but accessing the processing entry page anyway")
+		flash("processing is already complete for this sample. "
+				"This page is read only and hitting submit will do nothing",'warning')
+	else:
+		dj.Table._update(sample_contents,'processing_progress','in progress')
+	if request.method == 'POST': # post request
+		logger.info('post request')
+		if form.validate_on_submit():
+			logger.debug("form validated")
+			''' Make the parameter dictionary from form input.'''
+
+			logger.info(f"Starting step0 process with Celery")
+			run_step0.delay(username=username,experiment_name=experiment_name,sample_name=sample_name)
+			flash('Your data processing has begun. You will receive an email \
+				when the first steps are completed.','success')
+			return redirect(url_for('experiments.exp',username=username,
 			experiment_name=experiment_name,sample_name=sample_name))
-	
+
+	elif request.method == 'GET': # get request
+		while len(form.channels) > 0:
+			form.channels.pop_entry()
+		for channel_content_dict in channel_content_dict_list:
+			form.channels.append_entry()
+			channel_name = channel_content_dict['channel_name']
+			logger.info(form.channels.data)
+			form.channels[-1].channel_name.data = channel_name
+			logger.info(form.channels.data)
+
 	return render_template('experiments/start_processing.html',
+		channel_content_dict_list=channel_content_dict_list,sample_dict=sample_dict,
 		form=form,sample_table=sample_table)	
 
 # @cel.task()

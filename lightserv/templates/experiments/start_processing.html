@@ -1,13 +1,80 @@
 {% extends "layout.html" %}
 {% block content %}
-	<h5> The following processing parameters will be used to run the pipeline automatically for this sample. Please check that these look OK before running the pipeline: </h5>
+	<h3>Sample overview:</h3>
 	{{ sample_table }}
+	<hr class='class-1'>
 
-	<form method="POST" action="" class="mt-4"> <!-- action="" means submit post request back to same route -->
-		{{ form.hidden_tag() }}
+	<h3>Processing setup:</h3>
+	<h5>Notes from the researcher:</h5>
+
+	<div class='content-section'>
+		<p>
+			{% if sample_dict['notes_for_processor'] %}
+				{{ sample_dict['notes_for_processor'] }}
+			{% else %}
+				No special notes
+			{% endif %}
+		</p>
+	</div>
+
+	<h5>For you to complete:</h5>
+	<form method="POST" action="">
+	{{ form.hidden_tag() }}
+	<fieldset class="form-group">
+	<table class="table table-bordered table-striped text-center mb-4">
+        <tr>
+            <th>Channel wavelength(nm)</th>
+            <th>Image resolution requested</th>
+            <th>Image resolution used</th>
+           	<th>Tiling scheme </th>
+           	<th>Tiling overlap </th>
+           	<th>Number of Z planes </th>
+        </tr>
+
+	{% for ii in range(channel_content_dict_list|length) %}
+		{% set channel_entry = form.channels[ii] %}
+		{% set channel_content = channel_content_dict_list[ii] %}
+		{% set channel_name = channel_content['channel_name'] %}
+		<!-- Render the hidden field for channel_name so it propagates through submission -->
+		{{ channel_entry.channel_name() }}
+			<tr>   
+			    <td>{{channel_name}}</td>
+			    <td>{{channel_content.image_resolution_requested}}</td>
+			    <td>{{channel_content.image_resolution_used}}</td>
+			    <td>{{channel_content.tiling_scheme}}</td>
+			    <td>{{channel_content.tiling_overlap}}</td>
+			    <td>{{channel_content.number_of_z_planes}}</td>
+			</tr>
+	{% endfor %}
+    </table>
+
+    <div class="form-group">
+		{% if form.notes_from_processing.flags.required %}*{% endif %}
+		{{ form.notes_from_processing.label(class="form-control-label") }}
+		{% if form.notes_from_processing.errors %}
+			{{ form.notes_from_processing(class="form-control form-control-lg is-invalid") }}
+			<div class="invalid-feedback">
+				{% for error in form.notes_from_processing.errors %}
+					<span>{{ error }}</span>
+				{% endfor %}
+			</div>
+		{% else %}
+			{{ form.notes_from_processing(class="form-control form-control-lg") }}
+		{% endif %}
+	</div>
+	<hr class='class-1'>
+
+	<div>
+		<h3>Move the raw data folders to:</h3>
+		<p>
+			/jukebox/LightSheetData/{{sample_dict['username']}}/{{sample_dict['experiment_name']}}/{{sample_dict['sample_name']}}
+		</p>
+	</div>
+
+
 		<div class="form-group">
-			{{ form.submit(class="btn btn-info mt-2") }}
+			{{ form.submit(class="btn btn-lg btn-info mt-2") }}
 		</div>
-	</form>
-
+	</fieldset>
+</form>
 {% endblock content %}

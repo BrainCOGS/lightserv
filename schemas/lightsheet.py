@@ -80,6 +80,8 @@ class Sample(dj.Manual):
 		image_resolution_used = NULL              :   enum("1.3x","4x","1.1x","2x")
 		tiling_scheme = '1x1'                     :   char(3)
 		tiling_overlap = 0.0                      :   float
+		z_step = 10                               :   smallint unsigned
+		number_of_z_planes = NULL                 :   smallint unsigned
 		"""
 
 	class IdiscoPlusClearing(dj.Part): # 
