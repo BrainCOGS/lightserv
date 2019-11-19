@@ -302,33 +302,18 @@
 							{% endif %}
 						</div>
 
-						<div class="form-group">
-							{% if imaging_entry.stitching_method.flags.required %}*{% endif %}
-							{{ imaging_entry.stitching_method.label(class="form-control-label") }}
-							{% if imaging_entry.stitching_method.errors %}
-								{{ imaging_entry.stitching_method(class="form-control form-control-lg is-invalid") }}
+						 <div class="form-group">
+							{% if imaging_entry.notes_for_processor.flags.required %}*{% endif %}
+							{{ imaging_entry.notes_for_processor.label(class="form-control-label") }}
+							{% if imaging_entry.notes_for_processor.errors %}
+								{{ imaging_entry.notes_for_processor(class="form-control form-control-lg is-invalid") }}
 								<div class="invalid-feedback">
-									{% for error in imaging_entry.stitching_method.errors %}
+									{% for error in imaging_entry.notes_for_processor.errors %}
 										<span>{{ error }}</span>
 									{% endfor %}
 								</div>
 							{% else %}
-								{{ imaging_entry.stitching_method(class="form-control form-control-lg") }}
-							{% endif %}
-						</div>
-
-						<div class="form-group">
-							{% if imaging_entry.blend_type.flags.required %}*{% endif %}
-							{{ imaging_entry.blend_type.label(class="form-control-label") }}
-							{% if imaging_entry.blend_type.errors %}
-								{{ imaging_entry.blend_type(class="form-control form-control-lg is-invalid") }}
-								<div class="invalid-feedback">
-									{% for error in imaging_entry.blend_type.errors %}
-										<span>{{ error }}</span>
-									{% endfor %}
-								</div>
-							{% else %}
-								{{ imaging_entry.blend_type(class="form-control form-control-lg") }}
+								{{ imaging_entry.notes_for_processor(class="form-control form-control-lg") }}
 							{% endif %}
 						</div>
 

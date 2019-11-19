@@ -56,15 +56,15 @@ class Sample(dj.Manual):
 	notes_for_clearer = ""                    :   varchar(1024)
 	imager = "not yet assigned"  :   varchar(20) # netid of person doing the imaging
     imaging_progress             :   enum("incomplete","in progress","complete")
-    notes_for_imager = ""                     :   varchar(1024)
     imaging_date = NULL                       :   date
+    notes_for_imager = ""                     :   varchar(1024)
+	notes_from_imaging = ""                   :   varchar(1024)
     processor = "not yet assigned"            :   varchar(20) # netid of person doing the processing
     processing_progress                       :   enum("incomplete","in progress","complete")
     stitching_method                          :   enum("blending","terastitcher")
 	blend_type                                :   enum("sigmoidal","flat")
 	atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
-	intensity_correction = 1                  :   boolean
-	notes_from_imaging = ""                  :   varchar(1024)
+	notes_for_processor = ""                  :   varchar(1024)
 	"""  
 
 	class ImagingChannel(dj.Part):
@@ -82,6 +82,7 @@ class Sample(dj.Manual):
 		tiling_overlap = 0.0                      :   float
 		z_step = 10                               :   smallint unsigned
 		number_of_z_planes = NULL                 :   smallint unsigned
+		intensity_correction = 1                  :   boolean
 		"""
 
 	class IdiscoPlusClearing(dj.Part): # 

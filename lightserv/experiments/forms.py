@@ -31,7 +31,7 @@ class ClearingForm(FlaskForm):
 	antibody2 = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
 	perfusion_date = OptionalDateField('Perfusion Date (MM/DD/YYYY; leave blank if unsure):')
 	expected_handoff_date = OptionalDateField('Expected date of hand-off (MM/DD/YYYY; leave blank if not sure or not applicable):')
-	notes_for_clearer = TextAreaField('Notes for clearing  -- max 1024 characters --',validators=[Length(max=1024)])
+	notes_for_clearer = TextAreaField('Special notes for clearing  -- max 1024 characters --',validators=[Length(max=1024)])
 
 	def validate_antibody1(self,antibody1):
 		''' Makes sure that primary antibody is not blank if immunostaining clearing protocol
@@ -50,19 +50,19 @@ class ChannelForm(FlaskForm):
 	probe_detection = BooleanField('Registration',default=False)
 	cell_detection = BooleanField('Registration',default=False)
 
-
 class ImagingForm(FlaskForm):
 	""" A form that is used in ExpForm() via a FormField Fieldlist
 	so I dont have to write the imaging parameters out for each sample
 	"""
 	channels = FieldList(FormField(ChannelForm),min_entries=4,max_entries=4)
 	
-	notes_for_imager = TextAreaField('''Notes for imaging 
-		(e.g. z step size, exposure time, tiling scheme for each channel) -- max 1024 characters --''',validators=[Length(max=1024)])
-	stitching_method = SelectField('Stitching method',choices=[('blending','blending'),
-		('terastitcher','terastitcher')],validators=[InputRequired()])
-	blend_type = SelectField('Blend type',choices=[('sigmoidal','sigmoidal'),('flat','flat')],
-		validators=[InputRequired()])
+	notes_for_imager = TextAreaField('''Special notes for imaging 
+		(e.g. z step size, exposure time, suggested tiling scheme -- make sure to specify which channel) -- max 1024 characters --''',
+		validators=[Length(max=1024)])
+
+	notes_for_processor = TextAreaField('''Special notes for processing 
+		 -- max 1024 characters --''',validators=[Length(max=1024)])
+	
 	atlas_name = SelectField('Atlas for registration',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
 				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])
@@ -217,7 +217,7 @@ class StartProcessingForm(FlaskForm):
 	""" The form for requesting to start the data processing """
 	max_number_of_channels=4
 	notes_from_processing = TextAreaField("Note down anything additional about the processing"
-									   " that you would like recorded")
+									   " that you would like recorded.")
 
 	channels = FieldList(FormField(ChannelForm),min_entries=0,max_entries=max_number_of_channels)
 	submit = SubmitField('Start the processing pipeline for this sample')	
