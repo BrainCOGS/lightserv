@@ -1,8 +1,8 @@
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
-				   Markup)
+				   Markup, current_app)
 from lightserv.processing.forms import StartProcessingForm
-from lightserv.tables import create_dynamic_samples_table_for_processing
+from lightserv.tables import create_dynamic_channels_table_for_processing
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed)
@@ -40,21 +40,18 @@ def start_processing(username,experiment_name,sample_name):
 	""" Route for the person assigned as data processor for a sample 
 	to start the data processing. """
 	logger.info(f"{session['user']} accessed start_processing route")
-	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"'		
-	sample_dict = sample_contents.fetch1()
-
-	processing_keys = []
-	for key in sample_dict.keys():
-		if 'channel' in key and sample_dict[key] == 1:
-			processing_keys.append(key)
-	sample_table_id = 'horizontal_sample_table'
-	sample_table = create_dynamic_samples_table_for_processing(sample_contents,table_id=sample_table_id)
-	sample_table.table_id = sample_table_id
 	
-	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'experiment_name="{experiment_name}"' & \
+	sample_contents = (db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"')
+	sample_dict = sample_contents.fetch1()
+	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'experiment_name="{experiment_name}"' & \
+	 		f'username="{username}"' & f'sample_name="{sample_name}"') # all of the channels for this sample
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
+
+	joined_contents = sample_contents * channel_contents
+	sample_table_id = 'horizontal_procsesing_table'
+	sample_table = create_dynamic_channels_table_for_processing(joined_contents,table_id=sample_table_id)
+	sample_table.table_id = sample_table_id
 
 	form = StartProcessingForm()
 	
@@ -91,7 +88,7 @@ def start_processing(username,experiment_name,sample_name):
 
 	return render_template('experiments/start_processing.html',
 		channel_content_dict_list=channel_content_dict_list,sample_dict=sample_dict,
-		form=form,sample_table=sample_table)	
+		form=form,sample_table=sample_table,imaging_modes=current_app.config['IMAGING_MODES'])	
 
 
 

@@ -124,7 +124,7 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     
     return table 
 
-def create_dynamic_samples_table_for_processing(sample_contents,channel_contents,table_id,ignore_columns=[],
+def create_dynamic_channels_table_for_processing(contents,table_id,ignore_columns=[],
     name='Dynamic Samples Table for Processing'):
     options = dict(
         border = True,
@@ -139,16 +139,18 @@ def create_dynamic_samples_table_for_processing(sample_contents,channel_contents
     """ Now loop through all columns and add them to the table,
     only adding the imaging modes if they are used in at least one
     sample """
-    sample_colnames = sample_contents.heading.attributes.keys()
+    sample_colnames = contents.heading.attributes.keys()
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
+    table_class.add_column('channel_name',Col('channel_name'))
+    table_class.add_column('image_resolution_used',Col('image_resolution_used'))
     table_class.add_column('username',Col('username'))
     table_class.add_column('experiment_name',Col('experiment_name'))
     table_class.add_column('sample_name',Col('sample_name'))
+    table_class.add_column('tiling_scheme',Col('tiling_scheme'))
     table_class.add_column('processor',Col('processor'))
     table_class.add_column('processing_progress',Col('processing_progress'))
-    table_class.add_column('tiling_scheme',Col('tiling_scheme'))
 
     # table_class.add_column('stitching_method',Col('stitching_method'))
     # table_class.add_column('blend_type',Col('blend_type'))

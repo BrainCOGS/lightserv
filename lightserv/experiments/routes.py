@@ -5,8 +5,7 @@ from flask import (render_template, url_for, flash,
 # from lightserv import db_lightsheet
 # from lightserv.models import Experiment
 from lightserv.experiments.forms import NewRequestForm, UpdateNotesForm
-from lightserv.tables import (ExpTable, create_dynamic_samples_table,
-	create_dynamic_samples_table_for_processing)
+from lightserv.tables import (ExpTable, create_dynamic_samples_table)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed)
@@ -211,7 +210,7 @@ def new_exp():
 						logger.info("new insert")
 						logger.info(sample_insert_dict)
 						logger.info('')
-					flash("Request submitted successfully.")
+					flash("Request submitted successfully.", "success")
 					return redirect(url_for('main.home'))
 			
 		else: # post request but not validated. Need to handle some errors

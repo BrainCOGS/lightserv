@@ -24,7 +24,6 @@
 	<table class="table table-bordered table-striped text-center mb-4">
         <tr>
             <th>Channel wavelength(nm)</th>
-            <th>Image resolution requested</th>
             <th>Image resolution used</th>
            	<th>Tiling scheme </th>
            	<th>Tiling overlap </th>
@@ -35,11 +34,18 @@
 		{% set channel_entry = form.channels[ii] %}
 		{% set channel_content = channel_content_dict_list[ii] %}
 		{% set channel_name = channel_content['channel_name'] %}
+		{% set channel_purposes = '' %}
+		{% for imaging_mode in imaging_modes %}
+			{% if channel_content[imaging_mode] == true %}
+
+				{{channel_name }} {{ imaging_mode}}
+				
+			{% endif %}
+		{% endfor %}
 		<!-- Render the hidden field for channel_name so it propagates through submission -->
 		{{ channel_entry.channel_name() }}
 			<tr>   
 			    <td>{{channel_name}}</td>
-			    <td>{{channel_content.image_resolution_requested}}</td>
 			    <td>{{channel_content.image_resolution_used}}</td>
 			    <td>{{channel_content.tiling_scheme}}</td>
 			    <td>{{channel_content.tiling_overlap}}</td>
