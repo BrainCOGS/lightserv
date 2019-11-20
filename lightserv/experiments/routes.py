@@ -59,11 +59,12 @@ def new_exp():
 	if request.method == 'POST':
 		if form.validate_on_submit():
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x and form[x].data]
-			logger.debug(submit_keys)
+			# logger.debug(submit_keys)
 			submit_key = submit_keys[0]
 			
 			""" Handle "setup samples" button pressed """
 			if submit_key == 'sample_submit_button': # The sample setup button
+				logger.info("sample submit")
 				nsamples = form.number_of_samples.data
 				if form.uniform_clearing.data == True: # UNIFORM clearing
 					logger.info("Clearing is uniform")
@@ -157,6 +158,7 @@ def new_exp():
 
 					for ii in range(number_of_samples):
 						sample_name = form.sample_prefix.data + '-' + f'{ii+1}'.zfill(3)
+						logger.info(sample_name)
 						sample_insert_dict = {}
 						''' Add primary keys that are not in the form '''
 						sample_insert_dict['experiment_name'] = form.experiment_name.data
@@ -179,11 +181,13 @@ def new_exp():
 						else:
 							imaging_sample_dict = imaging_samples[ii]
 
+						""" update insert dict with clearing form data """
 						for key,val in clearing_sample_dict.items(): 
-							if val != None and val !='None' and key != 'csrf_token':
+							if val != None and val !='None' and key not in ['csrf_token','sample_name']:
 								sample_insert_dict[key] = val
+
+						""" update insert dict with imaging form data """
 						for key,val in imaging_sample_dict.items():
-							
 							if key == 'channels':
 								channel_insert_list = []
 								for imaging_channel_dict in imaging_sample_dict[key]:
@@ -202,14 +206,17 @@ def new_exp():
 									channel_insert_list.append(channel_insert_dict)
 									""" add all of the necessary primary keys not in the form """
 									
-							elif val != None and val != 'None' and key != 'csrf_token':
+							elif val != None and val != 'None' and key != 'csrf_token' \
+							and key not in ['csrf_token','sample_name']:
 								sample_insert_dict[key] = val
-						
-						db_lightsheet.Sample().insert1(sample_insert_dict)
-						db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
+						logger.info(f'sample index {ii}')
 						logger.info("new insert")
 						logger.info(sample_insert_dict)
-						logger.info('')
+						db_lightsheet.Sample().insert1(sample_insert_dict)
+						logger.info('channel insert:')
+						logger.info(channel_insert_dict)
+						db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
+						
 					flash("Request submitted successfully.", "success")
 					return redirect(url_for('main.home'))
 			

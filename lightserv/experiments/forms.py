@@ -138,7 +138,6 @@ class NewRequestForm(FlaskForm):
 		be picked
 		"""
 		for sample_dict in imaging_samples.data:
-			print(sample_dict)
 			for channel_dict in sample_dict['channels']:
 				image_resolution_requested = channel_dict['image_resolution_requested']
 				if image_resolution_requested == 'None' or image_resolution_requested == None:
