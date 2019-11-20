@@ -31,7 +31,8 @@ logger.addHandler(file_handler)
 
 processing = Blueprint('processing',__name__)
 
-@processing.route("/processing/<username>/<experiment_name>/<sample_name>/start_processing",methods=['GET','POST'])
+@processing.route("/processing/<username>/<experiment_name>/<sample_name>/start_processing",
+	methods=['GET','POST'])
 @logged_in
 @check_clearing_completed
 @check_imaging_completed
@@ -61,8 +62,7 @@ def start_processing(username,experiment_name,sample_name):
 		logger.info("processing already complete but accessing the processing entry page anyway")
 		flash("processing is already complete for this sample. "
 				"This page is read only and hitting submit will do nothing",'warning')
-	else:
-		dj.Table._update(sample_contents,'processing_progress','in progress')
+
 	if request.method == 'POST': # post request
 		logger.info('post request')
 		if form.validate_on_submit():
@@ -71,24 +71,29 @@ def start_processing(username,experiment_name,sample_name):
 
 			logger.info(f"Starting step0 process with Celery")
 			run_step0.delay(username=username,experiment_name=experiment_name,sample_name=sample_name)
+
+			dj.Table._update(sample_contents,'processing_progress','running')
+
 			flash('Your data processing has begun. You will receive an email \
 				when the first steps are completed.','success')
 			return redirect(url_for('experiments.exp',username=username,
 			experiment_name=experiment_name,sample_name=sample_name))
 
 	elif request.method == 'GET': # get request
-		while len(form.channels) > 0:
-			form.channels.pop_entry()
-		for channel_content_dict in channel_content_dict_list:
-			form.channels.append_entry()
-			channel_name = channel_content_dict['channel_name']
-			logger.info(form.channels.data)
-			form.channels[-1].channel_name.data = channel_name
-			logger.info(form.channels.data)
-
+		form.atlas_name.data = sample_dict['atlas_name']
+		''' Add the imaging purposes to channel_content_dict_list '''
+		registration_used = False
+		for dict_list in channel_content_dict_list:
+			used_imaging_modes = []
+			for imaging_mode in current_app.config['IMAGING_MODES']:
+				if dict_list[imaging_mode]:
+					used_imaging_modes.append(imaging_mode)
+					if imaging_mode == 'registration':
+						registration_used = True
+			dict_list['used_imaging_modes'] = used_imaging_modes
 	return render_template('processing/start_processing.html',
-		channel_content_dict_list=channel_content_dict_list,sample_dict=sample_dict,
-		form=form,sample_table=sample_table,imaging_modes=current_app.config['IMAGING_MODES'])	
+		channel_content_dict_list=channel_content_dict_list,registration_used=registration_used,
+		sample_dict=sample_dict,form=form,sample_table=sample_table)	
 
 
 

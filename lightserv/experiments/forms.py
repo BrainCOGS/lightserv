@@ -69,7 +69,6 @@ class ImagingForm(FlaskForm):
 	atlas_name = SelectField('Atlas for registration',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
 				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])
-	intensity_correction = BooleanField('Perform intensity correction? (leave as default if unsure)',default=True)
 
 class NewRequestForm(FlaskForm):
 	""" The form for a new request """

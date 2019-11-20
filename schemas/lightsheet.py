@@ -60,7 +60,7 @@ class Sample(dj.Manual):
     notes_for_imager = ""                     :   varchar(1024)
 	notes_from_imaging = ""                   :   varchar(1024)
     processor = "not yet assigned"            :   varchar(20) # netid of person doing the processing
-    processing_progress                       :   enum("incomplete","in progress","complete")
+    processing_progress                       :   enum("not started", "running","failed","complete")
     stitching_method                          :   enum("blending","terastitcher")
 	blend_type                                :   enum("sigmoidal","flat")
 	atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
