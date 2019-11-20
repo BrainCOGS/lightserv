@@ -67,10 +67,16 @@ def start_processing(username,experiment_name,sample_name):
 		logger.info('post request')
 		if form.validate_on_submit():
 			logger.debug("form validated")
-			''' Make the parameter dictionary from form input.'''
+			''' Now update the db table with the data collected in the form'''
+			logger.info("updating sample contents from form data")
+			dj.Table._update(sample_contents,'atlas_name',form.atlas_name.data)
+			dj.Table._update(sample_contents,'finalorientation',form.finalorientation.data)
+			dj.Table._update(sample_contents,'notes_from_processing',form.notes_from_processing.data)
 
-			logger.info(f"Starting step0 process with Celery")
-			run_step0.delay(username=username,experiment_name=experiment_name,sample_name=sample_name)
+			# logger.info(f"Starting step0 with Celery ")
+			logger.info(f"Starting step0 without celery for testing")
+			# run_step0.delay(username=username,experiment_name=experiment_name,sample_name=sample_name)
+			run_step0(username=username,experiment_name=experiment_name,sample_name=sample_name)
 
 			dj.Table._update(sample_contents,'processing_progress','running')
 
@@ -97,90 +103,98 @@ def start_processing(username,experiment_name,sample_name):
 
 
 
-@cel.task()
+# @cel.task()
 def run_step0(username,experiment_name,sample_name):
 	""" An asynchronous celery task (runs in a background process) which runs step 0 
 	in the light sheet pipeline -- i.e. makes the parameter dictionary pickle file
 	and grabs a bunch of metadata from the raw files to store in the database.  
 	"""
-
+	logger.info("In step 0")
 	import tifffile
 	from xml.etree import ElementTree as ET 
-
+	processing_params_dict = {}
 	''' Fetch the processing params from the table to run the code '''
-	sample_contents = db_lightsheet.Experiment & f'username="{username}"' \
+	sample_contents = db_lightsheet.Sample() & f'username="{username}"' \
 	& f'experiment_name="{experiment_name}"'  & f'sample_name="{sample_name}"'
+
+	channel_contents = db_lightsheet.Sample.ImagingChannel() & f'username="{username}"' \
+	& f'experiment_name="{experiment_name}"'  & f'sample_name="{sample_name}"'
+	channel_content_dict_list = channel_contents.fetch(as_dict=True)
 	sample_contents_dict = sample_contents.fetch1() 
-	username = exp_contents.fetch('username')
+
 	raw_basepath = f'/jukebox/LightSheetData/lightserv_testing/{username}/{experiment_name}/{sample_name}'  
 	''' Make the "inputdictionary", i.e. the mapping between directory and function '''
 	processing_params_dict['inputdictionary'] = {}
 	input_dictionary = {}
 
-	""" loop through the four channels, looking for 
-	imaging modes in them. Then go looking for the raw data based on If one is found, figure out its exptime and 
-	NA """
-	for channel in ['488','555','647','790']:
-		for key in sample_contents_dict.keys():
-			if f'channel{channel}' in key:
-				if sample_contents_dict[key]:
-					pass
+	""" In the location on bucket there could be multiple folders, 
+	with each folder having one or more raw datasets in it.
+
+	Need to figure out which channels were imaged in which folders """
+
+	for channel_dict in channel_content_dict_list:
+		channel_name = channel_dict['channel_name']
+		print(channel_name)
+		# for key in sample_contents_dict.keys():
+		# 	if f'channel{channel}' in key:
+		# 		if sample_contents_dict[key]:
+		# 			pass
 
 	# Create a counter for multi-channel imaging. If multi-channel imaging was used
 	# this counter will be incremented each time a raw data directory is repeated
 	# so that each channel gets assigned the right number, e.g. [['regch','00'],['cellch','01']] 
-	multichannel_counter_dict = {} 
-	for channel in rawdata_dir_dict.keys():
-		rawdata_dir = rawdata_dir_dict[channel]
-		# First figure out the counter 
-		if rawdata_dir in multichannel_counter_dict.keys():
-			multichannel_counter_dict[rawdata_dir] += 1
-		else:
-			multichannel_counter_dict[rawdata_dir] = 0
-		multichannel_counter = multichannel_counter_dict[rawdata_dir]
-		# Now figure out the channel type
-		channel_mode = exp_contents.fetch1(channel)
-		if channel_mode == 'registration':
-			mode_abbr = 'regch'
-		elif channel_mode == 'cell_detection':
-			mode_abbr = 'cellch'
-		elif channel_mode == 'injection_detection':
-			mode_abbr = 'injch'
-		elif channel_mode == 'probe_detection':
-			mode_abbr = 'injch'
-		else:
-			abort(403)
+	# multichannel_counter_dict = {} 
+	# for channel in rawdata_dir_dict.keys():
+	# 	rawdata_dir = rawdata_dir_dict[channel]
+	# 	# First figure out the counter 
+	# 	if rawdata_dir in multichannel_counter_dict.keys():
+	# 		multichannel_counter_dict[rawdata_dir] += 1
+	# 	else:
+	# 		multichannel_counter_dict[rawdata_dir] = 0
+	# 	multichannel_counter = multichannel_counter_dict[rawdata_dir]
+	# 	# Now figure out the channel type
+	# 	channel_mode = exp_contents.fetch1(channel)
+	# 	if channel_mode == 'registration':
+	# 		mode_abbr = 'regch'
+	# 	elif channel_mode == 'cell_detection':
+	# 		mode_abbr = 'cellch'
+	# 	elif channel_mode == 'injection_detection':
+	# 		mode_abbr = 'injch'
+	# 	elif channel_mode == 'probe_detection':
+	# 		mode_abbr = 'injch'
+	# 	else:
+	# 		abort(403)
 
-		input_list = [mode_abbr,f'{multichannel_counter:02}']
-		if multichannel_counter > 0:		
-			input_dictionary[rawdata_dir].append(input_list)
-		else:
-			input_dictionary[rawdata_dir] = [input_list]
-	# Output directory for processed files
-	output_directory = f'/jukebox/LightSheetData/{username}/experiment_{experiment_name}/processed'
+	# 	input_list = [mode_abbr,f'{multichannel_counter:02}']
+	# 	if multichannel_counter > 0:		
+	# 		input_dictionary[rawdata_dir].append(input_list)
+	# 	else:
+	# 		input_dictionary[rawdata_dir] = [input_list]
+	# # Output directory for processed files
+	# output_directory = f'/jukebox/LightSheetData/{username}/experiment_{experiment_name}/processed'
 	
-	# Figure out xyz scale from metadata of 0th z plane of last rawdata directory (is the same for all directories)
-	# Grab the metadata tags from the 0th z plane
-	z0_plane = glob.glob(rawdata_dir + '/*RawDataStack*Z0000*.tif')[0]
+	# # Figure out xyz scale from metadata of 0th z plane of last rawdata directory (is the same for all directories)
+	# # Grab the metadata tags from the 0th z plane
+	# z0_plane = glob.glob(rawdata_dir + '/*RawDataStack*Z0000*.tif')[0]
 
-	with tifffile.TiffFile(z0_plane) as tif:
-		tags = tif.pages[0].tags
-	xml_description=tags['ImageDescription'].value
-	root = ET.fromstring(xml_description)
-	# The pixel size is in the PhysicalSizeX, PhysicalSizeY, PhysicalSizeZ attributes, which are in the "Pixels" tag
-	image_tag = root[2]
-	pixel_tag = image_tag[2]
-	pixel_dict = pixel_tag.attrib
-	dx,dy,dz = pixel_dict['PhysicalSizeX'],pixel_dict['PhysicalSizeY'],pixel_dict['PhysicalSizeZ']
-	xyz_scale = (dx,dy,dz)
+	# with tifffile.TiffFile(z0_plane) as tif:
+	# 	tags = tif.pages[0].tags
+	# xml_description=tags['ImageDescription'].value
+	# root = ET.fromstring(xml_description)
+	# # The pixel size is in the PhysicalSizeX, PhysicalSizeY, PhysicalSizeZ attributes, which are in the "Pixels" tag
+	# image_tag = root[2]
+	# pixel_tag = image_tag[2]
+	# pixel_dict = pixel_tag.attrib
+	# dx,dy,dz = pixel_dict['PhysicalSizeX'],pixel_dict['PhysicalSizeY'],pixel_dict['PhysicalSizeZ']
+	# xyz_scale = (dx,dy,dz)
 	
-	param_dict['systemdirectory'] = '/jukebox/'
-	param_dict['inputdictionary'] = input_dictionary
-	param_dict['output_directory'] = output_directory
-	param_dict['xyz_scale'] = xyz_scale
-	logger.info("### PARAM DICT ###")
-	logger.info(param_dict)
-	logger.info('#######')
+	# param_dict['systemdirectory'] = '/jukebox/'
+	# param_dict['inputdictionary'] = input_dictionary
+	# param_dict['output_directory'] = output_directory
+	# param_dict['xyz_scale'] = xyz_scale
+	# logger.info("### PARAM DICT ###")
+	# logger.info(param_dict)
+	# logger.info('#######')
 	# for channel in rawdata_dict.keys():
 	# 	rawdata_directory = rawdata_dict
 	# param_dict['inputdictionary'] = {rawdata_directory:[]}

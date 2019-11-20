@@ -65,6 +65,8 @@ class Sample(dj.Manual):
 	blend_type                                :   enum("sigmoidal","flat")
 	atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
 	notes_for_processor = ""                  :   varchar(1024)
+	finalorientation = NULL                   :   enum("sagittal","coronal","horizontal")
+	notes_from_processing = ""                :   varchar(1024)
 	"""  
 
 	class ImagingChannel(dj.Part):
