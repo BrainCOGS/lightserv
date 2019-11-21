@@ -1,6 +1,6 @@
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
-				   Markup)
+				   Markup, current_app)
 from lightserv import db_lightsheet, mail, cel
 
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,
@@ -14,9 +14,11 @@ import re
 import datetime
 from flask_mail import Message
 import logging
+import glob
+import os
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
 
@@ -88,7 +90,7 @@ def imaging_entry(username,experiment_name,sample_name):
 		return redirect(url_for('experiments.new_exp'))
 	''' If imaging is already complete (from before), then dont change imaging_progress '''
 	imaging_progress = sample_contents.fetch1('imaging_progress')
-	logger.info(imaging_progress)
+	logger.debug(imaging_progress)
 	if imaging_progress == 'complete':
 		logger.info("Imaging already complete but accessing the imaging entry page anyway")
 		flash("Imaging is already complete for this sample. "
@@ -99,7 +101,7 @@ def imaging_entry(username,experiment_name,sample_name):
 	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'experiment_name="{experiment_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"')
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
-	logger.info(channel_content_dict_list)
+	logger.debug(channel_content_dict_list)
 	if request.method == 'POST':
 		logger.info("Post request")
 		if form.validate_on_submit():
@@ -113,21 +115,47 @@ def imaging_entry(username,experiment_name,sample_name):
 			
 			""" Loop through the channels in the form  
 			and update the existing table entry """
-			for form_channel_dict in form.channels.data:
-				logger.info(form_channel_dict)
+			subfolder_dict = {}
+			subfolder_dict = {}				
+
+			for form_channel_dict in sorted(form.channels.data,key=lambda x: x['channel_name']):
+				# logger.info(form_channel_dict)
 				channel_name = form_channel_dict['channel_name']
+				number_of_z_planes = form_channel_dict['number_of_z_planes']
+				rawdata_subfolder = form_channel_dict['rawdata_subfolder']
+				if rawdata_subfolder in subfolder_dict.keys():
+					subfolder_dict[rawdata_subfolder].append(channel_name)
+				else:
+					subfolder_dict[rawdata_subfolder] = [channel_name]
+				channel_index = subfolder_dict[rawdata_subfolder].index(channel_name)
+				logger.info(f" channel {channel_name} has channel_index = {channel_index}")
+				""" Now look for the number of z planes in that folder and validate that it is 
+				the same as the user specified """
+				rawdata_fullpath = os.path.join(current_app.config['RAWDATA_ROOTPATH'],username,
+					experiment_name,sample_name,rawdata_subfolder) 
+				number_of_z_planes_found = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*Filter000{channel_index}*'))
+				if number_of_z_planes_found != number_of_z_planes:
+					flash(f"You entered that for channel: {channel_name} there should be {number_of_z_planes} z planes, "
+						  f"but found {number_of_z_planes_found} in raw data folder: "
+						  f"{rawdata_fullpath}","danger")
+					return redirect(url_for('imaging.imaging_entry',username=username,
+						experiment_name=experiment_name,sample_name=sample_name))
+
+
 				channel_content = channel_contents & f'channel_name="{channel_name}"'
 				channel_content_dict = channel_content.fetch1()
 				''' Make a copy of the current row in a new dictionary which we will insert '''
-				insert_dict = {}
+				channel_insert_dict = {}
+				
 				for key,val in channel_content_dict.items():
-					insert_dict[key] = val
+					channel_insert_dict[key] = val
 				''' Now replace the values in the dict from the form input '''
 				for key,val in form_channel_dict.items():
 					if key in channel_content_dict.keys():
-						insert_dict[key] = val
-				logger.info("Inserting {}".format(insert_dict))
-				db_lightsheet.Sample.ImagingChannel().insert1(insert_dict,replace=True)
+						channel_insert_dict[key] = val
+				channel_insert_dict['imspector_channel_index'] = channel_index
+				logger.info("Inserting {}".format(channel_insert_dict))
+				db_lightsheet.Sample.ImagingChannel().insert1(channel_insert_dict,replace=True)
 			correspondence_email = (db_lightsheet.Experiment() &\
 			 f'experiment_name="{experiment_name}"').fetch1('correspondence_email')
 			path_to_data = f'/jukebox/LightSheetData/lightserv_testing/{username}/{experiment_name}/{sample_name}'
@@ -157,12 +185,9 @@ def imaging_entry(username,experiment_name,sample_name):
 		while len(form.channels) > 0:
 			form.channels.pop_entry()
 		for channel_content_dict in channel_content_dict_list:
-			logger.info("In loop")
 			form.channels.append_entry()
 			channel_name = channel_content_dict['channel_name']
-			logger.info(form.channels.data)
 			form.channels[-1].channel_name.data = channel_name
-			logger.info(form.channels.data)
 
 
 	sample_dict = sample_contents.fetch1()

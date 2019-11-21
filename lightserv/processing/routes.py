@@ -120,12 +120,14 @@ def run_step0(username,experiment_name,sample_name):
 	sample_contents = db_lightsheet.Sample() & f'username="{username}"' \
 	& f'experiment_name="{experiment_name}"'  & f'sample_name="{sample_name}"'
 
-	channel_contents = db_lightsheet.Sample.ImagingChannel() & f'username="{username}"' \
+	all_channel_contents = db_lightsheet.Sample.ImagingChannel() & f'username="{username}"' \
 	& f'experiment_name="{experiment_name}"'  & f'sample_name="{sample_name}"'
-	channel_content_dict_list = channel_contents.fetch(as_dict=True)
+	channel_content_dict_list = all_channel_contents.fetch(as_dict=True)
 	sample_contents_dict = sample_contents.fetch1() 
 
-	raw_basepath = f'/jukebox/LightSheetData/lightserv_testing/{username}/{experiment_name}/{sample_name}'  
+	raw_basepath = os.path.join(current_app.config['RAWDATA_ROOTPATH'],username,
+		experiment_name,sample_name)
+
 	''' Make the "inputdictionary", i.e. the mapping between directory and function '''
 	processing_params_dict['inputdictionary'] = {}
 	input_dictionary = {}
@@ -144,6 +146,9 @@ def run_step0(username,experiment_name,sample_name):
 	with connection.transaction:
 		for channel_dict in sorted(channel_content_dict_list,key=lambda x: x['channel_name']):
 			channel_name = channel_dict['channel_name']
+			channel_index = channel_dict['channel_index']
+
+			this_channel_content = all_channel_contents & f'channel_name="{channel_name}'
 			processing_insert_dict = {'username':username,'experiment_name':experiment_name,
 			'sample_name':sample_name,'channel_name':channel_name,'intensity_correction':True,
 			'datetime_processing_started':now}
@@ -154,14 +159,10 @@ def run_step0(username,experiment_name,sample_name):
 			rawdata_subfolder = channel_dict['rawdata_subfolder']
 			rawdata_fullpath = raw_basepath + '/' + rawdata_subfolder
 
-			if rawdata_fullpath not in path_dict.keys():
-				path_dict[rawdata_fullpath] = [channel_name]
-			else:
-				path_dict[rawdata_fullpath].append(channel_name)
-
 			''' Always look in the Filter0000 z=0 file for the full metadata 
-			since the Filter0001, Filter00002, etc... files don't have the 
-			necessary informatioin '''
+			since it holds the info for the Filter0001, Filter00002, etc... files as well and 
+			the metadata in the z=0 planes for the Filter0001, ... files does not have the 
+			necessary information '''
 			z0_plane_path = glob.glob(rawdata_fullpath + \
 				f'/*RawDataStack*C00*Filter0000.ome.tif')[0] # C00 just means left lightsheet which should always be there
 			logger.info(f"Found Z=0 Filter0000 file: {z0_plane_path}")
@@ -185,7 +186,7 @@ def run_step0(username,experiment_name,sample_name):
 			pixel_tag = image_tag[2]
 			pixel_dict = pixel_tag.attrib
 			pixel_type = pixel_dict['PixelType']
-			dj.Table._update(channel_contents,'pixel_type',pixel_type)
+			dj.Table._update(this_channel_content,'pixel_type',pixel_type)
 			# processing_insert_dict['pixel_type'] = pixel_type
 
 			''' imspector version '''
@@ -199,8 +200,11 @@ def run_step0(username,experiment_name,sample_name):
 			''' Store all of the metadata as an xml string for later access if needed '''
 			processing_insert_dict['metadata_xml_string'] = xml_description
 			db_lightsheet.Sample.ProcessingChannel().insert1(processing_insert_dict)
-			logger.info("Inserted processing params")
+			logger.info("Inserted processing params into db table")
 
+			# """ Fill inputdictionary """
+			# if rawdata_fullpath in inputdictionary.keys():
+				
 	""" Fill out the parameter dictionar(ies) for this sample.
 	There could be more than one because channels could have been imaged 
 	separately. However, channels could also have been imaged together, so 

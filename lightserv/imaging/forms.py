@@ -6,6 +6,7 @@ from wtforms.validators import (DataRequired, Length, InputRequired, ValidationE
 	Optional)
 from wtforms.widgets import html5
 
+
 datetimeformat='%Y-%m-%dT%H:%M' # To get form.field.data to work. Does not work with the default (bug)
 
 def OptionalDateField(description='',validators=[]):
@@ -73,6 +74,7 @@ class ChannelForm(FlaskForm):
 		elif number_of_z_planes.data > 5500:
 			raise ValidationError("Are you sure you have >5500 z planes?")
 
+
 class ImagingForm(FlaskForm):
 	""" The form for entering imaging information """
 	max_number_of_channels = 4 
@@ -80,3 +82,5 @@ class ImagingForm(FlaskForm):
 									   " that you would like recorded")
 	channels = FieldList(FormField(ChannelForm),min_entries=0,max_entries=max_number_of_channels)
 	submit = SubmitField('Click when imaging is complete and all files are on bucket in the folder above')
+
+	

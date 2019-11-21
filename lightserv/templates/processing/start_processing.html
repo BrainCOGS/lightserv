@@ -4,7 +4,7 @@
 	{{ sample_table }}
 	<hr class='class-1'>
 
-	<h3>Notes from the researcher for the processing:</h3>
+	<h3>Notes from the researcher for processing:</h3>
 
 	<div class='content-section'>
 		<p>
@@ -27,11 +27,15 @@
 			{% set channel_name = channel_content['channel_name'] %}
 			{% set channel_purposes_str = channel_content['used_imaging_modes']|join(", ") %}
 			
-			<!-- Channel procesing params -->
+			<!-- Channel processing params -->
 			<div class="content-section">
 			
 				<div>
 					<a id='larger' class='font-weight-bold'>Channel: {{channel_name }} </a>
+				</div>
+
+				<div>
+					<a id='larger' class='font-weight-bold'>Raw data folder:</a> <span> /jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['experiment_name']}}/{{sample_dict['sample_name']}}/{{channel_content['rawdata_subfolder']}} </span>
 				</div>
 
 				<div>

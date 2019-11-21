@@ -86,13 +86,14 @@ class Sample(dj.Manual):
 		z_step = 10                               :   smallint unsigned
 		number_of_z_planes = NULL                 :   smallint unsigned
 		rawdata_subfolder = NULL                  :   varchar(512)
+		imspector_channel_index = NULL            :   tinyint    # 0 if first (or only) channel in rawdata_subfolder, 1 if second, 2 if third, ...
 		"""
 
 	class ProcessingChannel(dj.Part):
 		definition = """ # Processing parameters for a channel
 		-> master.ImagingChannel
 		----
-		imspector_filter_index                    :   tinyint
+		
 		imspector_version = ''                    :   varchar(128)
 		datetime_processing_started               :   datetime
 		numerical_aperture = NULL                 :   float # it is not always recorded in metadata so those times it will stay NULL
