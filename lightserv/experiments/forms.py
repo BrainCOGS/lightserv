@@ -19,7 +19,7 @@ def OptionalDateField(description='',validators=[]):
 	return field
 
 class ClearingForm(FlaskForm):
-	""" A form that is used in ExpForm() via a FormField Fieldlist
+	""" A form that is used in ExpForm() via a FormField FieldList
 	so I dont have to write the clearing parameters out for each sample 
 	"""
 	sample_name = HiddenField("sample_name") # helpful for flash message -- keeps track of sample a form error occurred in
@@ -42,23 +42,17 @@ class ClearingForm(FlaskForm):
 				an immunostaining clearing protocol')
 
 class ChannelForm(FlaskForm):
+	""" Used by other forms in a FieldList """
 	channel_name = HiddenField('Channel Name')
-	image_resolution_requested = SelectField('Image Resolution:', 
-		choices=[('None',''),('1.3x','1.3x'),
-	('4x','4x'),('1.1x','1.1x'),('2x','2x')],default='')  
 	registration = BooleanField('Registration',default=False)
 	injection_detection = BooleanField('Registration',default=False)
 	probe_detection = BooleanField('Registration',default=False)
 	cell_detection = BooleanField('Registration',default=False)
 
-class ImagingForm(FlaskForm):
-	""" A form that is used in ExpForm() via a FormField Fieldlist
-	so I dont have to write the imaging parameters out for each sample
-	"""
-	sample_name = HiddenField("sample_name") # helpful for flash message -- keeps track of sample a form error occurred in
-
+class ImageResolutionForm(FlaskForm):
+	""" A form for each image resolution that a user picks """
+	image_resolution = HiddenField('image resolution')
 	channels = FieldList(FormField(ChannelForm),min_entries=4,max_entries=4)
-	
 	notes_for_imager = TextAreaField('''Special notes for imaging 
 		(e.g. z step size, exposure time, suggested tiling scheme -- make sure to specify which channel) -- max 1024 characters --''',
 		validators=[Length(max=1024)])
@@ -69,6 +63,22 @@ class ImagingForm(FlaskForm):
 	atlas_name = SelectField('Atlas for registration',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
 				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])
+
+class ImagingForm(FlaskForm):
+	""" A form that is used in ExpForm() via a FormField FieldList
+	so I dont have to write the imaging parameters out for each sample
+	"""
+	sample_name = HiddenField("sample_name") # helpful for flash message -- keeps track of sample a form error occurred in
+
+	
+	image_resolution_forsetup = SelectField('Add an additional image resolution?', 
+		choices=[('1.3x','1.3x'),
+	('4x','4x'),('1.1x','1.1x'),('2x','2x')],default='')   
+
+	resolution_table_fieldlist = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=4)
+
+	new_resolution_table_submit = SubmitField('Generate imaging table') # renders a new resolution table
+
 
 class NewRequestForm(FlaskForm):
 	""" The form for a new request """
@@ -133,24 +143,37 @@ class NewRequestForm(FlaskForm):
 				  """)
 
 	def validate_imaging_samples(self,imaging_samples):
-		""" Make sure that at least one imaging channel was selected for each sample
-		and that if a box is checked for an imaging mode, then a resolution must also
-		be picked
-		"""
-		for sample_dict in imaging_samples.data:
-			for channel_dict in sample_dict['channels']:
-				image_resolution_requested = channel_dict['image_resolution_requested']
-				if image_resolution_requested == 'None' or image_resolution_requested == None:
-					if any(channel_dict[key] for key in current_app.config['IMAGING_MODES']):
-						sample_name = sample_dict['sample_name']
-						channel_name = channel_dict['channel_name']
-						raise ValidationError(f" You did not specify an image resolution for sample = {sample_name},"
-												f" channel = {channel_name}, but you checked one of the imaging boxes")
-			''' collect the 0s and 1s from all channel modes '''
 
-			all_mode_values = [sample_dict[key] for key in sample_dict.keys() if 'channel' in key ]
-			if not any(all_mode_values): # if all are 0				
-				raise ValidationError("Each sample must have at least one imaging channel selected.")
+		for sample_dict in imaging_samples.data:
+			sample_name = sample_dict['sample_name']
+			current_image_resolutions_rendered = []
+			for resolution_form in sample_dict['resolution_table_fieldlist']:
+				image_resolution = resolution_form['image_resolution']
+				current_image_resolutions_rendered.append(image_resolution)
+			if sample_dict['new_resolution_table_submit'] == True:
+				image_resolution = sample_dict['image_resolution_forsetup']
+				if image_resolution in current_image_resolutions_rendered:
+					raise ValidationError(f"You tried to make a table for image_resolution {image_resolution}"
+										  f". But that resolution was already picked for this sample: {sample_name}.")
+	# def validate_imaging_samples(self,imaging_samples):
+	# 	""" Make sure that at least one imaging channel was selected for each sample
+	# 	and that if a box is checked for an imaging mode, then a resolution must also
+	# 	be picked
+	# 	"""
+	# 	for sample_dict in imaging_samples.data:
+	# 		for channel_dict in sample_dict['channels']:
+	# 			image_resolution_requested = channel_dict['image_resolution_requested']
+	# 			if image_resolution_requested == 'None' or image_resolution_requested == None:
+	# 				if any(channel_dict[key] for key in current_app.config['IMAGING_MODES']):
+	# 					sample_name = sample_dict['sample_name']
+	# 					channel_name = channel_dict['channel_name']
+	# 					raise ValidationError(f" You did not specify an image resolution for sample = {sample_name},"
+	# 											f" channel = {channel_name}, but you checked one of the imaging boxes")
+	# 		''' collect the 0s and 1s from all channel modes '''
+
+	# 		all_mode_values = [sample_dict[key] for key in sample_dict.keys() if 'channel' in key ]
+	# 		if not any(all_mode_values): # if all are 0				
+	# 			raise ValidationError("Each sample must have at least one imaging channel selected.")
 
 def Directory_validator(form,field):
 	''' Makes sure that the raw data directories exist on jukebox  '''

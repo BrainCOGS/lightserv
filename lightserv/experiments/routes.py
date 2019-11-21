@@ -55,13 +55,22 @@ def new_exp():
 	logger.info(f"{username} accessed new experiment form")
 
 	form = NewRequestForm(request.form)
-
 	if request.method == 'POST':
 		if form.validate_on_submit():
+			""" figure out which button was pressed """
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x and form[x].data]
-			# logger.debug(submit_keys)
-			submit_key = submit_keys[0]
-			
+			try: # see if submit key was either sample setup or final submit button
+				submit_key = submit_keys[0]
+			except: # it was not, which means it was one of the resolution table setup buttons
+				""" find which sample this came from """
+				for ii in range(len(form.imaging_samples.data)):
+					imaging_dict = form.imaging_samples.data[ii]
+					if imaging_dict['new_resolution_table_submit'] == True:
+						image_resolution_forsetup = imaging_dict['image_resolution_forsetup']
+
+						form.imaging_samples[ii].resolution_table_fieldlist.append_entry()
+						form.imaging_samples[ii].resolution_table_fieldlist[-1].image_resolution.data = image_resolution_forsetup
+						submit_key = 'other'
 			""" Handle "setup samples" button pressed """
 			if submit_key == 'sample_submit_button': # The sample setup button
 				logger.info("sample submit")
@@ -99,17 +108,17 @@ def new_exp():
 						form.imaging_samples.append_entry()
 						form.imaging_samples[ii].sample_name.data = form.sample_prefix.data + '-' + f'{ii+1}'.zfill(3)
 				# Now loop through all samples and for each one make 4 new channel formfields
-				for sample in form.imaging_samples:
-					while len(sample.channels) > 0:
-						sample.channels.pop_entry()
-					for x in range(4):
-						sample.channels.append_entry()
-						channel_name = ['488','555','647','790'][x]
-						sample.channels[x].channel_name.data = channel_name
-						# Make the default for channel 488 to be 1.3x imaging with registration checked
-						if channel_name == '488':
-							sample.channels[x].image_resolution_requested.data = "1.3x"
-							sample.channels[x].registration.data = 1
+				# for sample in form.imaging_samples:
+				# 	while len(sample.channels) > 0:
+				# 		sample.channels.pop_entry()
+				# 	for x in range(4):
+				# 		sample.channels.append_entry()
+				# 		channel_name = ['488','555','647','790'][x]
+				# 		sample.channels[x].channel_name.data = channel_name
+				# 		# Make the default for channel 488 to be 1.3x imaging with registration checked
+				# 		if channel_name == '488':
+				# 			sample.channels[x].image_resolution_requested.data = "1.3x"
+				# 			sample.channels[x].registration.data = 1
 
 				column_name = 'clearing_samples-0-clearing_protocol'
 
