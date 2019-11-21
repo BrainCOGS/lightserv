@@ -104,7 +104,6 @@ def start_processing(username,experiment_name,sample_name):
 		sample_dict=sample_dict,form=form,sample_table=sample_table)	
 
 
-
 # @cel.task()
 def run_step0(username,experiment_name,sample_name):
 	""" An asynchronous celery task (runs in a background process) which runs step 0 
@@ -141,13 +140,13 @@ def run_step0(username,experiment_name,sample_name):
 	was performed """
 
 	path_dict = {}
-	imaging_modes = current_app.config['IMAGING_MODES']
+	all_imaging_modes = current_app.config['IMAGING_MODES']
 	connection = db_lightsheet.Sample.connection
 	with connection.transaction:
 		for channel_dict in sorted(channel_content_dict_list,key=lambda x: x['channel_name']):
 			channel_name = channel_dict['channel_name']
-			channel_index = channel_dict['channel_index']
-
+			channel_index = channel_dict['imspector_channel_index'] 
+			channel_imaging_modes = [key for key in all_imaging_modes if channel_dict[key] == True]
 			this_channel_content = all_channel_contents & f'channel_name="{channel_name}'
 			processing_insert_dict = {'username':username,'experiment_name':experiment_name,
 			'sample_name':sample_name,'channel_name':channel_name,'intensity_correction':True,
@@ -202,9 +201,16 @@ def run_step0(username,experiment_name,sample_name):
 			db_lightsheet.Sample.ProcessingChannel().insert1(processing_insert_dict)
 			logger.info("Inserted processing params into db table")
 
-			# """ Fill inputdictionary """
-			# if rawdata_fullpath in inputdictionary.keys():
-				
+			""" Fill inputdictionary """
+			channel_imaging_modes_list = []
+
+			if 'registration' in channel_imaging_modes:
+				channel_imaging_modes_list.append(['regch',channel_index.zfill(2)])
+			else:
+				channel_imaging_modes_list.append(['regch',channel_index.zfill(2)])
+			if rawdata_fullpath in inputdictionary.keys(): # that means another channel has the same rawdata path
+
+				inputdictionary[rawdata_fullpath].append([])
 	""" Fill out the parameter dictionar(ies) for this sample.
 	There could be more than one because channels could have been imaged 
 	separately. However, channels could also have been imaged together, so 
