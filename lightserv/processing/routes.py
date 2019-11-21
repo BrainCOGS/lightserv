@@ -8,8 +8,10 @@ from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor
 	check_clearing_completed,check_imaging_completed)
 from lightserv import cel,mail
 import datajoint as dj
-
+from datetime import datetime
 import logging
+import tifffile
+import glob
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -109,6 +111,7 @@ def run_step0(username,experiment_name,sample_name):
 	in the light sheet pipeline -- i.e. makes the parameter dictionary pickle file
 	and grabs a bunch of metadata from the raw files to store in the database.  
 	"""
+	now = datetime.now()
 	logger.info("In step 0")
 	import tifffile
 	from xml.etree import ElementTree as ET 
@@ -127,66 +130,87 @@ def run_step0(username,experiment_name,sample_name):
 	processing_params_dict['inputdictionary'] = {}
 	input_dictionary = {}
 
-	""" In the location on bucket there could be multiple folders, 
-	with each folder having one or more raw datasets in it.
+	""" Can now go in and find the z=0 plane 
+	which contains the metadata for each channel """
 
-	Need to figure out which channels were imaged in which folders """
+	""" Loop through the channels in sorted order of channel_name
+	and figure out which z=0 plane is which within a directory
+	because there can be more than one if multi-channel imaging 
+	was performed """
 
-	for channel_dict in channel_content_dict_list:
-		channel_name = channel_dict['channel_name']
-		print(channel_name)
-		# for key in sample_contents_dict.keys():
-		# 	if f'channel{channel}' in key:
-		# 		if sample_contents_dict[key]:
-		# 			pass
+	path_dict = {}
+	imaging_modes = current_app.config['IMAGING_MODES']
+	connection = db_lightsheet.Sample.connection
+	with connection.transaction:
+		for channel_dict in sorted(channel_content_dict_list,key=lambda x: x['channel_name']):
+			channel_name = channel_dict['channel_name']
+			processing_insert_dict = {'username':username,'experiment_name':experiment_name,
+			'sample_name':sample_name,'channel_name':channel_name,'intensity_correction':True,
+			'datetime_processing_started':now}
+			
+			logger.info(f"finding metadata for channel {channel_name}")
+			
+			""" First find the z=0 plane for this channel """
+			rawdata_subfolder = channel_dict['rawdata_subfolder']
+			rawdata_fullpath = raw_basepath + '/' + rawdata_subfolder
 
-	# Create a counter for multi-channel imaging. If multi-channel imaging was used
-	# this counter will be incremented each time a raw data directory is repeated
-	# so that each channel gets assigned the right number, e.g. [['regch','00'],['cellch','01']] 
-	# multichannel_counter_dict = {} 
-	# for channel in rawdata_dir_dict.keys():
-	# 	rawdata_dir = rawdata_dir_dict[channel]
-	# 	# First figure out the counter 
-	# 	if rawdata_dir in multichannel_counter_dict.keys():
-	# 		multichannel_counter_dict[rawdata_dir] += 1
-	# 	else:
-	# 		multichannel_counter_dict[rawdata_dir] = 0
-	# 	multichannel_counter = multichannel_counter_dict[rawdata_dir]
-	# 	# Now figure out the channel type
-	# 	channel_mode = exp_contents.fetch1(channel)
-	# 	if channel_mode == 'registration':
-	# 		mode_abbr = 'regch'
-	# 	elif channel_mode == 'cell_detection':
-	# 		mode_abbr = 'cellch'
-	# 	elif channel_mode == 'injection_detection':
-	# 		mode_abbr = 'injch'
-	# 	elif channel_mode == 'probe_detection':
-	# 		mode_abbr = 'injch'
-	# 	else:
-	# 		abort(403)
+			if rawdata_fullpath not in path_dict.keys():
+				path_dict[rawdata_fullpath] = [channel_name]
+			else:
+				path_dict[rawdata_fullpath].append(channel_name)
 
-	# 	input_list = [mode_abbr,f'{multichannel_counter:02}']
-	# 	if multichannel_counter > 0:		
-	# 		input_dictionary[rawdata_dir].append(input_list)
-	# 	else:
-	# 		input_dictionary[rawdata_dir] = [input_list]
-	# # Output directory for processed files
-	# output_directory = f'/jukebox/LightSheetData/{username}/experiment_{experiment_name}/processed'
+			''' Always look in the Filter0000 z=0 file for the full metadata 
+			since the Filter0001, Filter00002, etc... files don't have the 
+			necessary informatioin '''
+			z0_plane_path = glob.glob(rawdata_fullpath + \
+				f'/*RawDataStack*C00*Filter0000.ome.tif')[0] # C00 just means left lightsheet which should always be there
+			logger.info(f"Found Z=0 Filter0000 file: {z0_plane_path}")
+			""" Extract metadata """
+			with tifffile.TiffFile(z0_plane_path) as tif:
+				tags = tif.pages[0].tags
+			xml_description=tags['ImageDescription'].value
+
+			root = ET.fromstring(xml_description)
+
+			''' NA '''
+			custom_attributes = root[-1]
+			prop_array = custom_attributes[0]
+			for child in prop_array:
+				if 'UltraII_Na_Value' in child.tag:
+					NA = float(child.attrib['Value'])
+					processing_insert_dict['numerical_aperture'] = NA
+
+			''' pixel type '''
+			image_tag = root[2]
+			pixel_tag = image_tag[2]
+			pixel_dict = pixel_tag.attrib
+			pixel_type = pixel_dict['PixelType']
+			dj.Table._update(channel_contents,'pixel_type',pixel_type)
+			# processing_insert_dict['pixel_type'] = pixel_type
+
+			''' imspector version '''
+			try:
+				custom_attributes_image = image_tag[-1]
+				version_tag = [child for child in custom_attributes_image if 'ImspectorVersion' in child.tag][0]
+				imspector_version = version_tag.attrib['ImspectorVersion']
+				processing_insert_dict['imspector_version'] = imspector_version,	
+			except:
+				pass # do nothing. Those values will stay NULL
+			''' Store all of the metadata as an xml string for later access if needed '''
+			processing_insert_dict['metadata_xml_string'] = xml_description
+			db_lightsheet.Sample.ProcessingChannel().insert1(processing_insert_dict)
+			logger.info("Inserted processing params")
+
+	""" Fill out the parameter dictionar(ies) for this sample.
+	There could be more than one because channels could have been imaged 
+	separately. However, channels could also have been imaged together, so 
+	we cannot simply loop through channels and make a parameter dictionary for each """
+
+	""" To do this, need to figure out what the request for this channel was
+	(e.g. registration). Could be more than one purpose """
 	
-	# # Figure out xyz scale from metadata of 0th z plane of last rawdata directory (is the same for all directories)
-	# # Grab the metadata tags from the 0th z plane
-	# z0_plane = glob.glob(rawdata_dir + '/*RawDataStack*Z0000*.tif')[0]
-
-	# with tifffile.TiffFile(z0_plane) as tif:
-	# 	tags = tif.pages[0].tags
-	# xml_description=tags['ImageDescription'].value
-	# root = ET.fromstring(xml_description)
-	# # The pixel size is in the PhysicalSizeX, PhysicalSizeY, PhysicalSizeZ attributes, which are in the "Pixels" tag
-	# image_tag = root[2]
-	# pixel_tag = image_tag[2]
-	# pixel_dict = pixel_tag.attrib
-	# dx,dy,dz = pixel_dict['PhysicalSizeX'],pixel_dict['PhysicalSizeY'],pixel_dict['PhysicalSizeZ']
-	# xyz_scale = (dx,dy,dz)
+	
+	
 	
 	# param_dict['systemdirectory'] = '/jukebox/'
 	# param_dict['inputdictionary'] = input_dictionary

@@ -95,8 +95,43 @@
 	<div>
 		<h3>Move the raw data folders to:</h3>
 		<p>
-			/jukebox/LightSheetData/{{sample_dict['username']}}/{{sample_dict['experiment_name']}}/{{sample_dict['sample_name']}}
+			/jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['experiment_name']}}/{{sample_dict['sample_name']}}
 		</p>
+	</div>
+
+	<div>
+		<h3> and record the name of the raw data folder for each channel </h3> 
+
+		<table class="table table-bordered table-striped text-center mb-4">
+			<col width="15%">
+			<col width="85%">
+        <tr>
+            <th>Channel wavelength(nm)</th>
+            <th>raw data subfolder</th>
+        </tr>
+		{% for ii in range(channel_content_dict_list|length) %}
+			{% set channel_entry = form.channels[ii] %}
+			{% set channel_content = channel_content_dict_list[ii] %}
+			{% set channel_name = channel_content['channel_name'] %}
+		<tr>   
+		    <td>{{channel_name}}</td>
+		    <td>
+			<div class="form-group">
+				{% if channel_entry.rawdata_subfolder.errors %}
+					{{ channel_entry.rawdata_subfolder(class="form-control form-control-sm is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in channel_entry.rawdata_subfolder.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ channel_entry.rawdata_subfolder(class="form-control form-control-sm") }}
+				{% endif %}
+			</div>
+		</td>
+	</tr>
+		{% endfor %}
+		</table>
 	</div>
 
 

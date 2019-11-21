@@ -105,10 +105,12 @@ def imaging_entry(username,experiment_name,sample_name):
 		if form.validate_on_submit():
 			logger.info("form validated")
 			imaging_progress = sample_contents.fetch1('imaging_progress')
+			
 			if imaging_progress == 'complete':
 				logger.info("Imaging is already complete so hitting the done button again did nothing")
 				return redirect(url_for('experiments.exp',username=username,
 				experiment_name=experiment_name,sample_name=sample_name))
+			
 			""" Loop through the channels in the form  
 			and update the existing table entry """
 			for form_channel_dict in form.channels.data:

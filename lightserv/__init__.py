@@ -19,6 +19,8 @@ if socket.gethostname() == 'braincogs00.pni.princeton.edu':
 else:
 	dj.config['database.password'] = 'p@sswd'
 
+''' Allow writing python objects to db as blob '''
+dj.config["enable_python_native_blobs"] = True
 ''' Initialize all the extensions outside of our app so 
 we can use them for multiple apps if we want. Don't want to tie 
 them to a single app in the create_app() function below '''

@@ -15,7 +15,7 @@ class StartProcessingForm(FlaskForm):
 	atlas_name = SelectField('Choose atlas for registration (defaults to choice selected in request form):',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
 				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])
-	finalorientation = SelectField('Select the desired orientation of all volumetric data',
+	finalorientation = SelectField('Select the desired orientation for your volumetric data products',
 		choices=[('sagittal','Sagittal'),('coronal','Coronal'),('horizontal','Horizontal')],
 		validators=[InputRequired()])
 	submit = SubmitField('Start the processing pipeline for this sample')	

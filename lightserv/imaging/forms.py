@@ -35,6 +35,7 @@ class ChannelForm(FlaskForm):
 		widget=html5.NumberInput(),validators=[InputRequired()],default=10)
 	number_of_z_planes = IntegerField('Number of z planes',
 		widget=html5.NumberInput(),validators=[InputRequired()],default=1000)
+	rawdata_subfolder = TextAreaField('channel subfolder',validators=[InputRequired()])
 
 	def validate_tiling_overlap(self,tiling_overlap):
 		try:

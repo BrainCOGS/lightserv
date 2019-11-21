@@ -70,7 +70,7 @@ class Sample(dj.Manual):
 	"""  
 
 	class ImagingChannel(dj.Part):
-		definition = """ # Samples from a particular experiment
+		definition = """ # Imaging parameters for a channel 
 		-> Sample
 		channel_name                              :   varchar(64)                
 		----
@@ -78,14 +78,28 @@ class Sample(dj.Manual):
 		injection_detection = 0                   :   boolean
 		probe_detection = 0                       :   boolean
 		cell_detection = 0                        :   boolean
+		pixel_type = NULL                         :   varchar(32)
 		image_resolution_requested = NULL         :   enum("1.3x","4x","1.1x","2x")
 		image_resolution_used = NULL              :   enum("1.3x","4x","1.1x","2x")
 		tiling_scheme = '1x1'                     :   char(3)
 		tiling_overlap = 0.0                      :   float
 		z_step = 10                               :   smallint unsigned
 		number_of_z_planes = NULL                 :   smallint unsigned
-		intensity_correction = 1                  :   boolean
+		rawdata_subfolder = NULL                  :   varchar(512)
 		"""
+
+	class ProcessingChannel(dj.Part):
+		definition = """ # Processing parameters for a channel
+		-> master.ImagingChannel
+		----
+		imspector_filter_index                    :   tinyint
+		imspector_version = ''                    :   varchar(128)
+		datetime_processing_started               :   datetime
+		numerical_aperture = NULL                 :   float # it is not always recorded in metadata so those times it will stay NULL
+		intensity_correction = 1                  :   boolean
+		metadata_xml_string                       :   mediumblob
+		"""	
+				
 
 	class IdiscoPlusClearing(dj.Part): # 
 		definition = """ # iDISCO+ clearing table
