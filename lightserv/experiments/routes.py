@@ -1,6 +1,6 @@
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
-				   Markup)
+				   Markup, current_app)
 # from flask_login import current_user, login_required
 # from lightserv import db_lightsheet
 # from lightserv.models import Experiment
@@ -27,6 +27,7 @@ import pymysql
 import logging
 from datetime import datetime
 
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -51,6 +52,8 @@ experiments = Blueprint('experiments',__name__)
 @logged_in
 def new_exp():
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
+	all_imaging_modes = current_app.config['IMAGING_MODES']
+
 	username = session['user']
 	logger.info(f"{username} accessed new experiment form")
 
@@ -67,12 +70,24 @@ def new_exp():
 					imaging_dict = form.imaging_samples.data[ii]
 					if imaging_dict['new_image_resolution_form_submit'] == True:
 						image_resolution_forsetup = imaging_dict['image_resolution_forsetup']
-						form.imaging_samples[ii].resolution_table_fieldlist.append_entry()
-						resolution_table_index = len(form.imaging_samples[ii].resolution_table_fieldlist.data)-1
-						form.imaging_samples[ii].resolution_table_fieldlist[resolution_table_index].image_resolution.data = image_resolution_forsetup
+						image_resolution_forms = form.imaging_samples[ii].resolution_table_fieldlist 
+						image_resolution_forms.append_entry()
+						resolution_table_index = len(image_resolution_forms.data)-1
+						""" now pick out which form we currently just made """
+						image_resolution_form = image_resolution_forms[resolution_table_index]
+						image_resolution_form.image_resolution.data = image_resolution_forsetup
 						submit_key = 'other'
 						column_name = f'imaging_samples-{ii}-resolution_table_fieldlist-{resolution_table_index}-channels-0-registration'
-						print(column_name)
+						# Now make 4 new channel formfields and set defaults and channel names
+						for x in range(4):
+							# image_resolution_form.channels.append_entry()
+							channel_name = current_app.config['IMAGING_CHANNELS'][x]
+							image_resolution_form.channels[x].channel_name.data = channel_name
+							# Make the default for channel 488 to be 1.3x imaging with registration checked
+							if channel_name == '488' and image_resolution_forsetup == "1.3x":
+								image_resolution_form.channels[x].registration.data = 1
+				else:
+					submit_key = 'other'
 			""" Handle "setup samples" button pressed """
 			if submit_key == 'sample_submit_button': # The sample setup button
 				logger.info("sample submit")
@@ -109,19 +124,7 @@ def new_exp():
 					for ii in range(nsamples):
 						form.imaging_samples.append_entry()
 						form.imaging_samples[ii].sample_name.data = form.sample_prefix.data + '-' + f'{ii+1}'.zfill(3)
-				# Now loop through all samples and for each one make 4 new channel formfields
-				# for sample in form.imaging_samples:
-				# 	while len(sample.channels) > 0:
-				# 		sample.channels.pop_entry()
-				# 	for x in range(4):
-				# 		sample.channels.append_entry()
-				# 		channel_name = ['488','555','647','790'][x]
-				# 		sample.channels[x].channel_name.data = channel_name
-				# 		# Make the default for channel 488 to be 1.3x imaging with registration checked
-				# 		if channel_name == '488':
-				# 			sample.channels[x].image_resolution_requested.data = "1.3x"
-				# 			sample.channels[x].registration.data = 1
-
+				
 				column_name = 'clearing_samples-0-clearing_protocol'
 
 			elif submit_key == 'submit': # The final submit button
@@ -132,7 +135,8 @@ def new_exp():
 
 				""" Start a transaction for doing the inserts.
 					This is done to avoid inserting only into Experiment
-					table but not Sample and ImagingChannel tables if there is an error """
+					table but not Sample and ImagingChannel tables if there is an error 
+					at any point during any of the inserts"""
 				connection = db_lightsheet.Experiment.connection
 				with connection.transaction:
 					princeton_email = username + '@princeton.edu'
@@ -197,35 +201,38 @@ def new_exp():
 							if val != None and val !='None' and key not in ['csrf_token','sample_name']:
 								sample_insert_dict[key] = val
 
-						""" update insert dict with imaging form data """
-						for key,val in imaging_sample_dict.items():
-							if key == 'channels':
-								channel_insert_list = []
-								for imaging_channel_dict in imaging_sample_dict[key]:
-									""" The way to tell which channels were picked is to see 
-									which image resolutions are not 'None' """
-									if imaging_channel_dict['image_resolution_requested'] == 'None':
-										continue
+						""" DO the channel inserts 
+						by retrieving data from each image resolution subform the user created """
+						for resolution_dict in imaging_sample_dict['resolution_table_fieldlist']:
+							channel_insert_list = []
+
+							for imaging_channel_dict in resolution_dict['channels']:
+								
+								""" The way to tell which channels were picked is to see 
+								which have at least one imaging mode selected """
+								used_imaging_modes = [key for key in all_imaging_modes if imaging_channel_dict[key] == True]
+								if not any(used_imaging_modes):
+									continue
+								else:
+									# logger.info(imaging_channel_dict)
 									channel_insert_dict = {}
 									channel_insert_dict['experiment_name'] = form.experiment_name.data	
 									channel_insert_dict['username'] = username
 									channel_insert_dict['sample_name'] = sample_name
+									channel_insert_dict['image_resolution'] = resolution_dict['image_resolution']
 									for key,val in imaging_channel_dict.items(): 
 										if key == 'csrf_token':
 											continue
 										channel_insert_dict[key] = val
 									channel_insert_list.append(channel_insert_dict)
-									""" add all of the necessary primary keys not in the form """
-									
-							elif val != None and val != 'None' and key != 'csrf_token' \
-							and key not in ['csrf_token','sample_name']:
-								sample_insert_dict[key] = val
-						logger.info(f'sample index {ii}')
-						logger.info("new insert")
+							logger.info(channel_insert_list)
+								
+						
+						logger.info("sample insert:")
 						logger.info(sample_insert_dict)
 						db_lightsheet.Sample().insert1(sample_insert_dict)
 						logger.info('channel insert:')
-						logger.info(channel_insert_dict)
+						logger.info(channel_insert_list)
 						db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
 						
 					flash("Request submitted successfully.", "success")

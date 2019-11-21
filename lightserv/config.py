@@ -14,6 +14,7 @@ class Config(object):
 	MAIL_PASSWORD = os.environ.get('EMAIL_PASS')
 	IMAGING_MODES = ['registration','injection_detection','probe_detection','cell_detection']
 	RAWDATA_ROOTPATH = '/jukebox/LightSheetData/lightserv_testing'
+	IMAGING_CHANNELS = ['488','555','647','790']
 
 	# APPLICATION_ROOT = "/v01"
 

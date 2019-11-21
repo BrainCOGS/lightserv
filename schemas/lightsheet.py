@@ -57,14 +57,10 @@ class Sample(dj.Manual):
 	imager = "not yet assigned"  :   varchar(20) # netid of person doing the imaging
     imaging_progress             :   enum("incomplete","in progress","complete")
     imaging_date = NULL                       :   date
-    notes_for_imager = ""                     :   varchar(1024)
-	notes_from_imaging = ""                   :   varchar(1024)
     processor = "not yet assigned"            :   varchar(20) # netid of person doing the processing
     processing_progress                       :   enum("not started", "running","failed","complete")
     stitching_method                          :   enum("blending","terastitcher")
 	blend_type                                :   enum("sigmoidal","flat")
-	atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
-	notes_for_processor = ""                  :   varchar(1024)
 	finalorientation = NULL                   :   enum("sagittal","coronal","horizontal")
 	notes_from_processing = ""                :   varchar(1024)
 	"""  
@@ -73,14 +69,17 @@ class Sample(dj.Manual):
 		definition = """ # Imaging parameters for a channel 
 		-> Sample
 		channel_name                              :   varchar(64)                
+		image_resolution                          :   enum("1.3x","4x","1.1x","2x")
 		----
 		registration = 0                          :   boolean
 		injection_detection = 0                   :   boolean
 		probe_detection = 0                       :   boolean
 		cell_detection = 0                        :   boolean
+		notes_for_imager = ""                     :   varchar(1024)
+		notes_from_imaging = ""                   :   varchar(1024)
+		atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
+		notes_for_processor = ""                  :   varchar(1024)
 		pixel_type = NULL                         :   varchar(32)
-		image_resolution_requested = NULL         :   enum("1.3x","4x","1.1x","2x")
-		image_resolution_used = NULL              :   enum("1.3x","4x","1.1x","2x")
 		tiling_scheme = '1x1'                     :   char(3)
 		tiling_overlap = 0.0                      :   float
 		z_step = 10                               :   smallint unsigned
