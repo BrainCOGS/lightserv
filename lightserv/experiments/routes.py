@@ -65,12 +65,14 @@ def new_exp():
 				""" find which sample this came from """
 				for ii in range(len(form.imaging_samples.data)):
 					imaging_dict = form.imaging_samples.data[ii]
-					if imaging_dict['new_resolution_table_submit'] == True:
+					if imaging_dict['new_image_resolution_form_submit'] == True:
 						image_resolution_forsetup = imaging_dict['image_resolution_forsetup']
-
 						form.imaging_samples[ii].resolution_table_fieldlist.append_entry()
-						form.imaging_samples[ii].resolution_table_fieldlist[-1].image_resolution.data = image_resolution_forsetup
+						resolution_table_index = len(form.imaging_samples[ii].resolution_table_fieldlist.data)-1
+						form.imaging_samples[ii].resolution_table_fieldlist[resolution_table_index].image_resolution.data = image_resolution_forsetup
 						submit_key = 'other'
+						column_name = f'imaging_samples-{ii}-resolution_table_fieldlist-{resolution_table_index}-channels-0-registration'
+						print(column_name)
 			""" Handle "setup samples" button pressed """
 			if submit_key == 'sample_submit_button': # The sample setup button
 				logger.info("sample submit")

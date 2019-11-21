@@ -77,7 +77,7 @@ class ImagingForm(FlaskForm):
 
 	resolution_table_fieldlist = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=4)
 
-	new_resolution_table_submit = SubmitField('Generate imaging table') # renders a new resolution table
+	new_image_resolution_form_submit = SubmitField('Generate imaging table') # renders a new resolution table
 
 
 class NewRequestForm(FlaskForm):
@@ -150,7 +150,7 @@ class NewRequestForm(FlaskForm):
 			for resolution_form in sample_dict['resolution_table_fieldlist']:
 				image_resolution = resolution_form['image_resolution']
 				current_image_resolutions_rendered.append(image_resolution)
-			if sample_dict['new_resolution_table_submit'] == True:
+			if sample_dict['new_image_resolution_form_submit'] == True:
 				image_resolution = sample_dict['image_resolution_forsetup']
 				if image_resolution in current_image_resolutions_rendered:
 					raise ValidationError(f"You tried to make a table for image_resolution {image_resolution}"
