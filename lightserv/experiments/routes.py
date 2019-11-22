@@ -215,6 +215,7 @@ def new_exp():
 								else:
 									# logger.info(imaging_channel_dict)
 									channel_insert_dict = {}
+									channel_insert_dict['atlas_name'] = resolution_dict['atlas_name']
 									channel_insert_dict['experiment_name'] = form.experiment_name.data	
 									channel_insert_dict['username'] = username
 									channel_insert_dict['sample_name'] = sample_name
@@ -223,6 +224,7 @@ def new_exp():
 										if key == 'csrf_token':
 											continue
 										channel_insert_dict[key] = val
+
 									channel_insert_list.append(channel_insert_dict)
 							logger.info(channel_insert_list)
 								
