@@ -20,62 +20,75 @@
 	<h5>For you to complete:</h5>
 	<form method="POST" action="">
 	{{ form.hidden_tag() }}
+	<hr class='class-1'>
+	<h2 class='mb-2'> Summary of imaging to be completed for each image resolution chosen:  </h2>
 	<fieldset class="form-group">
-	<table class="table table-bordered table-striped text-center mb-4">
-        <tr>
-            <th>Channel wavelength(nm)</th>
-            <th>Image resolution </th>
-           	<th>*Tiling scheme </th>
-           	<th>*Tiling overlap </th>
-           	<th>*Z_step (microns) </th>
-           	<th>*Number of Z planes </th>
-        </tr>
 
-	{% for ii in range(channel_content_dict_list|length) %}
-		{% set channel_entry = form.channels[ii] %}
-		{% set channel_content = channel_content_dict_list[ii] %}
-		{% set channel_name = channel_content['channel_name'] %}
-		<!-- Render the hidden field for channel_name so it propagates through submission -->
-		{{ channel_entry.channel_name() }}
-		{{ channel_entry.image_resolution() }}
+	{% for ii in range(form.image_resolution_forms|length) %}
+		{% set image_resolution_form = form.image_resolution_forms[ii] %}
+		<!-- Render hiddenfield for image resolution -->
+		{{ image_resolution_form.image_resolution() }}
+		{% set image_resolution = image_resolution_form.image_resolution.data %}
+	
+		<hr class='class-2'>
+		<h3 class='mb-4'> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
 
-			<tr>   
-			    <td>{{channel_name}}</td>
-			    <td>{{channel_content.image_resolution}}</td>
-			    <td>
-			    	<div class="form-group">
-						{% if channel_entry.tiling_scheme.errors %}
-							{{ channel_entry.tiling_scheme(class="form-control form-control-sm is-invalid") }}
-							<div class="invalid-feedback">
-								{% for error in channel_entry.tiling_scheme.errors %}
-									<span>{{ error }}</span>
-								{% endfor %}
-							</div>
-						{% else %}
-							{{ channel_entry.tiling_scheme(class="form-control form-control-sm") }}
-						{% endif %}
-					</div>
-				</td>
-			    <td>
-					<div class="form-group">
-						{% if channel_entry.tiling_overlap.errors %}
-							{{ channel_entry.tiling_overlap(class="form-control form-control-sm is-invalid") }}
-							<div class="invalid-feedback">
-								{% for error in channel_entry.tiling_overlap.errors %}
-									<span>{{ error }}</span>
-								{% endfor %}
-							</div>
-						{% else %}
-							{{ channel_entry.tiling_overlap(class="form-control form-control-sm") }}
-						{% endif %}
-					</div>
-			    </td>
-			    <td>{{channel_entry.z_resolution(class='form-control form-control-sm')}}</td>
-			    <td>{{channel_entry.number_of_z_planes(class='form-control form-control-sm')}}</td>
-			</tr>
-	{% endfor %}
-    </table>
+		<table class="table table-bordered table-striped text-center mb-4">
+	        <tr>
+	            <th>Channel wavelength(nm)</th>
+	            <th>Image resolution </th>
+	           	<th>*Tiling scheme </th>
+	           	<th>*Tiling overlap </th>
+	           	<th>*Z_step (microns) </th>
+	           	<th>*Number of Z planes </th>
+	        </tr>
 
+		{% for jj in range(image_resolution_form.channel_forms|length) %}
+			{% set channel_form = image_resolution_form.channel_forms[jj] %}
+			{% set channel_content = channel_contents_lists[ii][jj] %}
+			{% set channel_name = channel_content['channel_name'] %}
+			<!-- Render the hidden fields so they propagate through submission -->
+			{{ channel_form.channel_name() }}
+			{{ channel_form.image_resolution() }}
+
+				<tr>   
+				    <td>{{channel_name}}</td>
+				    <td>{{image_resolution}}</td>
+				    <td>
+				    	<div class="form-group">
+							{% if channel_form.tiling_scheme.errors %}
+								{{ channel_form.tiling_scheme(class="form-control form-control-sm is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in channel_form.tiling_scheme.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ channel_form.tiling_scheme(class="form-control form-control-sm") }}
+							{% endif %}
+						</div>
+					</td>
+				    <td>
+						<div class="form-group">
+							{% if channel_form.tiling_overlap.errors %}
+								{{ channel_form.tiling_overlap(class="form-control form-control-sm is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in channel_form.tiling_overlap.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ channel_form.tiling_overlap(class="form-control form-control-sm") }}
+							{% endif %}
+						</div>
+				    </td>
+				    <td>{{channel_form.z_resolution(class='form-control form-control-sm')}}</td>
+				    <td>{{channel_form.number_of_z_planes(class='form-control form-control-sm')}}</td>
+				</tr>
+		{% endfor %} <!-- loop over channel forms -->
+	    </table>
+	{% endfor %} <!-- loop over image resolution forms -->
+    
     <div class="form-group">
 		{% if form.notes_from_imaging.flags.required %}*{% endif %}
 		{{ form.notes_from_imaging.label(class="form-control-label") }}
@@ -90,54 +103,60 @@
 			{{ form.notes_from_imaging(class="form-control form-control-lg") }}
 		{% endif %}
 	</div>
+
 	<hr class='class-1'>
 
 	<div>
-		<h3>Move the raw data folders to:</h3>
+		<h3>Move all raw data folders to this bucket location: (make sure not to overwrite folders and never put data from two different resolutions into the same folder):</h3>
 		<p>
 			/jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['experiment_name']}}/{{sample_dict['sample_name']}}
 		</p>
 	</div>
 
 	<div>
-		<h3> and record the name of the raw data subfolder for each channel </h3> 
+		<h3> and record the name of the raw data subfolder for each channel below: </h3> 
 		<p> (e.g. "190820_m61468_observ_20190628_1d3x_647_008na_1hfds_z5um_250msec_14-50-40") </p>
-		<table class="table table-bordered table-striped text-center mb-4">
-			<col width="15%">
-			<col width="15%">
-			<col width="70%">
-        <tr>
-            <th>Channel wavelength(nm)</th>
-            <th>Image resolution</th>
-            <th>*Raw data subfolder</th>
-        </tr>
-		{% for ii in range(channel_content_dict_list|length) %}
-			{% set channel_entry = form.channels[ii] %}
-			{% set channel_content = channel_content_dict_list[ii] %}
-			{% set channel_name = channel_content['channel_name'] %}
-		<tr>   
-		    <td>{{channel_name}}</td>
-		    <td>{{channel_content.image_resolution}}</td>
-		    <td>
-			<div class="form-group">
-				{% if channel_entry.rawdata_subfolder.errors %}
-					{{ channel_entry.rawdata_subfolder(class="form-control form-control-sm is-invalid") }}
-					<div class="invalid-feedback">
-						{% for error in channel_entry.rawdata_subfolder.errors %}
-							<span>{{ error }}</span>
-						{% endfor %}
-					</div>
-				{% else %}
-					{{ channel_entry.rawdata_subfolder(class="form-control form-control-sm") }}
-				{% endif %}
-			</div>
-		</td>
-	</tr>
-		{% endfor %}
-		</table>
 	</div>
-
-
+		{% for ii in range(form.image_resolution_forms|length) %}
+			{% set image_resolution_form = form.image_resolution_forms[ii] %}
+			{% set image_resolution = image_resolution_form.image_resolution.data %}
+	
+			<hr class='class-2'>
+			<h3 class='mb-4'> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+			<table class="table table-bordered table-striped text-center mb-4">
+				<col width="15%">
+				<col width="15%">
+				<col width="70%">
+	        <tr>
+	            <th>Channel wavelength(nm)</th>
+	            <th>Image resolution</th>
+	            <th>*Raw data subfolder</th>
+	        </tr>
+			{% for jj in range(image_resolution_form.channel_forms|length) %}
+				{% set channel_form = image_resolution_form.channel_forms[jj] %}
+				{% set channel_content = channel_contents_lists[ii][jj] %}
+				{% set channel_name = channel_content['channel_name'] %}
+				<tr>   
+				    <td>{{channel_name}}</td>
+				    <td>{{channel_content['image_resolution']}}</td>
+				    <td>
+						<div class="form-group">
+							{% if channel_form.rawdata_subfolder.errors %}
+								{{ channel_form.rawdata_subfolder(class="form-control form-control-sm is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in channel_form.rawdata_subfolder.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ channel_form.rawdata_subfolder(class="form-control form-control-sm") }}
+							{% endif %}
+						</div>
+					</td>
+				</tr>
+			{% endfor %}
+			</table>
+		{% endfor %}
 		<div class="form-group">
 			{{ form.submit(class="btn btn-lg btn-info mt-2") }}
 		</div>

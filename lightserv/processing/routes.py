@@ -87,16 +87,16 @@ def start_processing(username,experiment_name,sample_name):
 
 	elif request.method == 'GET': # get request
 		channel_contents_lists = []
-		while len(form.resolution_forms) > 0:
-			form.resolution_forms.pop_entry()
+		while len(form.image_resolution_forms) > 0:
+			form.image_resolution_forms.pop_entry()
 		""" Figure out the unique number of image resolutions """
 		unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
 		for ii in range(len(unique_image_resolutions)):
 			this_image_resolution = unique_image_resolutions[ii]
 			channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
 			channel_contents_lists.append([])
-			form.resolution_forms.append_entry()
-			this_resolution_form = form.resolution_forms[-1]
+			form.image_resolution_forms.append_entry()
+			this_resolution_form = form.image_resolution_forms[-1]
 			this_resolution_form.image_resolution.data = this_image_resolution
 			''' Now go and add the channel subforms to the image resolution form '''
 			for jj in range(len(channel_contents_list_this_resolution)):
@@ -131,10 +131,11 @@ def run_step0(username,experiment_name,sample_name):
 	import tifffile
 	from xml.etree import ElementTree as ET 
 	processing_params_dict = {}
+	
 	''' Fetch the processing params from the table to run the code '''
 	sample_contents = db_lightsheet.Sample() & f'username="{username}"' \
 	& f'experiment_name="{experiment_name}"'  & f'sample_name="{sample_name}"'
-
+	
 	all_channel_contents = db_lightsheet.Sample.ImagingChannel() & f'username="{username}"' \
 	& f'experiment_name="{experiment_name}"'  & f'sample_name="{sample_name}"'
 	channel_content_dict_list = all_channel_contents.fetch(as_dict=True)
@@ -155,7 +156,6 @@ def run_step0(username,experiment_name,sample_name):
 	because there can be more than one if multi-channel imaging 
 	was performed """
 
-	path_dict = {}
 	all_imaging_modes = current_app.config['IMAGING_MODES']
 	connection = db_lightsheet.Sample.connection
 	with connection.transaction:

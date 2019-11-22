@@ -80,7 +80,6 @@ def imaging_manager():
 @check_clearing_completed
 def imaging_entry(username,experiment_name,sample_name): 
 	form = ImagingForm(request.form)
-
 	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"'								
 	if not sample_contents:
@@ -101,7 +100,6 @@ def imaging_entry(username,experiment_name,sample_name):
 	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'experiment_name="{experiment_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"')
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
-	logger.debug(channel_content_dict_list)
 	if request.method == 'POST':
 		logger.info("Post request")
 		if form.validate_on_submit():
@@ -113,48 +111,54 @@ def imaging_entry(username,experiment_name,sample_name):
 				return redirect(url_for('experiments.exp',username=username,
 				experiment_name=experiment_name,sample_name=sample_name))
 			
-			""" Loop through the channels in the form  
+			""" loop through the image resolution forms and find all channel entries"""
+
+			""" Loop through the image resolution forms and find all channels in the form  
 			and update the existing table entries with the new imaging information """
-			subfolder_dict = {}
+			
 
-			for form_channel_dict in sorted(form.channels.data,key=lambda x: x['channel_name']):
-				# logger.info(form_channel_dict)
-				image_resolution = form_channel_dict['image_resolution']
-				channel_name = form_channel_dict['channel_name']
-				number_of_z_planes = form_channel_dict['number_of_z_planes']
-				rawdata_subfolder = form_channel_dict['rawdata_subfolder']
-				if rawdata_subfolder in subfolder_dict.keys():
-					subfolder_dict[rawdata_subfolder].append(channel_name)
-				else:
-					subfolder_dict[rawdata_subfolder] = [channel_name]
-				channel_index = subfolder_dict[rawdata_subfolder].index(channel_name)
-				logger.info(f" channel {channel_name} with image_resolution {image_resolution} has channel_index = {channel_index}")
-				""" Now look for the number of z planes in the raw data subfolder on bucket
-				 and validate that it is the same as the user specified """
-				rawdata_fullpath = os.path.join(current_app.config['RAWDATA_ROOTPATH'],username,
-					experiment_name,sample_name,rawdata_subfolder) 
-				number_of_z_planes_found = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*Filter000{channel_index}*'))
-				if number_of_z_planes_found != number_of_z_planes:
-					flash(f"You entered that for channel: {channel_name} there should be {number_of_z_planes} z planes, "
-						  f"but found {number_of_z_planes_found} in raw data folder: "
-						  f"{rawdata_fullpath}","danger")
-					return redirect(url_for('imaging.imaging_entry',username=username,
-						experiment_name=experiment_name,sample_name=sample_name))
-				channel_content = channel_contents & f'channel_name="{channel_name}"' & f'image_resolution="{image_resolution}"'
-				channel_content_dict = channel_content.fetch1()
-				''' Make a copy of the current row in a new dictionary which we will insert '''
-				channel_insert_dict = {}
+			for form_resolution_dict in form.image_resolution_forms.data:
+				subfolder_dict = {}
+				image_resolution = form_resolution_dict['image_resolution']
+				for form_channel_dict in form_resolution_dict['channel_forms']:
+					channel_name = form_channel_dict['channel_name']
+					number_of_z_planes = form_channel_dict['number_of_z_planes']
+					rawdata_subfolder = form_channel_dict['rawdata_subfolder']
+					if rawdata_subfolder in subfolder_dict.keys():
+						subfolder_dict[rawdata_subfolder].append(channel_name)
+					else:
+						subfolder_dict[rawdata_subfolder] = [channel_name]
+					channel_index = subfolder_dict[rawdata_subfolder].index(channel_name)
+					logger.info(f" channel {channel_name} with image_resolution {image_resolution} has channel_index = {channel_index}")
+					""" Now look for the number of z planes in the raw data subfolder on bucket
+					 and validate that it is the same as the user specified """
+					# rawdata_fullpath = os.path.join(current_app.config['RAWDATA_ROOTPATH'],username,
+					# 	experiment_name,sample_name,rawdata_subfolder) 
+					# number_of_z_planes_found = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*Filter000{channel_index}*'))
+					# if number_of_z_planes_found != number_of_z_planes:
+					# 	flash(f"You entered that for channel: {channel_name} there should be {number_of_z_planes} z planes, "
+					# 		  f"but found {number_of_z_planes_found} in raw data folder: "
+					# 		  f"{rawdata_fullpath}","danger")
+					# 	return redirect(url_for('imaging.imaging_entry',username=username,
+					# 		experiment_name=experiment_name,sample_name=sample_name))
+					channel_content = channel_contents & f'channel_name="{channel_name}"' & f'image_resolution="{image_resolution}"'
+					channel_content_dict = channel_content.fetch1()
+					''' Make a copy of the current row in a new dictionary which we will insert '''
+					channel_insert_dict = {}
 				
-				for key,val in channel_content_dict.items():
-					channel_insert_dict[key] = val
-				''' Now replace the values in the dict from the form input '''
-				for key,val in form_channel_dict.items():
-					if key in channel_content_dict.keys() and key not in ['channel_name','image_resolution']:
+					for key,val in channel_content_dict.items():
 						channel_insert_dict[key] = val
-				channel_insert_dict['imspector_channel_index'] = channel_index
-				logger.info("Inserting {}".format(channel_insert_dict))
-				db_lightsheet.Sample.ImagingChannel().insert1(channel_insert_dict,replace=True)
 
+					''' Now replace (some of) the values in the dict from whatever we 
+					get from the form '''
+					for key,val in form_channel_dict.items():
+						if key in channel_content_dict.keys() and key not in ['channel_name','image_resolution']:
+							channel_insert_dict[key] = val
+					channel_insert_dict['imspector_channel_index'] = channel_index
+					logger.info("Inserting {}".format(channel_insert_dict))
+			
+					db_lightsheet.Sample.ImagingChannel().insert1(channel_insert_dict,replace=True)
+				
 			correspondence_email = (db_lightsheet.Experiment() &\
 			 f'experiment_name="{experiment_name}"').fetch1('correspondence_email')
 			path_to_data = f'/jukebox/LightSheetData/lightserv_testing/{username}/{experiment_name}/{sample_name}'
@@ -174,27 +178,34 @@ def imaging_entry(username,experiment_name,sample_name):
 
 			return redirect(url_for('experiments.exp',username=username,
 				experiment_name=experiment_name,sample_name=sample_name))
+
 		else:
 			logger.info("Not validated")
 			logger.info(form.errors)
 			for channel in form.channels:
 				print(channel.tiling_scheme.errors)
 	elif request.method == 'GET': # get request
+		channel_contents_lists = []
 
-		while len(form.channels) > 0:
-			form.channels.pop_entry()
-		for channel_content_dict in channel_content_dict_list:
-			form.channels.append_entry()
-			''' set the channel name and image resolution hidden field data
-			so we can use it for validation in the form '''
-			channel_name = channel_content_dict['channel_name']
-			form.channels[-1].channel_name.data = channel_name
-			image_resolution = channel_content_dict['image_resolution']
-			form.channels[-1].image_resolution.data = image_resolution
-			logger.debug(f"set image resolution for channel entry to {image_resolution}")
+		unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
+		for ii in range(len(unique_image_resolutions)):
+			this_image_resolution = unique_image_resolutions[ii]
+			channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
+			channel_contents_lists.append([])
+			form.image_resolution_forms.append_entry()
+			this_resolution_form = form.image_resolution_forms[-1]
+			this_resolution_form.image_resolution.data = this_image_resolution
+			''' Now add the channel subforms to the image resolution form '''
+			for jj in range(len(channel_contents_list_this_resolution)):
+				channel_content = channel_contents_list_this_resolution[jj]
+				channel_contents_lists[ii].append(channel_content)
+				this_resolution_form.channel_forms.append_entry()
+				this_channel_form = this_resolution_form.channel_forms[-1]
+				this_channel_form.channel_name.data = channel_content['channel_name']
+				this_channel_form.image_resolution.data = channel_content['image_resolution']
 
 	sample_dict = sample_contents.fetch1()
 	imaging_table = ImagingTable(sample_contents)
 
 	return render_template('imaging/imaging_entry.html',form=form,
-		channel_content_dict_list=channel_content_dict_list,sample_dict=sample_dict,imaging_table=imaging_table)
+		channel_contents_lists=channel_contents_lists,sample_dict=sample_dict,imaging_table=imaging_table)

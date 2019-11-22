@@ -21,8 +21,8 @@
 		{{ form.hidden_tag() }}
 		<fieldset class="form-group">
 			<!-- Loop over the different image resolutions -->
-			{% for ii in range(form.resolution_forms|length) %}
-				{% set image_resolution_form = form.resolution_forms[ii] %}
+			{% for ii in range(form.image_resolution_forms|length) %}
+				{% set image_resolution_form = form.image_resolution_forms[ii] %}
 				<!-- Render hiddenfield for image resolution -->
 				{{ image_resolution_form.image_resolution() }}
 				{% set image_resolution = image_resolution_form.image_resolution.data %}
@@ -30,7 +30,7 @@
 				<hr class='class-1'>
 				<h2 class='mb-2'> Summary of processing to be completed for each image resolution chosen:  </h2>
 				<hr class='class-2'>
-				<h3 class='mb-4'> ({{ ii + 1 }}/{{form.resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+				<h3 class='mb-4'> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
 				
 				{% for jj in range(image_resolution_form.channel_forms|length) %}
 					{% set channel_form = image_resolution_form.channel_forms[jj] %}

@@ -73,27 +73,19 @@ class ChannelForm(FlaskForm):
 		elif number_of_z_planes.data > 5500:
 			raise ValidationError("Are you sure you have >5500 z planes?")
 
+class ImageResolutionForm(FlaskForm):
+	""" A form for each image resolution that a user picks """
+	max_number_of_channels = 4
+	image_resolution = HiddenField('image resolution')
+	channel_forms = FieldList(FormField(ChannelForm),min_entries=0,max_entries=max_number_of_channels)
+	
 
 class ImagingForm(FlaskForm):
 	""" The form for entering imaging information """
-	max_number_of_channels = 4 
+	max_number_of_image_resolutions = 4 
 	notes_from_imaging = TextAreaField("Note down anything additional about the imaging"
 									   " that you would like recorded")
-	channels = FieldList(FormField(ChannelForm),min_entries=0,max_entries=max_number_of_channels)
+	image_resolution_forms = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=max_number_of_image_resolutions)
 	submit = SubmitField('Click when imaging is complete and data are on bucket')
 
 
-class ImageResolutionForm(FlaskForm):
-	""" A form for each image resolution that a user picks """
-	image_resolution = HiddenField('image resolution')
-	channels = FieldList(FormField(ChannelForm),min_entries=4,max_entries=4)
-	notes_for_imager = TextAreaField('''Special notes for imaging 
-		(e.g. z step size, exposure time, suggested tiling scheme -- make sure to specify which channel) -- max 1024 characters --''',
-		validators=[Length(max=1024)])
-
-	notes_for_processor = TextAreaField('''Special notes for processing 
-		 -- max 1024 characters --''',validators=[Length(max=1024)])
-	
-	atlas_name = SelectField('Atlas for registration',
-		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
-				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])	

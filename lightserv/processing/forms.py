@@ -16,7 +16,7 @@ class ChannelProcessingForm(FlaskForm):
 		choices=[('sagittal','Sagittal'),('coronal','Coronal'),('horizontal','Horizontal')],
 		validators=[InputRequired()])
 
-class ResolutionProcessingForm(FlaskForm):
+class ImageResolutionProcessingForm(FlaskForm):
 	max_number_of_channels = 4
 	image_resolution = HiddenField('Image resolution')
 	channel_forms = FieldList(FormField(ChannelProcessingForm),min_entries=0,
@@ -25,7 +25,7 @@ class ResolutionProcessingForm(FlaskForm):
 class StartProcessingForm(FlaskForm):
 	""" The form for requesting to start the data processing """
 	max_number_of_resolutions=4
-	resolution_forms = FieldList(FormField(ResolutionProcessingForm),min_entries=0,
+	image_resolution_forms = FieldList(FormField(ImageResolutionProcessingForm),min_entries=0,
 		max_entries=max_number_of_resolutions)
 	notes_from_processing = TextAreaField("Note down anything additional about the processing"
 									   " that you would like recorded.")

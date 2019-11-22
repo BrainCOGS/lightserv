@@ -68,10 +68,10 @@ class Sample(dj.Manual):
 	class ImagingChannel(dj.Part):
 		definition = """ # Imaging parameters for a channel 
 		-> Sample
-		channel_name                              :   varchar(64)                
 		image_resolution                          :   enum("1.3x","4x","1.1x","2x")
+		channel_name                              :   varchar(64)                
 		----
-		registration = 0                          :   boolean
+		registration = 0                 	         :   boolean
 		injection_detection = 0                   :   boolean
 		probe_detection = 0                       :   boolean
 		cell_detection = 0                        :   boolean
