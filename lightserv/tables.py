@@ -125,7 +125,7 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     return table 
 
 def create_dynamic_channels_table_for_processing(contents,table_id,ignore_columns=[],
-    name='Dynamic Samples Table for Processing'):
+    name='Dynamic Channels Table for Processing'):
     options = dict(
         border = True,
         allow_sort = False,
@@ -146,8 +146,8 @@ def create_dynamic_channels_table_for_processing(contents,table_id,ignore_column
     table_class.add_column('username',Col('username'))
     table_class.add_column('experiment_name',Col('experiment_name'))
     table_class.add_column('sample_name',Col('sample_name'))
-    table_class.add_column('channel_name',Col('channel_name'))
     table_class.add_column('image_resolution',Col('image_resolution'))
+    table_class.add_column('channel_name',Col('channel_name'))
     table_class.add_column('tiling_scheme',Col('tiling_scheme'))
     table_class.add_column('processor',Col('processor'))
     table_class.add_column('processing_progress',Col('processing_progress'))

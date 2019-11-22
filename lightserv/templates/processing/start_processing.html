@@ -64,16 +64,16 @@
 						{% if 'registration' in channel_purposes_str %}
 							<div class="content-section">
 								<div class="form-group">
-									{{ channel_form.atlas_name.label(class="form-control-label", id='larger') }}
-									{% if channel_form.atlas_name.errors %}
-										{{ channel_form.atlas_name(class="form-control form-control-lg is-invalid col-md-8") }}
+									{{ image_resolution_form.atlas_name.label(class="form-control-label", id='larger') }}
+									{% if image_resolution_form.atlas_name.errors %}
+										{{ image_resolution_form.atlas_name(class="form-control form-control-lg is-invalid col-md-8") }}
 										<div class="invalid-feedback">
-											{% for error in channel_form.atlas_name.errors %}
+											{% for error in image_resolution_form.atlas_name.errors %}
 												<span>{{ error }}</span>
 											{% endfor %}
 										</div>
 									{% else %}
-										{{ channel_form.atlas_name(class="form-control form-control-lg col-md-8") }}
+										{{ image_resolution_form.atlas_name(class="form-control form-control-lg col-md-8") }}
 									{% endif %}
 								</div>
 							</div>

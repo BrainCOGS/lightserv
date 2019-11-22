@@ -15,6 +15,9 @@ class Config(object):
 	IMAGING_MODES = ['registration','injection_detection','probe_detection','cell_detection']
 	RAWDATA_ROOTPATH = '/jukebox/LightSheetData/lightserv_testing'
 	IMAGING_CHANNELS = ['488','555','647','790']
+	ATLAS_NAME_FILE_DICTIONARY = {
+	'allen_2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/annotation_2017_25um_sagittal_forDVscans_16bit.tif',
+	'allen_pre2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/annotation_25um_sagittal_forDVscans.tif'}
 
 	# APPLICATION_ROOT = "/v01"
 

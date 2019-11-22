@@ -12,6 +12,7 @@ from datetime import datetime
 import logging
 import tifffile
 import glob
+import os
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -72,8 +73,16 @@ def start_processing(username,experiment_name,sample_name):
 			''' Now update the db table with the data collected in the form'''
 			logger.info("updating sample contents from form data")
 			dj.Table._update(sample_contents,'notes_from_processing',form.notes_from_processing.data)
-
-			# logger.info(f"Starting step0 with Celery ")
+			""" loop through and update the atlas to be used based on what the user supplied """
+			for form_resolution_dict in form.image_resolution_forms.data:
+				image_resolution = form_resolution_dict['image_resolution']
+				atlas_name = form_resolution_dict['atlas_name']
+				for form_channel_dict in form_resolution_dict['channel_forms']:
+					channel_name = form_channel_dict['channel_name']
+					channel_content = channel_contents & f'channel_name="{channel_name}"' &  f'image_resolution="{image_resolution}"'
+					# logger.info(channel_content)
+					logger.info("updating channel contents from form data")
+					dj.Table._update(channel_content,'atlas_name',atlas_name)
 			logger.info(f"Starting step0 without celery for testing")
 			# run_step0.delay(username=username,experiment_name=experiment_name,sample_name=sample_name)
 			run_step0(username=username,experiment_name=experiment_name,sample_name=sample_name)
@@ -82,8 +91,9 @@ def start_processing(username,experiment_name,sample_name):
 
 			flash('Your data processing has begun. You will receive an email \
 				when the first steps are completed.','success')
-			return redirect(url_for('experiments.exp',username=username,
-			experiment_name=experiment_name,sample_name=sample_name))
+			asdf
+			# return redirect(url_for('experiments.exp',username=username,
+			# experiment_name=experiment_name,sample_name=sample_name))
 
 	elif request.method == 'GET': # get request
 		channel_contents_lists = []
@@ -105,7 +115,7 @@ def start_processing(username,experiment_name,sample_name):
 				this_resolution_form.channel_forms.append_entry()
 				this_channel_form = this_resolution_form.channel_forms[-1]
 				this_channel_form.channel_name.data = channel_content['channel_name']
-				this_channel_form.atlas_name.data = channel_content['atlas_name']
+				this_resolution_form.atlas_name.data = channel_content['atlas_name']
 
 				""" figure out the channel purposes """
 				used_imaging_modes = []
@@ -126,6 +136,7 @@ def run_step0(username,experiment_name,sample_name):
 	in the light sheet pipeline -- i.e. makes the parameter dictionary pickle file
 	and grabs a bunch of metadata from the raw files to store in the database.  
 	"""
+	atlas_dict = current_app.config['ATLAS_NAME_FILE_DICTIONARY']
 	now = datetime.now()
 	logger.info("In step 0")
 	import tifffile
@@ -159,74 +170,126 @@ def run_step0(username,experiment_name,sample_name):
 	all_imaging_modes = current_app.config['IMAGING_MODES']
 	connection = db_lightsheet.Sample.connection
 	with connection.transaction:
-		for channel_dict in sorted(channel_content_dict_list,key=lambda x: x['channel_name']):
-			channel_name = channel_dict['channel_name']
-			channel_index = channel_dict['imspector_channel_index'] 
-			channel_imaging_modes = [key for key in all_imaging_modes if channel_dict[key] == True]
-			this_channel_content = all_channel_contents & f'channel_name="{channel_name}'
-			processing_insert_dict = {'username':username,'experiment_name':experiment_name,
-			'sample_name':sample_name,'channel_name':channel_name,'intensity_correction':True,
-			'datetime_processing_started':now}
-			
-			logger.info(f"finding metadata for channel {channel_name}")
-			
-			""" First find the z=0 plane for this channel """
-			rawdata_subfolder = channel_dict['rawdata_subfolder']
-			rawdata_fullpath = raw_basepath + '/' + rawdata_subfolder
+		unique_image_resolutions = sorted(list(set(all_channel_contents.fetch('image_resolution'))))
+		for image_resolution in unique_image_resolutions:
+			channel_contents_this_resolution = \
+				(all_channel_contents & f'image_resolution="{image_resolution}"')
+			channel_contents_list_this_resolution = channel_contents_this_resolution.fetch(as_dict=True)
 
-			''' Always look in the Filter0000 z=0 file for the full metadata 
-			since it holds the info for the Filter0001, Filter00002, etc... files as well and 
-			the metadata in the z=0 planes for the Filter0001, ... files does not have the 
-			necessary information '''
-			z0_plane_path = glob.glob(rawdata_fullpath + \
-				f'/*RawDataStack*C00*Filter0000.ome.tif')[0] # C00 just means left lightsheet which should always be there
-			logger.info(f"Found Z=0 Filter0000 file: {z0_plane_path}")
-			""" Extract metadata """
-			with tifffile.TiffFile(z0_plane_path) as tif:
-				tags = tif.pages[0].tags
-			xml_description=tags['ImageDescription'].value
+			""" Now find the channels belonging to the same rawdata_subfolder so I can  
+			run the multi-imaging channels together in the code """
+			unique_rawdata_subfolders = list(set(channel_contents_this_resolution.fetch('rawdata_subfolder')))
+			for rawdata_subfolder in unique_rawdata_subfolders:
+				rawdata_fullpath = raw_basepath + '/' + rawdata_subfolder
 
-			root = ET.fromstring(xml_description)
+				""" set up the parameter dictionary """
+				param_dict = {}
+				param_dict['systemdirectory'] = '/jukebox'
+				output_directory = os.path.join(raw_basepath,'output')
+				param_dict['outputdirectory'] = output_directory
+				
+				""" grab the metadata """
+				# logger.info(f"finding metadata for channel {channel_name}")
+					
+				""" First find the z=0 plane for this channel """
 
-			''' NA '''
-			custom_attributes = root[-1]
-			prop_array = custom_attributes[0]
-			for child in prop_array:
-				if 'UltraII_Na_Value' in child.tag:
-					NA = float(child.attrib['Value'])
-					processing_insert_dict['numerical_aperture'] = NA
+				# ''' Always look in the Filter0000 z=0 file for the full metadata 
+				# since it holds the info for the Filter0001, Filter00002, etc... files as well and 
+				# the metadata in the z=0 planes for the Filter0001, ... files does not have the 
+				# necessary information '''
+				# z0_plane_path = glob.glob(rawdata_fullpath + \
+				# 	f'/*RawDataStack*C00*Filter0000.ome.tif')[0] # C00 just means left lightsheet which should always be there
+				# logger.info(f"Found Z=0 Filter0000 file: {z0_plane_path}")
+				# """ Extract metadata """
+				# with tifffile.TiffFile(z0_plane_path) as tif:
+				# 	tags = tif.pages[0].tags
+				# xml_description=tags['ImageDescription'].value
 
-			''' pixel type '''
-			image_tag = root[2]
-			pixel_tag = image_tag[2]
-			pixel_dict = pixel_tag.attrib
-			pixel_type = pixel_dict['PixelType']
-			dj.Table._update(this_channel_content,'pixel_type',pixel_type)
-			# processing_insert_dict['pixel_type'] = pixel_type
+				# root = ET.fromstring(xml_description)
 
-			''' imspector version '''
-			try:
-				custom_attributes_image = image_tag[-1]
-				version_tag = [child for child in custom_attributes_image if 'ImspectorVersion' in child.tag][0]
-				imspector_version = version_tag.attrib['ImspectorVersion']
-				processing_insert_dict['imspector_version'] = imspector_version,	
-			except:
-				pass # do nothing. Those values will stay NULL
-			''' Store all of the metadata as an xml string for later access if needed '''
-			processing_insert_dict['metadata_xml_string'] = xml_description
-			db_lightsheet.Sample.ProcessingChannel().insert1(processing_insert_dict)
-			logger.info("Inserted processing params into db table")
+				# ''' NA '''
+				# custom_attributes = root[-1]
+				# prop_array = custom_attributes[0]
+				# for child in prop_array:
+				# 	if 'UltraII_Na_Value' in child.tag:
+				# 		NA = float(child.attrib['Value'])
+				# 		processing_insert_dict['numerical_aperture'] = NA
 
-			""" Fill inputdictionary """
-			channel_imaging_modes_list = []
+				# ''' pixel type '''
+				# image_tag = root[2]
+				# pixel_tag = image_tag[2]
+				# pixel_dict = pixel_tag.attrib
+				# pixel_type = pixel_dict['PixelType']
+				# dj.Table._update(this_channel_content,'pixel_type',pixel_type)
+				# # processing_insert_dict['pixel_type'] = pixel_type
 
-			if 'registration' in channel_imaging_modes:
-				channel_imaging_modes_list.append(['regch',channel_index.zfill(2)])
-			else:
-				channel_imaging_modes_list.append(['regch',channel_index.zfill(2)])
-			if rawdata_fullpath in inputdictionary.keys(): # that means another channel has the same rawdata path
+				# ''' xyz_scale '''
+				# x_scale = int(float(pixel_dict['PhysicalSizeX']))
+				# y_scale = int(float(pixel_dict['PhysicalSizeY']))
+				# z_scale = int(float(pixel_dict['PhysicalSizeZ']))
+				# param_dict['xyz_scale'] = (x_scale,y_scale,z_scale)
 
-				inputdictionary[rawdata_fullpath].append([])
+				# ''' imspector version '''
+				# try:
+				# 	custom_attributes_image = image_tag[-1]
+				# 	version_tag = [child for child in custom_attributes_image if 'ImspectorVersion' in child.tag][0]
+				# 	imspector_version = version_tag.attrib['ImspectorVersion']
+				# 	processing_insert_dict['imspector_version'] = imspector_version,	
+				# except:
+				# 	pass # do nothing. Those values will stay NULL
+				# ''' Store all of the metadata as an xml string for later access if needed '''
+				# processing_insert_dict['metadata_xml_string'] = xml_description			
+
+				""" Loop through the channels themselves to make the input dictionary """
+				inputdictionary = {}
+				inputdictionary[rawdata_fullpath] = []
+				channel_contents_this_subfolder = channel_contents_this_resolution & f'rawdata_subfolder="{rawdata_subfolder}"'
+				logger.info(channel_contents_this_subfolder)
+				channel_contents_dict_list_this_subfolder = channel_contents_this_subfolder.fetch(as_dict=True)
+				for channel_dict in channel_contents_dict_list_this_subfolder:		
+					
+					channel_name = channel_dict['channel_name']
+					channel_index = channel_dict['imspector_channel_index'] 
+
+					channel_imaging_modes = [key for key in all_imaging_modes if channel_dict[key] == True]
+					this_channel_content = all_channel_contents & f'channel_name="{channel_name}'
+					""" grab the tiling, atlas info from the first entry since it has to be the same for all 
+					channels in the same rawdata_subfolder"""
+					if channel_index == 0:
+						tiling_scheme,tiling_overlap, atlas_name = \
+						 this_channel_content.fetch1('tiling_scheme,','tiling_overlap','atlas_name')
+						param_dict['tiling_overlap'] = tiling_overlap
+						if tiling_scheme != '1x1':
+							stitching_method = 'terastitcher'
+						else:
+							stitching_method = 'blending'
+						param_dict['stitchingmethod'] = stitching_method
+						atlas_file = atlas_dict['atlas_name']
+					processing_insert_dict = {'username':username,'experiment_name':experiment_name,
+					'sample_name':sample_name,'channel_name':channel_name,'intensity_correction':True,
+					'datetime_processing_started':now}
+					
+					""" Fill inputdictionary """
+
+					if 'registration' in channel_imaging_modes:
+						lightsheet_channel_str = 'regch'
+					elif 'injection_detection' in channel_imaging_modes:
+						lightsheet_channel_str = 'injch'
+					elif 'probe_detection' in channel_imaging_modes:
+						lightsheet_channel_str = 'injch'
+					elif 'cell_detection' in channel_imaging_modes:
+						lightsheet_channel_str = 'cellch'
+					else:
+						lightsheet_channel_str = 'anych'
+					inputdictionary[rawdata_fullpath].append([lightsheet_channel_str,str(channel_index).zfill(2)])
+
+					processing_insert_dict['lightsheet_channel_str'] = lightsheet_channel_str
+				param_dict[inputdictionary] = inputdictionary
+					# logger.info("inputdictionary: {}".format(inputdictionary))
+					# db_lightsheet.Sample.ProcessingChannel().insert1(processing_insert_dict)
+					# logger.info("Inserted processing params into db table")
+					# dj.Table._update()
+				
 	""" Fill out the parameter dictionar(ies) for this sample.
 	There could be more than one because channels could have been imaged 
 	separately. However, channels could also have been imaged together, so 

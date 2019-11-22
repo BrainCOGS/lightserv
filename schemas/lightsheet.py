@@ -66,12 +66,12 @@ class Sample(dj.Manual):
 	"""  
 
 	class ImagingChannel(dj.Part):
-		definition = """ # Imaging parameters for a channel 
+		definition = """ # Imaging parameters for a channel, belonging to a sample
 		-> Sample
 		image_resolution                          :   enum("1.3x","4x","1.1x","2x")
 		channel_name                              :   varchar(64)                
 		----
-		registration = 0                 	         :   boolean
+		registration = 0                 	      :   boolean
 		injection_detection = 0                   :   boolean
 		probe_detection = 0                       :   boolean
 		cell_detection = 0                        :   boolean
@@ -92,7 +92,7 @@ class Sample(dj.Manual):
 		definition = """ # Processing parameters for a channel
 		-> master.ImagingChannel
 		----
-		
+		lightsheet_channel_str                    :   enum("regch",'injch","cellch")
 		imspector_version = ''                    :   varchar(128)
 		datetime_processing_started               :   datetime
 		numerical_aperture = NULL                 :   float # it is not always recorded in metadata so those times it will stay NULL

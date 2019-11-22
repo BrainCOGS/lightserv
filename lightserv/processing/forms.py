@@ -9,15 +9,16 @@ from wtforms.widgets import html5, HiddenInput
 class ChannelProcessingForm(FlaskForm):
 	channel_name = HiddenField('Channel name')
 	channel_purposes_str = HiddenField('Channel purposes')
-	atlas_name = SelectField('Choose atlas for registration (defaults to choice selected in request form):',
-		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
-				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])
-	finalorientation = SelectField('Select the desired orientation for your volumetric data products',
-		choices=[('sagittal','Sagittal'),('coronal','Coronal'),('horizontal','Horizontal')],
-		validators=[InputRequired()])
+	
+	# finalorientation = SelectField('Select the desired orientation for your volumetric data products',
+	# 	choices=[('sagittal','Sagittal'),('coronal','Coronal'),('horizontal','Horizontal')],
+	# 	validators=[InputRequired()])
 
 class ImageResolutionProcessingForm(FlaskForm):
 	max_number_of_channels = 4
+	atlas_name = SelectField('Choose atlas for registration (defaults to choice selected in request form):',
+		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
+				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()],default='allen_2017')
 	image_resolution = HiddenField('Image resolution')
 	channel_forms = FieldList(FormField(ChannelProcessingForm),min_entries=0,
 		max_entries=max_number_of_channels)
