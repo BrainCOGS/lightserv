@@ -8,6 +8,7 @@ from wtforms.widgets import html5, HiddenInput
 
 class ChannelProcessingForm(FlaskForm):
 	channel_name = HiddenField('Channel name')
+	channel_purposes_str = HiddenField('Channel purposes')
 	atlas_name = SelectField('Choose atlas for registration (defaults to choice selected in request form):',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
 				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])

@@ -71,8 +71,6 @@ def start_processing(username,experiment_name,sample_name):
 			logger.debug("form validated")
 			''' Now update the db table with the data collected in the form'''
 			logger.info("updating sample contents from form data")
-			dj.Table._update(sample_contents,'atlas_name',form.atlas_name.data)
-			dj.Table._update(sample_contents,'finalorientation',form.finalorientation.data)
 			dj.Table._update(sample_contents,'notes_from_processing',form.notes_from_processing.data)
 
 			# logger.info(f"Starting step0 with Celery ")
@@ -107,21 +105,18 @@ def start_processing(username,experiment_name,sample_name):
 				this_resolution_form.channel_forms.append_entry()
 				this_channel_form = this_resolution_form.channel_forms[-1]
 				this_channel_form.channel_name.data = channel_content['channel_name']
+				this_channel_form.atlas_name.data = channel_content['atlas_name']
 
-		''' Add the imaging purposes to channel_content_dict_list '''
+				""" figure out the channel purposes """
+				used_imaging_modes = []
+				for imaging_mode in current_app.config['IMAGING_MODES']:
+					if channel_content[imaging_mode]:
+						used_imaging_modes.append(imaging_mode)
+				channel_purposes_str = ', '.join(mode for mode in used_imaging_modes)
+				this_channel_form.channel_purposes_str.data = channel_purposes_str
 
-
-		registration_used = False
-		for channel_dict in channel_content_dict_list:
-			used_imaging_modes = []
-			for imaging_mode in current_app.config['IMAGING_MODES']:
-				if channel_dict[imaging_mode]:
-					used_imaging_modes.append(imaging_mode)
-					if imaging_mode == 'registration':
-						registration_used = True
-			channel_dict['used_imaging_modes'] = used_imaging_modes
 	return render_template('processing/start_processing.html',
-		channel_contents_lists=channel_contents_lists,registration_used=registration_used,
+		channel_contents_lists=channel_contents_lists,
 		sample_dict=sample_dict,form=form,sample_table=sample_table)	
 
 

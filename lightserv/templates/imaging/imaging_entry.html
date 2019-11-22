@@ -37,6 +37,8 @@
 		{% set channel_name = channel_content['channel_name'] %}
 		<!-- Render the hidden field for channel_name so it propagates through submission -->
 		{{ channel_entry.channel_name() }}
+		{{ channel_entry.image_resolution() }}
+
 			<tr>   
 			    <td>{{channel_name}}</td>
 			    <td>{{channel_content.image_resolution}}</td>

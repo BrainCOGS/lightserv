@@ -18,7 +18,7 @@ import glob
 import os
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
 
@@ -119,6 +119,7 @@ def imaging_entry(username,experiment_name,sample_name):
 
 			for form_channel_dict in sorted(form.channels.data,key=lambda x: x['channel_name']):
 				# logger.info(form_channel_dict)
+				image_resolution = form_channel_dict['image_resolution']
 				channel_name = form_channel_dict['channel_name']
 				number_of_z_planes = form_channel_dict['number_of_z_planes']
 				rawdata_subfolder = form_channel_dict['rawdata_subfolder']
@@ -127,7 +128,7 @@ def imaging_entry(username,experiment_name,sample_name):
 				else:
 					subfolder_dict[rawdata_subfolder] = [channel_name]
 				channel_index = subfolder_dict[rawdata_subfolder].index(channel_name)
-				logger.info(f" channel {channel_name} has channel_index = {channel_index}")
+				logger.info(f" channel {channel_name} with image_resolution {image_resolution} has channel_index = {channel_index}")
 				""" Now look for the number of z planes in the raw data subfolder on bucket
 				 and validate that it is the same as the user specified """
 				rawdata_fullpath = os.path.join(current_app.config['RAWDATA_ROOTPATH'],username,
@@ -139,8 +140,7 @@ def imaging_entry(username,experiment_name,sample_name):
 						  f"{rawdata_fullpath}","danger")
 					return redirect(url_for('imaging.imaging_entry',username=username,
 						experiment_name=experiment_name,sample_name=sample_name))
-
-				channel_content = channel_contents & f'channel_name="{channel_name}"'
+				channel_content = channel_contents & f'channel_name="{channel_name}"' & f'image_resolution="{image_resolution}"'
 				channel_content_dict = channel_content.fetch1()
 				''' Make a copy of the current row in a new dictionary which we will insert '''
 				channel_insert_dict = {}
@@ -154,6 +154,7 @@ def imaging_entry(username,experiment_name,sample_name):
 				channel_insert_dict['imspector_channel_index'] = channel_index
 				logger.info("Inserting {}".format(channel_insert_dict))
 				db_lightsheet.Sample.ImagingChannel().insert1(channel_insert_dict,replace=True)
+
 			correspondence_email = (db_lightsheet.Experiment() &\
 			 f'experiment_name="{experiment_name}"').fetch1('correspondence_email')
 			path_to_data = f'/jukebox/LightSheetData/lightserv_testing/{username}/{experiment_name}/{sample_name}'
@@ -190,11 +191,10 @@ def imaging_entry(username,experiment_name,sample_name):
 			form.channels[-1].channel_name.data = channel_name
 			image_resolution = channel_content_dict['image_resolution']
 			form.channels[-1].image_resolution.data = image_resolution
-
+			logger.debug(f"set image resolution for channel entry to {image_resolution}")
 
 	sample_dict = sample_contents.fetch1()
 	imaging_table = ImagingTable(sample_contents)
-
 
 	return render_template('imaging/imaging_entry.html',form=form,
 		channel_content_dict_list=channel_content_dict_list,sample_dict=sample_dict,imaging_table=imaging_table)
