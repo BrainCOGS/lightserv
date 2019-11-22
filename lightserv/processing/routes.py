@@ -88,19 +88,40 @@ def start_processing(username,experiment_name,sample_name):
 			experiment_name=experiment_name,sample_name=sample_name))
 
 	elif request.method == 'GET': # get request
-		form.atlas_name.data = sample_dict['atlas_name']
+		channel_contents_lists = []
+		while len(form.resolution_forms) > 0:
+			form.resolution_forms.pop_entry()
+		""" Figure out the unique number of image resolutions """
+		unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
+		for ii in range(len(unique_image_resolutions)):
+			this_image_resolution = unique_image_resolutions[ii]
+			channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
+			channel_contents_lists.append([])
+			form.resolution_forms.append_entry()
+			this_resolution_form = form.resolution_forms[-1]
+			this_resolution_form.image_resolution.data = this_image_resolution
+			''' Now go and add the channel subforms to the image resolution form '''
+			for jj in range(len(channel_contents_list_this_resolution)):
+				channel_content = channel_contents_list_this_resolution[jj]
+				channel_contents_lists[ii].append(channel_content)
+				this_resolution_form.channel_forms.append_entry()
+				this_channel_form = this_resolution_form.channel_forms[-1]
+				this_channel_form.channel_name.data = channel_content['channel_name']
+
 		''' Add the imaging purposes to channel_content_dict_list '''
+
+
 		registration_used = False
-		for dict_list in channel_content_dict_list:
+		for channel_dict in channel_content_dict_list:
 			used_imaging_modes = []
 			for imaging_mode in current_app.config['IMAGING_MODES']:
-				if dict_list[imaging_mode]:
+				if channel_dict[imaging_mode]:
 					used_imaging_modes.append(imaging_mode)
 					if imaging_mode == 'registration':
 						registration_used = True
-			dict_list['used_imaging_modes'] = used_imaging_modes
+			channel_dict['used_imaging_modes'] = used_imaging_modes
 	return render_template('processing/start_processing.html',
-		channel_content_dict_list=channel_content_dict_list,registration_used=registration_used,
+		channel_contents_lists=channel_contents_lists,registration_used=registration_used,
 		sample_dict=sample_dict,form=form,sample_table=sample_table)	
 
 

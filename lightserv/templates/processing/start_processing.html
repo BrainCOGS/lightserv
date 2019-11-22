@@ -15,114 +15,117 @@
 			{% endif %}
 		</p>
 	</div>
-	<hr class='class-1'>
-	<h3 class='mb-4'>Channels to be processed:</h3>
-
+	
+	<!-- BEGIN FORM -->
 	<form method="POST" action="">
 		{{ form.hidden_tag() }}
 		<fieldset class="form-group">
-		
-		{% for ii in range(channel_content_dict_list|length) %}
-			{% set channel_content = channel_content_dict_list[ii] %}
-			{% set channel_name = channel_content['channel_name'] %}
-			{% set channel_purposes_str = channel_content['used_imaging_modes']|join(", ") %}
-			
-			<!-- Channel processing params -->
-			<div class="content-section">
-			
-				<div>
-					<a id='larger' class='font-weight-bold'>Channel: {{channel_name }} </a>
-				</div>
 
-				<div>
-					<a id='larger' class='font-weight-bold'>Raw data folder:</a> <span> /jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['experiment_name']}}/{{sample_dict['sample_name']}}/{{channel_content['rawdata_subfolder']}} </span>
-				</div>
+			<!-- Loop over the different image resolutions -->
+			{% for ii in range(form.resolution_forms|length) %}
+				{% set image_resolution_form = form.resolution_forms[ii] %}
+				<!-- Render hiddenfield for image resolution -->
+				{{ image_resolution_form.image_resolution() }}
+				{% set image_resolution = image_resolution_form.image_resolution.data %}
+				{{ image_resolution }}
+				<hr class='class-1'>
+				<h3 class='mb-4'>Channels to be processed:</h3>
+				
+				{% for jj in range(image_resolution_form.channel_forms|length) %}
+					{% set channel_form = image_resolution_form.channel_forms[jj] %}
+					{% set channel_content = channel_contents_lists[ii][jj] %}
+					<!-- Render hiddenfield for channel content -->
+					{{ channel_form.channel_name() }}
 
-				<div>
-					<a id='larger'>Image resolution used: {{channel_content['image_resolution_used'] }} </a>
-				</div>
+					{% set channel_name = channel_form.channel_name.data %}
+					
+					<!-- {% set channel_purposes_str = channel_content['used_imaging_modes']|join(", ") %} -->
+					
+					<!-- Channel processing params -->
+					<div class="content-section">
+					
+						<div>
+							<a id='larger' class='font-weight-bold'>Channel: {{  channel_name }} </a>
+						</div>
 
-				<div>
-					<a id='larger'>Channel purpose(s): {% if channel_purposes_str %} {{ channel_purposes_str}} {% else %} None specified {% endif %}</a>
-				</div>
+						<div>
+							<a id='larger' class='font-weight-bold'>Raw data folder:</a> <span> /jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['experiment_name']}}/{{sample_dict['sample_name']}}/{{channel_content['rawdata_subfolder']}} </span>
+						</div>
 
-				{% if 'registration' in channel_purposes_str %}
-					<div class="form-group">
-						{{ form.atlas_name.label(class="form-control-label", id='larger') }}
-						{% if form.atlas_name.errors %}
-							{{ form.atlas_name(class="form-control form-control-lg is-invalid col-md-4") }}
-							<div class="invalid-feedback">
-								{% for error in form.atlas_name.errors %}
-									<span>{{ error }}</span>
-								{% endfor %}
+						<div>
+							<a id='larger'>Image resolution: {{channel_content['image_resolution'] }} </a>
+						</div>
+
+						<div>
+							<a id='larger'>Channel purpose(s): {% if channel_purposes_str %} {{ channel_purposes_str}} {% else %} None specified {% endif %}</a>
+						</div>
+
+						{% if 'registration' in channel_purposes_str %}
+							<div class="form-group">
+								{{ channel_entry.atlas_name.label(class="form-control-label", id='larger') }}
+								{% if channel_entry.atlas_name.errors %}
+									{{ channel_entry.atlas_name(class="form-control form-control-lg is-invalid col-md-4") }}
+									<div class="invalid-feedback">
+										{% for error in channel_entry.atlas_name.errors %}
+											<span>{{ error }}</span>
+										{% endfor %}
+									</div>
+								{% else %}
+									{{ channel_entry.atlas_name(class="form-control form-control-lg col-md-4") }}
+								{% endif %}
 							</div>
-						{% else %}
-							{{ form.atlas_name(class="form-control form-control-lg col-md-4") }}
 						{% endif %}
+
+				  		<a id='larger'>
+				  		Tiling scheme: {{ channel_content['tiling_scheme']}}
+						{% if channel_content['tiling_scheme'] != '1x1' %}
+							- stitching with: terastitcher
+						{% else %}
+							(No need to stitch)
+						{% endif %}
+						</a>
+					
+						<hr class='class-2'>
+						<!-- Data products section -->
+						<a id='larger'>Data products that will be created for this channel: <a>
+
+						<ul>
+							<li>Blended raw data (.TIFs for each z plane)</li>
+							<li>Downsampled data (.TIF stack)</li>
+							{% if registration_used %}
+								<li>Downsampled data registered to atlas (.TIF stack)</li>
+							{% endif %}
+							{% if 'registration' in channel_purposes_str %}
+								<li>Registration parameters</li>
+							{% endif %}
+
+						</ul>  
 					</div>
-				{% endif %}
-		  		<a id='larger'>
-		  		Tiling scheme: {{ channel_content['tiling_scheme']}}
-				{% if channel_content['tiling_scheme'] != '1x1' %}
-					- stitching with: terastitcher
+				{% endfor %} <!-- Loop over channel forms --> 
+
+			{% endfor %} <!-- Loop over image resolution forms --> 
+
+			<hr class='class-1'>
+			<h3 class='mb-4'>Final steps:</h3>
+
+		    <div class="form-group">
+				{% if form.notes_from_processing.flags.required %}*{% endif %}
+				{{ form.notes_from_processing.label(class="form-control-label") }}
+				{% if form.notes_from_processing.errors %}
+					{{ form.notes_from_processing(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.notes_from_processing.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
 				{% else %}
-					(No need to stitch)
+					{{ form.notes_from_processing(class="form-control form-control-lg") }}
 				{% endif %}
-				</a>
-			
-				<hr class='class-2'>
-				<!-- Data products section -->
-				<a id='larger'>Data products that will be created for this channel: <a>
-
-				<ul>
-					<li>Blended raw data (.TIFs for each z plane)</li>
-					<li>Downsampled data (.TIF stack)</li>
-					{% if registration_used %}
-						<li>Downsampled data registered to atlas (.TIF stack)</li>
-					{% endif %}
-					{% if 'registration' in channel_purposes_str %}
-						<li>Registration parameters</li>
-					{% endif %}
-
-				</ul>  
 			</div>
-		{% endfor %}
-		<hr class='class-1'>
-		<h3 class='mb-4'>Final steps:</h3>
 
-		<div class="form-group">
-			{% if form.finalorientation.flags.required %}*{% endif %}
-			{{ form.finalorientation.label(class="form-control-label") }}
-			{% if form.finalorientation.errors %}
-				{{ form.finalorientation(class="form-control form-control-lg is-invalid") }}
-				<div class="invalid-feedback">
-					{% for error in form.finalorientation.errors %}
-						<span>{{ error }}</span>
-					{% endfor %}
-				</div>
-			{% else %}
-				{{ form.finalorientation(class="form-control form-control-lg") }}
-			{% endif %}
-		</div>
-
-	    <div class="form-group">
-			{% if form.notes_from_processing.flags.required %}*{% endif %}
-			{{ form.notes_from_processing.label(class="form-control-label") }}
-			{% if form.notes_from_processing.errors %}
-				{{ form.notes_from_processing(class="form-control form-control-lg is-invalid") }}
-				<div class="invalid-feedback">
-					{% for error in form.notes_from_processing.errors %}
-						<span>{{ error }}</span>
-					{% endfor %}
-				</div>
-			{% else %}
-				{{ form.notes_from_processing(class="form-control form-control-lg") }}
-			{% endif %}
-		</div>
-	
-		<div class="form-group">
-			{{ form.submit(class="btn btn-lg btn-info mt-2") }}
-		</div>
-	</fieldset>
-</form>
+			<div class="form-group">
+				{{ form.submit(class="btn btn-lg btn-info mt-2") }}
+			</div>
+		</fieldset>
+	</form>
 {% endblock content %}

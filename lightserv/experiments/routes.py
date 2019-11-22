@@ -201,10 +201,9 @@ def new_exp():
 							if val != None and val !='None' and key not in ['csrf_token','sample_name']:
 								sample_insert_dict[key] = val
 
-						""" DO the channel inserts 
-						by retrieving data from each image resolution subform the user created """
+						""" Now insert each image resolution/channel combo """
+						channel_insert_list = []
 						for resolution_dict in imaging_sample_dict['resolution_table_fieldlist']:
-							channel_insert_list = []
 
 							for imaging_channel_dict in resolution_dict['channels']:
 								

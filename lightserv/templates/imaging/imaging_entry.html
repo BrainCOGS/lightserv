@@ -24,8 +24,7 @@
 	<table class="table table-bordered table-striped text-center mb-4">
         <tr>
             <th>Channel wavelength(nm)</th>
-            <th>Image resolution requested</th>
-            <th>*Image resolution used</th>
+            <th>Image resolution </th>
            	<th>*Tiling scheme </th>
            	<th>*Tiling overlap </th>
            	<th>*Z_step (microns) </th>
@@ -40,8 +39,7 @@
 		{{ channel_entry.channel_name() }}
 			<tr>   
 			    <td>{{channel_name}}</td>
-			    <td>{{channel_content.image_resolution_requested}}</td>
-			    <td>{{channel_entry.image_resolution_used}}</td>
+			    <td>{{channel_content.image_resolution}}</td>
 			    <td>
 			    	<div class="form-group">
 						{% if channel_entry.tiling_scheme.errors %}
@@ -100,14 +98,16 @@
 	</div>
 
 	<div>
-		<h3> and record the name of the raw data folder for each channel </h3> 
-
+		<h3> and record the name of the raw data subfolder for each channel </h3> 
+		<p> (e.g. "190820_m61468_observ_20190628_1d3x_647_008na_1hfds_z5um_250msec_14-50-40") </p>
 		<table class="table table-bordered table-striped text-center mb-4">
 			<col width="15%">
-			<col width="85%">
+			<col width="15%">
+			<col width="70%">
         <tr>
             <th>Channel wavelength(nm)</th>
-            <th>raw data subfolder</th>
+            <th>Image resolution</th>
+            <th>*Raw data subfolder</th>
         </tr>
 		{% for ii in range(channel_content_dict_list|length) %}
 			{% set channel_entry = form.channels[ii] %}
@@ -115,6 +115,7 @@
 			{% set channel_name = channel_content['channel_name'] %}
 		<tr>   
 		    <td>{{channel_name}}</td>
+		    <td>{{channel_content.image_resolution}}</td>
 		    <td>
 			<div class="form-group">
 				{% if channel_entry.rawdata_subfolder.errors %}

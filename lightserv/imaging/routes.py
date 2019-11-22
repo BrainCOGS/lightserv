@@ -114,9 +114,8 @@ def imaging_entry(username,experiment_name,sample_name):
 				experiment_name=experiment_name,sample_name=sample_name))
 			
 			""" Loop through the channels in the form  
-			and update the existing table entry """
+			and update the existing table entries with the new imaging information """
 			subfolder_dict = {}
-			subfolder_dict = {}				
 
 			for form_channel_dict in sorted(form.channels.data,key=lambda x: x['channel_name']):
 				# logger.info(form_channel_dict)
@@ -129,8 +128,8 @@ def imaging_entry(username,experiment_name,sample_name):
 					subfolder_dict[rawdata_subfolder] = [channel_name]
 				channel_index = subfolder_dict[rawdata_subfolder].index(channel_name)
 				logger.info(f" channel {channel_name} has channel_index = {channel_index}")
-				""" Now look for the number of z planes in that folder and validate that it is 
-				the same as the user specified """
+				""" Now look for the number of z planes in the raw data subfolder on bucket
+				 and validate that it is the same as the user specified """
 				rawdata_fullpath = os.path.join(current_app.config['RAWDATA_ROOTPATH'],username,
 					experiment_name,sample_name,rawdata_subfolder) 
 				number_of_z_planes_found = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*Filter000{channel_index}*'))
@@ -141,7 +140,6 @@ def imaging_entry(username,experiment_name,sample_name):
 					return redirect(url_for('imaging.imaging_entry',username=username,
 						experiment_name=experiment_name,sample_name=sample_name))
 
-
 				channel_content = channel_contents & f'channel_name="{channel_name}"'
 				channel_content_dict = channel_content.fetch1()
 				''' Make a copy of the current row in a new dictionary which we will insert '''
@@ -151,7 +149,7 @@ def imaging_entry(username,experiment_name,sample_name):
 					channel_insert_dict[key] = val
 				''' Now replace the values in the dict from the form input '''
 				for key,val in form_channel_dict.items():
-					if key in channel_content_dict.keys():
+					if key in channel_content_dict.keys() and key not in ['channel_name','image_resolution']:
 						channel_insert_dict[key] = val
 				channel_insert_dict['imspector_channel_index'] = channel_index
 				logger.info("Inserting {}".format(channel_insert_dict))
@@ -186,8 +184,12 @@ def imaging_entry(username,experiment_name,sample_name):
 			form.channels.pop_entry()
 		for channel_content_dict in channel_content_dict_list:
 			form.channels.append_entry()
+			''' set the channel name and image resolution hidden field data
+			so we can use it for validation in the form '''
 			channel_name = channel_content_dict['channel_name']
 			form.channels[-1].channel_name.data = channel_name
+			image_resolution = channel_content_dict['image_resolution']
+			form.channels[-1].image_resolution.data = image_resolution
 
 
 	sample_dict = sample_contents.fetch1()

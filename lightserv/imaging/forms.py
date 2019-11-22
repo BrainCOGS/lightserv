@@ -27,8 +27,7 @@ class ChannelForm(FlaskForm):
 	so I dont have to write the imaging parameters out for each channel
 	"""
 	channel_name = HiddenField('Channel name')
-	image_resolution_used = SelectField('Select image resolution used:', choices=[('1.3x','1.3x'),
-	('4x','4x'),('1.1x','1.1x'),('2x','2x')],validators=[InputRequired()]) 
+	image_resolution = HiddenField('Image resolution')
 	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',default='1x1')
 	tiling_overlap = DecimalField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
 		places=2,validators=[Optional()],default=0.1) 
@@ -55,10 +54,10 @@ class ChannelForm(FlaskForm):
 		except:
 			raise ValidationError("Tiling scheme is not in correct format."
 								  " Make sure it is like: 1x1 with no spaces.")	
-		if self.image_resolution_used.data in ['1.1x','1.3x']:
+		if self.image_resolution.data in ['1.1x','1.3x']:
 			if n_rows > 2 or n_columns > 2:
 				raise ValidationError("Tiling scheme must not exceed 2x2 for this resolution")
-		elif self.image_resolution_used.data in ['2x','4x']:
+		elif self.image_resolution.data in ['2x','4x']:
 			if n_rows > 4 or n_columns > 4:
 				raise ValidationError("Tiling scheme must not exceed 4x4 for this resolution")
 
@@ -81,6 +80,20 @@ class ImagingForm(FlaskForm):
 	notes_from_imaging = TextAreaField("Note down anything additional about the imaging"
 									   " that you would like recorded")
 	channels = FieldList(FormField(ChannelForm),min_entries=0,max_entries=max_number_of_channels)
-	submit = SubmitField('Click when imaging is complete and all files are on bucket in the folder above')
+	submit = SubmitField('Click when imaging is complete and data are on bucket')
 
+
+class ImageResolutionForm(FlaskForm):
+	""" A form for each image resolution that a user picks """
+	image_resolution = HiddenField('image resolution')
+	channels = FieldList(FormField(ChannelForm),min_entries=4,max_entries=4)
+	notes_for_imager = TextAreaField('''Special notes for imaging 
+		(e.g. z step size, exposure time, suggested tiling scheme -- make sure to specify which channel) -- max 1024 characters --''',
+		validators=[Length(max=1024)])
+
+	notes_for_processor = TextAreaField('''Special notes for processing 
+		 -- max 1024 characters --''',validators=[Length(max=1024)])
 	
+	atlas_name = SelectField('Atlas for registration',
+		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
+				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])	
