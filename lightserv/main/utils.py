@@ -11,7 +11,7 @@ logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
 
 ''' Make the file handler to deal with logging to file '''
-file_handler = logging.FileHandler('logs/clearing_routes.log')
+file_handler = logging.FileHandler('logs/logging_in_routes.log')
 file_handler.setFormatter(formatter)
 
 stream_handler = logging.StreamHandler() # level already set at debug from logger.setLevel() above

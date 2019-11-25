@@ -262,19 +262,19 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
         elif item['clearing_protocol'] == 'iDISCO+_immuno':
             return {'bgcolor':'#A4FCFA'} # cyan
         elif item['clearing_protocol'] == 'uDISCO':
-            return {'bgcolor':'#6A7CF9'} # blue
+            return {'bgcolor':'#B5B9D4'} # gray-blue
         elif item['clearing_protocol'] == 'iDISCO_EdU':
             return {'bgcolor':'#F4F96A'}
         else:
             return {}
         
-
     options = dict(
         border = True,
         allow_sort = True,
         no_items = "No samples at the moment",
         html_attrs = {"style":'font-size:18px'}, 
         table_id = table_id,
+        classes = ['mb-4']
         ) 
 
     table_class = create_table(name,options=options)
@@ -313,6 +313,10 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
             anchor_attrs=anchor_attrs,allow_sort=False))
     elif table_id == 'horizontal_being_cleared_table':
         table_class.add_column('continue_clearing_link',LinkCol('Continue clearing',
+         'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
+            anchor_attrs=anchor_attrs,allow_sort=False))
+    elif table_id == 'horizontal_already_cleared_table':
+        table_class.add_column('view_clearing_link',LinkCol('View clearing',
          'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))
          

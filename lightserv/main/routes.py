@@ -37,6 +37,8 @@ main = Blueprint('main',__name__)
 @main.route("/welcome")
 @logged_in
 def welcome(): 
+	username = session['user']
+	logger.info(f"{username} accessed welcome page")
 	return render_template('main/welcome.html',)
 
 @main.route("/home")
