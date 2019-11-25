@@ -71,7 +71,7 @@ def login():
 		username = request.headers['X-Remote-User']
 	else:
 		username = 'ahoag'
-
+	
 	session['user'] = username
 	''' If user not already in User() table, then add them '''
 	all_usernames = db_lightsheet.User().fetch('username') 

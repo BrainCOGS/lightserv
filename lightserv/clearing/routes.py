@@ -36,6 +36,8 @@ clearing = Blueprint('clearing',__name__)
 @clearing.route("/clearing/clearing_manager",methods=['GET','POST'])
 @logged_in_as_clearing_manager
 def clearing_manager():
+	current_user = session['user']
+	logger.info(f"{current_user} accessed clearing manager")
 	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sample_contents = db_lightsheet.Sample()

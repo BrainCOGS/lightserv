@@ -11,7 +11,7 @@ logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
 
 ''' Make the file handler to deal with logging to file '''
-file_handler = logging.FileHandler('logs/logging_in_routes.log')
+file_handler = logging.FileHandler('logs/main_utils.log')
 file_handler.setFormatter(formatter)
 
 stream_handler = logging.StreamHandler() # level already set at debug from logger.setLevel() above
@@ -47,9 +47,8 @@ def logged_in_as_clearer(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
-			username = session['user']
-			# if username == 'ahoag': # admin rights
-			# 	return f(*args, **kwargs)
+			current_user = session['user']
+
 			experiment_name = kwargs['experiment_name']
 			sample_name = kwargs['sample_name']
 			username = kwargs['username']
@@ -60,22 +59,22 @@ def logged_in_as_clearer(f):
 			if clearer == "not yet assigned":
 				logger.info("Clearing entry form accessed with clearer not yet assigned. ")
 				''' now check to see if user is a designated clearer ''' 
-				if username in ['ll3','zmd','jduva','ahoag','kellyms']: # 
-					dj.Table._update(sample_contents,'clearer',username)
-					logger.info(f"{username} is a designated clearer and is now assigned as the clearer")
+				if current_user in ['ll3','zmd','jduva','ahoag','kellyms']: # 
+					dj.Table._update(sample_contents,'clearer',current_user)
+					logger.info(f"Current user: {current_user} is a designated clearer and is now assigned as the clearer")
 					return f(*args, **kwargs)
 				else: # user is not a designated clearer and did not self assign
-					logger.info(f"""{username} is not a designated clearer and did not specify themselves
+					logger.info(f"""Current user: {current_user} is not a designated clearer and did not specify themselves
 					 as the clearer when submitting request. Denying them access""")
 					flash('''You do not have permission to access the clearing form for this experiment. 
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
 					return redirect(url_for('main.welcome'))
 			else: # clearer is assigned - only allow access to clearing entry to them
-				if username == clearer:
-					logger.info(f"{username} is the rightful clearer and accessed the clearing entry form")
+				if current_user == clearer:
+					logger.info(f"{current_user} is the rightful clearer and accessed the clearing entry form")
 					return f(*args, **kwargs)
 				else:
-					logger.info(f"""{username} is not the clearer. Denying them access""")
+					logger.info(f"""Current user: {current_user} is not the clearer and not a clearing manager. Denying them access""")
 					flash('''The clearer has already been assigned for this entry and you are not them.  
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
 					return redirect(url_for('main.welcome'))
@@ -85,12 +84,11 @@ def logged_in_as_clearer(f):
 			return redirect(login_url)
 	return decorated_function
 
-
 def logged_in_as_processor(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
-			username = session['user']
+			current_user = session['user']
 			experiment_name = kwargs['experiment_name']
 			sample_name = kwargs['sample_name']
 			username = kwargs['username']
@@ -101,38 +99,38 @@ def logged_in_as_processor(f):
 			if processor == "not yet assigned":
 				logger.info("processing entry form accessed with processor not yet assigned. ")
 				''' now check to see if user is a designated processor ''' 
-				if username in processing_admins: # 
-					dj.Table._update(sample_contents,'processor',username)
-					logger.info(f"{username} is a designated processor and is now assigned as the processor")
+				if current_user in processing_admins: # 
+					dj.Table._update(sample_contents,'processor',current_user)
+					logger.info(f"{current_user} is a designated processor and is now assigned as the processor")
 					return f(*args, **kwargs)
 				else: # user is not a designated processor and did not self assign
-					logger.info(f"""{username} is not a designated processor and did not specify themselves
+					logger.info(f"""Current user: {current_user} is not a designated processor and did not specify themselves
 					 as the processor when submitting request. Denying them access""")
 					flash('''You do not have permission to access the processing form for this experiment. 
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
 					return redirect(url_for('main.welcome'))
 			else: # processor is assigned 
 				if processor in processing_admins: # one of the admins started the form
-					if username in processing_admins: # one of the admins is accessing the form
+					if current_user in processing_admins: # one of the admins is accessing the form
 						
-						if username != processor:
-							logger.info(f"""{username} accessed the form of which {processor} is the processor""")
+						if current_user != processor:
+							logger.info(f"""Current user: {current_user} accessed the form of which {processor} is the processor""")
 							flash("While you have access to this page, "
 								  "you are not the primary processor "
 								  "so please proceed with caution.",'warning')
 							return f(*args, **kwargs)
 						else:
-							logger.info(f"""{username} is the rightful processor and so is allowed access""")
+							logger.info(f"""Current user: {current_user} is the rightful processor and so is allowed access""")
 							return f(*args, **kwargs)
 					else:
 						flash(("The processor has already been assigned for this entry "
 							  "and you are not them. Please email us at lightservhelper@gmail.com "  
 						      "if you think there has been a mistake."),'warning')
-				elif processor == username:
-					logger.info(f"{username} is the rightful processor and so is allowed access")
+				elif processor == current_user:
+					logger.info(f"Current user: {current_user} is the rightful processor and so is allowed access")
 					return f(*args, **kwargs)
 				else:
-					logger.info(f"""{username} is not the processor. Denying them access""")
+					logger.info(f"""{current_user} is not the processor. Denying them access""")
 					flash(("The processor has already been assigned for this entry "
 							  "and you are not them. Please email us at lightservhelper@gmail.com "  
 						      "if you think there has been a mistake."),'warning')
@@ -148,11 +146,12 @@ def logged_in_as_clearing_manager(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
-			username = session['user']
-			if username in ['ahoag','ll3','zmd']: # the clearing managers and admins
+			current_user = session['user']
+			if current_user in ['ahoag','ll3','zmd']: # the clearing managers and admins
+				logger.info(f"Current user: {current_user} is a clearing manager. Allowing them access.")
 				return f(*args, **kwargs)
 			else:
-				logger.info(f"""{username} is not a clearing manager. Denying them access""")
+				logger.info(f"""Current user: {current_user} is not a clearing manager. Denying them access""")
 				flash('''You do not have access to this page.  
 					Please email us at lightservhelper@gmail.com if you think there has been a mistake.''',
 					'warning')
@@ -167,7 +166,7 @@ def logged_in_as_imager(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
-			username = session['user']
+			current_user = session['user']
 			experiment_name = kwargs['experiment_name']
 			sample_name = kwargs['sample_name']
 			username = kwargs['username']
@@ -178,38 +177,38 @@ def logged_in_as_imager(f):
 			if imager == "not yet assigned":
 				logger.info("Imaging entry form accessed with imager not yet assigned. ")
 				''' now check to see if user is a designated imager ''' 
-				if username in imaging_admins: # 
-					dj.Table._update(sample_contents,'imager',username)
-					logger.info(f"{username} is a designated imager and is now assigned as the imager")
+				if current_user in imaging_admins: # 
+					dj.Table._update(sample_contents,'imager',current_user)
+					logger.info(f"{current_user} is a designated imager and is now assigned as the imager")
 					return f(*args, **kwargs)
 				else: # user is not a designated imager and did not self assign
-					logger.info(f"""{username} is not a designated imager and did not specify themselves
+					logger.info(f"""Current user: {current_user} is not a designated imager and did not specify themselves
 					 as the imager when submitting request. Denying them access""")
 					flash('''You do not have permission to access the imaging form for this experiment. 
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
 					return redirect(url_for('main.welcome'))
 			else: # imager is assigned 
 				if imager in imaging_admins: # one of the admins started the form
-					if username in imaging_admins: # one of the admins is accessing the form
+					if current_user in imaging_admins: # one of the admins is accessing the form
 						
-						if username != imager:
-							logger.info(f"""{username} accessed the form of which {imager} is the imager""")
+						if current_user != imager:
+							logger.info(f"""Current user: {current_user} accessed the form of which {imager} is the imager""")
 							flash("While you have access to this page, "
 								  "you are not the primary imager "
 								  "so please proceed with caution.",'warning')
 							return f(*args, **kwargs)
 						else:
-							logger.info(f"""{username} is the rightful imager and so is allowed access""")
+							logger.info(f"""Current user: {current_user} is the rightful imager and so is allowed access""")
 							return f(*args, **kwargs)
 					else:
 						flash(("The imager has already been assigned for this entry "
 							  "and you are not them. Please email us at lightservhelper@gmail.com "  
 						      "if you think there has been a mistake."),'warning')
-				elif imager == username:
-					logger.info(f"{username} is the rightful imager and so is allowed access")
+				elif imager == current_user:
+					logger.info(f"Current user: {current_user} is the rightful imager and so is allowed access")
 					return f(*args, **kwargs)
 				else:
-					logger.info(f"""{username} is not the imager. Denying them access""")
+					logger.info(f"""Current user: {current_user} is not the imager. Denying them access""")
 					flash(("The imager has already been assigned for this entry "
 							  "and you are not them. Please email us at lightservhelper@gmail.com "  
 						      "if you think there has been a mistake."),'warning')
@@ -224,10 +223,12 @@ def image_manager(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
-			username = session['user']
-			if username in ['ahoag','jduva','zmd']: # admin rights
+			current_user = session['user']
+			if current_user in ['ahoag','jduva','zmd']: # admin rights
+				logger.info(f"Current user: {current_user} is an imaging admin. Allowing them access")
 				return f(*args, **kwargs)
 			else:
+				logger.info(f"Current user: {current_user} is not an imaging admin. Denying them access.")
 				flash("You do not have access to this page. \
 					Please email us at lightservhelper@gmail.com if you think there has been a mistake.")
 				return redirect(url_for('main.welcome'))
