@@ -70,14 +70,13 @@ class ImagingForm(FlaskForm):
 	"""
 	sample_name = HiddenField("sample_name") # helpful for flash message -- keeps track of sample a form error occurred in
 
-	
-	image_resolution_forsetup = SelectField('Add an additional image resolution?', 
+	image_resolution_forsetup = SelectField('Select an image resolution you want to use:', 
 		choices=[('1.3x','1.3x'),
 	('4x','4x'),('1.1x','1.1x'),('2x','2x')],default='')   
 
 	resolution_table_fieldlist = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=4)
 
-	new_image_resolution_form_submit = SubmitField('Generate imaging table') # renders a new resolution table
+	new_image_resolution_form_submit = SubmitField('Set up imaging parameters') # renders a new resolution table
 
 
 class NewRequestForm(FlaskForm):

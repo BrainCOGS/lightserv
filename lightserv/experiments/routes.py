@@ -62,10 +62,11 @@ def new_exp():
 		if form.validate_on_submit():
 			""" figure out which button was pressed """
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x and form[x].data]
-			try: # see if submit key was either sample setup or final submit button
+			if len(submit_keys) == 1: # submit key was either sample setup or final submit button
 				submit_key = submit_keys[0]
-			except: # it was not, which means it was one of the resolution table setup buttons
+			else: # submit key came from within a sub-form, meaning one of the resolution table setup buttons
 				""" find which sample this came from """
+				submit_key = 'other'
 				for ii in range(len(form.imaging_samples.data)):
 					imaging_dict = form.imaging_samples.data[ii]
 					if imaging_dict['new_image_resolution_form_submit'] == True:
@@ -76,7 +77,7 @@ def new_exp():
 						""" now pick out which form we currently just made """
 						image_resolution_form = image_resolution_forms[resolution_table_index]
 						image_resolution_form.image_resolution.data = image_resolution_forsetup
-						submit_key = 'other'
+						
 						column_name = f'imaging_samples-{ii}-resolution_table_fieldlist-{resolution_table_index}-channels-0-registration'
 						# Now make 4 new channel formfields and set defaults and channel names
 						for x in range(4):
@@ -86,8 +87,7 @@ def new_exp():
 							# Make the default for channel 488 to be 1.3x imaging with registration checked
 							if channel_name == '488' and image_resolution_forsetup == "1.3x":
 								image_resolution_form.channels[x].registration.data = 1
-				else:
-					submit_key = 'other'
+				
 			""" Handle "setup samples" button pressed """
 			if submit_key == 'sample_submit_button': # The sample setup button
 				logger.info("sample submit")

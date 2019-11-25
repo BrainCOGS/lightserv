@@ -352,6 +352,9 @@
 						{% endfor %}
 
 						<!-- Make the image resolution select field and button for making a new table of channels -->
+						{% if imaging_entry.resolution_table_fieldlist|length > 0 %}
+							<h5> Add an additional imaging resolution? </h5>
+						{% endif %}
 						<div class="form-group">
 							{{ imaging_entry.image_resolution_forsetup.label(class="form-control-label") }}
 							{% if imaging_entry.image_resolution_forsetup.errors %}
