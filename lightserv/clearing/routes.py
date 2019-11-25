@@ -97,7 +97,6 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 	''' If there are contents and the form is blank, then that means the user is accessing the form 
 	to edit it from a previous session and we should pre-load the current contents of the db '''
 	if clearing_contents and (not request.form):
-		print("We should autofill")
 		fill_dict = {'exp_notes':'some_notes'}
 		form = determine_clearing_form(clearing_protocol,existing_form=request.form)
 		for key,val in list(clearing_contents.fetch1().items()):

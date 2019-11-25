@@ -125,8 +125,9 @@ class Sample(dj.Manual):
 		dehydr_methanol_100percent_wash1_notes = ""                 :   varchar(250)
 		time_dehydr_methanol_100percent_wash2 = NULL                :   datetime
 		dehydr_methanol_100percent_wash2_notes = ""                 :   varchar(250)
-		time_dehydr_h202_wash1 = NULL                            :   datetime
-		dehydr_h202_wash1_notes = ""                             :   varchar(250)
+		time_dehydr_peroxide_wash1 = NULL                            :   datetime
+		dehydr_peroxide_wash1_notes = ""                             :   varchar(250)
+		
 		time_rehydr_methanol_100percent_wash1 = NULL                :   datetime
 		rehydr_methanol_100percent_wash1_notes = ""                 :   varchar(250)
 		time_rehydr_methanol_80percent_wash1 = NULL                 :   datetime
@@ -273,8 +274,8 @@ class Sample(dj.Manual):
 		dehydr_methanol_100percent_wash1_notes = ""                 :   varchar(250)
 		time_dehydr_methanol_100percent_wash2 = NULL                :   datetime
 		dehydr_methanol_100percent_wash2_notes = ""                 :   varchar(250)
-		time_dehydr_h202_wash1 = NULL                            :   datetime
-		dehydr_h202_wash1_notes = ""                             :   varchar(250)
+		time_dehydr_peroxide_wash1 = NULL                            :   datetime
+		dehydr_peroxide_wash1_notes = ""                             :   varchar(250)
 		time_dehydr_methanol_100percent_wash3 = NULL                :   datetime
 		dehydr_methanol_100percent_wash3_notes = ""                 :   varchar(250)
 		time_dehydr_methanol_100percent_wash4 = NULL                :   datetime
@@ -347,8 +348,8 @@ class Sample(dj.Manual):
 		time_dehydr_methanol_100percent_wash2 = NULL             :   datetime
 		dehydr_methanol_100percent_wash2_notes = ""              :   varchar(250)
 		
-		time_dehydr_h202_wash1 = NULL                            :   datetime
-		dehydr_h202_wash1_notes = ""                             :   varchar(250)
+		time_dehydr_peroxide_wash1 = NULL                            :   datetime
+		dehydr_peroxide_wash1_notes = ""                             :   varchar(250)
 		time_rehydr_methanol_100percent_wash1 = NULL             :   datetime
 		rehydr_methanol_100percent_wash1_notes = ""              :   varchar(250)
 		time_rehydr_methanol_80percent_wash1 = NULL              :   datetime

@@ -25,7 +25,8 @@ class iDiscoPlusImmunoForm(FlaskForm):
 		experiment that might affect clearing, please note it here.',validators=[Length(max=500)])
 	exp_notes_submit = SubmitField('Update')
 	
-	dehydr_date = OptionalDateField('Day 1: Dehydration')
+	""" Dehydration """
+	dehydr_date = OptionalDateField('Dehydration')
 	dehydr_date_submit = SubmitField('Push date to calendar (optional)')
 	time_dehydr_pbs_wash1 = OptionalDateTimeLocalField('1xPBS 30 min R@RT')
 	time_dehydr_pbs_wash1_submit = SubmitField('Update')
@@ -55,29 +56,26 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	time_dehydr_methanol_80percent_wash1_submit = SubmitField('Update')
 	dehydr_methanol_80percent_wash1_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	dehydr_methanol_80percent_wash1_notes_submit = SubmitField('Update Notes')
-
 	time_dehydr_methanol_100percent_wash1 = OptionalDateTimeLocalField('100% methanol R@RTx1hr (first hour)')
 	time_dehydr_methanol_100percent_wash1_submit = SubmitField('Update')
 	dehydr_methanol_100percent_wash1_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	dehydr_methanol_100percent_wash1_notes_submit = SubmitField('Update Notes')
-
 	time_dehydr_methanol_100percent_wash2 = OptionalDateTimeLocalField('100% methanol R@RTx1hr (second hour)')
 	time_dehydr_methanol_100percent_wash2_submit = SubmitField('Update')
 	dehydr_methanol_100percent_wash2_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	dehydr_methanol_100percent_wash2_notes_submit = SubmitField('Update Notes')
+	time_dehydr_peroxide_wash1 = OptionalDateTimeLocalField('5% peroxide (30%) in methanol(100%) O/N R@RT (1 part peroxide5 parts methanol)')
+	time_dehydr_peroxide_wash1_submit = SubmitField('Update')
+	dehydr_peroxide_wash1_notes = TextAreaField('Notes',validators=[Length(max=250)])
+	dehydr_peroxide_wash1_notes_submit = SubmitField('Update Notes')
 
-	time_dehydr_h202_wash1 = OptionalDateTimeLocalField('5% H2O2(30%) in methanol(100%) O/N R@RT (1 part H2O2:5 parts methanol)')
-	time_dehydr_h202_wash1_submit = SubmitField('Update')
-	dehydr_h202_wash1_notes = TextAreaField('Notes',validators=[Length(max=250)])
-	dehydr_h202_wash1_notes_submit = SubmitField('Update Notes')
-
-	rehydr_date = OptionalDateField('Day 2: Rehydration')
+	""" Rehydration """
+	rehydr_date = OptionalDateField('Rehydration')
 	rehydr_date_submit = SubmitField('Push date to calendar (optional)')
 	time_rehydr_methanol_100percent_wash1 = OptionalDateTimeLocalField('100% methanol R@RTx1hr')
 	time_rehydr_methanol_100percent_wash1_submit = SubmitField('Update')
 	rehydr_methanol_100percent_wash1_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	rehydr_methanol_100percent_wash1_notes_submit = SubmitField('Update Notes')
-
 	time_rehydr_methanol_80percent_wash1 = OptionalDateTimeLocalField('80% methanol R@RTx1hr')
 	time_rehydr_methanol_80percent_wash1_submit = SubmitField('Update')
 	rehydr_methanol_80percent_wash1_notes = TextAreaField('Notes',validators=[Length(max=250)])
@@ -111,7 +109,8 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	rehydr_glycine_wash1_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	rehydr_glycine_wash1_notes_submit = SubmitField('Update Notes')
 
-	blocking_date = OptionalDateField('Day 3: Blocking')
+	""" Blocking """
+	blocking_date = OptionalDateField('Blocking')
 	blocking_date_submit = SubmitField('Push date to calendar (optional)')
 	time_blocking_start_roomtemp = OptionalDateTimeLocalField('Sample R@RT for ~1.5hrs')
 	time_blocking_start_roomtemp_submit = SubmitField('Update')
@@ -122,29 +121,28 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	blocking_donkey_serum_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	blocking_donkey_serum_notes_submit = SubmitField('Update Notes')
 
-	antibody1_date = OptionalDateField('Day 4: Primary Antibody')
+	""" Primary Antibody """
+	antibody1_date = OptionalDateField('Primary Antibody')
 	antibody1_date_submit = SubmitField('Push date to calendar (optional)')
 	time_antibody1_start_roomtemp = OptionalDateTimeLocalField('Sample R@RT for ~1.5hrs')
 	time_antibody1_start_roomtemp_submit = SubmitField('Update')
 	antibody1_start_roomtemp_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	antibody1_start_roomtemp_notes_submit = SubmitField('Update Notes')
-
 	time_antibody1_ptwh_wash1 = OptionalDateTimeLocalField('PTwH R@RTx1hr (first hour)')
 	time_antibody1_ptwh_wash1_submit = SubmitField('Update')
 	antibody1_ptwh_wash1_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	antibody1_ptwh_wash1_notes_submit = SubmitField('Update Notes')
-
 	time_antibody1_ptwh_wash2 = OptionalDateTimeLocalField('PTwH R@RTx1hr (second hour)')
 	time_antibody1_ptwh_wash2_submit = SubmitField('Update')
 	antibody1_ptwh_wash2_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	antibody1_ptwh_wash2_notes_submit = SubmitField('Update Notes')
-
 	time_antibody1_added = OptionalDateTimeLocalField('primary antibody (5% DMSO, 3% donkey serum in PTwH); 37C 7d')
 	time_antibody1_added_submit = SubmitField('Update')
 	antibody1_added_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	antibody1_added_notes_submit = SubmitField('Update Notes')
 
-	wash1_date = OptionalDateField('Day 5: Wash')
+	""" Wash 1 """
+	wash1_date = OptionalDateField('Wash')
 	wash1_date_submit = SubmitField('Push date to calendar (optional)')
 	time_wash1_start_roomtemp = OptionalDateTimeLocalField('Sample R@RT for ~1.5hrs')
 	time_wash1_start_roomtemp_submit = SubmitField('Update')
@@ -171,14 +169,16 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	wash1_ptwh_wash5_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	wash1_ptwh_wash5_notes_submit = SubmitField('Update Notes')
 
-	antibody2_date = OptionalDateField('Day 6: Secondary Antibody')
+	""" Secondary Antibody """
+	antibody2_date = OptionalDateField('Secondary Antibody')
 	antibody2_date_submit = SubmitField('Push date to calendar (optional)')
 	time_antibody2_added = OptionalDateTimeLocalField('2nd antibody solution R@37°C for 7 days (3% donkey serum/PTwH)')
 	time_antibody2_added_submit = SubmitField('Update')
 	antibody2_added_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	antibody2_added_notes_submit = SubmitField('Update Notes')
 
-	wash2_date = OptionalDateField('Day 7: Wash')
+	""" Wash 2 """
+	wash2_date = OptionalDateField('Wash')
 	wash2_date_submit = SubmitField('Push date to calendar (optional)')
 	time_wash2_start_roomtemp = OptionalDateTimeLocalField('Sample R@RT for ~1.5hrs')
 	time_wash2_start_roomtemp_submit = SubmitField('Update')
@@ -205,7 +205,8 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	wash2_ptwh_wash5_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	wash2_ptwh_wash5_notes_submit = SubmitField('Update Notes')
 
-	clearing_date = OptionalDateField('Day 8: Clearing')
+	""" Clearing """
+	clearing_date = OptionalDateField('Clearing')
 	clearing_date_submit = SubmitField('Push date to calendar (optional)')
 	time_clearing_methanol_20percent_wash1 = OptionalDateTimeLocalField('20% methanol R@RTx1hr')
 	time_clearing_methanol_20percent_wash1_submit = SubmitField('Update')
@@ -263,7 +264,7 @@ class iDiscoAbbreviatedForm(FlaskForm):
 		the experiment that might affect clearing, please note it here.',validators=[Length(max=500)])
 	exp_notes_submit = SubmitField('Update')
 	
-	pbs_date = OptionalDateField('Day 1: PBS wash')
+	pbs_date = OptionalDateField('PBS wash')
 	pbs_date_submit = SubmitField('Push date to calendar (optional)')
 	time_pbs_wash1 = OptionalDateTimeLocalField('Wash 1')
 	time_pbs_wash1_submit = SubmitField('Update')
@@ -278,7 +279,7 @@ class iDiscoAbbreviatedForm(FlaskForm):
 	pbs_wash3_notes = TextAreaField('Notes:',validators=[Length(max=250)])
 	pbs_wash3_notes_submit = SubmitField('Update Notes')
 	
-	dehydr_date = OptionalDateField('Day 1 or 2: Dehydration')
+	dehydr_date = OptionalDateField('Dehydration')
 	dehydr_date_submit = SubmitField('Push date to calendar (optional)')
 	time_dehydr_methanol_20percent_wash1 = OptionalDateTimeLocalField('20% methanol R@RTx1hr')
 	time_dehydr_methanol_20percent_wash1_submit = SubmitField('Update')
@@ -336,7 +337,7 @@ class iDiscoAbbreviatedRatForm(FlaskForm):
 		during the experiment that might affect clearing, please note it here.',validators=[Length(max=500)])
 	exp_notes_submit = SubmitField('Update')
 	
-	pbs_date = OptionalDateField('Day 1: PBS wash')
+	pbs_date = OptionalDateField('PBS wash')
 	pbs_date_submit = SubmitField('Push date to calendar (optional)')
 	time_pbs_wash1 = OptionalDateTimeLocalField('1xPBS R@RT30min')
 	time_pbs_wash1_submit = SubmitField('Update')
@@ -351,7 +352,7 @@ class iDiscoAbbreviatedRatForm(FlaskForm):
 	pbs_wash3_notes = TextAreaField('Notes:',validators=[Length(max=250)])
 	pbs_wash3_notes_submit = SubmitField('Update Notes')
 	
-	dehydr_date = OptionalDateField('Day 1 or 2: Dehydration')
+	dehydr_date = OptionalDateField('Dehydration')
 	dehydr_date_submit = SubmitField('Push date to calendar (optional)')
 	
 	time_dehydr_methanol_20percent_wash1 = OptionalDateTimeLocalField('20% methanol R@RTX3hrs (wash 1/2)')
@@ -394,10 +395,10 @@ class iDiscoAbbreviatedRatForm(FlaskForm):
 	time_dehydr_methanol_100percent_wash2_submit = SubmitField('Update')
 	dehydr_methanol_100percent_wash2_notes = TextAreaField('Notes:',validators=[Length(max=250)])
 	dehydr_methanol_100percent_wash2_notes_submit = SubmitField('Update Notes')
-	time_dehydr_h202_wash1 = OptionalDateTimeLocalField('5% H202 / Methanol (1 part 30% H202: 5 parts 100% methanol) ')
-	time_dehydr_h202_wash1_submit = SubmitField('Update')
-	dehydr_h202_wash1_notes = TextAreaField('Notes:',validators=[Length(max=250)])
-	dehydr_h202_wash1_notes_submit = SubmitField('Update Notes')
+	time_dehydr_peroxide_wash1 = OptionalDateTimeLocalField('5% peroxide / Methanol (1 part 30% peroxide: 5 parts 100% methanol) ')
+	time_dehydr_peroxide_wash1_submit = SubmitField('Update')
+	dehydr_peroxide_wash1_notes = TextAreaField('Notes:',validators=[Length(max=250)])
+	dehydr_peroxide_wash1_notes_submit = SubmitField('Update Notes')
 	time_dehydr_methanol_100percent_wash3 = OptionalDateTimeLocalField('100% methanol R@RTX2hrs')
 	time_dehydr_methanol_100percent_wash3_submit = SubmitField('Update')
 	dehydr_methanol_100percent_wash3_notes = TextAreaField('Notes:',validators=[Length(max=250)])
@@ -444,7 +445,7 @@ class uDiscoForm(FlaskForm):
 		during the experiment that might affect clearing, please note it here:',validators=[Length(max=500)])
 	exp_notes_submit = SubmitField('Update')
 	
-	dehydr_date = OptionalDateField('Day 1-5: Dehydration')
+	dehydr_date = OptionalDateField('Dehydration')
 	dehydr_date_submit = SubmitField('Push date to calendar (optional)')
 	time_dehydr_pbs_wash1 = OptionalDateTimeLocalField('0.1M PBS R@RT5min')
 	time_dehydr_pbs_wash1_submit = SubmitField('Update')
@@ -487,7 +488,7 @@ class uDiscoForm(FlaskForm):
 	dehydr_butanol_100percent_notes_submit = SubmitField('Update Notes')
 
 	
-	clearing_date = OptionalDateField('Day 8: Clearing')
+	clearing_date = OptionalDateField('Clearing')
 	clearing_date_submit = SubmitField('Push date to calendar (optional)')
 	time_clearing_dcm_wash1 = OptionalDateTimeLocalField('100% DCM R@RT 50-70min')
 	time_clearing_dcm_wash1_submit = SubmitField('Update')
@@ -511,7 +512,7 @@ class iDiscoEduForm(FlaskForm):
 		experiment that might affect clearing, please note it here.',validators=[Length(max=500)])
 	exp_notes_submit = SubmitField('Update')
 
-	dehydr_date = OptionalDateField('Day 1: Dehydration')
+	dehydr_date = OptionalDateField('Dehydration')
 	dehydr_date_submit = SubmitField('Push date to calendar (optional)')
 	time_dehydr_pbs_wash1 = OptionalDateTimeLocalField('1xPBS 30 min R@RT')
 	time_dehydr_pbs_wash1_submit = SubmitField('Update')
@@ -551,12 +552,12 @@ class iDiscoEduForm(FlaskForm):
 	time_dehydr_methanol_100percent_wash2_submit = SubmitField('Update')
 	dehydr_methanol_100percent_wash2_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	dehydr_methanol_100percent_wash2_notes_submit = SubmitField('Update Notes')
-	time_dehydr_h202_wash1 = OptionalDateTimeLocalField('5% H2O2(30%) in methanol(100%) O/N R@RT (1 part H2O2:5 parts methanol)')
-	time_dehydr_h202_wash1_submit = SubmitField('Update')
-	dehydr_h202_wash1_notes = TextAreaField('Notes',validators=[Length(max=250)])
-	dehydr_h202_wash1_notes_submit = SubmitField('Update Notes')
+	time_dehydr_peroxide_wash1 = OptionalDateTimeLocalField('5% H2O2 (30%) in methanol(100%) O/N R@RT (1 part H2O2:5 parts methanol)')
+	time_dehydr_peroxide_wash1_submit = SubmitField('Update')
+	dehydr_peroxide_wash1_notes = TextAreaField('Notes',validators=[Length(max=250)])
+	dehydr_peroxide_wash1_notes_submit = SubmitField('Update Notes')
 
-	rehydr_date = OptionalDateField('Day 2: Rehydration')
+	rehydr_date = OptionalDateField('Rehydration')
 	rehydr_date_submit = SubmitField('Push date to calendar (optional)')
 	time_rehydr_methanol_100percent_wash1 = OptionalDateTimeLocalField('100% methanol R@RTx1hr')
 	time_rehydr_methanol_100percent_wash1_submit = SubmitField('Update')
@@ -595,7 +596,7 @@ class iDiscoEduForm(FlaskForm):
 	rehydr_glycine_wash1_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	rehydr_glycine_wash1_notes_submit = SubmitField('Update Notes')
 
-	wash1_date = OptionalDateField('Day 3: Wash')
+	wash1_date = OptionalDateField('Wash')
 	wash1_date_submit = SubmitField('Push date to calendar (optional)')
 	time_wash1_start_roomtemp = OptionalDateTimeLocalField('Sample R@RT for ~1.5hrs')
 	time_wash1_start_roomtemp_submit = SubmitField('Update')
@@ -622,10 +623,10 @@ class iDiscoEduForm(FlaskForm):
 	wash1_ptwh_wash5_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	wash1_ptwh_wash5_notes_submit = SubmitField('Update Notes')
 
-	edu_click_chemistry_date = OptionalDateField('Day 4: EdU click chemistry')
+	edu_click_chemistry_date = OptionalDateField('EdU click chemistry')
 	edu_click_chemistry_date_submit = SubmitField('Push date to calendar (optional)')
 	
-	wash2_date = OptionalDateField('Day 4: Wash')
+	wash2_date = OptionalDateField('Wash')
 	wash2_date_submit = SubmitField('Push date to calendar (optional)')
 	
 	wash2_start_roomtemp_notes = TextAreaField('Notes',validators=[Length(max=250)])
@@ -651,7 +652,7 @@ class iDiscoEduForm(FlaskForm):
 	wash2_ptwh_wash5_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	wash2_ptwh_wash5_notes_submit = SubmitField('Update Notes')
 
-	clearing_date = OptionalDateField('Day 8: Clearing')
+	clearing_date = OptionalDateField('Clearing')
 	clearing_date_submit = SubmitField('Push date to calendar (optional)')
 	time_clearing_methanol_20percent_wash1 = OptionalDateTimeLocalField('20% methanol R@RTx1hr')
 	time_clearing_methanol_20percent_wash1_submit = SubmitField('Update')

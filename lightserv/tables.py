@@ -254,23 +254,37 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
         next_url += f'?sort={col_key}&direction={direction}&table_id={table_id}'
         return next_url
 
+    def dynamic_get_tr_attrs(self, item, reverse=False):
+        if item['clearing_protocol'] == 'iDISCO abbreviated clearing':
+            return {'bgcolor':'#FCA5A4'} # red
+        elif item['clearing_protocol'] == 'iDISCO abbreviated clearing (rat)':
+            return {'bgcolor':'#A4FCAC'} # green
+        elif item['clearing_protocol'] == 'iDISCO+_immuno':
+            return {'bgcolor':'#A4FCFA'} # cyan
+        elif item['clearing_protocol'] == 'uDISCO':
+            return {'bgcolor':'#6A7CF9'} # blue
+        elif item['clearing_protocol'] == 'iDISCO_EdU':
+            return {'bgcolor':'#F4F96A'}
+        else:
+            return {}
+        
+
     options = dict(
         border = True,
         allow_sort = True,
         no_items = "No samples at the moment",
         html_attrs = {"style":'font-size:18px'}, 
         table_id = table_id,
-        classes = ["table-striped"]
         ) 
 
     table_class = create_table(name,options=options)
+    table_class.get_tr_attrs = dynamic_get_tr_attrs
     table_class.sort_url = dynamic_sort_url
     sort = sort_kwargs.get('sort_by','datetime_submitted')
     reverse = sort_kwargs.get('sort_reverse',False)
     """ Now loop through all columns and add them to the table,
     only adding the imaging modes if they are used in at least one
     sample """
-    colnames = contents.heading.attributes.keys()
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
