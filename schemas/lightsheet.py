@@ -61,7 +61,6 @@ class Sample(dj.Manual):
     processing_progress                       :   enum("not started", "running","failed","complete")
     stitching_method                          :   enum("blending","terastitcher")
 	blend_type                                :   enum("sigmoidal","flat")
-	finalorientation = NULL                   :   enum("sagittal","coronal","horizontal")
 	notes_from_processing = ""                :   varchar(1024)
 	"""  
 
@@ -92,7 +91,7 @@ class Sample(dj.Manual):
 		definition = """ # Processing parameters for a channel
 		-> master.ImagingChannel
 		----
-		lightsheet_channel_str                    :   enum("regch",'injch","cellch")
+		lightsheet_channel_str                    :   enum("regch","injch","cellch","anych")
 		imspector_version = ''                    :   varchar(128)
 		datetime_processing_started               :   datetime
 		numerical_aperture = NULL                 :   float # it is not always recorded in metadata so those times it will stay NULL
