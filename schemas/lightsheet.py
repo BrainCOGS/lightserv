@@ -38,6 +38,8 @@ class Experiment(dj.Manual):
 	species                      :   varchar(50)
 	number_of_samples            :   tinyint
 	sample_prefix                :   varchar(32)
+	uniform_clearing             :   boolean
+	uniform_imaging              :   boolean
 	"""  
 
 @schema

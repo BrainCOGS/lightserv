@@ -3,7 +3,7 @@ from flask import (render_template, url_for, flash,
 				   Markup)
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 									  iDiscoAbbreviatedRatForm, uDiscoForm,  iDiscoEduForm )
-from lightserv.tables import ClearingTable,IdiscoPlusTable
+from lightserv.tables import ClearingTable,IdiscoPlusTable, dynamic_clearing_management_table
 from lightserv import db_lightsheet
 from .utils import (determine_clearing_form, add_clearing_calendar_entry,
 				   determine_clearing_dbtable, determine_clearing_table) 
@@ -35,8 +35,42 @@ clearing = Blueprint('clearing',__name__)
 
 @clearing.route("/clearing/clearing_manager",methods=['GET','POST'])
 @logged_in_as_clearing_manager
-def clearing_manager(): 
-	return "Hello"
+def clearing_manager():
+	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
+	reverse = (request.args.get('direction', 'asc') == 'desc')
+	sample_contents = db_lightsheet.Sample()
+	exp_contents = db_lightsheet.Experiment()
+	combined_contents = dj.U('clearing_protocol', 'experiment_name').aggr(sample_contents, 
+        clearer='clearer',clearing_progress='clearing_progress',
+        sample_name='min(sample_name)',number_in_batch='count(*)') * exp_contents	
+	all_contents_unique_clearing_protocol = combined_contents.proj('sample_name','number_in_batch','sample_prefix',
+		'clearing_protocol','species',
+		'clearer','clearing_progress','clearing_protocol',
+		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)') # will pick up the primary keys by default
+
+	''' First get all entities that are currently being cleared '''
+	contents_being_cleared = all_contents_unique_clearing_protocol & 'clearing_progress="in progress"'
+	being_cleared_table_id = 'horizontal_being_cleared_table'
+	table_being_cleared = dynamic_clearing_management_table(contents_being_cleared,
+		table_id=being_cleared_table_id,
+		sort_by=sort,sort_reverse=reverse)
+	''' Next get all entities that are ready to be cleared '''
+	contents_ready_to_clear = all_contents_unique_clearing_protocol & 'clearing_progress="incomplete"' 
+	ready_to_clear_table_id = 'horizontal_ready_to_clear_table'
+	table_ready_to_clear = dynamic_clearing_management_table(contents_ready_to_clear,
+		table_id=ready_to_clear_table_id,
+		sort_by=sort,sort_reverse=reverse)
+	''' Now get all entities on deck (currently being cleared) '''
+	''' Finally get all entities that have already been imaged '''
+	contents_already_cleared = all_contents_unique_clearing_protocol & 'clearing_progress="complete"'
+	already_cleared_table_id = 'horizontal_already_cleared_table'
+	table_already_cleared = dynamic_clearing_management_table(contents_already_cleared,
+		table_id=already_cleared_table_id,
+		sort_by=sort,sort_reverse=reverse)
+	
+	return render_template('clearing/clearing_management.html',table_being_cleared=table_being_cleared,
+		table_ready_to_clear=table_ready_to_clear,
+		table_already_cleared=table_already_cleared)
 
 @clearing.route("/clearing/clearing_entry/<username>/<experiment_name>/<sample_name>/<clearing_protocol>/",
 	methods=['GET','POST'])

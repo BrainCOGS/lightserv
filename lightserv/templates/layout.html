@@ -41,6 +41,10 @@
 								{% if session['user'] == 'ahoag' or session['user'] == 'zmd' or session['user'] == 'jduva' %}
 									<a class="nav-item nav-link" href="{{ url_for('imaging.imaging_manager')}}" target="_blank">Imaging Management</a>
 								{% endif %}
+
+								{% if session['user'] == 'ahoag' or session['user'] == 'zmd' or session['user'] == 'jduva' or session['user'] == 'll3' %}
+									<a class="nav-item nav-link" href="{{ url_for('clearing.clearing_manager')}}" target="_blank">Clearing Management</a>
+								{% endif %}
 							</div>
 						
 						<!-- Navbar Right Side -->

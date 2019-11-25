@@ -16,9 +16,14 @@ class Config(object):
 	RAWDATA_ROOTPATH = '/jukebox/LightSheetData/lightserv_testing'
 	IMAGING_CHANNELS = ['488','555','647','790']
 	ATLAS_NAME_FILE_DICTIONARY = {
+	'allen_2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/average_template_25_sagittal_forDVscans.tif',
+	'allen_pre2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/average_template_25_sagittal_forDVscans.tif',
+	'princeton_mouse_atlas:':'/jukebox/LightSheetTransfer/atlas/sagittal_atlas_20um_iso.tif'}
+	ATLAS_ANNOTATION_FILE_DICTIONARY = {
 	'allen_2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/annotation_2017_25um_sagittal_forDVscans_16bit.tif',
-	'allen_pre2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/annotation_25um_sagittal_forDVscans.tif'}
-
+	'allen_pre2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/annotation_template_25_sagittal_forDVscans.tif',
+	'princeton_mouse_atlas:':'/jukebox/LightSheetTransfer/atlas/annotation_sagittal_atlas_20um_iso_16bit.tif'
+	}
 	# APPLICATION_ROOT = "/v01"
 
 

@@ -147,7 +147,8 @@ def new_exp():
 						correspondence_email=form.correspondence_email.data.lower(),
 						description=form.description.data,species=form.species.data,
 						number_of_samples=form.number_of_samples.data,
-						sample_prefix=form.sample_prefix.data)
+						sample_prefix=form.sample_prefix.data,uniform_clearing=form.uniform_clearing.data,
+						uniform_imaging=form.uniform_imaging.data)
 					now = datetime.now()
 					date = now.strftime("%Y-%m-%d")
 					time = now.strftime("%H:%M:%S") 

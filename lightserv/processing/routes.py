@@ -137,11 +137,11 @@ def run_step0(username,experiment_name,sample_name):
 	and grabs a bunch of metadata from the raw files to store in the database.  
 	"""
 	atlas_dict = current_app.config['ATLAS_NAME_FILE_DICTIONARY']
+	atlas_annotation_dict = current_app.config['ATLAS_ANNOTATION_FILE_DICTIONARY']
 	now = datetime.now()
 	logger.info("In step 0")
 	import tifffile
 	from xml.etree import ElementTree as ET 
-	processing_params_dict = {}
 	
 	''' Fetch the processing params from the table to run the code '''
 	sample_contents = db_lightsheet.Sample() & f'username="{username}"' \
@@ -154,10 +154,6 @@ def run_step0(username,experiment_name,sample_name):
 
 	raw_basepath = os.path.join(current_app.config['RAWDATA_ROOTPATH'],username,
 		experiment_name,sample_name)
-
-	''' Make the "inputdictionary", i.e. the mapping between directory and function '''
-	processing_params_dict['inputdictionary'] = {}
-	input_dictionary = {}
 
 	""" Can now go in and find the z=0 plane 
 	which contains the metadata for each channel """
@@ -187,7 +183,17 @@ def run_step0(username,experiment_name,sample_name):
 				param_dict['systemdirectory'] = '/jukebox'
 				output_directory = os.path.join(raw_basepath,'output')
 				param_dict['outputdirectory'] = output_directory
-				
+				param_dict['blendtype'] = 'sigmoidal' # no exceptions
+				param_dict['intensitycorrection'] = True # no exceptions
+				param_dict['rawdata'] = True # no exceptions
+				""" figure out the resize factor based on resolution """
+				if image_resolution == '1.1x' or image_resolution == '1.3x':
+					resizefactor = 3
+				elif image_resolution == '2x':
+					resizefactor = 4
+				elif image_resolution == '4x':
+					resizefactor = 5
+
 				""" grab the metadata """
 				# logger.info(f"finding metadata for channel {channel_name}")
 					
@@ -264,10 +270,11 @@ def run_step0(username,experiment_name,sample_name):
 						else:
 							stitching_method = 'blending'
 						param_dict['stitchingmethod'] = stitching_method
-						atlas_file = atlas_dict['atlas_name']
-					processing_insert_dict = {'username':username,'experiment_name':experiment_name,
-					'sample_name':sample_name,'channel_name':channel_name,'intensity_correction':True,
-					'datetime_processing_started':now}
+						atlas_file = atlas_dict[atlas_name]
+						atlas_annotation_file = atlas_annotation_dict[atlas_name]
+						param_dict['atlasfile'] = atlas_file
+						param_dict['annotationfile'] = atlas_annotation_file
+					
 					
 					""" Fill inputdictionary """
 
@@ -285,6 +292,11 @@ def run_step0(username,experiment_name,sample_name):
 
 					processing_insert_dict['lightsheet_channel_str'] = lightsheet_channel_str
 				param_dict[inputdictionary] = inputdictionary
+
+				""" Prepare insert to processing db table """
+				processing_insert_dict = {'username':username,'experiment_name':experiment_name,
+					'sample_name':sample_name,'channel_name':channel_name,'intensity_correction':True,
+					'datetime_processing_started':now}
 					# logger.info("inputdictionary: {}".format(inputdictionary))
 					# db_lightsheet.Sample.ProcessingChannel().insert1(processing_insert_dict)
 					# logger.info("Inserted processing params into db table")
