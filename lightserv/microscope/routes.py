@@ -8,7 +8,7 @@ from lightserv.microscope.forms import (NewSwapLogEntryForm, UpdateSwapLogEntryF
                                         StatusMonitorSelectForm,MicroscopeActionSelectForm,
                                         DataEntrySelectForm)
 from lightserv import db_lightsheet, db_microscope
-from lightserv.tables import MicroscopeCalibrationTable
+from lightserv.microscope.tables import MicroscopeCalibrationTable
 from lightserv.main.utils import table_sorter,logged_in
 from lightserv.microscope.utils import (microscope_form_picker,
       data_entry_form_picker, data_entry_dbtable_picker)

@@ -2,7 +2,7 @@ from flask import (render_template, request, redirect,
 				   Blueprint, session, url_for, flash,
 				   Markup, Request, Response)
 from lightserv import db_lightsheet
-from lightserv.tables import ExpTable
+from lightserv.experiments.tables import ExpTable
 import pandas as pd
 from .utils import logged_in, table_sorter
 from functools import partial, wraps

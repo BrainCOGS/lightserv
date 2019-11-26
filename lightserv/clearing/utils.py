@@ -1,7 +1,7 @@
 from flask import redirect, url_for
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 									  iDiscoAbbreviatedRatForm, uDiscoForm, iDiscoEduForm )
-from lightserv.tables import (IdiscoPlusTable,IdiscoAbbreviatedTable,
+from lightserv.clearing.tables import (IdiscoPlusTable,IdiscoAbbreviatedTable,
 							  IdiscoAbbreviatedRatTable,UdiscoTable,
 							  IdiscoEdUTable)
 from lightserv import db_lightsheet

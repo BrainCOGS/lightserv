@@ -2,7 +2,7 @@ from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup, current_app)
 from lightserv.processing.forms import StartProcessingForm
-from lightserv.tables import create_dynamic_channels_table_for_processing
+from lightserv.processing.tables import create_dynamic_channels_table_for_processing
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed)

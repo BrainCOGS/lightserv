@@ -6,7 +6,7 @@ from lightserv import db_lightsheet, mail, cel
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 								  logged_in_as_imager,check_clearing_completed,
 								  image_manager)
-from lightserv.tables import ImagingTable, dynamic_imaging_management_table
+from lightserv.imaging.tables import ImagingTable, dynamic_imaging_management_table
 from .forms import ImagingForm
 import numpy as np
 import datajoint as dj

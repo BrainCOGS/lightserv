@@ -3,7 +3,7 @@ from flask import (render_template, url_for, flash,
 				   Markup)
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 									  iDiscoAbbreviatedRatForm, uDiscoForm,  iDiscoEduForm )
-from lightserv.tables import ClearingTable,IdiscoPlusTable, dynamic_clearing_management_table
+from lightserv.clearing.tables import ClearingTable,IdiscoPlusTable, dynamic_clearing_management_table
 from lightserv import db_lightsheet
 from .utils import (determine_clearing_form, add_clearing_calendar_entry,
 				   determine_clearing_dbtable, determine_clearing_table) 
