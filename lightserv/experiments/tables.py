@@ -1,6 +1,6 @@
 from flask import url_for,flash,redirect, request
 from flask_table import Table, Col, LinkCol, ButtonCol, create_table
-from lightserv.main.tables import HeadingCol
+from lightserv.main.tables import HeadingCol, ConditionalLinkCol
 from functools import partial
 from lightserv.main.utils import table_sorter
 
@@ -95,15 +95,18 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     processing_url_kwargs = {'username':'username','experiment_name':'experiment_name','sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
     anchor_attrs = {'target':"_blank",}
     table_class.add_column('start_clearing_link',
-        LinkCol('Start/edit clearing', 'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
+        ConditionalLinkCol('Start/edit clearing', 'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False))
-    table_class.add_column('view_clearing_link',LinkCol('View clearing log', 
+    table_class.add_column('view_clearing_link',
+         ConditionalLinkCol('View clearing log', 
         'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
        anchor_attrs=anchor_attrs,allow_sort=False))
-    table_class.add_column('start_imaging_link',LinkCol('Start/edit imaging',
+    table_class.add_column('start_imaging_link',
+        ConditionalLinkCol('Start/edit imaging',
      'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False))
-    table_class.add_column('data_processing_link',LinkCol('Start processing pipeline', 
+    table_class.add_column('data_processing_link',
+        ConditionalLinkCol('Start processing pipeline', 
         'processing.start_processing',url_kwargs=processing_url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False))
    

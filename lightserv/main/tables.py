@@ -1,3 +1,4 @@
+from flask import session,current_app
 from flask_table import Col,LinkCol
 
 class HeadingCol(LinkCol):
@@ -12,10 +13,34 @@ class HeadingCol(LinkCol):
 
 
 class BoldTextCol(Col):
-    """ Bold font whatever text was in the column """
+    """ Conditional bold fonting """
     def td_format(self, content):
         if content != 'complete':
             html = '<b>{}</b>'.format(content)
             return html
         else:
             return content
+
+
+class ConditionalLinkCol(LinkCol):
+    """ Subclassing linkcol to only show the link
+    if the person if the current user is an admin
+    of the task shown in the link or is the person
+    performing the task (i.e. 'clearer','imager','processor') """  
+    def td_contents(self, item, attr_list):
+        # print(attr_list)
+        if 'clearing' in self.name.lower():
+            admins = current_app.config['CLEARING_ADMINS']
+            person_assigned_to_task = item['clearer']
+        elif 'imaging' in self.name.lower():
+            admins = current_app.config['IMAGING_ADMINS']
+            person_assigned_to_task = item['imager']
+        elif 'processing' in self.name.lower():
+            admins = current_app.config['PROCESSING_ADMINS']
+            person_assigned_to_task = item['processor']
+        if session['user'] in admins or session['user'] == person_assigned_to_task:
+            return '<a href="{url}">{text}</a>'.format(
+                url=self.url(item),
+                text=self.td_format(self.text(item, attr_list)))
+        else:
+            return ""

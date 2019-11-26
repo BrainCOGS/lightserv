@@ -218,6 +218,9 @@ def new_exp():
 									continue
 								else:
 									channel_insert_dict = {}
+									""" When they submit this request form it is always for the first time
+									 for this combination of experiment_name,sample_name,channel_name,image_resolution """
+									channel_insert_dict['imaging_request_number'] = 1 
 									channel_insert_dict['atlas_name'] = resolution_dict['atlas_name']
 									channel_insert_dict['experiment_name'] = form.experiment_name.data	
 									channel_insert_dict['username'] = username
