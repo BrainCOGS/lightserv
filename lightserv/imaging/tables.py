@@ -14,6 +14,12 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
         next_url = request.url.split('?')[0]
         next_url += f'?sort={col_key}&direction={direction}&table_id={table_id}'
         return next_url
+    
+    def dynamic_get_tr_attrs(self, item, reverse=False):
+        if item['imaging_request_number'] > 1:
+            return {'bgcolor':'#FCA5A4'} # red
+        else:
+            return {}
 
     options = dict(
         border = True,
@@ -25,6 +31,7 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
         ) 
 
     table_class = create_table(name,options=options)
+    table_class.get_tr_attrs = dynamic_get_tr_attrs
     table_class.sort_url = dynamic_sort_url
     sort = sort_kwargs.get('sort_by','datetime_submitted')
     reverse = sort_kwargs.get('sort_reverse',False)
@@ -35,18 +42,18 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
-    table_class.add_column('datetime_submitted',Col('datetime_submitted'))
-    table_class.add_column('experiment_name',Col('experiment_name'))
-    table_class.add_column('sample_name',Col('sample_name'))
-    table_class.add_column('username',Col('username'))
-    table_class.add_column('imager',Col('imager'))
+    table_class.add_column('datetime_submitted',Col('datetime submitted'))
+    table_class.add_column('experiment_name',Col('experiment name'))
+    table_class.add_column('sample_name',Col('sample name'))
+    table_class.add_column('username',Col('username'))    
+    table_class.add_column('imaging_request_number',Col('imaging request number'))    
     
     if table_class == 'horizontal_ready_to_image_table':
         table_class.add_column('imaging_progress',BoldTextCol('imaging_progress'))
     else: 
-        table_class.add_column('clearing_progress',Col('clearing_progress'))
-        table_class.add_column('imaging_progress',Col('imaging_progress'))
-
+        table_class.add_column('clearing_progress',Col('clearing progress'))
+        table_class.add_column('imaging_progress',Col('imaging progress'))
+    table_class.add_column('imager',Col('imager'))
     table_class.add_column('species',Col('species'))    
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''

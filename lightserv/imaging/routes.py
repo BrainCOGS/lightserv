@@ -40,31 +40,38 @@ imaging = Blueprint('imaging',__name__)
 def imaging_manager(): 
 	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
-	samples_contents = db_lightsheet.Sample()
+	sample_contents = db_lightsheet.Sample()
+	channel_contents = db_lightsheet.Sample.ImagingChannel()
 	exp_contents = db_lightsheet.Experiment()
-	joined_contents = (exp_contents * samples_contents) 
-	proj_contents = joined_contents.proj('species','imager','clearing_progress',
-	'imaging_progress',
-	datetime_submitted='TIMESTAMP(date_submitted,time_submitted)') # will pick up the primary keys by default
-	''' First get all entities that are currently being imaged '''
-	contents_being_imaged = proj_contents & 'imaging_progress="in progress"'
+	# joined_contents = (exp_contents * samples_contents) 
+	# all_contents_unique_imaging_request_number = joined_contents.proj('species','imager','clearing_progress',
+	# 'imaging_progress',
+	# datetime_submitted='TIMESTAMP(date_submitted,time_submitted)') # will pick up the primary keys by default
+	# ''' First get all entities that are currently being imaged '''
+	combined_contents = dj.U('experiment_name','username',
+		'sample_name','imaging_request_number').aggr(channel_contents, 
+        image_resolution='min(image_resolution)') * sample_contents * exp_contents
+	all_contents_unique_imaging_request_number = combined_contents.proj('imaging_request_number','imaging_progress',
+		'clearing_progress','clearer','imager','species',datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
+	""" Get all entries currently being imaged """
+	contents_being_imaged = all_contents_unique_imaging_request_number & 'imaging_progress="in progress"'
 	being_imaged_table_id = 'horizontal_being_imaged_table'
 	table_being_imaged = dynamic_imaging_management_table(contents_being_imaged,
 		table_id=being_imaged_table_id,
 		sort_by=sort,sort_reverse=reverse)
 	''' Next get all entities that are ready to be imaged '''
-	contents_ready_to_image = proj_contents & 'clearing_progress="complete"' & 'imaging_progress="incomplete"'
+	contents_ready_to_image = all_contents_unique_imaging_request_number & 'clearing_progress="complete"' & 'imaging_progress="incomplete"'
 	ready_to_image_table_id = 'horizontal_ready_to_image_table'
 	table_ready_to_image = dynamic_imaging_management_table(contents_ready_to_image,
 		table_id=ready_to_image_table_id,
 		sort_by=sort,sort_reverse=reverse)
 	''' Now get all entities on deck (currently being cleared) '''
-	contents_on_deck = proj_contents & 'clearing_progress!="complete"' & 'imaging_progress!="complete"'
+	contents_on_deck = all_contents_unique_imaging_request_number & 'clearing_progress!="complete"' & 'imaging_progress!="complete"'
 	on_deck_table_id = 'horizontal_on_deck_table'
 	table_on_deck = dynamic_imaging_management_table(contents_on_deck,table_id=on_deck_table_id,
 		sort_by=sort,sort_reverse=reverse)
 	''' Finally get all entities that have already been imaged '''
-	contents_already_imaged = proj_contents & 'imaging_progress="complete"'
+	contents_already_imaged = all_contents_unique_imaging_request_number & 'imaging_progress="complete"'
 	already_imaged_table_id = 'horizontal_already_imaged_table'
 	table_already_imaged = dynamic_imaging_management_table(contents_already_imaged,
 		table_id=already_imaged_table_id,
