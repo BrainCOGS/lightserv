@@ -290,7 +290,8 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     will not be added twice """
     table_class.add_column('datetime_submitted',Col('datetime_submitted'))
     table_class.add_column('clearing_protocol',Col('clearing_protocol'))
-    # table_class.add_column('experiment_name',Col('experiment_name'))
+    table_class.add_column('antibody1',Col('antibody1'))
+    table_class.add_column('antibody2',Col('antibody2'))
     table_class.add_column('experiment_name',Col('exp_name'))
     table_class.add_column('username',Col('researcher netid'))
     table_class.add_column('clearer',Col('clearer'))

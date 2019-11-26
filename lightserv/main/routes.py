@@ -70,8 +70,8 @@ def login():
 	if hostname == 'braincogs00.pni.princeton.edu':
 		username = request.headers['X-Remote-User']
 	else:
-		username = 'ahoag'
-	
+		username = 'll3'
+
 	session['user'] = username
 	''' If user not already in User() table, then add them '''
 	all_usernames = db_lightsheet.User().fetch('username') 

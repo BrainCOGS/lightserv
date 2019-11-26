@@ -42,12 +42,12 @@ def clearing_manager():
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sample_contents = db_lightsheet.Sample()
 	exp_contents = db_lightsheet.Experiment()
-	combined_contents = dj.U('clearing_protocol', 'experiment_name').aggr(sample_contents, 
+	combined_contents = dj.U('experiment_name','username','clearing_protocol','antibody1','antibody2').aggr(sample_contents, 
         clearer='clearer',clearing_progress='clearing_progress',
         sample_name='min(sample_name)',number_in_batch='count(*)') * exp_contents	
 	all_contents_unique_clearing_protocol = combined_contents.proj('sample_name','number_in_batch','sample_prefix',
 		'clearing_protocol','species',
-		'clearer','clearing_progress','clearing_protocol',
+		'clearer','clearing_progress','clearing_protocol','antibody1','antibody2',
 		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)') # will pick up the primary keys by default
 
 	''' First get all entities that are currently being cleared '''
