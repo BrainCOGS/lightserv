@@ -71,14 +71,14 @@ def new_exp():
 					imaging_dict = form.imaging_samples.data[ii]
 					if imaging_dict['new_image_resolution_form_submit'] == True:
 						image_resolution_forsetup = imaging_dict['image_resolution_forsetup']
-						image_resolution_forms = form.imaging_samples[ii].resolution_table_fieldlist 
+						image_resolution_forms = form.imaging_samples[ii].image_resolution_forms
 						image_resolution_forms.append_entry()
 						resolution_table_index = len(image_resolution_forms.data)-1
 						""" now pick out which form we currently just made """
 						image_resolution_form = image_resolution_forms[resolution_table_index]
 						image_resolution_form.image_resolution.data = image_resolution_forsetup
 						
-						column_name = f'imaging_samples-{ii}-resolution_table_fieldlist-{resolution_table_index}-channels-0-registration'
+						column_name = f'imaging_samples-{ii}-image_resolution_forms-{resolution_table_index}-channels-0-registration'
 						# Now make 4 new channel formfields and set defaults and channel names
 						for x in range(4):
 							# image_resolution_form.channels.append_entry()
@@ -204,7 +204,7 @@ def new_exp():
 
 						""" Now insert each image resolution/channel combo """
 						channel_insert_list = []
-						for resolution_dict in imaging_sample_dict['resolution_table_fieldlist']:
+						for resolution_dict in imaging_sample_dict['image_resolution_forms']:
 
 							for imaging_channel_dict in resolution_dict['channels']:
 								
@@ -214,7 +214,6 @@ def new_exp():
 								if not any(used_imaging_modes):
 									continue
 								else:
-									# logger.info(imaging_channel_dict)
 									channel_insert_dict = {}
 									channel_insert_dict['atlas_name'] = resolution_dict['atlas_name']
 									channel_insert_dict['experiment_name'] = form.experiment_name.data	

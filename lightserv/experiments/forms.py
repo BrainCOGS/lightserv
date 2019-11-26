@@ -74,7 +74,7 @@ class ImagingForm(FlaskForm):
 		choices=[('1.3x','1.3x'),
 	('4x','4x'),('1.1x','1.1x'),('2x','2x')],default='')   
 
-	resolution_table_fieldlist = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=4)
+	image_resolution_forms = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=4)
 
 	new_image_resolution_form_submit = SubmitField('Set up imaging parameters') # renders a new resolution table
 
@@ -146,7 +146,7 @@ class NewRequestForm(FlaskForm):
 		for sample_dict in imaging_samples.data:
 			sample_name = sample_dict['sample_name']
 			current_image_resolutions_rendered = []
-			for resolution_form in sample_dict['resolution_table_fieldlist']:
+			for resolution_form in sample_dict['image_resolution_forms']:
 				image_resolution = resolution_form['image_resolution']
 				current_image_resolutions_rendered.append(image_resolution)
 			if sample_dict['new_image_resolution_form_submit'] == True:

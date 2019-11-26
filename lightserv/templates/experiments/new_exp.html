@@ -271,7 +271,7 @@
 				        <hr class='class-2'>
 
 				        <!-- Loop through all image resolution forms and make a table for each -->
-						{% for image_resolution_form in imaging_entry.resolution_table_fieldlist %}
+						{% for image_resolution_form in imaging_entry.image_resolution_forms %}
 							<!-- render the hidden field -->
 							{{ image_resolution_form.image_resolution() }}
 							<h4 > Set up for image resolution: {{ image_resolution_form.image_resolution.data }} </h4>
@@ -352,7 +352,7 @@
 						{% endfor %}
 
 						<!-- Make the image resolution select field and button for making a new table of channels -->
-						{% if imaging_entry.resolution_table_fieldlist|length > 0 %}
+						{% if imaging_entry.image_resolution_forms|length > 0 %}
 							<h5> Add an additional imaging resolution? </h5>
 						{% endif %}
 						<div class="form-group">
