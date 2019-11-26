@@ -1,39 +1,66 @@
-from flask import url_for, session
-import secrets
+from flask import url_for, session, request
+import json
 
-def test_exps_show_up_on_main_page(test_client,test_schema):
+def test_exps_show_up_on_main_page(test_client,test_login):
 	""" Check that the test post is rendered on the home page """
 	response = test_client.get(url_for('main.home'), follow_redirects=True)
 
 	assert b'light sheet experiments' in response.data and b'rabbit anti-RFP 1:1000' in response.data
 
-def test_new_exp_form_renders(test_client):
+def test_new_exp_form_renders(test_client,test_login):
 	""" Ensure that the experiment form renders properly """
 
 	response = test_client.get(url_for('experiments.new_exp'),follow_redirects=True)
 
-	assert b'Imaging Setup' in response.data	
+	assert b'Background Info' in response.data	
 
-def test_submit_good_experiment(test_client,test_schema,test_login):
+def test_setup_samples(test_client,test_login):
 	""" Ensure that submitting the experiment form correctly works """
-	# Submit a new experiment. The following line issues a post request to the experiments.new_exp route, which will create the database entry
 
-	response = test_client.post(
-		url_for('experiments.new_exp'),data=dict(
+	# First simulate pressing the "Setup samples" button
+	from lightserv.experiments.forms import NewRequestForm
+	data = dict(
 			labname="Wang",correspondence_email="test@demo.com",
-			title="Demo Experiment",
+			experiment_name="Demo Experiment",
 			description="This is a demo experiment",
-			species="rat",clearing_protocol="uDISCO",
-			antibody1="None",antibody2="None",
-			image_resolution="1.3x",channel488='cell_detection',
-			channel555='',channel647='registration',channel790='',
-			username=test_login['user']
-			),
+			species="mouse",number_of_samples=1,
+			sample_prefix='sample',uniform_clearing=True,
+			uniform_imaging=True,
+			sample_submit_button=True
+			)
+
+	response = test_client.post(url_for('experiments.new_exp'),
+		data=data,
 			follow_redirects=True
 		)	
-		 
-# 	# Now check that the test post was entered into the database and appears on the home page (the redirect)
-	assert b'light sheet experiments' in response.data and b'demo experiment' in response.data 
+
+	assert b'Clearing setup' in response.data  
+
+def test_submit_good_experiment(test_client,test_login):
+	# Simulate filling out entire new request form including clearing and imaging sections 
+	from lightserv.experiments.forms import NewRequestForm
+	form = NewRequestForm(formdata=None)
+	
+
+	# request.form['clearing_samples.append_entry()
+	response = test_client.post(
+		url_for('experiments.new_exp'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'experiment_name':"Demo Experiment",
+			'description':"This is a demo experiment",
+			'species':"mouse",'number_of_samples':1,
+			'sample_prefix':'sample',
+			'username':test_login['user'],
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"core facility requests" in response.data
 
 def test_submit_bad_experiments(test_client,test_schema,test_login):
 	""" Ensure that submitting the experiment form incorrectly (two different ways)

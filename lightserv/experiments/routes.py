@@ -53,18 +53,21 @@ experiments = Blueprint('experiments',__name__)
 def new_exp():
 	""" Route for a user to enter a new experiment via a form and submit that experiment """
 	all_imaging_modes = current_app.config['IMAGING_MODES']
+	
 
 	username = session['user']
 	logger.info(f"{username} accessed new experiment form")
 
 	form = NewRequestForm(request.form)
+
 	if request.method == 'POST':
 		if form.validate_on_submit():
 			""" figure out which button was pressed """
-			submit_keys = [x for x in form._fields.keys() if 'submit' in x and form[x].data]
+			submit_keys = [x for x in form._fields.keys() if 'submit' in x and form[x].data == True]
 			if len(submit_keys) == 1: # submit key was either sample setup or final submit button
 				submit_key = submit_keys[0]
 			else: # submit key came from within a sub-form, meaning one of the resolution table setup buttons
+				logger.info("resolution table setup button pressed")
 				""" find which sample this came from """
 				submit_key = 'other'
 				for ii in range(len(form.imaging_samples.data)):
@@ -280,6 +283,7 @@ def new_exp():
 			form.correspondence_email.data = session['user'] + '@princeton.edu' 
 	if 'column_name' not in locals():
 		column_name = ''
+	
 
 	return render_template('experiments/new_exp.html', title='new_experiment',
 		form=form,legend='New Experiment',column_name=column_name)	

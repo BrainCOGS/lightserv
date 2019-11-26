@@ -4,14 +4,10 @@ for both testing and deployment """
 
 import os
 
-# The default config
-class Config(object):
+# Base class which I will inherit for use with DEV and TEST configs
+class BaseConfig(object):
+	DEBUG = True
 	SECRET_KEY = os.environ.get('SECRET_KEY')
-	MAIL_SERVER = 'smtp.googlemail.com'
-	MAIL_PORT = 587
-	MAIL_USE_TLS = True
-	MAIL_USERNAME = os.environ.get('EMAIL_USER')
-	MAIL_PASSWORD = os.environ.get('EMAIL_PASS')
 	IMAGING_MODES = ['registration','injection_detection','probe_detection','cell_detection']
 	RAWDATA_ROOTPATH = '/jukebox/LightSheetData/lightserv_testing'
 	IMAGING_CHANNELS = ['488','555','647','790']
@@ -24,29 +20,17 @@ class Config(object):
 	'allen_pre2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/annotation_template_25_sagittal_forDVscans.tif',
 	'princeton_mouse_atlas:':'/jukebox/LightSheetTransfer/atlas/annotation_sagittal_atlas_20um_iso_16bit.tif'
 	}
-	# APPLICATION_ROOT = "/v01"
 
-
-class BaseConfig(object):
-	DEBUG = False
+# The default config
+class Config(BaseConfig):
 	SECRET_KEY = os.environ.get('SECRET_KEY')
-
-class TestConfig(BaseConfig):
-	DEBUG = True
-	TESTING = True
-	WTF_CSRF_ENABLED = False
+	MAIL_SERVER = 'smtp.googlemail.com'
+	MAIL_PORT = 587
+	MAIL_USE_TLS = True
+	MAIL_USERNAME = os.environ.get('EMAIL_USER')
+	MAIL_PASSWORD = os.environ.get('EMAIL_PASS')
 	
-
-# The configuration for the lightserv demo for presentation purposes
-class DemoConfig(BaseConfig):
-	DEBUG = True
+class TestConfig(BaseConfig):
 	TESTING = True
-	# WTF_CSRF_ENABLED = False
-	SQLALCHEMY_DATABASE_URI = 'sqlite:///demo_app.db'
-	# SQLALCHEMY_DATABASE_URI = 'sqlite:///test_app.db'	
-
-class DevelopmentConfig(BaseConfig):
-	DEBUG = True
-
-class ProductionConfig(BaseConfig):
-	DEBUG = False
+	WTF_CSRF_ENABLED = False # disables the csrf token validation in forms
+	

@@ -107,7 +107,8 @@ class NewRequestForm(FlaskForm):
 
 	def validate_submit(self,submit):
 		""" Make sure that user has filled out sample setup section """ 
-		if self.submit.data == True:
+		print(submit.data)
+		if submit.data == True:
 			if len(self.clearing_samples.data) == 0 or  len(self.imaging_samples.data) == 0:
 				raise ValidationError("You must fill out and submit the 'Samples setup' section first.")
 

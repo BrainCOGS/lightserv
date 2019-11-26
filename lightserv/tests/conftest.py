@@ -32,7 +32,7 @@ def test_client():
 	then the state of the test client will be altered by one test module,
 	and then that is the state of the client when the next test module
 	is executed. This will mean the test order will matter which is a 
-	terrible way to do things. It does mean we will have to reload the
+	bad way to do things. It does mean we will have to reload the
 	test client in each module in which we use it, so it is slightly slower this way."" 
 	"""
 	print('----------Setup test client----------')
@@ -46,16 +46,6 @@ def test_client():
 	print('-------Teardown test client--------')
 	ctx.pop()
 
-@pytest.fixture(scope='session') 
-def test_schema():
-	""" Create the database and the database tables """
-	print('----------Setup test schema----------')
-	# test_schema = dj.create_virtual_module('test_lightsheet','test_lightsheet')
-	from lightserv import db_lightsheet
-	yield db  # this is where the testing happens!
-	print('----------Teardown test schema----------')
-	db.schema.drop(force=True)
-
 @pytest.fixture(scope='function')
 def test_login(test_client):
 	""" Log the user in. Requires a test_client fixture to do this. """
@@ -66,3 +56,16 @@ def test_login(test_client):
 	yield sess
 	print('----------Teardown login response----------')
 	pass
+
+@pytest.fixture(scope='session') 
+def test_schema():
+	""" Create the database and the database tables """
+	print('----------Setup test schema----------')
+	# test_schema = dj.create_virtual_module('test_lightsheet','test_lightsheet')
+	from lightserv import db_lightsheet
+	yield db  
+	# this is where the testing happens!
+	print('----------Teardown test schema----------')
+	db.schema.drop(force=True)
+
+	
