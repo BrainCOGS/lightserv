@@ -1,4 +1,4 @@
-from flask import session,request,url_for,redirect, flash
+from flask import session,request,url_for,redirect, flash, current_app
 from functools import wraps
 from lightserv import db_lightsheet
 import datajoint as dj
@@ -20,10 +20,6 @@ stream_handler.setFormatter(formatter)
 
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
-
-imaging_admins = ['ahoag','jduva','zmd']
-processing_admins = ['ahoag','jduva','zmd']
-
 
 
 def table_sorter(dic,sort_key):
@@ -59,7 +55,7 @@ def logged_in_as_clearer(f):
 			if clearer == "not yet assigned":
 				logger.info("Clearing entry form accessed with clearer not yet assigned. ")
 				''' now check to see if user is a designated clearer ''' 
-				if current_user in ['ll3','zmd','jduva','ahoag','kellyms']: # 
+				if current_user in current_app.config['CLEARING_ADMINS']: # 
 					dj.Table._update(sample_contents,'clearer',current_user)
 					logger.info(f"Current user: {current_user} is a designated clearer and is now assigned as the clearer")
 					return f(*args, **kwargs)
@@ -99,7 +95,7 @@ def logged_in_as_processor(f):
 			if processor == "not yet assigned":
 				logger.info("processing entry form accessed with processor not yet assigned. ")
 				''' now check to see if user is a designated processor ''' 
-				if current_user in processing_admins: # 
+				if current_user in current_app.config['PROCESSING_ADMINS']: # 
 					dj.Table._update(sample_contents,'processor',current_user)
 					logger.info(f"{current_user} is a designated processor and is now assigned as the processor")
 					return f(*args, **kwargs)
@@ -110,8 +106,8 @@ def logged_in_as_processor(f):
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
 					return redirect(url_for('main.welcome'))
 			else: # processor is assigned 
-				if processor in processing_admins: # one of the admins started the form
-					if current_user in processing_admins: # one of the admins is accessing the form
+				if processor in current_app.config['PROCESSING_ADMINS']: # one of the admins started the form
+					if current_user in current_app.config['PROCESSING_ADMINS']: # one of the admins is accessing the form
 						
 						if current_user != processor:
 							logger.info(f"""Current user: {current_user} accessed the form of which {processor} is the processor""")
@@ -147,7 +143,7 @@ def logged_in_as_clearing_manager(f):
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
 			current_user = session['user']
-			if current_user in ['ahoag','ll3','zmd']: # the clearing managers and admins
+			if current_user in current_app.config['CLEARING_ADMINS']: # the clearing managers and admins
 				logger.info(f"Current user: {current_user} is a clearing manager. Allowing them access.")
 				return f(*args, **kwargs)
 			else:
@@ -177,7 +173,7 @@ def logged_in_as_imager(f):
 			if imager == "not yet assigned":
 				logger.info("Imaging entry form accessed with imager not yet assigned. ")
 				''' now check to see if user is a designated imager ''' 
-				if current_user in imaging_admins: # 
+				if current_user in  current_app.config['IMAGING_ADMINS']: # 
 					dj.Table._update(sample_contents,'imager',current_user)
 					logger.info(f"{current_user} is a designated imager and is now assigned as the imager")
 					return f(*args, **kwargs)
@@ -188,8 +184,8 @@ def logged_in_as_imager(f):
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
 					return redirect(url_for('main.welcome'))
 			else: # imager is assigned 
-				if imager in imaging_admins: # one of the admins started the form
-					if current_user in imaging_admins: # one of the admins is accessing the form
+				if imager in  current_app.config['IMAGING_ADMINS']: # one of the admins started the form
+					if current_user in  current_app.config['IMAGING_ADMINS']: # one of the admins is accessing the form
 						
 						if current_user != imager:
 							logger.info(f"""Current user: {current_user} accessed the form of which {imager} is the imager""")
@@ -224,7 +220,7 @@ def image_manager(f):
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
 			current_user = session['user']
-			if current_user in ['ahoag','jduva','zmd']: # admin rights
+			if current_user in current_app.config['IMAGING_ADMINS']: # admin rights
 				logger.info(f"Current user: {current_user} is an imaging admin. Allowing them access")
 				return f(*args, **kwargs)
 			else:
