@@ -1,7 +1,6 @@
 import datajoint as dj
 import socket
 
-
 dj.config['database.host'] = '127.0.0.1'
 dj.config['database.port'] = 3306
 
@@ -71,6 +70,7 @@ class Sample(dj.Manual):
 		-> Sample
 		image_resolution                          :   enum("1.3x","4x","1.1x","2x")
 		channel_name                              :   varchar(64)                
+		imaging_request_number                    :   tinyint
 		----
 		registration = 0                 	      :   boolean
 		injection_detection = 0                   :   boolean
