@@ -89,3 +89,10 @@ class ImagingForm(FlaskForm):
 	submit = SubmitField('Click when imaging is complete and data are on bucket')
 
 
+class FollowUpImagingRequestForm(FlaskForm):
+	""" The form for entering imaging information """
+	max_number_of_image_resolutions = 4 
+	notes_from_imaging = TextAreaField("Note down anything additional about the imaging"
+									   " that you would like recorded")
+	image_resolution_forms = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=max_number_of_image_resolutions)
+	submit = SubmitField('Click when imaging is complete and data are on bucket')
