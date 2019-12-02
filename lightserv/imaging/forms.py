@@ -1,3 +1,4 @@
+from flask import current_app
 from flask_wtf import FlaskForm
 from wtforms import (SubmitField, TextAreaField, SelectField, FieldList, FormField,
 	StringField, DecimalField, IntegerField, HiddenField, BooleanField)
@@ -127,12 +128,27 @@ class NewImagingRequestForm(FlaskForm):
 
 
 	def validate_image_resolution_forms(self,image_resolution_forms):
-		current_image_resolutions_rendered = []
 
-		for resolution_form in image_resolution_forms.data:
-			image_resolution = resolution_form['image_resolution']
+		current_image_resolutions_rendered = []
+		if image_resolution_forms.data == []:
+			raise ValidationError("You must set up the imaging parameters for at least one image resolution")
+		for resolution_form_dict in image_resolution_forms.data:
+			image_resolution = resolution_form_dict['image_resolution']
 			current_image_resolutions_rendered.append(image_resolution)
-		print(current_image_resolutions_rendered)
+			channel_dict_list = resolution_form_dict['channels']
+			selected_imaging_modes = [key for channel_dict in channel_dict_list \
+				for key in channel_dict if key in current_app.config['IMAGING_MODES'] and channel_dict[key] == True]
+			if selected_imaging_modes == []:
+				raise ValidationError(f"The image resolution table: {image_resolution}"
+									  f" is empty. Please select at least one option. ")
+			elif ('injection_detection' in selected_imaging_modes or \
+				  'probe_detection' in selected_imaging_modes  or \
+				  'cell_detection' in selected_imaging_modes) and \
+				  'registration' not in selected_imaging_modes:
+				  raise ValidationError(f"Image resolution table: {image_resolution}."
+				  						f" You must select a registration channel"
+				  						 " when requesting any of the 'detection' channels")
+
 		if self.new_image_resolution_form_submit.data == True:
 			
 			if self.image_resolution_forsetup.data in current_image_resolutions_rendered:

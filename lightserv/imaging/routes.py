@@ -242,12 +242,15 @@ def new_imaging_request(username,request_name,sample_name):
 	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"')
 	""" figure out the new imaging request number to give the new request """
-	previous_imaging_request_numbers = np.unique(channel_contents.fetch('imaging_request_number'))
+	imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
+	 		f'username="{username}"' & f'sample_name="{sample_name}"' 
+	previous_imaging_request_numbers = np.unique(imaging_request_contents.fetch('imaging_request_number'))
 	previous_max_imaging_request_number = max(previous_imaging_request_numbers)
 	new_imaging_request_number = previous_max_imaging_request_number + 1
 
 	if request.method == 'POST':
 		if form.validate_on_submit():
+			logger.info("validated")
 			""" figure out which button was pressed """
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x and form[x].data == True]
 			if len(submit_keys) == 1: # submit key was either sample setup or final submit button
@@ -333,15 +336,15 @@ def new_imaging_request(username,request_name,sample_name):
 
 								channel_insert_list.append(channel_insert_dict)
 					
-						logger.info('ImageResolutionRequest() insert:')
-						logger.info(resolution_insert_list)
-						db_lightsheet.Sample.ImageResolutionRequest().insert(resolution_insert_list)		
-						
-						logger.info('ImagingChannel() insert:')
-						logger.info(channel_insert_list)
-						db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
-						flash("Imaging request submitted successfully.", "success")
-						return redirect(url_for('main.home'))
+					logger.info('ImageResolutionRequest() insert:')
+					logger.info(resolution_insert_list)
+					db_lightsheet.Sample.ImageResolutionRequest().insert(resolution_insert_list)		
+					
+					logger.info('ImagingChannel() insert:')
+					logger.info(channel_insert_list)
+					db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
+					flash("Imaging request submitted successfully.", "success")
+					return redirect(url_for('main.home'))
 		else:
 			if 'submit' in form.errors:
 				for error_str in form.errors['submit']:
