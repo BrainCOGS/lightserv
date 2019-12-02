@@ -22,7 +22,7 @@ def create_dynamic_channels_table_for_processing(contents,table_id,ignore_column
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
     table_class.add_column('username',Col('username'))
-    table_class.add_column('experiment_name',Col('experiment_name'))
+    table_class.add_column('request_name',Col('request_name'))
     table_class.add_column('sample_name',Col('sample_name'))
     table_class.add_column('image_resolution',Col('image_resolution'))
     table_class.add_column('channel_name',Col('channel_name'))

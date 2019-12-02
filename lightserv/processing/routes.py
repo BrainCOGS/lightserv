@@ -34,21 +34,21 @@ logger.addHandler(file_handler)
 
 processing = Blueprint('processing',__name__)
 
-@processing.route("/processing/<username>/<experiment_name>/<sample_name>/start_processing",
+@processing.route("/processing/<username>/<request_name>/<sample_name>/start_processing",
 	methods=['GET','POST'])
 @logged_in
 @check_clearing_completed
 @check_imaging_completed
 @logged_in_as_processor
-def start_processing(username,experiment_name,sample_name):
+def start_processing(username,request_name,sample_name):
 	""" Route for the person assigned as data processor for a sample 
 	to start the data processing. """
 	logger.info(f"{session['user']} accessed start_processing route")
 	
-	sample_contents = (db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+	sample_contents = (db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"')
 	sample_dict = sample_contents.fetch1()
-	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'experiment_name="{experiment_name}"' & \
+	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"') # all of the channels for this sample
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
 
@@ -84,8 +84,8 @@ def start_processing(username,experiment_name,sample_name):
 					logger.info("updating channel contents from form data")
 					dj.Table._update(channel_content,'atlas_name',atlas_name)
 			logger.info(f"Starting step0 without celery for testing")
-			# run_step0.delay(username=username,experiment_name=experiment_name,sample_name=sample_name)
-			run_step0(username=username,experiment_name=experiment_name,sample_name=sample_name)
+			# run_step0.delay(username=username,request_name=request_name,sample_name=sample_name)
+			run_step0(username=username,request_name=request_name,sample_name=sample_name)
 
 			dj.Table._update(sample_contents,'processing_progress','running')
 
@@ -93,7 +93,7 @@ def start_processing(username,experiment_name,sample_name):
 				when the first steps are completed.','success')
 			asdf
 			# return redirect(url_for('experiments.exp',username=username,
-			# experiment_name=experiment_name,sample_name=sample_name))
+			# request_name=request_name,sample_name=sample_name))
 
 	elif request.method == 'GET': # get request
 		channel_contents_lists = []
@@ -131,7 +131,7 @@ def start_processing(username,experiment_name,sample_name):
 
 
 # @cel.task()
-def run_step0(username,experiment_name,sample_name):
+def run_step0(username,request_name,sample_name):
 	""" An asynchronous celery task (runs in a background process) which runs step 0 
 	in the light sheet pipeline -- i.e. makes the parameter dictionary pickle file
 	and grabs a bunch of metadata from the raw files to store in the database.  
@@ -145,15 +145,15 @@ def run_step0(username,experiment_name,sample_name):
 	
 	''' Fetch the processing params from the table to run the code '''
 	sample_contents = db_lightsheet.Sample() & f'username="{username}"' \
-	& f'experiment_name="{experiment_name}"'  & f'sample_name="{sample_name}"'
+	& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"'
 	
 	all_channel_contents = db_lightsheet.Sample.ImagingChannel() & f'username="{username}"' \
-	& f'experiment_name="{experiment_name}"'  & f'sample_name="{sample_name}"'
+	& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"'
 	channel_content_dict_list = all_channel_contents.fetch(as_dict=True)
 	sample_contents_dict = sample_contents.fetch1() 
 
 	raw_basepath = os.path.join(current_app.config['RAWDATA_ROOTPATH'],username,
-		experiment_name,sample_name)
+		request_name,sample_name)
 
 	""" Can now go in and find the z=0 plane 
 	which contains the metadata for each channel """
@@ -294,7 +294,7 @@ def run_step0(username,experiment_name,sample_name):
 				param_dict[inputdictionary] = inputdictionary
 
 				""" Prepare insert to processing db table """
-				processing_insert_dict = {'username':username,'experiment_name':experiment_name,
+				processing_insert_dict = {'username':username,'request_name':request_name,
 					'sample_name':sample_name,'channel_name':channel_name,'intensity_correction':True,
 					'datetime_processing_started':now}
 					# logger.info("inputdictionary: {}".format(inputdictionary))

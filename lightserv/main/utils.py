@@ -45,10 +45,10 @@ def logged_in_as_clearer(f):
 		if 'user' in session: # user is logged in 
 			current_user = session['user']
 
-			experiment_name = kwargs['experiment_name']
+			request_name = kwargs['request_name']
 			sample_name = kwargs['sample_name']
 			username = kwargs['username']
-			sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+			sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 			 	f'username="{username}"' & f'sample_name="{sample_name}"'
 			clearer = sample_contents.fetch1('clearer')
 			''' check to see if user assigned themself as clearer '''
@@ -85,10 +85,10 @@ def logged_in_as_processor(f):
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
 			current_user = session['user']
-			experiment_name = kwargs['experiment_name']
+			request_name = kwargs['request_name']
 			sample_name = kwargs['sample_name']
 			username = kwargs['username']
-			sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+			sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 			 	f'username="{username}"' & f'sample_name="{sample_name}"'
 			processor = sample_contents.fetch1('processor')
 			''' check to see if user assigned themself as processor '''
@@ -163,10 +163,10 @@ def logged_in_as_imager(f):
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
 			current_user = session['user']
-			experiment_name = kwargs['experiment_name']
+			request_name = kwargs['request_name']
 			sample_name = kwargs['sample_name']
 			username = kwargs['username']
-			sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+			sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 			 	f'username="{username}"' & f'sample_name="{sample_name}"'
 			imager = sample_contents.fetch1('imager')
 			''' check to see if user assigned themself as imager '''
@@ -239,16 +239,16 @@ def image_manager(f):
 def check_clearing_completed(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
-		experiment_name = kwargs['experiment_name']
+		request_name = kwargs['request_name']
 		sample_name = kwargs['sample_name']
 		username = kwargs['username']
-		sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+		sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 		 	f'username="{username}"' & f'sample_name="{sample_name}"'
 		clearing_progress = sample_contents.fetch1('clearing_progress')
 		if clearing_progress != 'complete':
 			flash(f"Clearing must be completed first for sample_name={sample_name}",'warning')
-			return redirect(url_for('experiments.exp',username=username,
-				experiment_name=experiment_name,
+			return redirect(url_for('requests.request_overview',username=username,
+				request_name=request_name,
 				sample_name=sample_name))
 		else:
 			return f(*args, **kwargs)
@@ -258,17 +258,17 @@ def check_clearing_completed(f):
 def check_imaging_completed(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
-		experiment_name = kwargs['experiment_name']
+		request_name = kwargs['request_name']
 		sample_name = kwargs['sample_name']
 		username = kwargs['username']
-		sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+		sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 		 	f'username="{username}"' & f'sample_name="{sample_name}"'
 		imaging_progress = sample_contents.fetch1('imaging_progress')
 		if imaging_progress != 'complete':
 			print("imaging not complete")
 			flash(f"Imaging must be completed first for sample_name={sample_name}",'warning')
-			return redirect(url_for('experiments.exp',username=username,
-				experiment_name=experiment_name,
+			return redirect(url_for('requests.request_overview',username=username,
+				request_name=request_name,
 				sample_name=sample_name))
 		else:
 			return f(*args, **kwargs)

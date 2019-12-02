@@ -8,7 +8,7 @@ from lightserv import db_lightsheet
 class ExpTable(Table):
     border = True
     allow_sort = True
-    no_items = "No Experiments Yet"
+    no_items = "No Requests Yet"
     html_attrs = {"style":'font-size:18px',} # gets assigned to table header
     table_id = 'vert_table' # override this when you make an instance if you dont want vertical layout by default
     # column_html_attrs = {'style':'text-align: center; min-width:10px', 'bgcolor':"#FF0000"} # gets assigned to both th and td
@@ -16,7 +16,7 @@ class ExpTable(Table):
     classes = ["table-striped"] # gets assigned to table classes. 
     # Striped is alternating bright and dark rows for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    request_name = Col('request_name',column_html_attrs=column_html_attrs)
     description = Col('description',column_html_attrs=column_html_attrs)
     species = Col('species',column_html_attrs=column_html_attrs)
     number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
@@ -24,10 +24,10 @@ class ExpTable(Table):
     date_submitted = Col('date submitted')
     time_submitted = Col('time submitted')
 
-    url_kwargs = {'username':'username','experiment_name':'experiment_name'}
+    url_kwargs = {'username':'username','request_name':'request_name'}
     anchor_attrs = {'target':"_blank",}
     
-    experiment_link = LinkCol('View experiment', 'experiments.exp',url_kwargs=url_kwargs,
+    experiment_link = LinkCol('View experiment', 'requests.request_overview',url_kwargs=url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False)
     
     def sort_url(self, col_key, reverse=False):
@@ -71,7 +71,7 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
     table_class.add_column('sample_name',Col('sample_name'))
-    table_class.add_column('experiment_name',Col('experiment_name'))
+    table_class.add_column('request_name',Col('request_name'))
     table_class.add_column('username',Col('username'))
     for column_name in colnames:
         if column_name in ignore_columns:
@@ -88,11 +88,11 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
                 continue
         table_class.add_column(column_name,Col(column_name),)
     """ Now add in the link columns """
-    clearing_url_kwargs = {'username':'username','experiment_name':'experiment_name',
+    clearing_url_kwargs = {'username':'username','request_name':'request_name',
     'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
-    imaging_url_kwargs = {'username':'username','experiment_name':'experiment_name',
+    imaging_url_kwargs = {'username':'username','request_name':'request_name',
     'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
-    processing_url_kwargs = {'username':'username','experiment_name':'experiment_name','sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
+    processing_url_kwargs = {'username':'username','request_name':'request_name','sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
     anchor_attrs = {'target':"_blank",}
     table_class.add_column('start_clearing_link',
         ConditionalLinkCol('Start/edit clearing', 'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,

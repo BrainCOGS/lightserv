@@ -41,8 +41,8 @@ def clearing_manager():
 	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sample_contents = db_lightsheet.Sample()
-	exp_contents = db_lightsheet.Experiment()
-	combined_contents = dj.U('experiment_name','username','clearing_protocol','antibody1','antibody2').aggr(sample_contents, 
+	exp_contents = db_lightsheet.Request()
+	combined_contents = dj.U('request_name','username','clearing_protocol','antibody1','antibody2').aggr(sample_contents, 
         clearer='clearer',clearing_progress='clearing_progress',
         sample_name='min(sample_name)',number_in_batch='count(*)') * exp_contents	
 	all_contents_unique_clearing_protocol = combined_contents.proj('sample_name','number_in_batch','sample_prefix',
@@ -74,26 +74,26 @@ def clearing_manager():
 		table_ready_to_clear=table_ready_to_clear,
 		table_already_cleared=table_already_cleared)
 
-@clearing.route("/clearing/clearing_entry/<username>/<experiment_name>/<sample_name>/<clearing_protocol>/",
+@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<sample_name>/<clearing_protocol>/",
 	methods=['GET','POST'])
 @logged_in_as_clearer
-def clearing_entry(username,experiment_name,sample_name,clearing_protocol): 
-	# print(username,experiment_name,sample_name,clearing_protocol)
-	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+def clearing_entry(username,request_name,sample_name,clearing_protocol): 
+	# print(username,request_name,sample_name,clearing_protocol)
+	sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'clearing_protocol="{clearing_protocol}"'								
 	# print(sample_contents)
 	if not sample_contents:
-		flash(f'Experiment must exist for experiment_name={experiment_name}, sample_name={sample_name} with \
+		flash(f'Experiment must exist for request_name={request_name}, sample_name={sample_name} with \
 			clearing_protocol="{clearing_protocol}" before clearing can be done. \
 			Please submit a new request for this experiment first. ','danger')
-		return redirect(url_for('experiments.new_exp'))
+		return redirect(url_for('requests.new_request'))
 	
 	clearing_table = ClearingTable(sample_contents)
 	
 	dbTable = determine_clearing_dbtable(clearing_protocol)
 	''' Check to see if there is an entry in the db yet. If not create one with all NULL values.
 	They will get updated as the user fills out the form '''
-	clearing_contents = dbTable() & f'experiment_name="{experiment_name}"' & \
+	clearing_contents = dbTable() & f'request_name="{request_name}"' & \
 	 	f'username="{username}"' & f'sample_name="{sample_name}"'
 	
 	''' If there are contents and the form is blank, then that means the user is accessing the form 
@@ -109,7 +109,7 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 
 	if not clearing_contents:
 		sample_username = sample_contents.fetch1('username')
-		insert_dict = {'experiment_name':experiment_name,
+		insert_dict = {'request_name':request_name,
 						'username':sample_username,'sample_name':sample_name}
 		dbTable().insert1(insert_dict)
 		logger.info("Created clearing database entry")
@@ -122,7 +122,7 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 			clearing_progress = sample_contents.fetch1('clearing_progress')
 			if clearing_progress == 'complete':
 				return redirect(url_for('clearing.clearing_entry',username=username,
-			experiment_name=experiment_name,sample_name=sample_name,clearing_protocol=clearing_protocol))
+			request_name=request_name,sample_name=sample_name,clearing_protocol=clearing_protocol))
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x]
 			for key in submit_keys:
 				if form[key].data:
@@ -132,7 +132,7 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 						form_data_dict = form.data
 						clearing_contents_dict = clearing_contents.fetch1()
 						''' The fields that need to go in the database that are not in the form '''
-						base_entry_dict = {'experiment_name':experiment_name,
+						base_entry_dict = {'request_name':request_name,
 										   'username':clearing_contents_dict['username'],
 						                   'sample_name':clearing_contents_dict['sample_name']}
 						clearing_entry_dict = {key:form_data_dict[key] for key in form_data_dict.keys() \
@@ -190,22 +190,22 @@ def clearing_entry(username,experiment_name,sample_name,clearing_protocol):
 		dj.Table._update(sample_contents,'clearing_progress','in progress')
 
 	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,
-		form=form,clearing_table=clearing_table,username=username,experiment_name=experiment_name,
+		form=form,clearing_table=clearing_table,username=username,request_name=request_name,
 		sample_name=sample_name,column_name=column_name)
 
-@clearing.route("/clearing/clearing_table/<username>/<experiment_name>/<sample_name>/<clearing_protocol>/",methods=['GET'])
+@clearing.route("/clearing/clearing_table/<username>/<request_name>/<sample_name>/<clearing_protocol>/",methods=['GET'])
 @logged_in_as_clearer
-def clearing_table(username,experiment_name,sample_name,clearing_protocol): 
-	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+def clearing_table(username,request_name,sample_name,clearing_protocol): 
+	sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'clearing_protocol="{clearing_protocol}"'		
 	if not sample_contents:
-		flash(f"No sample contents for experiment_name={experiment_name}, sample_name={sample_name}\
+		flash(f"No sample contents for request_name={request_name}, sample_name={sample_name}\
 			   with clearing_protocol={clearing_protocol} for username={username}",'danger')
 		return redirect(url_for('main.home'))
 	overview_table = ClearingTable(sample_contents)
 	clearing_table.table_id = 'horizontal'
 	dbTable = determine_clearing_dbtable(clearing_protocol)
-	db_contents = dbTable() & f'experiment_name="{experiment_name}"' & \
+	db_contents = dbTable() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"'
 	table = determine_clearing_table(clearing_protocol)(db_contents)
 	table.table_id = 'vertical'

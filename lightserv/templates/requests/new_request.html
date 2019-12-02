@@ -36,17 +36,17 @@
 					{% endif %}
 				</div>
 				<div class="form-group">
-					{% if form.experiment_name.flags.required %}*{% endif %}
-					{{ form.experiment_name.label(class="form-control-label") }}
-					{% if form.experiment_name.errors %}
-						{{ form.experiment_name(class="form-control form-control-lg is-invalid") }}
+					{% if form.request_name.flags.required %}*{% endif %}
+					{{ form.request_name.label(class="form-control-label") }}
+					{% if form.request_name.errors %}
+						{{ form.request_name(class="form-control form-control-lg is-invalid") }}
 						<div class="invalid-feedback">
-							{% for error in form.experiment_name.errors %}
+							{% for error in form.request_name.errors %}
 								<span>{{ error }}</span>
 							{% endfor %}
 						</div>
 					{% else %}
-						{{ form.experiment_name(class="form-control form-control-lg") }}
+						{{ form.request_name(class="form-control form-control-lg") }}
 					{% endif %}
 				</div>
 				<div class="form-group">

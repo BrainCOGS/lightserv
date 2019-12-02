@@ -4,8 +4,8 @@ from flask import (render_template, url_for, flash,
 # from flask_login import current_user, login_required
 # from lightserv import db_lightsheet
 # from lightserv.models import Experiment
-from lightserv.experiments.forms import NewRequestForm, UpdateNotesForm
-from lightserv.experiments.tables import (ExpTable, create_dynamic_samples_table)
+from lightserv.requests.forms import NewRequestForm, UpdateNotesForm
+from lightserv.requests.tables import (ExpTable, create_dynamic_samples_table)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed)
@@ -46,17 +46,17 @@ logger.addHandler(file_handler)
 
 # neuroglancer.set_static_content_source(url='https://neuromancer-seung-import.appspot.com')
 
-experiments = Blueprint('experiments',__name__)
+requests = Blueprint('requests',__name__)
 
-@experiments.route("/exp/new",methods=['GET','POST'])
+@requests.route("/request/new",methods=['GET','POST'])
 @logged_in
-def new_exp():
-	""" Route for a user to enter a new experiment via a form and submit that experiment """
+def new_request():
+	""" Route for a user to enter a new request via a form """
 	all_imaging_modes = current_app.config['IMAGING_MODES']
 	
 
 	username = session['user']
-	logger.info(f"{username} accessed new experiment form")
+	logger.info(f"{username} accessed new request form")
 
 	form = NewRequestForm(request.form)
 
@@ -140,12 +140,12 @@ def new_exp():
 					This is done to avoid inserting only into Experiment
 					table but not Sample and ImagingChannel tables if there is an error 
 					at any point during any of the inserts"""
-				connection = db_lightsheet.Experiment.connection
+				connection = db_lightsheet.Request.connection
 				with connection.transaction:
 					princeton_email = username + '@princeton.edu'
 					user_insert_dict = dict(username=username,princeton_email=princeton_email)
 					db_lightsheet.User().insert1(user_insert_dict,skip_duplicates=True)
-					exp_insert_dict = dict(experiment_name=form.experiment_name.data,
+					request_insert_dict = dict(request_name=form.request_name.data,
 						username=username,labname=form.labname.data.lower(),
 						correspondence_email=form.correspondence_email.data.lower(),
 						description=form.description.data,species=form.species.data,
@@ -155,9 +155,9 @@ def new_exp():
 					now = datetime.now()
 					date = now.strftime("%Y-%m-%d")
 					time = now.strftime("%H:%M:%S") 
-					exp_insert_dict['date_submitted'] = date
-					exp_insert_dict['time_submitted'] = time
-					db_lightsheet.Experiment().insert1(exp_insert_dict)
+					request_insert_dict['date_submitted'] = date
+					request_insert_dict['time_submitted'] = time
+					db_lightsheet.Request().insert1(request_insert_dict)
 				
 					''' Now loop through samples and get clearing and imaging parameters for each sample '''
 					clearing_samples = form.clearing_samples.data
@@ -180,7 +180,7 @@ def new_exp():
 						logger.info(sample_name)
 						sample_insert_dict = {}
 						''' Add primary keys that are not in the form '''
-						sample_insert_dict['experiment_name'] = form.experiment_name.data
+						sample_insert_dict['request_name'] = form.request_name.data
 						sample_insert_dict['username'] = username 
 
 						sample_insert_dict['sample_name'] = sample_name
@@ -219,10 +219,10 @@ def new_exp():
 								else:
 									channel_insert_dict = {}
 									""" When they submit this request form it is always for the first time
-									 for this combination of experiment_name,sample_name,channel_name,image_resolution """
+									 for this combination of request_name,sample_name,channel_name,image_resolution """
 									channel_insert_dict['imaging_request_number'] = 1 
 									channel_insert_dict['atlas_name'] = resolution_dict['atlas_name']
-									channel_insert_dict['experiment_name'] = form.experiment_name.data	
+									channel_insert_dict['request_name'] = form.request_name.data	
 									channel_insert_dict['username'] = username
 									channel_insert_dict['sample_name'] = sample_name
 									channel_insert_dict['image_resolution'] = resolution_dict['image_resolution']
@@ -288,25 +288,25 @@ def new_exp():
 		column_name = ''
 	
 
-	return render_template('experiments/new_exp.html', title='new_experiment',
-		form=form,legend='New Experiment',column_name=column_name)	
+	return render_template('requests/new_request.html', title='new_request',
+		form=form,legend='New Request',column_name=column_name)	
 
-@experiments.route("/exp/<username>/<experiment_name>",)
+@requests.route("/request/<username>/<request_name>",)
 @logged_in
-def exp(username,experiment_name):
-	""" A route for displaying a single experiment. Also acts as a gateway to start data processing. """
+def request_overview(username,request_name):
+	""" A route for displaying a single request. Also acts as a gateway to start data processing. """
 	
-	exp_contents = db_lightsheet.Experiment() & f'experiment_name="{experiment_name}"' & \
+	exp_contents = db_lightsheet.Request() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"'
-	samples_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
+	samples_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & f'username="{username}"' 
 	''' Get rid of the rows where none of the channels are used '''
-	channel_contents = db_lightsheet.Sample.ImagingChannel() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
+	channel_contents = db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & f'username="{username}"' 
 	# The first time page is loaded, sort, reverse, table_id are all not set so they become their default
-	sort = request.args.get('sort', 'experiment_name') # first is the variable name, second is default value
+	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	table_id = request.args.get('table_id', '')
 
-	combined_contents = (dj.U('experiment_name','sample_name','imaging_request_number').aggr(
+	combined_contents = (dj.U('request_name','sample_name','imaging_request_number').aggr(
     channel_contents) * samples_contents)
 	exp_table_id = 'horizontal_exp_table'
 	samples_table_id = 'vertical_samples_table'
@@ -328,7 +328,7 @@ def exp(username,experiment_name):
 
 	samples_table.table_id = samples_table_id
 	exp_table.table_id = exp_table_id
-	return render_template('experiments/exp.html',exp_contents=exp_contents,
+	return render_template('requests/request.html',exp_contents=exp_contents,
 		exp_table=exp_table,samples_table=samples_table)
 
 

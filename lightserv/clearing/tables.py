@@ -54,7 +54,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     table_class.add_column('clearing_protocol',Col('clearing_protocol'))
     table_class.add_column('antibody1',Col('antibody1'))
     table_class.add_column('antibody2',Col('antibody2'))
-    table_class.add_column('experiment_name',Col('exp_name'))
+    table_class.add_column('request_name',Col('exp_name'))
     table_class.add_column('username',Col('researcher netid'))
     table_class.add_column('clearer',Col('clearer'))
     
@@ -67,7 +67,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     table_class.add_column('number_in_batch',Col('number_in_batch'))    
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
-    clearing_url_kwargs = {'username':'username','experiment_name':'experiment_name',
+    clearing_url_kwargs = {'username':'username','request_name':'request_name',
         'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
     anchor_attrs = {'target':"_blank",}
     if table_id == 'horizontal_ready_to_clear_table':
@@ -98,7 +98,7 @@ class ClearingTable(Table):
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    request_name = Col('request_name',column_html_attrs=column_html_attrs)
     sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
     clearer = Col('clearer',column_html_attrs=column_html_attrs)
@@ -111,7 +111,7 @@ class IdiscoPlusTable(Table):
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    request_name = Col('request_name',column_html_attrs=column_html_attrs)
     sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     exp_notes = Col('exp_notes')
 
@@ -271,7 +271,7 @@ class IdiscoAbbreviatedTable(Table):
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    request_name = Col('request_name',column_html_attrs=column_html_attrs)
     sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     exp_notes = Col('exp_notes')
     time_pbs_wash1 = Col('time_pbs_wash1',)
@@ -322,7 +322,7 @@ class IdiscoAbbreviatedRatTable(Table):
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    request_name = Col('request_name',column_html_attrs=column_html_attrs)
     sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     exp_notes = Col('exp_notes')
 
@@ -398,7 +398,7 @@ class UdiscoTable(Table):
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    request_name = Col('request_name',column_html_attrs=column_html_attrs)
     sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     exp_notes = Col('exp_notes')
 
@@ -440,7 +440,7 @@ class IdiscoEdUTable(Table):
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
+    request_name = Col('request_name',column_html_attrs=column_html_attrs)
     sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     exp_notes = Col('exp_notes')
 

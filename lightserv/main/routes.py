@@ -2,7 +2,7 @@ from flask import (render_template, request, redirect,
 				   Blueprint, session, url_for, flash,
 				   Markup, Request, Response)
 from lightserv import db_lightsheet
-from lightserv.experiments.tables import ExpTable
+from lightserv.requests.tables import ExpTable
 import pandas as pd
 from .utils import logged_in, table_sorter
 from functools import partial, wraps
@@ -47,12 +47,12 @@ def home():
 	username = session['user']
 	logger.info(f"{username} accessed home page")
 	if username in ['ahoag','zmd','ll3','kellyms','jduva']:
-		exp_contents = db_lightsheet.Experiment()
+		exp_contents = db_lightsheet.Request()
 		legend = 'All core facility requests'
 	else:
-		exp_contents = db_lightsheet.Experiment() & f'username="{username}"'
+		exp_contents = db_lightsheet.Request() & f'username="{username}"'
 		legend = 'Your core facility requests'
-	sort = request.args.get('sort', 'experiment_name') # first is the variable name, second is default value
+	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sorted_results = sorted(exp_contents.fetch(as_dict=True),
 		key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function

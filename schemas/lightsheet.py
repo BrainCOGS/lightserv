@@ -24,10 +24,10 @@ class User(dj.Lookup):
 	"""
 	
 @schema
-class Experiment(dj.Manual):
-	definition = """ # Experiments performed using the light sheet microscope
+class Request(dj.Manual):
+	definition = """ # The highest level table for handling user requests to the Core Facility 
 	-> User  
-	experiment_name                        :   varchar(64)
+	request_name                        :   varchar(64)
 	----
 	date_submitted               :   date     # The date it was submitted as a request
 	time_submitted               :   time     # The time it was submitted as a request
@@ -43,8 +43,8 @@ class Experiment(dj.Manual):
 
 @schema
 class Sample(dj.Manual):
-	definition = """ # Samples from a particular experiment
-	-> Experiment
+	definition = """ # Samples from a particular request
+	-> Request
 	sample_name                               :   varchar(64)                
 	----
 	perfusion_date = NULL        :   date
@@ -106,7 +106,7 @@ class Sample(dj.Manual):
 		definition = """ # iDISCO+ clearing table
 		-> Sample           
 		----
-		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request handling that could affect clearing
 		time_dehydr_pbs_wash1 = NULL                             :   datetime
 		dehydr_pbs_wash1_notes = ""                              :   varchar(250)
 		time_dehydr_pbs_wash2 = NULL                             :   datetime
@@ -213,7 +213,7 @@ class Sample(dj.Manual):
 		definition = """ # iDISCO abbreviated clearing table
 		-> Sample           
 		----
-		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request handling that could affect clearing
 		time_pbs_wash1 = NULL                                    :   datetime
 		pbs_wash1_notes = ""                                     :   varchar(250)
 		time_pbs_wash2 = NULL                                    :   datetime
@@ -249,7 +249,7 @@ class Sample(dj.Manual):
 		definition = """ # iDISCO Abbreviated Rat clearing table
 		-> Sample              
 		----
-		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
 		time_pbs_wash1 = NULL                                    :   datetime
 		pbs_wash1_notes = ""                                     :   varchar(250)
 		time_pbs_wash2 = NULL                                    :   datetime
@@ -299,7 +299,7 @@ class Sample(dj.Manual):
 		definition = """ # uDISCO clearing table
 		-> Sample              
 		----
-		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
 		time_dehydr_pbs_wash1 = NULL                             :   datetime
 		dehydr_pbs_wash1_notes = ""                              :   varchar(250)
 		time_dehydr_butanol_30percent = NULL                     :   datetime
@@ -327,7 +327,7 @@ class Sample(dj.Manual):
 		definition = """ # uDISCO clearing table
 		-> Sample              
 		----
-		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+		exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
 		time_dehydr_pbs_wash1 = NULL                             :   datetime
 		dehydr_pbs_wash1_notes = ""                              :   varchar(250)
 		time_dehydr_pbs_wash2 = NULL                             :   datetime
@@ -424,7 +424,7 @@ class Sample(dj.Manual):
 
 
 class RawImageSet(dj.Manual):
-	definition = """ # a set of raw images for a given experiment and channel
+	definition = """ # a set of raw images for a given request and channel
 	-> Sample
 	channel                      :   char(3)
 	----

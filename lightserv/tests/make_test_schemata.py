@@ -28,10 +28,10 @@ def create_test_schema():
         """
         
     @test_schema
-    class Experiment(dj.Manual):
+    class Request(dj.Manual):
         definition = """ # Experiments performed using the light sheet microscope
         -> User  
-        experiment_name                        :   varchar(64)
+        request_name                        :   varchar(64)
         ----
         date_submitted               :   date     # The date it was submitted as a request
         time_submitted               :   time     # The time it was submitted as a request
@@ -48,7 +48,7 @@ def create_test_schema():
     @test_schema
     class Sample(dj.Manual):
         definition = """ # Samples from a particular experiment
-        -> Experiment
+        -> Request
         sample_name                               :   varchar(64)                
         ----
         perfusion_date = NULL        :   date

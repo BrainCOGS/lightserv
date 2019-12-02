@@ -43,10 +43,10 @@ def imaging_manager():
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sample_contents = db_lightsheet.Sample()
 	channel_contents = db_lightsheet.Sample.ImagingChannel()
-	exp_contents = db_lightsheet.Experiment()
+	exp_contents = db_lightsheet.Request()
 	
 	# ''' First get all entities that are currently being imaged '''
-	combined_contents = dj.U('experiment_name','username',
+	combined_contents = dj.U('request_name','username',
 		'sample_name','imaging_request_number').aggr(channel_contents,imaging_progress='imaging_progress',
         image_resolution='min(image_resolution)') * sample_contents * exp_contents
 	all_contents_unique_imaging_request_number = combined_contents.proj('imaging_request_number','imaging_progress',
@@ -79,22 +79,22 @@ def imaging_manager():
 		table_ready_to_image=table_ready_to_image,
 		table_on_deck=table_on_deck,table_already_imaged=table_already_imaged)
 
-@imaging.route("/imaging/imaging_entry/<username>/<experiment_name>/<imaging_request_number>/<sample_name>",methods=['GET','POST'])
+@imaging.route("/imaging/imaging_entry/<username>/<request_name>/<imaging_request_number>/<sample_name>",methods=['GET','POST'])
 @logged_in
 @logged_in_as_imager
 @check_clearing_completed
-def imaging_entry(username,experiment_name,sample_name,imaging_request_number): 
+def imaging_entry(username,request_name,sample_name,imaging_request_number): 
 	form = ImagingForm(request.form)
-	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+	sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' 
-	channel_contents = db_lightsheet.Sample.ImagingChannel() & f'experiment_name="{experiment_name}"' & \
+	channel_contents = db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
 	 		 f'imaging_request_number="{imaging_request_number}"'								
 	if not channel_contents:
-		flash(f"""Request must exist for experiment_name={experiment_name}, 
+		flash(f"""Request must exist for request_name={request_name}, 
 			sample_name={sample_name} before imaging can be done. 
 			Please submit a new request for this experiment first. """,'danger')
-		return redirect(url_for('experiments.new_exp'))
+		return redirect(url_for('requests.new_request'))
 	''' If imaging is already complete (from before), then dont change imaging_progress '''
 	# imaging_progress = sample_contents.fetch1('imaging_progress')
 	# logger.debug(imaging_progress)
@@ -105,7 +105,7 @@ def imaging_entry(username,experiment_name,sample_name,imaging_request_number):
 	# else:
 	# 	dj.Table._update(sample_contents,'imaging_progress','in progress')
 
-	# channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'experiment_name="{experiment_name}"' & \
+	# channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
 	#  		f'username="{username}"' & f'sample_name="{sample_name}"')
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
 	if request.method == 'POST':
@@ -117,7 +117,7 @@ def imaging_entry(username,experiment_name,sample_name,imaging_request_number):
 			# if imaging_progress == 'complete':
 			# 	logger.info("Imaging is already complete so hitting the done button again did nothing")
 			# 	return redirect(url_for('experiments.exp',username=username,
-			# 	experiment_name=experiment_name,sample_name=sample_name))
+			# 	request_name=request_name,sample_name=sample_name))
 			
 			""" loop through the image resolution forms and find all channel entries"""
 
@@ -141,14 +141,14 @@ def imaging_entry(username,experiment_name,sample_name,imaging_request_number):
 					""" Now look for the number of z planes in the raw data subfolder on bucket
 					 and validate that it is the same as the user specified """
 					# rawdata_fullpath = os.path.join(current_app.config['RAWDATA_ROOTPATH'],username,
-					# 	experiment_name,sample_name,rawdata_subfolder) 
+					# 	request_name,sample_name,rawdata_subfolder) 
 					# number_of_z_planes_found = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*Filter000{channel_index}*'))
 					# if number_of_z_planes_found != number_of_z_planes:
 					# 	flash(f"You entered that for channel: {channel_name} there should be {number_of_z_planes} z planes, "
 					# 		  f"but found {number_of_z_planes_found} in raw data folder: "
 					# 		  f"{rawdata_fullpath}","danger")
 					# 	return redirect(url_for('imaging.imaging_entry',username=username,
-					# 		experiment_name=experiment_name,sample_name=sample_name))
+					# 		request_name=request_name,sample_name=sample_name))
 					channel_content = channel_contents & f'channel_name="{channel_name}"' & \
 					f'image_resolution="{image_resolution}"' & f'imaging_request_number={imaging_request_number}'
 					channel_content_dict = channel_content.fetch1()
@@ -168,15 +168,15 @@ def imaging_entry(username,experiment_name,sample_name,imaging_request_number):
 			
 					db_lightsheet.Sample.ImagingChannel().insert1(channel_insert_dict,replace=True)
 				
-			correspondence_email = (db_lightsheet.Experiment() &\
-			 f'experiment_name="{experiment_name}"').fetch1('correspondence_email')
-			path_to_data = f'/jukebox/LightSheetData/lightserv_testing/{username}/{experiment_name}/{sample_name}'
+			correspondence_email = (db_lightsheet.Request() &\
+			 f'request_name="{request_name}"').fetch1('correspondence_email')
+			path_to_data = f'/jukebox/LightSheetData/lightserv_testing/{username}/{request_name}/{sample_name}'
 			msg = Message('Lightserv automated email',
 			          sender='lightservhelper@gmail.com',
 			          recipients=['ahoag@princeton.edu']) # keep it to me while in DEV phase
 			msg.body = ('Hello!\n    This is an automated email sent from lightserv, the Light Sheet Microscopy portal. '
 						'The raw data for your experiment:\n'
-						f'experiment_name: "{experiment_name}"\n'
+						f'request_name: "{request_name}"\n'
 						f'sample_name: "{sample_name}"\n'
 						f'are now available on bucket here: {path_to_data}')
 			# mail.send(msg)
@@ -185,8 +185,8 @@ def imaging_entry(username,experiment_name,sample_name,imaging_request_number):
 				The processing pipeline is now ready to run. ""","success")
 			# dj.Table._update(sample_contents,'imaging_progress','complete')
 
-			return redirect(url_for('experiments.exp',username=username,
-				experiment_name=experiment_name,sample_name=sample_name))
+			return redirect(url_for('requests.request_overview',username=username,
+				request_name=request_name,sample_name=sample_name))
 
 		else:
 			logger.info("Not validated")
@@ -222,9 +222,9 @@ def imaging_entry(username,experiment_name,sample_name,imaging_request_number):
 		channel_contents_lists=channel_contents_lists,
 		overview_dict=overview_dict,imaging_table=imaging_table)
 
-@imaging.route("/imaging/imaging_entry/<username>/<experiment_name>/<sample_name>/new_imaging_request",methods=['GET','POST'])
+@imaging.route("/imaging/imaging_entry/<username>/<request_name>/<sample_name>/new_imaging_request",methods=['GET','POST'])
 @logged_in
-def new_imaging_request(username,experiment_name,sample_name): 
+def new_imaging_request(username,request_name,sample_name): 
 	""" Route for user to submit a new imaging request to an 
 	already existing sample - this takes place after the initial request
 	and first imaging round took place. This can sometimes happen if
@@ -236,10 +236,10 @@ def new_imaging_request(username,experiment_name,sample_name):
 
 	all_imaging_modes = current_app.config['IMAGING_MODES']
 
-	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
+	sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"'								
 	sample_table = SampleTable(sample_contents)
-	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'experiment_name="{experiment_name}"' & \
+	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"')
 
 	if request.method == 'POST':
@@ -285,10 +285,10 @@ def new_imaging_request(username,experiment_name,sample_name):
 						else:
 							channel_insert_dict = {}
 							""" When they submit this request form it is always for the first time
-							 for this combination of experiment_name,sample_name,channel_name,image_resolution """
+							 for this combination of request_name,sample_name,channel_name,image_resolution """
 							channel_insert_dict['imaging_request_number'] = new_imaging_request_number 
 							channel_insert_dict['atlas_name'] = resolution_dict['atlas_name']
-							channel_insert_dict['experiment_name'] = experiment_name	
+							channel_insert_dict['request_name'] = request_name	
 							channel_insert_dict['username'] = username
 							channel_insert_dict['sample_name'] = sample_name
 							channel_insert_dict['image_resolution'] = resolution_dict['image_resolution']

@@ -56,7 +56,7 @@ def create_app(config_class=Config):
 	# login_manager.init_app(app)
 	mail.init_app(app)
 	# from lightserv.users.routes import users
-	from lightserv.experiments.routes import experiments
+	from lightserv.requests.routes import requests
 	from lightserv.main.routes import main
 	from lightserv.ontology.routes import ontology
 	from lightserv.clearing.routes import clearing
@@ -66,7 +66,7 @@ def create_app(config_class=Config):
 	from lightserv.errors.handlers import errors
 
 	# app.register_blueprint(users)
-	app.register_blueprint(experiments)
+	app.register_blueprint(requests)
 	app.register_blueprint(main)
 	app.register_blueprint(ontology)
 	app.register_blueprint(clearing)

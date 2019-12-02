@@ -82,7 +82,7 @@ class ImagingForm(FlaskForm):
 class NewRequestForm(FlaskForm):
 	""" The form for a new request """
 	max_number_of_samples = 50
-	experiment_name = StringField('Name of experiment',validators=[InputRequired(),Length(max=100)],default="test")
+	request_name = StringField('Name of experiment',validators=[InputRequired(),Length(max=100)],default="test")
 	description = TextAreaField('Description of experiment',validators=[InputRequired(),Length(max=250)],default='test')
 	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)],default="Braincogs")
 	correspondence_email = StringField('Correspondence email (default is princeton email)',
@@ -120,12 +120,12 @@ class NewRequestForm(FlaskForm):
 		elif number_of_samples.data < 1:
 			raise ValidationError("You must have at least one sample to submit a request")
 
-	def validate_experiment_name(self,experiment_name):
+	def validate_request_name(self,request_name):
 		""" Make sure experiment name is unique """
 		username = session['user']
-		current_experiment_names = (db_lightsheet.Experiment() & f'username="{username}"').fetch('experiment_name')
-		if experiment_name.data in current_experiment_names:
-			raise ValidationError(f'There already exists an experiment named "{experiment_name.data}" \
+		current_request_names = (db_lightsheet.Request() & f'username="{username}"').fetch('request_name')
+		if request_name.data in current_request_names:
+			raise ValidationError(f'There already exists an experiment named "{request_name.data}" \
 				for your account. Please rename your experiment')
 
 	def validate_clearing_samples(self,clearing_samples):
