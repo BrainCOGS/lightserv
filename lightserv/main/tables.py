@@ -44,3 +44,12 @@ class ConditionalLinkCol(LinkCol):
                 text=self.td_format(self.text(item, attr_list)))
         else:
             return ""
+
+class BooltoStringCol(Col):
+    """ Subclassing Col to show 'yes' if Boolean
+    entry is True, 'no' if False """  
+    def td_format(self, content):
+        if content == True:
+            return "yes"
+        else:
+            return "no"

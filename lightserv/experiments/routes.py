@@ -317,9 +317,9 @@ def exp(username,experiment_name):
 
 		exp_table = ExpTable(sorted_results,sort_by=sort,
 						  sort_reverse=reverse)
-		samples_table = create_dynamic_samples_table(samples_contents,table_id=samples_table_id)
+		samples_table = create_dynamic_samples_table(combined_contents,table_id=samples_table_id)
 	elif table_id == samples_table_id: # the click was in the samples table
-		samples_table = create_dynamic_samples_table(samples_contents,
+		samples_table = create_dynamic_samples_table(combined_contents,
 			sort_by=sort,sort_reverse=reverse,table_id=samples_table_id)
 		exp_table = ExpTable(exp_contents)
 	else:

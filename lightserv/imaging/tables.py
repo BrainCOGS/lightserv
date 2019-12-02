@@ -2,6 +2,7 @@ from flask import request
 from flask_table import create_table,Table, Col, LinkCol, ButtonCol
 from functools import partial
 from lightserv.main.utils import table_sorter
+from lightserv.main.tables import BooltoStringCol
 
 def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     name='Dynamic Imaging Management Table', **sort_kwargs):
@@ -116,4 +117,8 @@ class ExistingImagingTable(Table):
     imaging_request_number = Col('imaging request number',column_html_attrs=column_html_attrs)
     image_resolution = Col('image resolution',column_html_attrs=column_html_attrs)
     channel_name = Col('channel name',column_html_attrs=column_html_attrs)
+    registration = BooltoStringCol('registration',column_html_attrs=column_html_attrs)
+    injection_detection = BooltoStringCol('injection detection',column_html_attrs=column_html_attrs)
+    probe_detection = BooltoStringCol('probe detection',column_html_attrs=column_html_attrs)
+    cell_detection = BooltoStringCol('cell detection',column_html_attrs=column_html_attrs)
 
