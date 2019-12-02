@@ -1,29 +1,16 @@
 {% extends "layout.html" %}
 	{% block content %}
 		
-		<h3>Experiment overview: </h3>
-		{{ exp_table }}
-		<input id = "tableSwapper1" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
+		<h3>Request overview: </h3>
+		{{ request_table }}
+
 		
 		<hr class='class-4'>
-		<h3>Samples for this experiment: </h3>
+		<h3>Samples in this request: </h3>
 		<!-- Samples Section -->
 		{{ samples_table }}
-			<input id = "tableSwapper2" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
+		<hr class='class-4'>
+		<hr class='class-4'>
 
-		<!-- Processing start button -->
-		
-	
-		
-	<script type="text/javascript" defer="defer">
 
-		   $("#tableSwapper1").click(function() {
-		   MYLIBRARY.swapTable("{{exp_table.table_id}}");
-		});
-
-		   $("#tableSwapper2").click(function() {
-		   MYLIBRARY.swapTable("{{samples_table.table_id}}");
-		});
-
-	</script>
 	{% endblock content %}

@@ -163,18 +163,22 @@ def logged_in_as_imager(f):
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
 			current_user = session['user']
+
+			username = kwargs['username']
 			request_name = kwargs['request_name']
 			sample_name = kwargs['sample_name']
-			username = kwargs['username']
-			sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
-			 	f'username="{username}"' & f'sample_name="{sample_name}"'
-			imager = sample_contents.fetch1('imager')
+			imaging_request_number = kwargs['imaging_request_number']
+			
+			imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
+			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			 	f'imaging_request_number="{imaging_request_number}"'
+			imager = imaging_request_contents.fetch1('imager')
 			''' check to see if user assigned themself as imager '''
-			if imager == "not yet assigned":
+			if imager == None: # not yet assigned
 				logger.info("Imaging entry form accessed with imager not yet assigned. ")
 				''' now check to see if user is a designated imager ''' 
 				if current_user in  current_app.config['IMAGING_ADMINS']: # 
-					dj.Table._update(sample_contents,'imager',current_user)
+					dj.Table._update(imaging_request_contents,'imager',current_user)
 					logger.info(f"{current_user} is a designated imager and is now assigned as the imager")
 					return f(*args, **kwargs)
 				else: # user is not a designated imager and did not self assign
@@ -184,7 +188,7 @@ def logged_in_as_imager(f):
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
 					return redirect(url_for('main.welcome'))
 			else: # imager is assigned 
-				if imager in  current_app.config['IMAGING_ADMINS']: # one of the admins started the form
+				if imager in current_app.config['IMAGING_ADMINS']: # one of the admins started the form
 					if current_user in  current_app.config['IMAGING_ADMINS']: # one of the admins is accessing the form
 						
 						if current_user != imager:

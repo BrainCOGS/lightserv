@@ -42,42 +42,46 @@ def imaging_manager():
 	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sample_contents = db_lightsheet.Sample()
-	channel_contents = db_lightsheet.Sample.ImagingChannel()
-	exp_contents = db_lightsheet.Request()
+	request_contents = db_lightsheet.Request()
+	imaging_request_contents = (db_lightsheet.Sample.ImagingRequest() * sample_contents * request_contents).\
+		proj('clearing_progress',
+		'imaging_request_date_submitted','imaging_request_time_submitted',
+		'imaging_progress','imager','species',
+		datetime_submitted='TIMESTAMP(imaging_request_date_submitted,imaging_request_time_submitted)')
+	logger.info(imaging_request_contents)
+	# channel_contents = db_lightsheet.Sample.ImagingChannel()
+	# request_contents = db_lightsheet.Request()
 	
 	# ''' First get all entities that are currently being imaged '''
-	combined_contents = dj.U('request_name','username',
-		'sample_name','imaging_request_number').aggr(channel_contents,imaging_progress='imaging_progress',
-        image_resolution='min(image_resolution)') * sample_contents * exp_contents
-	all_contents_unique_imaging_request_number = combined_contents.proj('imaging_request_number','imaging_progress',
-		'clearing_progress','clearer','imager','species',datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
 	""" Get all entries currently being imaged """
-	contents_being_imaged = all_contents_unique_imaging_request_number & 'imaging_progress="in progress"'
+	contents_being_imaged = imaging_request_contents & 'imaging_progress="in progress"'
+	# logger.info(contents_being_imaged)
 	being_imaged_table_id = 'horizontal_being_imaged_table'
 	table_being_imaged = dynamic_imaging_management_table(contents_being_imaged,
 		table_id=being_imaged_table_id,
 		sort_by=sort,sort_reverse=reverse)
 	''' Next get all entities that are ready to be imaged '''
-	contents_ready_to_image = all_contents_unique_imaging_request_number & 'clearing_progress="complete"' & 'imaging_progress="incomplete"'
+	contents_ready_to_image = imaging_request_contents & 'clearing_progress="complete"' & \
+	 'imaging_progress="incomplete"'
 	ready_to_image_table_id = 'horizontal_ready_to_image_table'
 	table_ready_to_image = dynamic_imaging_management_table(contents_ready_to_image,
 		table_id=ready_to_image_table_id,
 		sort_by=sort,sort_reverse=reverse)
 	''' Now get all entities on deck (currently being cleared) '''
-	contents_on_deck = all_contents_unique_imaging_request_number & 'clearing_progress!="complete"' & 'imaging_progress!="complete"'
+	contents_on_deck = imaging_request_contents & 'clearing_progress!="complete"' & 'imaging_progress!="complete"'
 	on_deck_table_id = 'horizontal_on_deck_table'
 	table_on_deck = dynamic_imaging_management_table(contents_on_deck,table_id=on_deck_table_id,
 		sort_by=sort,sort_reverse=reverse)
-	''' Finally get all entities that have already been imaged '''
-	contents_already_imaged = all_contents_unique_imaging_request_number & 'imaging_progress="complete"'
-	already_imaged_table_id = 'horizontal_already_imaged_table'
-	table_already_imaged = dynamic_imaging_management_table(contents_already_imaged,
-		table_id=already_imaged_table_id,
-		sort_by=sort,sort_reverse=reverse)
+	# ''' Finally get all entities that have already been imaged '''
+	# contents_already_imaged = all_contents_unique_imaging_request_number & 'imaging_progress="complete"'
+	# already_imaged_table_id = 'horizontal_already_imaged_table'
+	# table_already_imaged = dynamic_imaging_management_table(contents_already_imaged,
+	# 	table_id=already_imaged_table_id,
+	# 	sort_by=sort,sort_reverse=reverse)
 	
-	return render_template('imaging/image_management.html',table_being_imaged=table_being_imaged,
-		table_ready_to_image=table_ready_to_image,
-		table_on_deck=table_on_deck,table_already_imaged=table_already_imaged)
+	return render_template('imaging/image_management.html',
+		table_being_imaged=table_being_imaged,
+		table_ready_to_image=table_ready_to_image,table_on_deck=table_on_deck)
 
 @imaging.route("/imaging/imaging_entry/<username>/<request_name>/<imaging_request_number>/<sample_name>",methods=['GET','POST'])
 @logged_in
@@ -85,16 +89,12 @@ def imaging_manager():
 @check_clearing_completed
 def imaging_entry(username,request_name,sample_name,imaging_request_number): 
 	form = ImagingForm(request.form)
+
 	sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' 
-	channel_contents = db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
+	imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
-	 		 f'imaging_request_number="{imaging_request_number}"'								
-	if not channel_contents:
-		flash(f"""Request must exist for request_name={request_name}, 
-			sample_name={sample_name} before imaging can be done. 
-			Please submit a new request for this experiment first. """,'danger')
-		return redirect(url_for('requests.new_request'))
+	 		f'imaging_request_number="{imaging_request_number}"' 
 	''' If imaging is already complete (from before), then dont change imaging_progress '''
 	# imaging_progress = sample_contents.fetch1('imaging_progress')
 	# logger.debug(imaging_progress)
@@ -105,19 +105,19 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 	# else:
 	# 	dj.Table._update(sample_contents,'imaging_progress','in progress')
 
-	# channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
-	#  		f'username="{username}"' & f'sample_name="{sample_name}"')
+	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
+	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"')
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
 	if request.method == 'POST':
 		logger.info("Post request")
 		if form.validate_on_submit():
 			logger.info("form validated")
-			imaging_progress = sample_contents.fetch1('imaging_progress')
+			imaging_progress = imaging_request_contents.fetch1('imaging_progress')
 			
-			# if imaging_progress == 'complete':
-			# 	logger.info("Imaging is already complete so hitting the done button again did nothing")
-			# 	return redirect(url_for('experiments.exp',username=username,
-			# 	request_name=request_name,sample_name=sample_name))
+			if imaging_progress == 'complete':
+				logger.info("Imaging is already complete so hitting the done button again did nothing")
+				return redirect(url_for('requests.request',username=username,
+				request_name=request_name,sample_name=sample_name))
 			
 			""" loop through the image resolution forms and find all channel entries"""
 
@@ -164,7 +164,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 						if key in channel_content_dict.keys() and key not in ['channel_name','image_resolution','imaging_request_number']:
 							channel_insert_dict[key] = val
 					channel_insert_dict['imspector_channel_index'] = channel_index
-					logger.info("Inserting {}".format(channel_insert_dict))
+					logger.info("Updating db entry with channel contents:")
+					logger.info(channel_insert_dict)
 			
 					db_lightsheet.Sample.ImagingChannel().insert1(channel_insert_dict,replace=True)
 				
@@ -213,10 +214,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				this_channel_form.channel_name.data = channel_content['channel_name']
 				this_channel_form.image_resolution.data = channel_content['image_resolution']
 
-	overview_contents = (channel_contents * sample_contents).proj(
-		'imager','imaging_request_number','notes_for_imager')
-	overview_dict = overview_contents.fetch1()
-	imaging_table = ImagingTable(overview_contents)
+	overview_dict = imaging_request_contents.fetch1()
+	imaging_table = ImagingTable(imaging_request_contents)
 
 	return render_template('imaging/imaging_entry.html',form=form,
 		channel_contents_lists=channel_contents_lists,

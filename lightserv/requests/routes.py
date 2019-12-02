@@ -150,8 +150,7 @@ def new_request():
 						correspondence_email=form.correspondence_email.data.lower(),
 						description=form.description.data,species=form.species.data,
 						number_of_samples=form.number_of_samples.data,
-						sample_prefix=form.sample_prefix.data,uniform_clearing=form.uniform_clearing.data,
-						uniform_imaging=form.uniform_imaging.data)
+						sample_prefix=form.sample_prefix.data,uniform_clearing=form.uniform_clearing.data)
 					now = datetime.now()
 					date = now.strftime("%Y-%m-%d")
 					time = now.strftime("%H:%M:%S") 
@@ -179,10 +178,10 @@ def new_request():
 						sample_name = form.sample_prefix.data + '-' + f'{ii+1}'.zfill(3)
 						logger.info(sample_name)
 						sample_insert_dict = {}
+						""" Set up sample insert dict """
 						''' Add primary keys that are not in the form '''
 						sample_insert_dict['request_name'] = form.request_name.data
 						sample_insert_dict['username'] = username 
-
 						sample_insert_dict['sample_name'] = sample_name
 						sample_insert_dict['clearing_progress'] = 'incomplete'
 
@@ -205,9 +204,38 @@ def new_request():
 							if val != None and val !='None' and key not in ['csrf_token','sample_name']:
 								sample_insert_dict[key] = val
 
+
+						""" Set up ImagingRequest insert dict """
+
+						""" When user submits this request form it is always 
+						the first imaging request for this sample """
+						imaging_request_number = 1
+						imaging_request_insert_dict = {}
+						imaging_request_insert_dict['request_name'] = form.request_name.data
+						imaging_request_insert_dict['username'] = username 
+						imaging_request_insert_dict['sample_name'] = sample_name
+						imaging_request_insert_dict['imaging_request_number'] = imaging_request_number
+						imaging_request_insert_dict['imaging_request_date_submitted'] = date
+						imaging_request_insert_dict['imaging_request_time_submitted'] = time
+						imaging_request_insert_dict['imaging_progress'] = "incomplete"
+
 						""" Now insert each image resolution/channel combo """
+						resolution_insert_list = []
 						channel_insert_list = []
+
 						for resolution_dict in imaging_sample_dict['image_resolution_forms']:
+							logger.info(resolution_dict)
+							resolution_insert_dict = {}
+							resolution_insert_dict['request_name'] = form.request_name.data
+							resolution_insert_dict['username'] = username 
+							resolution_insert_dict['sample_name'] = sample_name
+							resolution_insert_dict['imaging_request_number'] = imaging_request_number
+							resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
+							resolution_insert_dict['notes_for_imager'] = resolution_dict['notes_for_imager']
+							resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
+							resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
+							resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
+							resolution_insert_list.append(resolution_insert_dict)
 
 							for imaging_channel_dict in resolution_dict['channels']:
 								
@@ -218,14 +246,12 @@ def new_request():
 									continue
 								else:
 									channel_insert_dict = {}
-									""" When they submit this request form it is always for the first time
-									 for this combination of request_name,sample_name,channel_name,image_resolution """
-									channel_insert_dict['imaging_request_number'] = 1 
-									channel_insert_dict['atlas_name'] = resolution_dict['atlas_name']
+									channel_insert_dict['imaging_request_number'] = imaging_request_number 
+									# channel_insert_dict['atlas_name'] = resolution_dict['atlas_name']
 									channel_insert_dict['request_name'] = form.request_name.data	
 									channel_insert_dict['username'] = username
 									channel_insert_dict['sample_name'] = sample_name
-									channel_insert_dict['image_resolution'] = resolution_dict['image_resolution']
+									# channel_insert_dict['image_resolution'] = resolution_dict['image_resolution']
 									for key,val in imaging_channel_dict.items(): 
 										if key == 'csrf_token':
 											continue
@@ -235,9 +261,15 @@ def new_request():
 							logger.info(channel_insert_list)
 								
 						
-						logger.info("sample insert:")
+						logger.info("Sample() insert:")
 						logger.info(sample_insert_dict)
 						db_lightsheet.Sample().insert1(sample_insert_dict)
+						logger.info("ImagingRequest() insert:")
+						logger.info(imaging_request_insert_dict)
+						db_lightsheet.Sample.ImagingRequest().insert1(imaging_request_insert_dict)
+						logger.info("ImageResolutionRequest() insert:")
+						logger.info(resolution_insert_list)
+						db_lightsheet.Sample.ImageResolutionRequest().insert(resolution_insert_list)
 						logger.info('channel insert:')
 						logger.info(channel_insert_list)
 						db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
@@ -296,7 +328,7 @@ def new_request():
 def request_overview(username,request_name):
 	""" A route for displaying a single request. Also acts as a gateway to start data processing. """
 	
-	exp_contents = db_lightsheet.Request() & f'request_name="{request_name}"' & \
+	request_contents = db_lightsheet.Request() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"'
 	samples_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & f'username="{username}"' 
 	''' Get rid of the rows where none of the channels are used '''
@@ -306,30 +338,31 @@ def request_overview(username,request_name):
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	table_id = request.args.get('table_id', '')
 
-	combined_contents = (dj.U('request_name','sample_name','imaging_request_number').aggr(
+	combined_contents = (dj.U('request_name','sample_name').aggr(
     channel_contents) * samples_contents)
-	exp_table_id = 'horizontal_exp_table'
+	request_table_id = 'horizontal_request_table'
 	samples_table_id = 'vertical_samples_table'
 
-	if table_id == exp_table_id: # the click was in the experiment table
-		sorted_results = sorted(exp_contents.fetch(as_dict=True),
+	if table_id == request_table_id: # the click to sort a column was in the experiment table
+		sorted_results = sorted(request_contents.fetch(as_dict=True),
 			key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
 
-		exp_table = ExpTable(sorted_results,sort_by=sort,
+		request_table = ExpTable(sorted_results,sort_by=sort,
 						  sort_reverse=reverse)
 		samples_table = create_dynamic_samples_table(combined_contents,table_id=samples_table_id)
 	elif table_id == samples_table_id: # the click was in the samples table
 		samples_table = create_dynamic_samples_table(combined_contents,
 			sort_by=sort,sort_reverse=reverse,table_id=samples_table_id)
-		exp_table = ExpTable(exp_contents)
+		request_table = ExpTable(request_contents)
 	else:
-		samples_table = create_dynamic_samples_table(combined_contents,table_id=samples_table_id)
-		exp_table = ExpTable(exp_contents)
+		samples_table = create_dynamic_samples_table(combined_contents,
+			table_id=samples_table_id)
+		request_table = ExpTable(request_contents)
 
 	samples_table.table_id = samples_table_id
-	exp_table.table_id = exp_table_id
-	return render_template('requests/request.html',exp_contents=exp_contents,
-		exp_table=exp_table,samples_table=samples_table)
+	request_table.table_id = request_table_id
+	return render_template('requests/request.html',request_contents=request_contents,
+		request_table=request_table,samples_table=samples_table)
 
 
 

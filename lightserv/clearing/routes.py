@@ -41,10 +41,10 @@ def clearing_manager():
 	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sample_contents = db_lightsheet.Sample()
-	exp_contents = db_lightsheet.Request()
+	request_contents = db_lightsheet.Request()
 	combined_contents = dj.U('request_name','username','clearing_protocol','antibody1','antibody2').aggr(sample_contents, 
         clearer='clearer',clearing_progress='clearing_progress',
-        sample_name='min(sample_name)',number_in_batch='count(*)') * exp_contents	
+        sample_name='min(sample_name)',number_in_batch='count(*)') * request_contents	
 	all_contents_unique_clearing_protocol = combined_contents.proj('sample_name','number_in_batch','sample_prefix',
 		'clearing_protocol','species',
 		'clearer','clearing_progress','clearing_protocol','antibody1','antibody2',

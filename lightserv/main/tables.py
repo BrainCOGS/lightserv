@@ -32,9 +32,6 @@ class ConditionalLinkCol(LinkCol):
         if 'clearing' in self.name.lower():
             admins = current_app.config['CLEARING_ADMINS']
             person_assigned_to_task = item['clearer']
-        elif 'imaging' in self.name.lower():
-            admins = current_app.config['IMAGING_ADMINS']
-            person_assigned_to_task = item['imager']
         elif 'processing' in self.name.lower():
             admins = current_app.config['PROCESSING_ADMINS']
             person_assigned_to_task = item['processor']

@@ -1,27 +1,13 @@
 {% extends "layout.html" %}
 {% block content %}
-	<h3>Sample overview:</h3>
+	<h2>Imaging request overview:</h2>
 		{{ imaging_table }}
 
-	<hr class='class-1'>
 
-	<h3>Imaging setup:</h3>
-	<h5>Notes from the researcher:</h5>
-
-	<div class='content-section'>
-		<p>
-			{% if overview_dict['notes_for_imager'] %}
-				{{ overview_dict['notes_for_imager'] }}
-			{% else %}
-				No special notes
-			{% endif %}
-		</p>
-	</div>
-	<h5>For you to complete:</h5>
 	<form method="POST" action="">
 	{{ form.hidden_tag() }}
 	<hr class='class-1'>
-	<h2 class='mb-2'> Summary of imaging to be completed for each image resolution chosen:  </h2>
+	<h2 class='mb-2'> Complete the table for each image resolution requested:  </h2>
 	<fieldset class="form-group">
 
 	{% for ii in range(form.image_resolution_forms|length) %}

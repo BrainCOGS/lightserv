@@ -2,11 +2,9 @@
 {% block content %}
 	<legend>Sample overview:</legend>
 	{{ overview_table }}
-	{% if clearing_contents %}
-		<input id = "tableSwapper1" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
-		<hr class='class-4'>
 
-	{% endif %}
+	<hr class='class-4'>
+
 		
 	<legend>Clearing entry:</legend>
 
@@ -16,9 +14,6 @@
 	{% endif %}
 	<script type="text/javascript" defer="defer">
 
-		   $("#tableSwapper1").click(function() {
-		   MYLIBRARY.swapTable("{{overview_table.table_id}}");
-		});
 
 		   $("#tableSwapper2").click(function() {
 		   MYLIBRARY.swapTable("{{table.table_id}}");
