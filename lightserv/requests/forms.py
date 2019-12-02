@@ -122,8 +122,8 @@ class NewRequestForm(FlaskForm):
 
 	def validate_request_name(self,request_name):
 		""" Make sure experiment name is unique """
-		username = session['user']
-		current_request_names = (db_lightsheet.Request() & f'username="{username}"').fetch('request_name')
+		current_user = session['user']
+		current_request_names = (db_lightsheet.Request() & f'username="{current_user}"').fetch('request_name')
 		if request_name.data in current_request_names:
 			raise ValidationError(f'There already exists an experiment named "{request_name.data}" \
 				for your account. Please rename your experiment')

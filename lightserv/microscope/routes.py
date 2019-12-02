@@ -132,14 +132,14 @@ def objective_swap_log_entry():
         if form.validate_on_submit():
             # enter form data into database
             date = form.date.data
-            username = session['user']
-            logger.debug(f'{username} trying to make a microscope swap entry')
+            current_user = session['user']
+            logger.debug(f'{current_user} trying to make a microscope swap entry')
             old_objective = form.old_objective.data
             new_objective = form.new_objective.data
             swapper = form.swapper.data
             calibration = form.calibration.data
             notes = form.notes.data
-            insert_dict = dict(date=date,username=username,old_objective=old_objective,
+            insert_dict = dict(date=date,username=current_user,old_objective=old_objective,
                 new_objective=new_objective,swapper=swapper,calibration=calibration,notes=notes)
 
             db.Microscope().insert1(insert_dict)
@@ -169,14 +169,14 @@ def update_entry(entrynum):
 
     if form.validate_on_submit():
         date = form.date.data
-        username = session['user']
+        current_user = session['user']
         old_objective = form.old_objective.data
         new_objective = form.new_objective.data
         swapper = form.swapper.data
         calibration = form.calibration.data
         notes = form.notes.data
 
-        update_insert_dict=dict(entrynum=entrynum,date=date,username=username,old_objective=old_objective,
+        update_insert_dict=dict(entrynum=entrynum,date=date,username=current_user,old_objective=old_objective,
             new_objective=new_objective,swapper=swapper,calibration=calibration,notes=notes)
         print(update_insert_dict)
         microscope_contents.delete_quick()

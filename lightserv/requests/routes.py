@@ -53,10 +53,10 @@ requests = Blueprint('requests',__name__)
 def new_request():
 	""" Route for a user to enter a new request via a form """
 	all_imaging_modes = current_app.config['IMAGING_MODES']
-	
 
-	username = session['user']
-	logger.info(f"{username} accessed new request form")
+	current_user = session['user']
+	logger.info(f"{current_user} accessed new request form")
+	username = current_user
 
 	form = NewRequestForm(request.form)
 
@@ -134,7 +134,6 @@ def new_request():
 				logger.debug("Final submission")
 				''' Create a new entry in the Experiment table based on form input.
 				'''
-				username = session['user']
 
 				""" Start a transaction for doing the inserts.
 					This is done to avoid inserting only into Experiment
@@ -315,7 +314,7 @@ def new_request():
 		form.uniform_clearing.data = True
 		form.uniform_imaging.data = True
 		if not form.correspondence_email.data:	
-			form.correspondence_email.data = session['user'] + '@princeton.edu' 
+			form.correspondence_email.data = username + '@princeton.edu' 
 	if 'column_name' not in locals():
 		column_name = ''
 	

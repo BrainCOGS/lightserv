@@ -37,20 +37,20 @@ main = Blueprint('main',__name__)
 @main.route("/welcome")
 @logged_in
 def welcome(): 
-	username = session['user']
-	logger.info(f"{username} accessed welcome page")
+	current_user = session['user']
+	logger.info(f"{current_user} accessed welcome page")
 	return render_template('main/welcome.html',)
 
 @main.route("/home")
 @logged_in
 def home(): 
-	username = session['user']
-	logger.info(f"{username} accessed home page")
-	if username in ['ahoag','zmd','ll3','kellyms','jduva']:
+	current_user = session['user']
+	logger.info(f"{current_user} accessed home page")
+	if current_user in ['ahoag','zmd','ll3','kellyms','jduva']:
 		request_contents = db_lightsheet.Request()
 		legend = 'All core facility requests'
 	else:
-		request_contents = db_lightsheet.Request() & f'username="{username}"'
+		request_contents = db_lightsheet.Request() & f'username="{current_user}"'
 		legend = 'Your core facility requests'
 	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
