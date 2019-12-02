@@ -307,7 +307,25 @@ def new_imaging_request(username,experiment_name,sample_name):
 				db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
 				flash("Imaging request submitted successfully.", "success")
 				return redirect(url_for('main.home'))
-
+		else:
+			if 'submit' in form.errors:
+				for error_str in form.errors['submit']:
+					flash(error_str,'danger')
+			
+			logger.debug("Not validated! See error dict below:")
+			logger.debug(form.errors)
+			logger.debug("")
+			flash_str = 'There were errors below. Correct them before proceeding'
+			flash(flash_str,'danger')
+			""" deal with errors in the image resolution subforms - those
+			do not show up in the rendered tables like normal form errors """
+			for obj in form.errors['image_resolution_forms']:
+				if isinstance(obj,dict):
+					for key,val in list(obj.items()):
+						for error_str in val:
+							flash(error_str,'danger')
+				elif isinstance(obj,str):
+					flash(obj,'danger')
 	existing_imaging_table = ExistingImagingTable(channel_contents)
 
 	return render_template('imaging/new_imaging_request.html',form=form,

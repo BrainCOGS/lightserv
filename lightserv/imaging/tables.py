@@ -92,7 +92,6 @@ class ImagingTable(Table):
     sample_name = Col('sample name',column_html_attrs=column_html_attrs)
     imager = Col('imager',column_html_attrs=column_html_attrs)
     imaging_request_number = Col('imaging request number',column_html_attrs=column_html_attrs)
-    # imaging_progress = Col('imaging_progress',column_html_attrs=column_html_attrs)
 
 class SampleTable(Table):
     border = True
@@ -103,7 +102,6 @@ class SampleTable(Table):
     username = Col('username',column_html_attrs=column_html_attrs)
     experiment_name = Col('experiment name',column_html_attrs=column_html_attrs)
     sample_name = Col('sample name',column_html_attrs=column_html_attrs)
-
 
 class ExistingImagingTable(Table):
     """ A table to show the existing imaging already
@@ -121,4 +119,3 @@ class ExistingImagingTable(Table):
     injection_detection = BooltoStringCol('injection detection',column_html_attrs=column_html_attrs)
     probe_detection = BooltoStringCol('probe detection',column_html_attrs=column_html_attrs)
     cell_detection = BooltoStringCol('cell detection',column_html_attrs=column_html_attrs)
-

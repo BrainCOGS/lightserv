@@ -100,7 +100,7 @@ class ImageResolutionRequestForm(FlaskForm):
 	in NewImagingRequestForm """
 	image_resolution = HiddenField('image resolution')
 	channels = FieldList(FormField(ChannelRequestForm),min_entries=4,max_entries=4)
-	notes_for_imager = TextAreaField('''Special notes for imaging 
+	notes_for_imager = TextAreaField('''Note here why you are requesting additional imaging. Also include any special notes for imaging 
 		(e.g. z step size, exposure time, suggested tiling scheme -- make sure to specify which channel) -- max 1024 characters --''',
 		validators=[Length(max=1024)])
 
@@ -126,4 +126,15 @@ class NewImagingRequestForm(FlaskForm):
 	submit = SubmitField("Submit request") # final submit button
 
 
+	def validate_image_resolution_forms(self,image_resolution_forms):
+		current_image_resolutions_rendered = []
 
+		for resolution_form in image_resolution_forms.data:
+			image_resolution = resolution_form['image_resolution']
+			current_image_resolutions_rendered.append(image_resolution)
+		print(current_image_resolutions_rendered)
+		if self.new_image_resolution_form_submit.data == True:
+			
+			if self.image_resolution_forsetup.data in current_image_resolutions_rendered:
+				raise ValidationError(f"You tried to make a table for image_resolution {image_resolution}"
+									  f", but that resolution has already been picked")
