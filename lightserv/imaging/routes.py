@@ -7,7 +7,7 @@ from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 								  logged_in_as_imager,check_clearing_completed,
 								  image_manager)
 from lightserv.imaging.tables import (ImagingTable, dynamic_imaging_management_table,
-	SampleTable)
+	SampleTable, ExistingImagingTable)
 from .forms import ImagingForm, NewImagingRequestForm
 import numpy as np
 import datajoint as dj
@@ -44,10 +44,7 @@ def imaging_manager():
 	sample_contents = db_lightsheet.Sample()
 	channel_contents = db_lightsheet.Sample.ImagingChannel()
 	exp_contents = db_lightsheet.Experiment()
-	# joined_contents = (exp_contents * samples_contents) 
-	# all_contents_unique_imaging_request_number = joined_contents.proj('species','imager','clearing_progress',
-	# 'imaging_progress',
-	# datetime_submitted='TIMESTAMP(date_submitted,time_submitted)') # will pick up the primary keys by default
+	
 	# ''' First get all entities that are currently being imaged '''
 	combined_contents = dj.U('experiment_name','username',
 		'sample_name','imaging_request_number').aggr(channel_contents,imaging_progress='imaging_progress',
@@ -236,14 +233,14 @@ def new_imaging_request(username,experiment_name,sample_name):
 	for the same sample.  """
 	logger.info(f"{session['user']} accessed new imaging request form")
 	form = NewImagingRequestForm(request.form)
+
+	all_imaging_modes = current_app.config['IMAGING_MODES']
+
 	sample_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"'								
 	sample_table = SampleTable(sample_contents)
 	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'experiment_name="{experiment_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"')
-	previous_imaging_request_numbers = np.unique(channel_contents.fetch('imaging_request_number'))
-	print(previous_imaging_request_numbers)
-	previous_max_imaging_request_number = max(previous_imaging_request_numbers)
 
 	if request.method == 'POST':
 		if form.validate_on_submit():
@@ -269,8 +266,50 @@ def new_imaging_request(username,experiment_name,sample_name):
 					# Make the default for channel 488 to be 1.3x imaging with registration checked
 					if channel_name == '488' and image_resolution_forsetup == "1.3x":
 						image_resolution_form.channels[x].registration.data = 1
+			elif submit_key == 'submit':
+				""" figure out the new imaging request number to give the new request """
+				previous_imaging_request_numbers = np.unique(channel_contents.fetch('imaging_request_number'))
+				previous_max_imaging_request_number = max(previous_imaging_request_numbers)
+				new_imaging_request_number = previous_max_imaging_request_number + 1
+				""" Now insert each image resolution/channel combo """
+				channel_insert_list = []
+				for resolution_dict in form.image_resolution_forms.data:
+					logger.debug(resolution_dict)
+					for imaging_channel_dict in resolution_dict['channels']:
+						logger.debug(imaging_channel_dict)
+						""" The way to tell which channels were picked is to see 
+						which have at least one imaging mode selected """
+						used_imaging_modes = [key for key in all_imaging_modes if imaging_channel_dict[key] == True]
+						if not any(used_imaging_modes):
+							continue
+						else:
+							channel_insert_dict = {}
+							""" When they submit this request form it is always for the first time
+							 for this combination of experiment_name,sample_name,channel_name,image_resolution """
+							channel_insert_dict['imaging_request_number'] = new_imaging_request_number 
+							channel_insert_dict['atlas_name'] = resolution_dict['atlas_name']
+							channel_insert_dict['experiment_name'] = experiment_name	
+							channel_insert_dict['username'] = username
+							channel_insert_dict['sample_name'] = sample_name
+							channel_insert_dict['image_resolution'] = resolution_dict['image_resolution']
+							for key,val in imaging_channel_dict.items(): 
+								if key == 'csrf_token':
+									continue
+								channel_insert_dict[key] = val
 
+							channel_insert_list.append(channel_insert_dict)
+
+					logger.info(channel_insert_list)
+						
+				
+				logger.info('channel insert:')
+				logger.info(channel_insert_list)
+				db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
+				flash("Imaging request submitted successfully.", "success")
+				return redirect(url_for('main.home'))
+
+	existing_imaging_table = ExistingImagingTable(channel_contents)
 
 	return render_template('imaging/new_imaging_request.html',form=form,
-		sample_table=sample_table)
+		sample_table=sample_table,existing_imaging_table=existing_imaging_table)
 

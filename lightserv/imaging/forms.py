@@ -120,10 +120,10 @@ class NewImagingRequestForm(FlaskForm):
 		choices=[('1.3x','1.3x'),
 	('4x','4x'),('1.1x','1.1x'),('2x','2x')],default='')   
 
-	image_resolution_forms = FieldList(FormField(ImageResolutionRequestForm),min_entries=0,max_entries=4)
+	image_resolution_forms = FieldList(FormField(ImageResolutionRequestForm),min_entries=0,max_entries=max_number_of_image_resolutions)
 
 	new_image_resolution_form_submit = SubmitField('Set up imaging parameters') # renders a new resolution table
-
+	submit = SubmitField("Submit request") # final submit button
 
 
 

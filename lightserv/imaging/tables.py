@@ -108,11 +108,12 @@ class ExistingImagingTable(Table):
     """ A table to show the existing imaging already
     requested for a given sample """ 
     border = True
+    allow_sort=False
     no_items = "No imaging requested yet"
     html_attrs = {"style":'font-size:18px'} # gets assigned to table header
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
-    image_resolution = Col('image resolution',column_html_attrs=column_html_attrs)
     imaging_request_number = Col('imaging request number',column_html_attrs=column_html_attrs)
+    image_resolution = Col('image resolution',column_html_attrs=column_html_attrs)
     channel_name = Col('channel name',column_html_attrs=column_html_attrs)
 
