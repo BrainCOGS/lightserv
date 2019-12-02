@@ -58,9 +58,11 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
     imaging_url_kwargs = {'username':'username','experiment_name':'experiment_name',
-        'sample_name':'sample_name'}
+        'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
+
     anchor_attrs = {'target':"_blank",}
     if table_id == 'horizontal_ready_to_image_table':
+        print(imaging_url_kwargs)
         table_class.add_column('start_imaging_link',LinkCol('Start imaging',
          'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))
@@ -85,7 +87,32 @@ class ImagingTable(Table):
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    experiment_name = Col('experiment_name',column_html_attrs=column_html_attrs)
-    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
+    experiment_name = Col('experiment name',column_html_attrs=column_html_attrs)
+    sample_name = Col('sample name',column_html_attrs=column_html_attrs)
     imager = Col('imager',column_html_attrs=column_html_attrs)
-    imaging_progress = Col('imaging_progress',column_html_attrs=column_html_attrs)
+    imaging_request_number = Col('imaging request number',column_html_attrs=column_html_attrs)
+    # imaging_progress = Col('imaging_progress',column_html_attrs=column_html_attrs)
+
+class SampleTable(Table):
+    border = True
+    no_items = "No Sample Yet"
+    html_attrs = {"style":'font-size:18px'} # gets assigned to table header
+    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    username = Col('username',column_html_attrs=column_html_attrs)
+    experiment_name = Col('experiment name',column_html_attrs=column_html_attrs)
+    sample_name = Col('sample name',column_html_attrs=column_html_attrs)
+
+
+class ExistingImagingTable(Table):
+    """ A table to show the existing imaging already
+    requested for a given sample """ 
+    border = True
+    no_items = "No imaging requested yet"
+    html_attrs = {"style":'font-size:18px'} # gets assigned to table header
+    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    image_resolution = Col('image resolution',column_html_attrs=column_html_attrs)
+    imaging_request_number = Col('imaging request number',column_html_attrs=column_html_attrs)
+    channel_name = Col('channel name',column_html_attrs=column_html_attrs)
+

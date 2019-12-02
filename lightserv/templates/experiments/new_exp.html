@@ -1,6 +1,5 @@
 {% extends "layout.html" %}
 {% block content %}
-	{% set channel_wavelengths = ['488','555','647','790'] %}
 	<h1 id='primary_header' align="center">New Request Form</h1>
 	 <div class="content-section">
 
@@ -289,9 +288,8 @@
 				                {% for channel_entry in image_resolution_form.channels %}
 					                <!-- Render the channel_name which is a hidden field just so it is set -->
 				                	{{ channel_entry.channel_name() }} 
-				                	{% set channel_wavelength = channel_wavelengths[loop.index-1] %}
 					                <tr>   
-					                    <td>{{channel_wavelength}}</td>
+					                    <td>{{channel_entry.channel_name.data}}</td>
 					                    <td>{{ image_resolution_form.image_resolution.data }}</td>
 					                    <td>{{channel_entry.registration}}</td>
 					                    <td>{{channel_entry.injection_detection}}</td>
@@ -349,7 +347,7 @@
 			            	<hr class='class-2'>
 			            
 
-						{% endfor %}
+						{% endfor %} <!-- Loop over image resolution forms -->
 
 						<!-- Make the image resolution select field and button for making a new table of channels -->
 						{% if imaging_entry.image_resolution_forms|length > 0 %}
@@ -377,7 +375,7 @@
 			            	<br/>
 			            	<hr class='class-2'>
 			            {% endif %}
-					{% endfor %}
+					{% endfor %} <!-- Loop over imaging samples -->
 				</div>
 
 

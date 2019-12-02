@@ -3,6 +3,7 @@ from flask_table import Table, Col, LinkCol, ButtonCol, create_table
 from lightserv.main.tables import HeadingCol, ConditionalLinkCol
 from functools import partial
 from lightserv.main.utils import table_sorter
+from lightserv import db_lightsheet
 
 class ExpTable(Table):
     border = True
@@ -37,7 +38,6 @@ class ExpTable(Table):
         next_url = request.url.split('?')[0]
         next_url += f'?sort={col_key}&direction={direction}&table_id={self.table_id}'
         return next_url
-
 
 def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynamic Samples Table', **sort_kwargs):
     def dynamic_sort_url(self, col_key, reverse=False):
@@ -91,7 +91,7 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     clearing_url_kwargs = {'username':'username','experiment_name':'experiment_name',
     'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
     imaging_url_kwargs = {'username':'username','experiment_name':'experiment_name',
-    'sample_name':'sample_name'}
+    'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
     processing_url_kwargs = {'username':'username','experiment_name':'experiment_name','sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
     anchor_attrs = {'target':"_blank",}
     table_class.add_column('start_clearing_link',
@@ -108,6 +108,10 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     table_class.add_column('data_processing_link',
         ConditionalLinkCol('Start processing pipeline', 
         'processing.start_processing',url_kwargs=processing_url_kwargs,
+        anchor_attrs=anchor_attrs,allow_sort=False))
+    table_class.add_column('new_imaging_request',
+        LinkCol('New imaging request', 
+        'imaging.new_imaging_request',url_kwargs=imaging_url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False))
    
     sorted_contents = sorted(contents.fetch(as_dict=True),

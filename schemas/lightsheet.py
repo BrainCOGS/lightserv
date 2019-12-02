@@ -56,8 +56,6 @@ class Sample(dj.Manual):
 	antibody2 = ''               :   varchar(100)
 	notes_for_clearer = ""                    :   varchar(1024)
 	imager = "not yet assigned"  :   varchar(20) # netid of person doing the imaging
-    imaging_progress             :   enum("incomplete","in progress","complete")
-    imaging_date = NULL                       :   date
     processor = "not yet assigned"            :   varchar(20) # netid of person doing the processing
     processing_progress                       :   enum("not started", "running","failed","complete")
     stitching_method                          :   enum("blending","terastitcher")
@@ -72,6 +70,8 @@ class Sample(dj.Manual):
 		channel_name                              :   varchar(64)                
 		imaging_request_number                    :   tinyint
 		----
+		imaging_date = NULL                       :   date 
+	    imaging_progress                          :   enum("incomplete","in progress","complete")
 		registration = 0                 	      :   boolean
 		injection_detection = 0                   :   boolean
 		probe_detection = 0                       :   boolean

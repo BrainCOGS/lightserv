@@ -300,12 +300,14 @@ def exp(username,experiment_name):
 	 		f'username="{username}"'
 	samples_contents = db_lightsheet.Sample() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
 	''' Get rid of the rows where none of the channels are used '''
-
+	channel_contents = db_lightsheet.Sample.ImagingChannel() & f'experiment_name="{experiment_name}"' & f'username="{username}"' 
 	# The first time page is loaded, sort, reverse, table_id are all not set so they become their default
 	sort = request.args.get('sort', 'experiment_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	table_id = request.args.get('table_id', '')
 
+	combined_contents = (dj.U('experiment_name','sample_name','imaging_request_number').aggr(
+    channel_contents) * samples_contents)
 	exp_table_id = 'horizontal_exp_table'
 	samples_table_id = 'vertical_samples_table'
 
@@ -321,7 +323,7 @@ def exp(username,experiment_name):
 			sort_by=sort,sort_reverse=reverse,table_id=samples_table_id)
 		exp_table = ExpTable(exp_contents)
 	else:
-		samples_table = create_dynamic_samples_table(samples_contents,table_id=samples_table_id)
+		samples_table = create_dynamic_samples_table(combined_contents,table_id=samples_table_id)
 		exp_table = ExpTable(exp_contents)
 
 	samples_table.table_id = samples_table_id

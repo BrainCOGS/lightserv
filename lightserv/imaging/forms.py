@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import (SubmitField, TextAreaField, SelectField, FieldList, FormField,
-	StringField,DecimalField, IntegerField, HiddenField)
+	StringField, DecimalField, IntegerField, HiddenField, BooleanField)
 from wtforms.fields.html5 import DateField, DateTimeLocalField
 from wtforms.validators import (DataRequired, Length, InputRequired, ValidationError, 
 	Optional)
@@ -79,7 +79,6 @@ class ImageResolutionForm(FlaskForm):
 	image_resolution = HiddenField('image resolution')
 	channel_forms = FieldList(FormField(ChannelForm),min_entries=0,max_entries=max_number_of_channels)
 	
-
 class ImagingForm(FlaskForm):
 	""" The form for entering imaging information """
 	max_number_of_image_resolutions = 4 
@@ -88,11 +87,43 @@ class ImagingForm(FlaskForm):
 	image_resolution_forms = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=max_number_of_image_resolutions)
 	submit = SubmitField('Click when imaging is complete and data are on bucket')
 
+class ChannelRequestForm(FlaskForm):
+	""" Used by other forms in a FieldList """
+	channel_name = HiddenField('Channel Name')
+	registration = BooleanField('Registration',default=False)
+	injection_detection = BooleanField('Registration',default=False)
+	probe_detection = BooleanField('Registration',default=False)
+	cell_detection = BooleanField('Registration',default=False)
 
-class FollowUpImagingRequestForm(FlaskForm):
+class ImageResolutionRequestForm(FlaskForm):
+	""" A form used in a FieldList for each image resolution that a user picks 
+	in NewImagingRequestForm """
+	image_resolution = HiddenField('image resolution')
+	channels = FieldList(FormField(ChannelRequestForm),min_entries=4,max_entries=4)
+	notes_for_imager = TextAreaField('''Special notes for imaging 
+		(e.g. z step size, exposure time, suggested tiling scheme -- make sure to specify which channel) -- max 1024 characters --''',
+		validators=[Length(max=1024)])
+
+	notes_for_processor = TextAreaField('''Special notes for processing 
+		 -- max 1024 characters --''',validators=[Length(max=1024)])
+
+	atlas_name = SelectField('Atlas for registration',
+		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
+				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])
+
+
+class NewImagingRequestForm(FlaskForm):
 	""" The form for entering imaging information """
 	max_number_of_image_resolutions = 4 
-	notes_from_imaging = TextAreaField("Note down anything additional about the imaging"
-									   " that you would like recorded")
-	image_resolution_forms = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=max_number_of_image_resolutions)
-	submit = SubmitField('Click when imaging is complete and data are on bucket')
+	self_imaging = BooleanField('Check if you plan to do the imaging yourself',default=False)
+	image_resolution_forsetup = SelectField('Select an image resolution you want to use:', 
+		choices=[('1.3x','1.3x'),
+	('4x','4x'),('1.1x','1.1x'),('2x','2x')],default='')   
+
+	image_resolution_forms = FieldList(FormField(ImageResolutionRequestForm),min_entries=0,max_entries=4)
+
+	new_image_resolution_form_submit = SubmitField('Set up imaging parameters') # renders a new resolution table
+
+
+
+
