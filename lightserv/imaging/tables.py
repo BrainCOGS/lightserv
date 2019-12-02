@@ -36,10 +36,6 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     table_class.sort_url = dynamic_sort_url
     sort = sort_kwargs.get('sort_by','datetime_submitted')
     reverse = sort_kwargs.get('sort_reverse',False)
-    """ Now loop through all columns and add them to the table,
-    only adding the imaging modes if they are used in at least one
-    sample """
-    colnames = contents.heading.attributes.keys()
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
@@ -71,6 +67,10 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
         table_class.add_column('continue_imaging_link',LinkCol('Continue imaging',
          'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))
+    elif table_id == 'horizontal_already_imaged_table':
+        table_class.add_column('view_imaging_link',LinkCol('View imaging log',
+         'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
+            anchor_attrs=anchor_attrs,allow_sort=False))
          
     sorted_contents = sorted(contents.fetch(as_dict=True),
             key=partial(table_sorter,sort_key=sort),reverse=reverse)
@@ -92,6 +92,8 @@ class ImagingTable(Table):
     sample_name = Col('sample name',column_html_attrs=column_html_attrs)
     imager = Col('imager',column_html_attrs=column_html_attrs)
     imaging_request_number = Col('imaging request number',column_html_attrs=column_html_attrs)
+    imaging_progress = Col('imaging progress',column_html_attrs=column_html_attrs)
+
 
 class SampleTable(Table):
     border = True

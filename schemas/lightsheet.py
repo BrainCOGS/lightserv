@@ -67,9 +67,9 @@ class Sample(dj.Manual):
         imaging_request_number                    :   tinyint
         ----
         -> [nullable] User.proj(imager='username') # defines a new column here called "imager" whose value must be one of the "username" entries in the User() table
-        imaging_request_date_submitted            :   date
-        imaging_request_time_submitted            :   time
-        imaging_date = NULL                       :   date 
+        imaging_request_date_submitted            :   date # date that the user submitted the request for imaging
+        imaging_request_time_submitted            :   time # time that the user submitted the request for imaging
+        imaging_date = NULL                       :   date # date that the images were actually taken
         imaging_progress                          :   enum("incomplete","in progress","complete")
         """
 

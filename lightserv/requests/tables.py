@@ -66,7 +66,7 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     """ Now loop through all columns and add them to the table,
     only adding the imaging modes if they are used in at least one
     sample """
-    colnames = contents.heading.attributes.keys()
+    colnames = contents.heading.names
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """

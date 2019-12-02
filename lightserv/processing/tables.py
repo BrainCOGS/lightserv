@@ -14,10 +14,6 @@ def create_dynamic_channels_table_for_processing(contents,table_id,ignore_column
         ) 
 
     table_class = create_table(name,options=options)
-    """ Now loop through all columns and add them to the table,
-    only adding the imaging modes if they are used in at least one
-    sample """
-    sample_colnames = contents.heading.attributes.keys()
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
