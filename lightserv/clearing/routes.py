@@ -74,26 +74,25 @@ def clearing_manager():
 		table_ready_to_clear=table_ready_to_clear,
 		table_already_cleared=table_already_cleared)
 
-@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<sample_name>/<clearing_protocol>/",
+@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<sample_name>/<clearing_protocol>",
 	methods=['GET','POST'])
 @logged_in_as_clearer
 def clearing_entry(username,request_name,sample_name,clearing_protocol): 
-	# print(username,request_name,sample_name,clearing_protocol)
 	sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'clearing_protocol="{clearing_protocol}"'								
-	# print(sample_contents)
 	if not sample_contents:
 		flash(f'Experiment must exist for request_name={request_name}, sample_name={sample_name} with \
 			clearing_protocol="{clearing_protocol}" before clearing can be done. \
 			Please submit a new request for this experiment first. ','danger')
 		return redirect(url_for('requests.new_request'))
-	
+	antibody1,antibody2=sample_contents.fetch1('antibody1','antibody2')
+
 	clearing_table = ClearingTable(sample_contents)
 	
-	dbTable = determine_clearing_dbtable(clearing_protocol)
+	clearing_dbTable = determine_clearing_dbtable(clearing_protocol)
 	''' Check to see if there is an entry in the db yet. If not create one with all NULL values.
 	They will get updated as the user fills out the form '''
-	clearing_contents = dbTable() & f'request_name="{request_name}"' & \
+	clearing_contents = clearing_dbTable() & f'request_name="{request_name}"' & \
 	 	f'username="{username}"' & f'sample_name="{sample_name}"'
 	
 	''' If there are contents and the form is blank, then that means the user is accessing the form 
@@ -111,7 +110,7 @@ def clearing_entry(username,request_name,sample_name,clearing_protocol):
 		sample_username = sample_contents.fetch1('username')
 		insert_dict = {'request_name':request_name,
 						'username':sample_username,'sample_name':sample_name}
-		dbTable().insert1(insert_dict)
+		clearing_dbTable().insert1(insert_dict)
 		logger.info("Created clearing database entry")
 	
 	''' Handle user's post requests '''
@@ -128,22 +127,41 @@ def clearing_entry(username,request_name,sample_name,clearing_protocol):
 				if form[key].data:
 					if key == 'submit': # The final submit button
 						logger.debug("Submitting entire form")
-						''' Get data from the form and submit it to the database '''
-						form_data_dict = form.data
-						clearing_contents_dict = clearing_contents.fetch1()
-						''' The fields that need to go in the database that are not in the form '''
-						base_entry_dict = {'request_name':request_name,
-										   'username':clearing_contents_dict['username'],
-						                   'sample_name':clearing_contents_dict['sample_name']}
-						clearing_entry_dict = {key:form_data_dict[key] for key in form_data_dict.keys() \
-							if key in clearing_contents_dict.keys()}
-						for k in base_entry_dict:
-							clearing_entry_dict[k] = base_entry_dict[k]
-						clearing_contents.delete_quick()
-						dbTable().insert1(clearing_entry_dict)	
-						dj.Table._update(sample_contents,'clearing_progress','complete')						
-						flash("Clearing form was successfully completed.",'success')
-						return redirect(url_for('clearing.clearing_manager'))
+						''' Get data from the form and submit it to the database
+						for all entries in the batch (same request,username,clearing_protocol,antibodies)'''
+						connection = db_lightsheet.Sample.connection
+						with connection.transaction:
+							form_data_dict = form.data
+							clearing_contents_dict = clearing_contents.fetch1()
+							''' Figure out all samples that match these clearing params '''
+							all_sample_match_dict_list = (db_lightsheet.Sample() & \
+								f'request_name="{request_name}"' & f'username="{username}"' & \
+								f'clearing_protocol="{clearing_protocol}"' & f'antibody1="{antibody1}"' & \
+								f'antibody2="{antibody2}"').fetch(as_dict=True)
+							common_form_entry_dict = {key:form_data_dict[key] for key in form_data_dict.keys() \
+								if key in clearing_contents_dict.keys()}
+							''' loop through all samples that match and make an insert dict for each one ''' 
+							clearing_insert_list = []
+							for ii in range(len(all_sample_match_dict_list)):
+								sample_name = all_sample_match_dict_list[ii]['sample_name']
+								clearing_insert_dict = {'request_name':request_name,
+											   'username':username,
+							                   'sample_name':sample_name,
+							                   }
+
+								for k in common_form_entry_dict.keys():
+									clearing_insert_dict[k] = common_form_entry_dict[k]
+								clearing_insert_list.append(clearing_insert_dict)
+
+								''' update the clearing progress to "complete" for this sample entry '''
+								this_sample_content = db_lightsheet.Sample() & f'request_name="{request_name}"' & f'username="{username}"' & f'sample_name="{sample_name}"'
+								dj.Table._update(this_sample_content,'clearing_progress','complete')
+
+							''' Update the entries by inserting with replace=True'''
+							clearing_dbTable().insert(clearing_insert_list,replace=True)	
+							flash("Clearing form was successfully completed.",'success')
+							return redirect(url_for('requests.request_overview',username=username,request_name=request_name))
+
 					elif re.search("^(?!perfusion).*_date_submit$",key) != None:
 						column_name = key.split('_submit')[0]
 						date = form[column_name].data
@@ -164,7 +182,7 @@ def clearing_entry(username,request_name,sample_name,clearing_protocol):
 						clearing_entry_dict = clearing_contents.fetch1() # returns as a dict
 						clearing_entry_dict[column_name]=form[column_name].data
 						clearing_contents.delete_quick()
-						dbTable().insert1(clearing_entry_dict)
+						clearing_dbTable().insert1(clearing_entry_dict)
 						logger.debug(f"Entered into database: {column_name}:{form[column_name].data}")
 						this_index = submit_keys.index(key)
 						next_index = this_index + 1 if 'notes' in column_name else this_index+2
