@@ -153,7 +153,7 @@ class NewRequestForm(FlaskForm):
 		for sample_dict in imaging_samples.data:
 			sample_name = sample_dict['sample_name']
 			current_image_resolutions_rendered = []
-			if sample_dict['image_resolution_forms'] == []:
+			if sample_dict['image_resolution_forms'] == [] and self.submit.data == True:
 				raise ValidationError(f"Sample name: {sample_name}, you must set up"
 									   " the imaging parameters for at least one image resolution")
 			for resolution_form_dict in sample_dict['image_resolution_forms']:
