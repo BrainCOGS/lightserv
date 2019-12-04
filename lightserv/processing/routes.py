@@ -91,7 +91,7 @@ def processing_manager():
 		table_ready_to_process=table_ready_to_process,table_on_deck=table_on_deck,
 		table_already_processed=table_already_processed)
 
-@processing.route("/processing/<username>/<request_name>/<sample_name>/start_processing",
+@processing.route("/processing/processing_entry/<username>/<request_name>/<sample_name>/<imaging_request_number>/",
 	methods=['GET','POST'])
 @logged_in
 @check_clearing_completed
@@ -105,8 +105,10 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 	sample_contents = (db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"')
 	sample_dict = sample_contents.fetch1()
-	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"') # all of the channels for this sample
+
+	channel_contents = db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
+	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
+	 		f'imaging_request_number="{imaging_request_number}"' # all of the channels for this sample
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
 
 	joined_contents = sample_contents * channel_contents
@@ -148,9 +150,6 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 
 			flash('Your data processing has begun. You will receive an email \
 				when the first steps are completed.','success')
-			asdf
-			# return redirect(url_for('experiments.exp',username=username,
-			# request_name=request_name,sample_name=sample_name))
 
 	elif request.method == 'GET': # get request
 		channel_contents_lists = []
@@ -160,11 +159,15 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 		unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
 		for ii in range(len(unique_image_resolutions)):
 			this_image_resolution = unique_image_resolutions[ii]
+			image_resolution_request_content = db_lightsheet.Sample.ImageResolutionRequest() & f'request_name="{request_name}"' & f'username="{username}"' & f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & f'image_resolution="{this_image_resolution}"'
+
 			channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
 			channel_contents_lists.append([])
 			form.image_resolution_forms.append_entry()
 			this_resolution_form = form.image_resolution_forms[-1]
 			this_resolution_form.image_resolution.data = this_image_resolution
+			this_resolution_form.atlas_name.data = image_resolution_request_content.fetch1('atlas_name')
+
 			''' Now go and add the channel subforms to the image resolution form '''
 			for jj in range(len(channel_contents_list_this_resolution)):
 				channel_content = channel_contents_list_this_resolution[jj]
@@ -172,7 +175,6 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 				this_resolution_form.channel_forms.append_entry()
 				this_channel_form = this_resolution_form.channel_forms[-1]
 				this_channel_form.channel_name.data = channel_content['channel_name']
-				this_resolution_form.atlas_name.data = channel_content['atlas_name']
 
 				""" figure out the channel purposes """
 				used_imaging_modes = []
@@ -182,7 +184,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 				channel_purposes_str = ', '.join(mode for mode in used_imaging_modes)
 				this_channel_form.channel_purposes_str.data = channel_purposes_str
 
-	return render_template('processing/start_processing.html',
+	return render_template('processing/processing_entry.html',
 		channel_contents_lists=channel_contents_lists,
 		sample_dict=sample_dict,form=form,sample_table=sample_table)	
 

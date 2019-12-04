@@ -265,12 +265,15 @@ def check_imaging_completed(f):
 		request_name = kwargs['request_name']
 		sample_name = kwargs['sample_name']
 		username = kwargs['username']
-		sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
-		 	f'username="{username}"' & f'sample_name="{sample_name}"'
-		imaging_progress = sample_contents.fetch1('imaging_progress')
+		imaging_request_number = kwargs['imaging_request_number']
+		imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & \
+		 	f'request_name="{request_name}"' & \
+		 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
+		 	f'imaging_request_number="{imaging_request_number}"'
+		imaging_progress = imaging_request_contents.fetch1('imaging_progress')
 		if imaging_progress != 'complete':
-			print("imaging not complete")
-			flash(f"Imaging must be completed first for sample_name={sample_name}",'warning')
+			flash(f"Imaging must be completed first for sample_name={sample_name}"
+				  f", imaging_request_number={imaging_request_number}",'warning')
 			return redirect(url_for('requests.request_overview',username=username,
 				request_name=request_name,
 				sample_name=sample_name))
