@@ -38,9 +38,8 @@
 									<a class="nav-item nav-link" href="{{ url_for('microscope.landing_page')}}" target="_blank">Microscope Management</a>
 								{% endif %}
 
-								{% if session['user'] == 'ahoag' or session['user'] == 'zmd' or session['user'] == 'jduva' %}
-									<a class="nav-item nav-link" href="{{ url_for('imaging.imaging_manager')}}" target="_blank">Imaging Management</a>
-								{% endif %}
+								
+								<a class="nav-item nav-link" href="{{ url_for('imaging.imaging_manager')}}" target="_blank">Imaging Management</a>
 
 								
 								<a class="nav-item nav-link" href="{{ url_for('clearing.clearing_manager')}}" target="_blank">Clearing Management</a>

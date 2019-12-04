@@ -95,23 +95,12 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
     imaging_url_kwargs = {'username':'username','request_name':'request_name',
     'sample_name':'sample_name',}
-    processing_url_kwargs = {'username':'username','request_name':'request_name','sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
     anchor_attrs = {'target':"_blank",}
-    table_class.add_column('start_clearing_link',
-        ConditionalLinkCol('Start/edit clearing', 'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
-        anchor_attrs=anchor_attrs,allow_sort=False))
     table_class.add_column('view_clearing_link',
          ConditionalLinkCol('View clearing log', 
         'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
        anchor_attrs=anchor_attrs,allow_sort=False))
-    # table_class.add_column('start_imaging_link',
-    #     ConditionalLinkCol('Start/edit imaging',
-    #  'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
-    #     anchor_attrs=anchor_attrs,allow_sort=False))
-    table_class.add_column('data_processing_link',
-        ConditionalLinkCol('Start processing pipeline', 
-        'processing.start_processing',url_kwargs=processing_url_kwargs,
-        anchor_attrs=anchor_attrs,allow_sort=False))
+    
     table_class.add_column('new_imaging_request',
         LinkCol('New imaging request', 
         'imaging.new_imaging_request',url_kwargs=imaging_url_kwargs,

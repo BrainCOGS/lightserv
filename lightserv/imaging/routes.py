@@ -37,10 +37,15 @@ logger.addHandler(file_handler)
 imaging = Blueprint('imaging',__name__)
 
 @imaging.route("/imaging/imaging_manager",methods=['GET','POST'])
-@image_manager
+@logged_in
 def imaging_manager(): 
 	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
+	current_user = session['user']
+	logger.info(f"{current_user} accessed imaging manager")
+
+	imaging_admins = current_app.config['IMAGING_ADMINS']
+
 	sample_contents = db_lightsheet.Sample()
 	request_contents = db_lightsheet.Request()
 	imaging_request_contents = (db_lightsheet.Sample.ImagingRequest() * sample_contents * request_contents).\
@@ -48,7 +53,9 @@ def imaging_manager():
 		'imaging_request_date_submitted','imaging_request_time_submitted',
 		'imaging_progress','imager','species',
 		datetime_submitted='TIMESTAMP(imaging_request_date_submitted,imaging_request_time_submitted)')
-	logger.info(imaging_request_contents)
+	if current_user not in imaging_admins:
+		imaging_request_contents = imaging_request_contents & f'imager="{current_user}"'
+	# logger.info(imaging_request_contents)
 	# channel_contents = db_lightsheet.Sample.ImagingChannel()
 	# request_contents = db_lightsheet.Request()
 	

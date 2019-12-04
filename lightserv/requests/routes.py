@@ -186,8 +186,6 @@ def new_request():
 
 						if form.self_clearing.data:
 							sample_insert_dict['clearer'] = username
-						if form.self_imaging.data:
-							sample_insert_dict['imager'] = username
 						if uniform_clearing == True:
 							clearing_sample_dict = clearing_samples[0]
 						else:
@@ -214,6 +212,8 @@ def new_request():
 						imaging_request_insert_dict['username'] = username 
 						imaging_request_insert_dict['sample_name'] = sample_name
 						imaging_request_insert_dict['imaging_request_number'] = imaging_request_number
+						if form.self_imaging.data:
+							imaging_request_insert_dict['imager'] = username
 						imaging_request_insert_dict['imaging_request_date_submitted'] = date
 						imaging_request_insert_dict['imaging_request_time_submitted'] = time
 						imaging_request_insert_dict['imaging_progress'] = "incomplete"
