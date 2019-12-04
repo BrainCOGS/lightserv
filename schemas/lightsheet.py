@@ -54,8 +54,6 @@ class Sample(dj.Manual):
     antibody1 = ''               :   varchar(100)
     antibody2 = ''               :   varchar(100)
     notes_for_clearer = ""                    :   varchar(1024)
-    processor = "not yet assigned"            :   varchar(20) # netid of person doing the processing
-    processing_progress                       :   enum("not started", "running","failed","complete")
     stitching_method                          :   enum("blending","terastitcher")
     blend_type                                :   enum("sigmoidal","flat")
     notes_from_processing = ""                :   varchar(1024)
@@ -71,6 +69,8 @@ class Sample(dj.Manual):
         imaging_request_time_submitted            :   time # time that the user submitted the request for imaging
         imaging_date = NULL                       :   date # date that the images were actually taken
         imaging_progress                          :   enum("incomplete","in progress","complete")
+        -> [nullable] User.proj(processor='username') # defines column "processor" whose value must be one of the "username" entries in the User() table
+        processing_progress                       :   enum("not started", "running","failed","complete")
         """
 
     class ImageResolutionRequest(dj.Part):

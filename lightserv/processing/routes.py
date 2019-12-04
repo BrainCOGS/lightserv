@@ -2,7 +2,8 @@ from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup, current_app)
 from lightserv.processing.forms import StartProcessingForm
-from lightserv.processing.tables import create_dynamic_channels_table_for_processing
+from lightserv.processing.tables import (create_dynamic_channels_table_for_processing,
+	dynamic_processing_management_table)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed)
@@ -34,13 +35,69 @@ logger.addHandler(file_handler)
 
 processing = Blueprint('processing',__name__)
 
+@processing.route("/processing/processing_manager",methods=['GET','POST'])
+@logged_in
+def processing_manager():
+	""" A user interface for handling past, present and future clearing batches.
+	Can be used by a clearing admin to handle all clearing batches (except those claimed
+	by the researcher) or by a researcher to handle their own clearing batches if they claimed 
+	them in their request form """
+	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
+	reverse = (request.args.get('direction', 'asc') == 'desc')
+	current_user = session['user']
+	logger.info(f"{current_user} accessed processing manager")
+
+	processing_admins = current_app.config['PROCESSING_ADMINS']
+	
+	sample_contents = db_lightsheet.Sample()
+	request_contents = db_lightsheet.Request()
+	processing_request_contents = (db_lightsheet.Sample.ImagingRequest() * sample_contents * request_contents).\
+		proj('clearing_progress','imaging_request_date_submitted','imaging_request_time_submitted',
+		'imaging_progress','imager','species','processing_progress','processor',
+		datetime_submitted='TIMESTAMP(imaging_request_date_submitted,imaging_request_time_submitted)')
+	if current_user not in processing_admins:
+		processing_request_contents = processing_request_contents & f'processor="{current_user}"'
+	
+	""" Get all entries currently being processed """
+	contents_being_processed = processing_request_contents & 'processing_progress="running"'
+
+	being_processed_table_id = 'horizontal_being_processed_table'
+	table_being_processed = dynamic_processing_management_table(contents_being_processed,
+		table_id=being_processed_table_id,
+		sort_by=sort,sort_reverse=reverse)
+	''' Next get all entities that are ready to be processed '''
+	contents_ready_to_process = processing_request_contents & 'imaging_progress="complete"' & \
+	'processing_progress="not started"'
+	ready_to_process_table_id = 'horizontal_ready_to_process_table'
+	table_ready_to_process = dynamic_processing_management_table(contents_ready_to_process,
+		table_id=ready_to_process_table_id,
+		sort_by=sort,sort_reverse=reverse)
+	''' Now get all entities on deck (ones that are in imaging stage) '''
+	contents_on_deck = processing_request_contents & 'clearing_progress="complete"' & \
+	 'imaging_progress!="complete"' & 'processing_progress!="complete"'
+	on_deck_table_id = 'horizontal_on_deck_table'
+	# asdf
+	table_on_deck = dynamic_processing_management_table(contents_on_deck,table_id=on_deck_table_id,
+		sort_by=sort,sort_reverse=reverse)
+	''' Finally get all entities that have already been processed '''
+	contents_already_processed = processing_request_contents & 'processing_progress="complete"'
+	already_processed_table_id = 'horizontal_already_processed_table'
+	table_already_processed = dynamic_processing_management_table(contents_already_processed,
+		table_id=already_processed_table_id,
+		sort_by=sort,sort_reverse=reverse)
+	
+	return render_template('processing/processing_management.html',
+		table_being_processed=table_being_processed,
+		table_ready_to_process=table_ready_to_process,table_on_deck=table_on_deck,
+		table_already_processed=table_already_processed)
+
 @processing.route("/processing/<username>/<request_name>/<sample_name>/start_processing",
 	methods=['GET','POST'])
 @logged_in
 @check_clearing_completed
 @check_imaging_completed
 @logged_in_as_processor
-def start_processing(username,request_name,sample_name):
+def processing_entry(username,request_name,sample_name,imaging_request_number):
 	""" Route for the person assigned as data processor for a sample 
 	to start the data processing. """
 	logger.info(f"{session['user']} accessed start_processing route")
