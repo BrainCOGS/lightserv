@@ -70,7 +70,7 @@ def login():
 	if hostname == 'braincogs00.pni.princeton.edu':
 		username = request.headers['X-Remote-User']
 	else:
-		username = 'ahoag'
+		username = 'ms81'
 
 	session['user'] = username
 	''' If user not already in User() table, then add them '''

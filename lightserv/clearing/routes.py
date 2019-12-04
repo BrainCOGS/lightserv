@@ -1,6 +1,6 @@
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
-				   Markup)
+				   Markup,current_app)
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 									  iDiscoAbbreviatedRatForm, uDiscoForm,  iDiscoEduForm )
 from lightserv.clearing.tables import ClearingTable,IdiscoPlusTable, dynamic_clearing_management_table
@@ -34,14 +34,25 @@ logger.addHandler(file_handler)
 clearing = Blueprint('clearing',__name__)
 
 @clearing.route("/clearing/clearing_manager",methods=['GET','POST'])
-@logged_in_as_clearing_manager
+@logged_in
 def clearing_manager():
-	current_user = session['user']
-	logger.info(f"{current_user} accessed clearing manager")
+	""" A user interface for handling past, present and future clearing batches.
+	Can be used by a clearing admin to handle all clearing batches (except those claimed
+	by the researcher) or by a researcher to handle their own clearing batches if they claimed 
+	them in their request form """
 	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
-	sample_contents = db_lightsheet.Sample()
+	current_user = session['user']
+	logger.info(f"{current_user} accessed clearing manager")
+
+	clearing_admins = current_app.config['CLEARING_ADMINS']
+	if current_user not in clearing_admins:
+		sample_contents = db_lightsheet.Sample() & f'clearer="{current_user}"'
+	else:
+		sample_contents = db_lightsheet.Sample()
 	request_contents = db_lightsheet.Request()
+
+	
 	combined_contents = dj.U('request_name','username','clearing_protocol','antibody1','antibody2').aggr(sample_contents, 
         clearer='clearer',clearing_progress='clearing_progress',
         sample_name='min(sample_name)',number_in_batch='count(*)') * request_contents	
