@@ -36,9 +36,11 @@ class TwoPhotonStatusForm(FlaskForm):
 		choices=[('good','good'),('bad','bad'),('time to replace','time to replace')],validators=[InputRequired()])
 
 class ConfocalStatusForm(FlaskForm):
-	""" The form for requesting a new experiment/dataset """
-	status = SelectField('Status:', 
-		choices=[('good','good'),('bad','bad'),('time to replace','time to replace')],validators=[InputRequired()])
+	""" The form for the confocal microscope """
+	laser_name = SelectField('Laser',choices=[],validators=[InputRequired()])
+	lens_type = SelectField('Objective',choices=[],validators=[InputRequired()])
+	scanner_type = SelectField('Scanner',choices=[],validators=[InputRequired()])
+
 
 class NewSwapLogEntryForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """

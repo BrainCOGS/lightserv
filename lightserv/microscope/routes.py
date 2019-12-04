@@ -120,7 +120,27 @@ def microscope_center_js():
 @logged_in
 def status_monitor(microscope):
     microscope_form = microscope_form_picker(microscope)
-    microscope_form.status.choices = [('good','good'),('bad','bad'),('replace','replace')]
+
+    ''' Pre-populate the select field choices with all options in the db '''
+    # LASER
+    laser_names = db_microscope.Laser().fetch('laser_name')
+    laser_name_choices = [(laser_name,laser_name) for laser_name in laser_names]
+    microscope_form.laser_name.choices = laser_name_choices
+
+    # OBJECTIVE
+    lens_types = db_microscope.ObjectiveLensType().fetch('lens_type')
+    lens_type_choices = [(lens_type,lens_type) for lens_type in lens_types]
+    microscope_form.lens_type.choices = lens_type_choices
+
+    # SCANNER
+    scanner_types = db_microscope.ScannerType().fetch('scanner_type')
+    scanner_type_choices = [(scanner_type,scanner_type) for scanner_type in scanner_types]
+    microscope_form.scanner_type.choices = scanner_type_choices
+    ''' Now set the values to ones stored last in the database '''
+    # ...
+    # ...
+    #####
+
     return render_template('microscope/status_monitor.html',
         microscope_form=microscope_form,microscope=microscope)
 

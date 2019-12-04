@@ -1,12 +1,5 @@
 {% extends "layout.html" %}
 {% block content %}
-
-	{% if microscope == 'light sheet microscope' %}
-		{% include "microscope/lsm_status.html" %}
-	{% elif microscope == 'two photon microscope' %}
-		{% include "microscope/twophoton_status.html" %}
-	{% elif microscope == 'confocal microscope' %}
-		{% include "microscope/confocal_status.html" %}
-	{% endif %}
+	{% include "microscope/confocal_status.html" %}
 
 {% endblock content %}
