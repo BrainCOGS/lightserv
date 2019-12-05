@@ -105,20 +105,27 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 	sample_contents = (db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"')
 	sample_dict = sample_contents.fetch1()
+	image_resolution_request_contents = db_lightsheet.Sample.ImageResolutionRequest() & f'request_name="{request_name}"' & \
+			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			 	f'imaging_request_number="{imaging_request_number}"'
+	imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
+			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			 	f'imaging_request_number="{imaging_request_number}"'
 
 	channel_contents = db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
 	 		f'imaging_request_number="{imaging_request_number}"' # all of the channels for this sample
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
 
-	joined_contents = sample_contents * channel_contents
-	sample_table_id = 'horizontal_procsesing_table'
-	sample_table = create_dynamic_channels_table_for_processing(joined_contents,table_id=sample_table_id)
-	sample_table.table_id = sample_table_id
+	joined_contents = sample_contents * image_resolution_request_contents * imaging_request_contents
+	
+	overview_table_id = 'horizontal_procsesing_table'
+	overview_table = create_dynamic_channels_table_for_processing(joined_contents,table_id=overview_table_id)
+	overview_table.table_id = overview_table_id
 
 	form = StartProcessingForm()
 	
-	processing_progress = sample_contents.fetch1('processing_progress')
+	processing_progress = imaging_request_contents.fetch1('processing_progress')
 
 	if processing_progress == 'complete':
 		logger.info("processing already complete but accessing the processing entry page anyway")
@@ -186,7 +193,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 
 	return render_template('processing/processing_entry.html',
 		channel_contents_lists=channel_contents_lists,
-		sample_dict=sample_dict,form=form,sample_table=sample_table)	
+		sample_dict=sample_dict,form=form,overview_table=overview_table)	
 
 
 # @cel.task()

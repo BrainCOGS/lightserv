@@ -34,17 +34,16 @@
 							<div class="navbar-nav mr-auto">
 								<a class="nav-item nav-link" href="{{ url_for('main.home') }}">Home</a>
 								<!-- <a class="nav-item nav-link" href="{{ url_for('ontology.interactive_ontology')}}" target="_blank">Interactive Ontology</a> -->
+								
+								<a class="nav-item nav-link" href="{{ url_for('clearing.clearing_manager')}}" target="_blank">Clearing Manager</a>
+	
+								<a class="nav-item nav-link" href="{{ url_for('imaging.imaging_manager')}}" target="_blank">Imaging Manager</a>
+
+								<a class="nav-item nav-link" href="{{ url_for('processing.processing_manager')}}" target="_blank">Processing Manager</a>
+
 								{% if session['user'] == 'ahoag' or session['user'] == 'zmd' or session['user'] == 'jduva' or session['user'] == 'thiberge' %}
 									<a class="nav-item nav-link" href="{{ url_for('microscope.landing_page')}}" target="_blank">Microscope Manager</a>
 								{% endif %}
-
-								
-								<a class="nav-item nav-link" href="{{ url_for('imaging.imaging_manager')}}" target="_blank">Imaging Manager</a>
-
-								
-								<a class="nav-item nav-link" href="{{ url_for('clearing.clearing_manager')}}" target="_blank">Clearing Manager</a>
-
-								<a class="nav-item nav-link" href="{{ url_for('processing.processing_manager')}}" target="_blank">Processing Manager</a>
 							</div>
 						
 						<!-- Navbar Right Side -->

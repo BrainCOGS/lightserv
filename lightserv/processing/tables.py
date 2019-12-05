@@ -98,10 +98,10 @@ def create_dynamic_channels_table_for_processing(contents,table_id,ignore_column
     table_class.add_column('request_name',Col('request_name'))
     table_class.add_column('sample_name',Col('sample_name'))
     table_class.add_column('image_resolution',Col('image_resolution'))
-    table_class.add_column('channel_name',Col('channel_name'))
-    table_class.add_column('tiling_scheme',Col('tiling_scheme'))
+    # table_class.add_column('channel_name',Col('channel_name'))
+    # table_class.add_column('tiling_scheme',Col('tiling_scheme'))
     table_class.add_column('processor',Col('processor'))
-    table_class.add_column('processing_progress',Col('processing_progress'))
+    table_class.add_column('processing_progress',Col('processing progress'))
 
     table = table_class(contents)
     

@@ -52,7 +52,7 @@ def logged_in_as_clearer(f):
 			 	f'username="{username}"' & f'sample_name="{sample_name}"'
 			clearer = sample_contents.fetch1('clearer')
 			''' check to see if user assigned themself as clearer '''
-			if clearer == "not yet assigned":
+			if clearer == None:
 				logger.info("Clearing entry form accessed with clearer not yet assigned. ")
 				''' now check to see if user is a designated clearer ''' 
 				if current_user in current_app.config['CLEARING_ADMINS']: # 
@@ -88,15 +88,18 @@ def logged_in_as_processor(f):
 			request_name = kwargs['request_name']
 			sample_name = kwargs['sample_name']
 			username = kwargs['username']
-			sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
-			 	f'username="{username}"' & f'sample_name="{sample_name}"'
-			processor = sample_contents.fetch1('processor')
+			imaging_request_number = kwargs['imaging_request_number']
+			
+			imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
+			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			 	f'imaging_request_number="{imaging_request_number}"'
+			processor = imaging_request_contents.fetch1('processor')
 			''' check to see if user assigned themself as processor '''
-			if processor == "not yet assigned":
+			if processor == None:
 				logger.info("processing entry form accessed with processor not yet assigned. ")
 				''' now check to see if user is a designated processor ''' 
 				if current_user in current_app.config['PROCESSING_ADMINS']: # 
-					dj.Table._update(sample_contents,'processor',current_user)
+					dj.Table._update(imaging_request_contents,'processor',current_user)
 					logger.info(f"{current_user} is a designated processor and is now assigned as the processor")
 					return f(*args, **kwargs)
 				else: # user is not a designated processor and did not self assign

@@ -55,14 +55,10 @@ def imaging_manager():
 		datetime_submitted='TIMESTAMP(imaging_request_date_submitted,imaging_request_time_submitted)')
 	if current_user not in imaging_admins:
 		imaging_request_contents = imaging_request_contents & f'imager="{current_user}"'
-	# logger.info(imaging_request_contents)
-	# channel_contents = db_lightsheet.Sample.ImagingChannel()
-	# request_contents = db_lightsheet.Request()
 	
 	# ''' First get all entities that are currently being imaged '''
 	""" Get all entries currently being imaged """
 	contents_being_imaged = imaging_request_contents & 'imaging_progress="in progress"'
-	# logger.info(contents_being_imaged)
 	being_imaged_table_id = 'horizontal_being_imaged_table'
 	table_being_imaged = dynamic_imaging_management_table(contents_being_imaged,
 		table_id=being_imaged_table_id,
