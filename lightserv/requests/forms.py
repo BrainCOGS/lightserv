@@ -10,7 +10,6 @@ import os
 import glob
 from lightserv import db_lightsheet
 
-# from lightserv.models import Experiment
 
 def OptionalDateField(description='',validators=[]):
 	""" A custom field that makes the DateField optional """
@@ -82,8 +81,8 @@ class ImagingForm(FlaskForm):
 class NewRequestForm(FlaskForm):
 	""" The form for a new request """
 	max_number_of_samples = 50
-	request_name = StringField('Name of experiment',validators=[InputRequired(),Length(max=100)],default="test")
-	description = TextAreaField('Description of experiment',validators=[InputRequired(),Length(max=250)],default='test')
+	request_name = StringField('A unique identifier for this request',validators=[InputRequired(),Length(max=100)],default="test")
+	description = TextAreaField('Description of request',validators=[InputRequired(),Length(max=250)],default='test')
 	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)],default="Braincogs")
 	correspondence_email = StringField('Correspondence email (default is princeton email)',
 		validators=[DataRequired(),Length(max=100),Email()])
@@ -120,12 +119,12 @@ class NewRequestForm(FlaskForm):
 			raise ValidationError("You must have at least one sample to submit a request")
 
 	def validate_request_name(self,request_name):
-		""" Make sure experiment name is unique """
+		""" Make sure request name is unique """
 		current_user = session['user']
 		current_request_names = (db_lightsheet.Request() & f'username="{current_user}"').fetch('request_name')
 		if request_name.data in current_request_names:
-			raise ValidationError(f'There already exists an experiment named "{request_name.data}" \
-				for your account. Please rename your experiment')
+			raise ValidationError(f'There already exists a request named "{request_name.data}" \
+				for your account. Please rename your request')
 
 	def validate_clearing_samples(self,clearing_samples):
 		""" Make sure that there are no samples where the clearing protocol is impossible
@@ -210,6 +209,6 @@ def Directory_validator(form,field):
 		raise ValidationError('No raw data files found in that directory. Try again')	
 
 class UpdateNotesForm(FlaskForm):
-	""" The form for requesting a new experiment/dataset """
+	""" The form for updating notes field"""
 	notes = TextAreaField('Notes',validators=[Length(max=1000)])
 	submit = SubmitField('Submit Changes')	

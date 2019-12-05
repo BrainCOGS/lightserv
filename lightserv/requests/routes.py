@@ -59,9 +59,11 @@ def new_request():
 	username = current_user
 
 	form = NewRequestForm(request.form)
-
+	logger.info(form.data)
 	if request.method == 'POST':
+		logger.info("POST request")
 		if form.validate_on_submit():
+			logger.info("Form validated")
 			""" figure out which button was pressed """
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x and form[x].data == True]
 			if len(submit_keys) == 1: # submit key was either sample setup or final submit button
@@ -95,6 +97,8 @@ def new_request():
 			if submit_key == 'sample_submit_button': # The sample setup button
 				logger.info("sample submit")
 				nsamples = form.number_of_samples.data
+				logger.info(form.uniform_clearing.data)
+				logger.info(type(form.uniform_clearing.data))
 				if form.uniform_clearing.data == True: # UNIFORM clearing
 					logger.info("Clearing is uniform")
 					while len(form.clearing_samples.data) > 0:
@@ -309,6 +313,7 @@ def new_request():
 					flash(error_str,'danger')
 	""" Make default checkboxes -- can't be done in forms.py unfortunately: https://github.com/lepture/flask-wtf/issues/362 """
 	if request.method=='GET':
+		logger.info("Get request")
 		form.uniform_clearing.data = True
 		form.uniform_imaging.data = True
 		if not form.correspondence_email.data:	

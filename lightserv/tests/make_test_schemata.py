@@ -29,7 +29,7 @@ def create_test_schema():
         
     @test_schema
     class Request(dj.Manual):
-        definition = """ # Experiments performed using the light sheet microscope
+        definition = """ # The highest level table for handling user requests to the Core Facility 
         -> User  
         request_name                        :   varchar(64)
         ----
@@ -42,12 +42,11 @@ def create_test_schema():
         number_of_samples            :   tinyint
         sample_prefix                :   varchar(32)
         uniform_clearing             :   boolean
-        uniform_imaging              :   boolean
         """  
 
     @test_schema
     class Sample(dj.Manual):
-        definition = """ # Samples from a particular experiment
+        definition = """ # Samples from a particular request
         -> Request
         sample_name                               :   varchar(64)                
         ----
@@ -59,37 +58,54 @@ def create_test_schema():
         antibody1 = ''               :   varchar(100)
         antibody2 = ''               :   varchar(100)
         notes_for_clearer = ""                    :   varchar(1024)
-        imager = "not yet assigned"  :   varchar(20) # netid of person doing the imaging
-        imaging_progress             :   enum("incomplete","in progress","complete")
-        imaging_date = NULL                       :   date
-        processor = "not yet assigned"            :   varchar(20) # netid of person doing the processing
-        processing_progress                       :   enum("not started", "running","failed","complete")
         stitching_method                          :   enum("blending","terastitcher")
         blend_type                                :   enum("sigmoidal","flat")
         notes_from_processing = ""                :   varchar(1024)
         """  
 
+        class ImagingRequest(dj.Part):
+            definition = """ # Imaging request
+            -> Sample
+            imaging_request_number                    :   tinyint
+            ----
+            -> [nullable] User.proj(imager='username') # defines a new column here called "imager" whose value must be one of the "username" entries in the User() table
+            imaging_request_date_submitted            :   date # date that the user submitted the request for imaging
+            imaging_request_time_submitted            :   time # time that the user submitted the request for imaging
+            imaging_date = NULL                       :   date # date that the images were actually taken
+            imaging_progress                          :   enum("incomplete","in progress","complete")
+            -> [nullable] User.proj(processor='username') # defines column "processor" whose value must be one of the "username" entries in the User() table
+            processing_progress                       :   enum("not started", "running","failed","complete")
+            """
+
+        class ImageResolutionRequest(dj.Part):
+            definition = """ # Imaging parameters for a channel, belonging to a sample
+            -> master.ImagingRequest
+            image_resolution                          :   enum("1.3x","4x","1.1x","2x")
+            ----        
+            atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas") # only one atlas can be used for a given resolution
+            notes_for_imager = ""                     :   varchar(1024)
+            notes_from_imaging = ""                   :   varchar(1024)
+            notes_for_processor = ""                  :   varchar(1024)
+            """
+
         class ImagingChannel(dj.Part):
             definition = """ # Imaging parameters for a channel, belonging to a sample
-            -> Sample
-            image_resolution                          :   enum("1.3x","4x","1.1x","2x")
+            -> master.ImageResolutionRequest
             channel_name                              :   varchar(64)                
             ----
+            imaging_date = NULL                       :   date 
             registration = 0                          :   boolean
             injection_detection = 0                   :   boolean
             probe_detection = 0                       :   boolean
             cell_detection = 0                        :   boolean
-            notes_for_imager = ""                     :   varchar(1024)
-            notes_from_imaging = ""                   :   varchar(1024)
-            atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
-            notes_for_processor = ""                  :   varchar(1024)
+            generic_imaging = 0                       :   boolean
             pixel_type = NULL                         :   varchar(32)
             tiling_scheme = '1x1'                     :   char(3)
             tiling_overlap = 0.0                      :   float
             z_step = 10                               :   smallint unsigned
             number_of_z_planes = NULL                 :   smallint unsigned
             rawdata_subfolder = NULL                  :   varchar(512)
-            imspector_channel_index = NULL            :   tinyint    # 0 if first (or only) channel in rawdata_subfolder, 1 if second, 2 if third, ...
+            imspector_channel_index = NULL            :   tinyint    # refers to multi-channel imaging - 0 if first (or only) channel in rawdata_subfolder, 1 if second, 2 if third, ...
             """
 
         class ProcessingChannel(dj.Part):
@@ -109,7 +125,7 @@ def create_test_schema():
             definition = """ # iDISCO+ clearing table
             -> Sample           
             ----
-            exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+            exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request handling that could affect clearing
             time_dehydr_pbs_wash1 = NULL                             :   datetime
             dehydr_pbs_wash1_notes = ""                              :   varchar(250)
             time_dehydr_pbs_wash2 = NULL                             :   datetime
@@ -216,7 +232,7 @@ def create_test_schema():
             definition = """ # iDISCO abbreviated clearing table
             -> Sample           
             ----
-            exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+            exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request handling that could affect clearing
             time_pbs_wash1 = NULL                                    :   datetime
             pbs_wash1_notes = ""                                     :   varchar(250)
             time_pbs_wash2 = NULL                                    :   datetime
@@ -252,7 +268,7 @@ def create_test_schema():
             definition = """ # iDISCO Abbreviated Rat clearing table
             -> Sample              
             ----
-            exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+            exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
             time_pbs_wash1 = NULL                                    :   datetime
             pbs_wash1_notes = ""                                     :   varchar(250)
             time_pbs_wash2 = NULL                                    :   datetime
@@ -302,7 +318,7 @@ def create_test_schema():
             definition = """ # uDISCO clearing table
             -> Sample              
             ----
-            exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+            exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
             time_dehydr_pbs_wash1 = NULL                             :   datetime
             dehydr_pbs_wash1_notes = ""                              :   varchar(250)
             time_dehydr_butanol_30percent = NULL                     :   datetime
@@ -330,7 +346,7 @@ def create_test_schema():
             definition = """ # uDISCO clearing table
             -> Sample              
             ----
-            exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during experiment that could affect clearing
+            exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
             time_dehydr_pbs_wash1 = NULL                             :   datetime
             dehydr_pbs_wash1_notes = ""                              :   varchar(250)
             time_dehydr_pbs_wash2 = NULL                             :   datetime
@@ -427,7 +443,7 @@ def create_test_schema():
 
 
     class RawImageSet(dj.Manual):
-        definition = """ # a set of raw images for a given experiment and channel
+        definition = """ # a set of raw images for a given request and channel
         -> Sample
         channel                      :   char(3)
         ----
@@ -463,7 +479,7 @@ def create_test_schema():
         slurmjobfactor               :   tinyint
         parameter_folder             :   varchar(255) # path on bucket to affine/spline parameters
         imspector_version            :   varchar(64)
-        """  
+        """   
 
    
     return test_schema
