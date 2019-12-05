@@ -35,6 +35,7 @@
 		                    <th>Injection detection</th>
 		                    <th>Probe detection</th>
 		                    <th>Cell detection</th>
+		                    <th>General Imaging</th>
 		                </tr>
 
 		                {% for channel_entry in image_resolution_form.channels %}
@@ -47,6 +48,7 @@
 			                    <td>{{channel_entry.injection_detection}}</td>
 			                    <td>{{channel_entry.probe_detection}}</td>
 			                    <td>{{channel_entry.cell_detection}}</td>
+			                    <td>{{channel_entry.generic_imaging}}</td>
 			                </tr>
 		               {% endfor %}
 		            </table>

@@ -92,9 +92,10 @@ class ChannelRequestForm(FlaskForm):
 	""" Used by other forms in a FieldList """
 	channel_name = HiddenField('Channel Name')
 	registration = BooleanField('Registration',default=False)
-	injection_detection = BooleanField('Registration',default=False)
-	probe_detection = BooleanField('Registration',default=False)
-	cell_detection = BooleanField('Registration',default=False)
+	injection_detection = BooleanField('Injection Detection',default=False)
+	probe_detection = BooleanField('Probe Detection',default=False)
+	cell_detection = BooleanField('Cell Detection',default=False)
+	generic_imaging = BooleanField('Generic imaging',default=False)
 
 class ImageResolutionRequestForm(FlaskForm):
 	""" A form used in a FieldList for each image resolution that a user picks 
@@ -130,7 +131,7 @@ class NewImagingRequestForm(FlaskForm):
 	def validate_image_resolution_forms(self,image_resolution_forms):
 
 		current_image_resolutions_rendered = []
-		if image_resolution_forms.data == []:
+		if image_resolution_forms.data == [] and self.submit.data == True:
 			raise ValidationError("You must set up the imaging parameters for at least one image resolution")
 		for resolution_form_dict in image_resolution_forms.data:
 			image_resolution = resolution_form_dict['image_resolution']

@@ -94,6 +94,7 @@ class Sample(dj.Manual):
         injection_detection = 0                   :   boolean
         probe_detection = 0                       :   boolean
         cell_detection = 0                        :   boolean
+        generic_imaging = 0                       :   boolean
         pixel_type = NULL                         :   varchar(32)
         tiling_scheme = '1x1'                     :   char(3)
         tiling_overlap = 0.0                      :   float

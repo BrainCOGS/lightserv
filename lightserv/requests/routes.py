@@ -246,11 +246,9 @@ def new_request():
 								else:
 									channel_insert_dict = {}
 									channel_insert_dict['imaging_request_number'] = imaging_request_number 
-									# channel_insert_dict['atlas_name'] = resolution_dict['atlas_name']
 									channel_insert_dict['request_name'] = form.request_name.data	
 									channel_insert_dict['username'] = username
 									channel_insert_dict['sample_name'] = sample_name
-									# channel_insert_dict['image_resolution'] = resolution_dict['image_resolution']
 									for key,val in imaging_channel_dict.items(): 
 										if key == 'csrf_token':
 											continue

@@ -45,9 +45,10 @@ class ChannelForm(FlaskForm):
 	""" Used by other forms in a FieldList """
 	channel_name = HiddenField('Channel Name')
 	registration = BooleanField('Registration',default=False)
-	injection_detection = BooleanField('Registration',default=False)
-	probe_detection = BooleanField('Registration',default=False)
-	cell_detection = BooleanField('Registration',default=False)
+	injection_detection = BooleanField('Injection Detection',default=False)
+	probe_detection = BooleanField('Probe Detection',default=False)
+	cell_detection = BooleanField('Cell Detection',default=False)
+	generic_imaging = BooleanField('Generic imaging',default=False)
 
 class ImageResolutionForm(FlaskForm):
 	""" A form for each image resolution that a user picks """
