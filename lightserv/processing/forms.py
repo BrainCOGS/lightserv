@@ -16,7 +16,7 @@ class ChannelProcessingForm(FlaskForm):
 
 class ImageResolutionProcessingForm(FlaskForm):
 	max_number_of_channels = 4
-	atlas_name = SelectField('Choose atlas for registration (defaults to choice selected in request form):',
+	atlas_name = SelectField('Choose atlas for registration (defaults to choice selected in the initial request form):',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
 				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()],default='allen_2017')
 	image_resolution = HiddenField('Image resolution')

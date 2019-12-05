@@ -48,7 +48,7 @@ class Sample(dj.Manual):
     ----
     perfusion_date = NULL        :   date
     expected_handoff_date = NULL :   date
-    clearer = "not yet assigned" :   varchar(20) # netid of person doing the clearing
+    -> [nullable] User.proj(clearer='username') # defines a new column here called "clearer" whose value must be either None or one of the "username" entries in the User() table
     clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
     clearing_progress            :   enum("incomplete","in progress","complete")
     antibody1 = ''               :   varchar(100)
@@ -96,6 +96,7 @@ class Sample(dj.Manual):
         cell_detection = 0                        :   boolean
         generic_imaging = 0                       :   boolean
         pixel_type = NULL                         :   varchar(32)
+        numerical_aperture = NULL                 :   float # it is not always recorded in metadata so those times it will be NULL
         tiling_scheme = '1x1'                     :   char(3)
         tiling_overlap = 0.0                      :   float
         z_step = 10                               :   smallint unsigned
@@ -108,12 +109,11 @@ class Sample(dj.Manual):
         definition = """ # Processing parameters for a channel
         -> master.ImagingChannel
         ----
-        lightsheet_channel_str                    :   enum("regch","injch","cellch","anych")
+        lightsheet_channel_str                    :   enum("regch","injch","cellch","gench")
         imspector_version = ''                    :   varchar(128)
         datetime_processing_started               :   datetime
-        numerical_aperture = NULL                 :   float # it is not always recorded in metadata so those times it will stay NULL
         intensity_correction = 1                  :   boolean
-        metadata_xml_string                       :   mediumblob
+        metadata_xml_string = NULL                :   mediumblob # The entire metadata xml string. Sometimes it is not available so those times it will be NULL
         """ 
                 
 

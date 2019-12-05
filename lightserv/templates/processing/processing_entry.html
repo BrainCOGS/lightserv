@@ -62,9 +62,9 @@
 						</div>
 
 						{% if 'registration' in channel_purposes_str %}
-							<div class="content-section">
+							
 								<div class="form-group">
-									{{ image_resolution_form.atlas_name.label(class="form-control-label", id='larger') }}
+									{{ image_resolution_form.atlas_name.label(class="form-control-label text-danger", id='larger') }}
 									{% if image_resolution_form.atlas_name.errors %}
 										{{ image_resolution_form.atlas_name(class="form-control form-control-lg is-invalid col-md-8") }}
 										<div class="invalid-feedback">
@@ -76,7 +76,7 @@
 										{{ image_resolution_form.atlas_name(class="form-control form-control-lg col-md-8") }}
 									{% endif %}
 								</div>
-							</div>
+							
 						{% endif %}
 
 				  		<a id='larger'>
@@ -95,11 +95,12 @@
 						<ul>
 							<li>Blended raw data (.TIFs for each z plane)</li>
 							<li>Downsampled data (.TIFs for each z plane)</li>
-							{% if registration_used %}
-								<li>Downsampled data registered to atlas (.TIF stack)</li>
-							{% endif %}
 							{% if 'registration' in channel_purposes_str %}
+								<li>Downsampled data registered to atlas (.TIF stack)</li>
 								<li>Registration parameters</li>
+							{% else %}
+								<li>Downsampled data registered to registration channel (.TIF stack)</li>
+								<li>Parameters for the transformation from this channel to registration channel</li>
 							{% endif %}
 
 						</ul>  

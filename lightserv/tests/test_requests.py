@@ -156,30 +156,30 @@ def test_submit_good_request(test_client,test_login,test_schema):
 	will be removed after this test completes.
 	""" 
 	from lightserv import db_lightsheet
-	with db_lightsheet.Request.connection as connection:
-		response = test_client.post(
-			url_for('requests.new_request'),data={
-				'labname':"Wang",'correspondence_email':"test@demo.com",
-				'request_name':"Demo Experiment",
-				'description':"This is a demo experiment",
-				'species':"mouse",'number_of_samples':1,
-				'sample_prefix':'sample',
-				'username':test_login['user'],
-				'uniform_clearing':True,
-				'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
-				'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
-				'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
-				'imaging_samples-0-image_resolution_forsetup':'1.3x',
-				'imaging_samples-0-image_resolution_forms-0-channels-0-registration':True,
-				'submit':True
-				},content_type='multipart/form-data',
-				follow_redirects=True
-			)	
 
-		assert b"core facility requests" in response.data
-		assert b"This is a demo experiment" in response.data
-		assert b"New Request Form" not in response.data
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Demo Experiment",
+			'description':"This is a demo experiment",
+			'species':"mouse",'number_of_samples':1,
+			'sample_prefix':'sample',
+			'username':test_login['user'],
+			'uniform_clearing':True,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channels-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
 
+	assert b"core facility requests" in response.data
+	assert b"This is a demo experiment" in response.data
+	assert b"New Request Form" not in response.data
+	db_lightsheet.Request.delete_quick()
 def test_setup_samples_duplicate(test_client_single_request):
 	""" Ensure that hitting the "setup samples" button 
 	when user has entered a duplicate request name 

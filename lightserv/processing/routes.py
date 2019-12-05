@@ -108,6 +108,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 	image_resolution_request_contents = db_lightsheet.Sample.ImageResolutionRequest() & f'request_name="{request_name}"' & \
 			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			 	f'imaging_request_number="{imaging_request_number}"'
+	logger.debug(image_resolution_request_contents)
 	imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
 			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			 	f'imaging_request_number="{imaging_request_number}"'
@@ -141,22 +142,25 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 			dj.Table._update(sample_contents,'notes_from_processing',form.notes_from_processing.data)
 			""" loop through and update the atlas to be used based on what the user supplied """
 			for form_resolution_dict in form.image_resolution_forms.data:
-				image_resolution = form_resolution_dict['image_resolution']
+				this_image_resolution = form_resolution_dict['image_resolution']
+				logger.info(this_image_resolution)
+				this_image_resolution_content = image_resolution_request_contents & \
+				f'image_resolution="{this_image_resolution}"'
+				logger.debug(this_image_resolution_content)
 				atlas_name = form_resolution_dict['atlas_name']
-				for form_channel_dict in form_resolution_dict['channel_forms']:
-					channel_name = form_channel_dict['channel_name']
-					channel_content = channel_contents & f'channel_name="{channel_name}"' &  f'image_resolution="{image_resolution}"'
-					# logger.info(channel_content)
-					logger.info("updating channel contents from form data")
-					dj.Table._update(channel_content,'atlas_name',atlas_name)
+				dj.Table._update(this_image_resolution_content,'atlas_name',atlas_name)
+
+
 			logger.info(f"Starting step0 without celery for testing")
 			# run_step0.delay(username=username,request_name=request_name,sample_name=sample_name)
-			run_step0(username=username,request_name=request_name,sample_name=sample_name)
+			run_step0(username=username,request_name=request_name,sample_name=sample_name,
+				imaging_request_number=imaging_request_number)
 
-			dj.Table._update(sample_contents,'processing_progress','running')
+			dj.Table._update(imaging_request_contents,'processing_progress','running')
 
 			flash('Your data processing has begun. You will receive an email \
 				when the first steps are completed.','success')
+			return redirect(url_for('main.home'))
 
 	elif request.method == 'GET': # get request
 		channel_contents_lists = []
@@ -197,7 +201,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 
 
 # @cel.task()
-def run_step0(username,request_name,sample_name):
+def run_step0(username,request_name,sample_name,imaging_request_number):
 	""" An asynchronous celery task (runs in a background process) which runs step 0 
 	in the light sheet pipeline -- i.e. makes the parameter dictionary pickle file
 	and grabs a bunch of metadata from the raw files to store in the database.  
@@ -214,7 +218,8 @@ def run_step0(username,request_name,sample_name):
 	& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"'
 	
 	all_channel_contents = db_lightsheet.Sample.ImagingChannel() & f'username="{username}"' \
-	& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"'
+	& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
+	f'imaging_request_number="{imaging_request_number}"'
 	channel_content_dict_list = all_channel_contents.fetch(as_dict=True)
 	sample_contents_dict = sample_contents.fetch1() 
 
@@ -234,6 +239,14 @@ def run_step0(username,request_name,sample_name):
 	with connection.transaction:
 		unique_image_resolutions = sorted(list(set(all_channel_contents.fetch('image_resolution'))))
 		for image_resolution in unique_image_resolutions:
+			this_image_resolution_content = db_lightsheet.Sample.ImageResolutionRequest() & \
+			 f'request_name="{request_name}"' & f'username="{username}"' & \
+			 f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & \
+			 f'image_resolution="{image_resolution}"'
+			atlas_name = this_image_resolution_content.fetch1('atlas_name')
+			atlas_file = atlas_dict[atlas_name]
+			atlas_annotation_file = atlas_annotation_dict[atlas_name]
+
 			channel_contents_this_resolution = \
 				(all_channel_contents & f'image_resolution="{image_resolution}"')
 			channel_contents_list_this_resolution = channel_contents_this_resolution.fetch(as_dict=True)
@@ -252,6 +265,10 @@ def run_step0(username,request_name,sample_name):
 				param_dict['blendtype'] = 'sigmoidal' # no exceptions
 				param_dict['intensitycorrection'] = True # no exceptions
 				param_dict['rawdata'] = True # no exceptions
+
+				
+				param_dict['atlasfile'] = atlas_file
+				param_dict['annotationfile'] = atlas_annotation_file
 				""" figure out the resize factor based on resolution """
 				if image_resolution == '1.1x' or image_resolution == '1.3x':
 					resizefactor = 3
@@ -316,31 +333,33 @@ def run_step0(username,request_name,sample_name):
 				inputdictionary = {}
 				inputdictionary[rawdata_fullpath] = []
 				channel_contents_this_subfolder = channel_contents_this_resolution & f'rawdata_subfolder="{rawdata_subfolder}"'
-				logger.info(channel_contents_this_subfolder)
+				# logger.info(channel_contents_this_subfolder)
 				channel_contents_dict_list_this_subfolder = channel_contents_this_subfolder.fetch(as_dict=True)
 				for channel_dict in channel_contents_dict_list_this_subfolder:		
 					
 					channel_name = channel_dict['channel_name']
 					channel_index = channel_dict['imspector_channel_index'] 
 
+					processing_insert_dict = {'username':username,'request_name':request_name,
+					'sample_name':sample_name,'imaging_request_number':imaging_request_number,
+					'image_resolution':image_resolution,'channel_name':channel_name,
+					'intensity_correction':True,'datetime_processing_started':now}
+
 					channel_imaging_modes = [key for key in all_imaging_modes if channel_dict[key] == True]
-					this_channel_content = all_channel_contents & f'channel_name="{channel_name}'
+					this_channel_content = all_channel_contents & f'channel_name="{channel_name}"'
+					logger.info("This channel content")
+					logger.info(this_channel_content)
 					""" grab the tiling, atlas info from the first entry since it has to be the same for all 
 					channels in the same rawdata_subfolder"""
 					if channel_index == 0:
-						tiling_scheme,tiling_overlap, atlas_name = \
-						 this_channel_content.fetch1('tiling_scheme,','tiling_overlap','atlas_name')
+						tiling_scheme,tiling_overlap = this_channel_content.fetch1('tiling_scheme','tiling_overlap')
 						param_dict['tiling_overlap'] = tiling_overlap
 						if tiling_scheme != '1x1':
 							stitching_method = 'terastitcher'
 						else:
 							stitching_method = 'blending'
 						param_dict['stitchingmethod'] = stitching_method
-						atlas_file = atlas_dict[atlas_name]
-						atlas_annotation_file = atlas_annotation_dict[atlas_name]
-						param_dict['atlasfile'] = atlas_file
-						param_dict['annotationfile'] = atlas_annotation_file
-					
+						
 					
 					""" Fill inputdictionary """
 
@@ -353,20 +372,20 @@ def run_step0(username,request_name,sample_name):
 					elif 'cell_detection' in channel_imaging_modes:
 						lightsheet_channel_str = 'cellch'
 					else:
-						lightsheet_channel_str = 'anych'
+						lightsheet_channel_str = 'gench'
 					inputdictionary[rawdata_fullpath].append([lightsheet_channel_str,str(channel_index).zfill(2)])
 
 					processing_insert_dict['lightsheet_channel_str'] = lightsheet_channel_str
-				param_dict[inputdictionary] = inputdictionary
+					logger.info("Inserting into ProcessingChannel()")
+					logger.info(processing_insert_dict)
+					db_lightsheet.Sample.ProcessingChannel().insert1(processing_insert_dict,replace=True)
+
+				param_dict['inputdictionary'] = inputdictionary
 
 				""" Prepare insert to processing db table """
-				processing_insert_dict = {'username':username,'request_name':request_name,
-					'sample_name':sample_name,'channel_name':channel_name,'intensity_correction':True,
-					'datetime_processing_started':now}
+				
 					# logger.info("inputdictionary: {}".format(inputdictionary))
-					# db_lightsheet.Sample.ProcessingChannel().insert1(processing_insert_dict)
-					# logger.info("Inserted processing params into db table")
-					# dj.Table._update()
+
 				
 	""" Fill out the parameter dictionar(ies) for this sample.
 	There could be more than one because channels could have been imaged 
