@@ -180,6 +180,7 @@ def test_submit_good_request(test_client,test_login,test_schema):
 	assert b"This is a demo experiment" in response.data
 	assert b"New Request Form" not in response.data
 	# db_lightsheet.Request.delete_quick()
+
 def test_setup_samples_duplicate(test_client_single_request):
 	""" Ensure that hitting the "setup samples" button 
 	when user has entered a duplicate request name 

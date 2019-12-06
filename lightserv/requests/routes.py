@@ -60,6 +60,7 @@ def new_request():
 
 	form = NewRequestForm(request.form)
 	logger.info(form.data)
+
 	if request.method == 'POST':
 		logger.info("POST request")
 		if form.validate_on_submit():
@@ -313,7 +314,7 @@ def new_request():
 					flash(error_str,'danger')
 	""" Make default checkboxes -- can't be done in forms.py unfortunately: https://github.com/lepture/flask-wtf/issues/362 """
 	if request.method=='GET':
-		logger.info("Get request")
+		logger.info("GET request")
 		form.uniform_clearing.data = True
 		form.uniform_imaging.data = True
 		if not form.correspondence_email.data:	
@@ -325,13 +326,15 @@ def new_request():
 	return render_template('requests/new_request.html', title='new_request',
 		form=form,legend='New Request',column_name=column_name)	
 
-@requests.route("/request/<username>/<request_name>",)
+@requests.route("/request_overview/<username>/<request_name>",)
 @logged_in
 def request_overview(username,request_name):
 	""" A route for displaying a single request. Also acts as a gateway to start data processing. """
 	
 	request_contents = db_lightsheet.Request() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"'
+	request_contents = request_contents.proj('description','species','number_of_samples',
+		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
 	samples_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & f'username="{username}"' 
 	''' Get rid of the rows where none of the channels are used '''
 	channel_contents = db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & f'username="{username}"' 
