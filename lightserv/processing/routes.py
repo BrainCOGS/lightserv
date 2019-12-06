@@ -377,6 +377,8 @@ def run_step0(username,request_name,sample_name,imaging_request_number):
 					inputdictionary[rawdata_fullpath].append([lightsheet_channel_str,str(channel_index).zfill(2)])
 
 					processing_insert_dict['lightsheet_channel_str'] = lightsheet_channel_str
+					now = datetime.now()
+					processing_insert_dict['datetime_processing_started'] = now
 					logger.info("Inserting into ProcessingChannel()")
 					logger.info(processing_insert_dict)
 					db_lightsheet.Sample.ProcessingChannel().insert1(processing_insert_dict,replace=True)
