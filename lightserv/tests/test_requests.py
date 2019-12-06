@@ -170,7 +170,7 @@ def test_submit_good_request(test_client,test_login,test_schema):
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
-			'imaging_samples-0-image_resolution_forms-0-channels-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',
 			follow_redirects=True
@@ -179,7 +179,7 @@ def test_submit_good_request(test_client,test_login,test_schema):
 	assert b"core facility requests" in response.data
 	assert b"This is a demo experiment" in response.data
 	assert b"New Request Form" not in response.data
-	db_lightsheet.Request.delete_quick()
+	# db_lightsheet.Request.delete_quick()
 def test_setup_samples_duplicate(test_client_single_request):
 	""" Ensure that hitting the "setup samples" button 
 	when user has entered a duplicate request name 

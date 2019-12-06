@@ -52,7 +52,7 @@ class ChannelForm(FlaskForm):
 class ImageResolutionForm(FlaskForm):
 	""" A form for each image resolution that a user picks """
 	image_resolution = HiddenField('image resolution')
-	channels = FieldList(FormField(ChannelForm),min_entries=4,max_entries=4)
+	channel_forms = FieldList(FormField(ChannelForm),min_entries=4,max_entries=4)
 	notes_for_imager = TextAreaField('''Special notes for imaging 
 		(e.g. z step size, exposure time, suggested tiling scheme -- make sure to specify which channel) -- max 1024 characters --''',
 		validators=[Length(max=1024)])
@@ -159,7 +159,7 @@ class NewRequestForm(FlaskForm):
 				image_resolution = resolution_form_dict['image_resolution']
 				current_image_resolutions_rendered.append(image_resolution)
 				
-				channel_dict_list = resolution_form_dict['channels']
+				channel_dict_list = resolution_form_dict['channel_forms']
 				selected_imaging_modes = [key for channel_dict in channel_dict_list \
 					for key in channel_dict if key in current_app.config['IMAGING_MODES'] and channel_dict[key] == True]
 				if selected_imaging_modes == []:

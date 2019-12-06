@@ -88,10 +88,10 @@ def new_request():
 						for x in range(4):
 							# image_resolution_form.channels.append_entry()
 							channel_name = current_app.config['IMAGING_CHANNELS'][x]
-							image_resolution_form.channels[x].channel_name.data = channel_name
+							image_resolution_form.channel_forms[x].channel_name.data = channel_name
 							# Make the default for channel 488 to be 1.3x imaging with registration checked
 							if channel_name == '488' and image_resolution_forsetup == "1.3x":
-								image_resolution_form.channels[x].registration.data = 1
+								image_resolution_form.channel_forms[x].registration.data = 1
 				
 			""" Handle "setup samples" button pressed """
 			if submit_key == 'sample_submit_button': # The sample setup button
@@ -240,7 +240,7 @@ def new_request():
 							resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
 							resolution_insert_list.append(resolution_insert_dict)
 
-							for imaging_channel_dict in resolution_dict['channels']:
+							for imaging_channel_dict in resolution_dict['channel_forms']:
 								
 								""" The way to tell which channels were picked is to see 
 								which have at least one imaging mode selected """
