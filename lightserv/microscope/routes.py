@@ -150,12 +150,12 @@ def status_monitor(microscope):
         microscope_form.nir_filter_type.choices = filter_type_choices
 
         ## PREAMPS
-        preamp_types = db_microscope.PreAmplifierType().fetch('amp_type')
-        preamp_type_choices = [(preamp_type,preamp_type) for preamp_type in preamp_types]
+        preamp_models = db_microscope.PreAmplifierType().fetch('amp_model')
+        preamp_model_choices = [(preamp_model,preamp_model) for preamp_model in preamp_models]
         # CH1 PreAmp
-        microscope_form.ch1_preamp_type.choices = preamp_type_choices    
+        microscope_form.ch1_preamp_model.choices = preamp_model_choices    
         # CH2 PreAmp
-        microscope_form.ch2_preamp_type.choices = preamp_type_choices    
+        microscope_form.ch2_preamp_model.choices = preamp_model_choices    
 
         # DICHROIC
         mirror_types = db_microscope.DichroicMirrorType().fetch('mirror_type')
