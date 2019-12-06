@@ -99,15 +99,12 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 	imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
 	 		f'imaging_request_number="{imaging_request_number}"' 
+	if len(imaging_request_contents) == 0:
+		flash("Imaging request does not exist. Submit the request first, then try again.",'danger')
+		return redirect(url_for('main.home'))
 	''' If imaging is already complete (from before), then dont change imaging_progress '''
 	imaging_progress = imaging_request_contents.fetch1('imaging_progress')
-	if imaging_progress == 'complete':
-		logger.info("Imaging already complete but accessing the imaging entry page anyway")
-		flash("Imaging is already complete for this sample. "
-			"This page is read only and hitting submit will do nothing",'warning')
-	else:
-		dj.Table._update(imaging_request_contents,'imaging_progress','in progress')
-
+	
 	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"')
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
@@ -119,8 +116,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			
 			if imaging_progress == 'complete':
 				logger.info("Imaging is already complete so hitting the done button again did nothing")
-				return redirect(url_for('requests.request',username=username,
-				request_name=request_name,sample_name=sample_name))
+				return redirect(url_for('imaging.imaging_entry',username=username,
+				request_name=request_name,sample_name=sample_name,imaging_request_number=imaging_request_number))
 			
 			""" loop through the image resolution forms and find all channel entries"""
 
@@ -178,7 +175,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			msg = Message('Lightserv automated email',
 			          sender='lightservhelper@gmail.com',
 			          recipients=['ahoag@princeton.edu']) # keep it to me while in DEV phase
-			msg.body = ('Hello!\n    This is an automated email sent from lightserv, the Light Sheet Microscopy portal. '
+			msg.body = ('Hello!\n    This is an automated email sent from lightserv, '
+						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 						'The raw data for your experiment:\n'
 						f'request_name: "{request_name}"\n'
 						f'sample_name: "{sample_name}"\n'
@@ -188,7 +186,9 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				informing them that their raw data is now available on bucket.
 				The processing pipeline is now ready to run. ""","success")
 			dj.Table._update(imaging_request_contents,'imaging_progress','complete')
-
+			now = datetime.now()
+			date = now.strftime('%Y-%m-%d')
+			dj.Table._update(imaging_request_contents,'imaging_performed_date',date)
 			return redirect(url_for('requests.request_overview',username=username,
 				request_name=request_name,sample_name=sample_name))
 
@@ -198,6 +198,12 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			for channel in form.channels:
 				print(channel.tiling_scheme.errors)
 	elif request.method == 'GET': # get request
+		if imaging_progress == 'complete':
+			logger.info("Imaging already complete but accessing the imaging entry page anyway.")
+			flash("Imaging is already complete for this sample. "
+				"This page is read only and hitting submit will do nothing",'warning')
+		else:
+			dj.Table._update(imaging_request_contents,'imaging_progress','in progress')
 		channel_contents_lists = []
 
 		unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))

@@ -130,12 +130,9 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 	
 	processing_progress = imaging_request_contents.fetch1('processing_progress')
 
-	if processing_progress == 'complete':
-		logger.info("processing already complete but accessing the processing entry page anyway")
-		flash("processing is already complete for this sample. "
-				"This page is read only and hitting submit will do nothing",'warning')
-
 	if request.method == 'POST': # post request
+		if processing_progress != 'not started':
+			return redirect(url_for('processing.processing_manager'))
 		logger.info('post request')
 		if form.validate_on_submit():
 			logger.debug("form validated")
@@ -158,7 +155,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 			run_step0(username=username,request_name=request_name,sample_name=sample_name,
 				imaging_request_number=imaging_request_number)
 
-			# dj.Table._update(imaging_request_contents,'processing_progress','running')
+			dj.Table._update(imaging_request_contents,'processing_progress','running')
 
 			flash('Your data processing has begun. You will receive an email \
 				when the first steps are completed.','success')
@@ -197,6 +194,10 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 				channel_purposes_str = ', '.join(mode for mode in used_imaging_modes)
 				this_channel_form.channel_purposes_str.data = channel_purposes_str
 
+	if processing_progress != 'not started':
+		logger.info("processing already complete but accessing the processing entry page anyway")
+		flash("processing is already complete for this sample. "
+				"This page is read only and hitting submit will do nothing",'warning')
 	return render_template('processing/processing_entry.html',
 		channel_contents_lists=channel_contents_lists,
 		sample_dict=sample_dict,form=form,overview_table=overview_table)	

@@ -81,7 +81,7 @@ class ImagingForm(FlaskForm):
 class NewRequestForm(FlaskForm):
 	""" The form for a new request """
 	max_number_of_samples = 50
-	request_name = StringField('A unique identifier for this request',validators=[InputRequired(),Length(max=100)],default="test")
+	request_name = StringField('Title - a unique identifier for this request -- max 100 characters --',validators=[InputRequired(),Length(max=100)],default="test")
 	description = TextAreaField('Description of request',validators=[InputRequired(),Length(max=250)],default='test')
 	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)],default="Braincogs")
 	correspondence_email = StringField('Correspondence email (default is princeton email)',

@@ -48,7 +48,8 @@ def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
     if table_class == 'horizontal_ready_to_process_table':
         table_class.add_column('processing_progress',BoldTextCol('processing_progress'))
     else: 
-        table_class.add_column('imaging_progress',Col('imaging progress'))
+
+        table_class.add_column('processing_progress',Col('processing progress'))
     table_class.add_column('imager',Col('imager'))
     table_class.add_column('species',Col('species'))    
 

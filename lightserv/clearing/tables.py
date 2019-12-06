@@ -34,7 +34,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
         border = True,
         allow_sort = True,
         no_items = "No samples at the moment",
-        html_attrs = {"style":'font-size:18px'}, 
+        html_attrs = {"style":'font-size:18px; table-layout: fixed; width: 100%;',}, 
         table_id = table_id,
         classes = ['mb-4']
         ) 
@@ -55,16 +55,16 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     table_class.add_column('antibody1',Col('antibody1'))
     table_class.add_column('antibody2',Col('antibody2'))
     table_class.add_column('request_name',Col('request name'))
-    table_class.add_column('username',Col('researcher netid'))
+    table_class.add_column('username',Col('username'))
     table_class.add_column('clearer',Col('clearer'))
     
     if table_class.table_id == 'horizontal_ready_to_clear_table':
-        table_class.add_column('clearing_progress',BoldTextCol('clearing_progress'))
+        table_class.add_column('clearing_progress',BoldTextCol('clearing progress'))
     else: 
-        table_class.add_column('clearing_progress',Col('clearing_progress'))
+        table_class.add_column('clearing_progress',Col('clearing progress'))
 
     table_class.add_column('species',Col('species'))    
-    table_class.add_column('number_in_batch',Col('number_in_batch'))    
+    table_class.add_column('number_in_batch',Col('number in batch'))    
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
     clearing_url_kwargs = {'username':'username','request_name':'request_name',

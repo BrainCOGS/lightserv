@@ -17,7 +17,7 @@ class DateTimeCol(Col):
     human readable format  """
 
     def td_format(self, content):
-        return content.strftime('%m/%d/%Y %-I:%m %p')
+        return content.strftime('%m/%d/%Y %-I:%M %p')
 
 class BoldTextCol(Col):
     """ Conditional bold fonting """

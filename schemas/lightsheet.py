@@ -67,7 +67,7 @@ class Sample(dj.Manual):
         -> [nullable] User.proj(imager='username') # defines a new column here called "imager" whose value must be one of the "username" entries in the User() table
         imaging_request_date_submitted            :   date # date that the user submitted the request for imaging
         imaging_request_time_submitted            :   time # time that the user submitted the request for imaging
-        imaging_date = NULL                       :   date # date that the images were actually taken
+        imaging_performed_date = NULL             :   date # date that the imaging form was submitted by the imager
         imaging_progress                          :   enum("incomplete","in progress","complete")
         -> [nullable] User.proj(processor='username') # defines column "processor" whose value must be one of the "username" entries in the User() table
         processing_progress                       :   enum("not started", "running","failed","complete")

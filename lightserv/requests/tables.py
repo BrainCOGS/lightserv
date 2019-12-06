@@ -23,7 +23,6 @@ class ExpTable(Table):
     number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
     # sample_prefix = Col('sample prefix')
     datetime_submitted = DateTimeCol('datetime submitted')
-    # time_submitted = Col('time submitted')
 
     url_kwargs = {'username':'username','request_name':'request_name'}
     anchor_attrs = {'target':"_blank",}
