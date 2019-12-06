@@ -11,8 +11,8 @@ else:
     dj.config['database.password'] = 'p@sswd' 
 
 schema = dj.schema('ahoag_microscope_demo')
-# schema.drop()
-# schema = dj.schema('ahoag_microscope_demo')
+schema.drop()
+schema = dj.schema('ahoag_microscope_demo')
 @schema
 class Center(dj.Lookup):
     definition = """
@@ -141,7 +141,7 @@ class PreAmplifierType(dj.Manual):
     amp_model:      varchar(32)
     ---
     amp_brand='':  varchar(64)
-    amp_serial_number='':  varchar(64)
+    amp_serial='':  varchar(64)
     """
 
 
