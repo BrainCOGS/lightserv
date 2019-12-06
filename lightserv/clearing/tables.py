@@ -2,7 +2,7 @@ from flask import request
 from flask_table import create_table,Table, Col, LinkCol, ButtonCol
 from functools import partial
 from lightserv.main.utils import table_sorter
-from lightserv.main.tables import BoldTextCol
+from lightserv.main.tables import BoldTextCol, DateTimeCol
 
 def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     name='Dynamic Imaging Management Table', **sort_kwargs):
@@ -50,7 +50,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
-    table_class.add_column('datetime_submitted',Col('datetime submitted'))
+    table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted'))
     table_class.add_column('clearing_protocol',Col('clearing protocol'))
     table_class.add_column('antibody1',Col('antibody1'))
     table_class.add_column('antibody2',Col('antibody2'))

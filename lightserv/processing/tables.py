@@ -2,6 +2,7 @@ from flask import request
 from flask_table import Table, Col, LinkCol, ButtonCol, create_table
 from functools import partial
 from lightserv.main.utils import table_sorter
+from lightserv.main.tables import DateTimeCol
 
 def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
     name='Dynamic Processing Management Table', **sort_kwargs):
@@ -38,7 +39,7 @@ def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
-    table_class.add_column('datetime_submitted',Col('datetime submitted'))
+    table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted'))
     table_class.add_column('request_name',Col('experiment name'))
     table_class.add_column('sample_name',Col('sample name'))
     table_class.add_column('username',Col('username'))    

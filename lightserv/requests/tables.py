@@ -3,6 +3,7 @@ from flask_table import Table, Col, LinkCol, ButtonCol, create_table
 from lightserv.main.tables import HeadingCol, ConditionalLinkCol
 from functools import partial
 from lightserv.main.utils import table_sorter
+from lightserv.main.tables import DateTimeCol
 from lightserv import db_lightsheet
 
 class ExpTable(Table):
@@ -20,9 +21,9 @@ class ExpTable(Table):
     description = Col('description',column_html_attrs=column_html_attrs)
     species = Col('species',column_html_attrs=column_html_attrs)
     number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
-    sample_prefix = Col('sample prefix')
-    date_submitted = Col('date submitted')
-    time_submitted = Col('time submitted')
+    # sample_prefix = Col('sample prefix')
+    datetime_submitted = DateTimeCol('datetime submitted')
+    # time_submitted = Col('time submitted')
 
     url_kwargs = {'username':'username','request_name':'request_name'}
     anchor_attrs = {'target':"_blank",}

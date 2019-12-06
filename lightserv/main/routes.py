@@ -52,6 +52,8 @@ def home():
 	else:
 		request_contents = db_lightsheet.Request() & f'username="{current_user}"'
 		legend = 'Your core facility requests'
+	request_contents = request_contents.proj('description','species','number_of_samples',
+		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
 	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sorted_results = sorted(request_contents.fetch(as_dict=True),
@@ -70,7 +72,7 @@ def login():
 	if hostname == 'braincogs00.pni.princeton.edu':
 		username = request.headers['X-Remote-User']
 	else:
-		username = 'ms81'
+		username = 'ahoag'
 
 	session['user'] = username
 	''' If user not already in User() table, then add them '''
