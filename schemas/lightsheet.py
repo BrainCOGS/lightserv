@@ -99,7 +99,7 @@ class Sample(dj.Manual):
         numerical_aperture = NULL                 :   float # it is not always recorded in metadata so those times it will be NULL
         tiling_scheme = '1x1'                     :   char(3)
         tiling_overlap = 0.0                      :   float
-        z_step = 10                               :   smallint unsigned
+        z_step = 10                               :   smallint unsigned # distance between z planes in microns
         number_of_z_planes = NULL                 :   smallint unsigned
         rawdata_subfolder = NULL                  :   varchar(512)
         imspector_channel_index = NULL            :   tinyint    # refers to multi-channel imaging - 0 if first (or only) channel in rawdata_subfolder, 1 if second, 2 if third, ...

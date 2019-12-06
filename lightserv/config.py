@@ -23,6 +23,8 @@ class BaseConfig(object):
 	'allen_pre2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/annotation_template_25_sagittal_forDVscans.tif',
 	'princeton_mouse_atlas:':'/jukebox/LightSheetTransfer/atlas/annotation_sagittal_atlas_20um_iso_16bit.tif'
 	}
+	PROCESSING_CODE_DIR = '/jukebox/wang/ahoag/lightsheet_py3'
+
 
 # The default config
 class Config(BaseConfig):

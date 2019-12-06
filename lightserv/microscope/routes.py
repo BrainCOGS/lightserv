@@ -172,6 +172,8 @@ def status_monitor(microscope):
         acq_software_name_choices = [(acq_software_name,acq_software_name) for acq_software_name in acq_software_names]
         microscope_form.acq_software_name.choices = acq_software_name_choices
         ''' Now set the values in the form to ones stored last in the database '''
+        
+
     elif request.method == 'POST':
         ''' Update the database with the current status of components '''
         pass

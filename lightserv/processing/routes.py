@@ -14,6 +14,8 @@ import logging
 import tifffile
 import glob
 import os
+import pickle
+import paramiko
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -103,19 +105,19 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 	logger.info(f"{session['user']} accessed start_processing route")
 	
 	sample_contents = (db_lightsheet.Sample() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"')
+			f'username="{username}"' & f'sample_name="{sample_name}"')
 	sample_dict = sample_contents.fetch1()
 	image_resolution_request_contents = db_lightsheet.Sample.ImageResolutionRequest() & f'request_name="{request_name}"' & \
-			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
-			 	f'imaging_request_number="{imaging_request_number}"'
+				f'username="{username}"' & f'sample_name="{sample_name}"' & \
+				f'imaging_request_number="{imaging_request_number}"'
 	logger.debug(image_resolution_request_contents)
 	imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
-			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
-			 	f'imaging_request_number="{imaging_request_number}"'
+				f'username="{username}"' & f'sample_name="{sample_name}"' & \
+				f'imaging_request_number="{imaging_request_number}"'
 
 	channel_contents = db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
-	 		f'imaging_request_number="{imaging_request_number}"' # all of the channels for this sample
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			f'imaging_request_number="{imaging_request_number}"' # all of the channels for this sample
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
 
 	joined_contents = sample_contents * image_resolution_request_contents * imaging_request_contents
@@ -156,7 +158,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 			run_step0(username=username,request_name=request_name,sample_name=sample_name,
 				imaging_request_number=imaging_request_number)
 
-			dj.Table._update(imaging_request_contents,'processing_progress','running')
+			# dj.Table._update(imaging_request_contents,'processing_progress','running')
 
 			flash('Your data processing has begun. You will receive an email \
 				when the first steps are completed.','success')
@@ -265,18 +267,20 @@ def run_step0(username,request_name,sample_name,imaging_request_number):
 				param_dict['blendtype'] = 'sigmoidal' # no exceptions
 				param_dict['intensitycorrection'] = True # no exceptions
 				param_dict['rawdata'] = True # no exceptions
-
-				
-				param_dict['atlasfile'] = atlas_file
+				param_dict['AtlasFile'] = atlas_file
 				param_dict['annotationfile'] = atlas_annotation_file
+
 				""" figure out the resize factor based on resolution """
-				if image_resolution == '1.1x' or image_resolution == '1.3x':
+				if image_resolution == '1.3x':
 					resizefactor = 3
-				elif image_resolution == '2x':
-					resizefactor = 4
+					x_scale, y_scale = 5.0,5.0
 				elif image_resolution == '4x':
 					resizefactor = 5
-
+					x_scale, y_scale = 1.63,1.63
+				else:
+					sys.exit("There was a problem finding the resizefactor")
+				param_dict['resizefactor'] = resizefactor
+				param_dict['finalorientation'] = ("2","1","0") # hardcoded for now but will need to be captured from the user 
 				""" grab the metadata """
 				# logger.info(f"finding metadata for channel {channel_name}")
 					
@@ -336,23 +340,20 @@ def run_step0(username,request_name,sample_name,imaging_request_number):
 				# logger.info(channel_contents_this_subfolder)
 				channel_contents_dict_list_this_subfolder = channel_contents_this_subfolder.fetch(as_dict=True)
 				for channel_dict in channel_contents_dict_list_this_subfolder:		
-					
 					channel_name = channel_dict['channel_name']
 					channel_index = channel_dict['imspector_channel_index'] 
-
 					processing_insert_dict = {'username':username,'request_name':request_name,
 					'sample_name':sample_name,'imaging_request_number':imaging_request_number,
 					'image_resolution':image_resolution,'channel_name':channel_name,
 					'intensity_correction':True,'datetime_processing_started':now}
-
 					channel_imaging_modes = [key for key in all_imaging_modes if channel_dict[key] == True]
 					this_channel_content = all_channel_contents & f'channel_name="{channel_name}"'
 					logger.info("This channel content")
 					logger.info(this_channel_content)
-					""" grab the tiling, atlas info from the first entry since it has to be the same for all 
+					""" grab the tiling, number of z planes info from the first entry since it has to be the same for all 
 					channels in the same rawdata_subfolder"""
 					if channel_index == 0:
-						tiling_scheme,tiling_overlap = this_channel_content.fetch1('tiling_scheme','tiling_overlap')
+						tiling_scheme,tiling_overlap,z_step = this_channel_content.fetch1('tiling_scheme','tiling_overlap','z_step')
 						param_dict['tiling_overlap'] = tiling_overlap
 						if tiling_scheme != '1x1':
 							stitching_method = 'terastitcher'
@@ -360,7 +361,6 @@ def run_step0(username,request_name,sample_name,imaging_request_number):
 							stitching_method = 'blending'
 						param_dict['stitchingmethod'] = stitching_method
 						
-					
 					""" Fill inputdictionary """
 
 					if 'registration' in channel_imaging_modes:
@@ -381,31 +381,35 @@ def run_step0(username,request_name,sample_name,imaging_request_number):
 					db_lightsheet.Sample.ProcessingChannel().insert1(processing_insert_dict,replace=True)
 
 				param_dict['inputdictionary'] = inputdictionary
-
+				xyz_scale = (x_scale,y_scale,z_step)
+				param_dict['xyz_scale'] = xyz_scale
+				logger.info(param_dict)
 				""" Prepare insert to processing db table """
 				
-					# logger.info("inputdictionary: {}".format(inputdictionary))
+				""" Now write the pickle file with the parameter dictionary """	
+				if not os.path.exists(output_directory):
+					os.mkdir(output_directory)
+				logger.info(f"Made directory: {output_directory}")
+				pickle_fullpath = output_directory + '/param_dict.p'
+				with open(pickle_fullpath,'wb') as pkl_file:
+					pickle.dump(param_dict,pkl_file)
+				logger.info(f"wrote pickle file: {pickle_fullpath}")
 
-				
-	""" Fill out the parameter dictionar(ies) for this sample.
-	There could be more than one because channels could have been imaged 
-	separately. However, channels could also have been imaged together, so 
-	we cannot simply loop through channels and make a parameter dictionary for each """
+				""" Now run step 0 in the code via paramiko """
+				hostname = 'spock.pni.princeton.edu'
 
-	""" To do this, need to figure out what the request for this channel was
-	(e.g. registration). Could be more than one purpose """
-	
-	
-	
-	
-	# param_dict['systemdirectory'] = '/jukebox/'
-	# param_dict['inputdictionary'] = input_dictionary
-	# param_dict['output_directory'] = output_directory
-	# param_dict['xyz_scale'] = xyz_scale
-	# logger.info("### PARAM DICT ###")
-	# logger.info(param_dict)
-	# logger.info('#######')
-	# for channel in rawdata_dict.keys():
-	# 	rawdata_directory = rawdata_dict
-	# param_dict['inputdictionary'] = {rawdata_directory:[]}
+				command = 'cd %s;sbatch --array=0 slurm_files/step0.sh ' % (current_app.config['PROCESSING_CODE_DIR'])
+				port = 22
+				try:
+					client = paramiko.SSHClient()
+					client.load_system_host_keys()
+					client.set_missing_host_key_policy(paramiko.WarningPolicy)
+					
+					client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+
+					stdin, stdout, stderr = client.exec_command(command)
+					print(stdout.read(),stderr.read())
+
+				finally:
+					client.close()
 	return "success"
