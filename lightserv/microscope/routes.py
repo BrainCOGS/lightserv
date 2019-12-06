@@ -66,7 +66,7 @@ def data_entry(data_entry_type):
     if form.validate_on_submit():
         form_fields = [x for x in form._fields.keys() if 'submit' not in x and 'csrf_token' not in x]
         insert_dict = {field:form[field].data for field in form_fields}
-        print("submitted form")
+        logger.info("form validated")
         db_table = data_entry_dbtable_picker(data_entry_type)
         try:
             db_table().insert1(insert_dict)
@@ -172,8 +172,8 @@ def status_monitor(microscope):
         acq_software_name_choices = [(acq_software_name,acq_software_name) for acq_software_name in acq_software_names]
         microscope_form.acq_software_name.choices = acq_software_name_choices
         ''' Now set the values in the form to ones stored last in the database '''
-        
-        
+
+
     return render_template('microscope/status_monitor.html',
         microscope_form=microscope_form,microscope=microscope)
 

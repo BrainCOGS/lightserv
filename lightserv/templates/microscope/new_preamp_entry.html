@@ -5,17 +5,17 @@
 			<legend class="border-bottom mb-2 mt-4">New PreAmp Entry Form</legend>
 
 			<div class="form-group">
-				{% if form.amp_type.flags.required %}*{% endif %}
-				{{ form.amp_type.label(class="form-control-label") }}
-				{% if form.amp_type.errors %}
-					{{ form.amp_type(class="form-control form-control-lg is-invalid") }}
+				{% if form.amp_model.flags.required %}*{% endif %}
+				{{ form.amp_model.label(class="form-control-label") }}
+				{% if form.amp_model.errors %}
+					{{ form.amp_model(class="form-control form-control-lg is-invalid") }}
 					<div class="invalid-feedback">
-						{% for error in form.amp_type.errors %}
+						{% for error in form.amp_model.errors %}
 							<span>{{ error }}</span>
 						{% endfor %}
 					</div>
 				{% else %}
-					{{ form.amp_type(class="form-control form-control-lg") }}
+					{{ form.amp_model(class="form-control form-control-lg") }}
 				{% endif %}
 			</div>
 
@@ -35,17 +35,17 @@
 			</div>
 
 			<div class="form-group">
-				{% if form.amp_model.flags.required %}*{% endif %}
-				{{ form.amp_model.label(class="form-control-label") }}
-				{% if form.amp_model.errors %}
-					{{ form.amp_model(class="form-control form-control-lg is-invalid") }}
+				{% if form.amp_serial.flags.required %}*{% endif %}
+				{{ form.amp_serial.label(class="form-control-label") }}
+				{% if form.amp_serial.errors %}
+					{{ form.amp_serial(class="form-control form-control-lg is-invalid") }}
 					<div class="invalid-feedback">
-						{% for error in form.amp_model.errors %}
+						{% for error in form.amp_serial.errors %}
 							<span>{{ error }}</span>
 						{% endfor %}
 					</div>
 				{% else %}
-					{{ form.amp_model(class="form-control form-control-lg") }}
+					{{ form.amp_serial(class="form-control form-control-lg") }}
 				{% endif %}
 			</div>
 

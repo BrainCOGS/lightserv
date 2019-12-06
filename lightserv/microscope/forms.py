@@ -174,10 +174,9 @@ class NewScannerForm(FlaskForm):
 class NewPMTForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 
-	pmt_name = StringField('PMT name',validators=[InputRequired(),Length(max=32)])
+	pmt_serial = StringField('PMT serial',validators=[InputRequired(),Length(max=32)])
 	pmt_brand = StringField('PMT brand',validators=[InputRequired(),Length(max=64)])
 	pmt_model = StringField('PMT model',validators=[InputRequired(),Length(max=64)])
-	pmt_serial = StringField('PMT serial',validators=[InputRequired(),Length(max=64)])
 	pmt_date_of_first_use = DateField('PMT date of first use',validators=[InputRequired()])
 
 	submit = SubmitField('Submit new entry')	
@@ -185,9 +184,9 @@ class NewPMTForm(FlaskForm):
 class NewPreampForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 
-	amp_type = StringField('Amp type',validators=[InputRequired(),Length(max=32)])
-	amp_brand = StringField('Amp brand',validators=[InputRequired(),Length(max=64)])
 	amp_model = StringField('Amp model',validators=[InputRequired(),Length(max=64)])
+	amp_brand = StringField('Amp brand',validators=[InputRequired(),Length(max=64)])
+	amp_serial = StringField('Amp serial number',validators=[InputRequired(),Length(max=32)])
 
 	submit = SubmitField('Submit new entry')	
 
