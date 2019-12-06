@@ -11,8 +11,8 @@ else:
     dj.config['database.password'] = 'p@sswd' 
 
 schema = dj.schema('ahoag_microscope_demo')
-schema.drop()
-schema = dj.schema('ahoag_microscope_demo')
+# schema.drop()
+# schema = dj.schema('ahoag_microscope_demo')
 @schema
 class Center(dj.Lookup):
     definition = """
@@ -127,11 +127,10 @@ class ScannerType(dj.Manual):
 @schema
 class Pmt(dj.Manual):
     definition = """
-    pmt_name:               varchar(32)
+    pmt_serial:             varchar(32)
     ---
     pmt_brand:              varchar(64)
     pmt_model:              varchar(64)
-    pmt_serial:             varchar(64)
     pmt_date_of_first_use:  date
     """
 
@@ -139,10 +138,10 @@ class Pmt(dj.Manual):
 @schema
 class PreAmplifierType(dj.Manual):
     definition = """
-    amp_type:      varchar(32)
+    amp_model:      varchar(32)
     ---
     amp_brand='':  varchar(64)
-    amp_model='':  varchar(64)
+    amp_serial_number='':  varchar(64)
     """
 
 
