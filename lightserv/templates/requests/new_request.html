@@ -139,10 +139,10 @@
 						{% if form.uniform_clearing.data == false %}
 							<!-- Render the hiddenfield sample_name to keep track of it in debugging -->
 							{{ clearing_entry.sample_name }}
-					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} </legend>
+					        <legend class="form-control-label">Sample {{ loop.index }}: {{clearing_entry.sample_name.data }} </legend>
 						
 					    {% else %}
-					    	<legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} <br/>(Your entries below will apply to all of your samples) </legend>
+					    	<legend class="form-control-label">Sample {{ loop.index }}: {{clearing_entry.sample_name.data }} <br/>(Your entries below will apply to all of your samples) </legend>
 						{% endif %}
 				        <hr>
 
