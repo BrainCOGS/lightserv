@@ -68,6 +68,11 @@ def home():
 def login():
 	next_url = request.args.get("next")
 	logger.info("Logging you in first!")
+	browser_string = request.headers['User-Agent']
+	if 'firefox' in browser_string.lower():
+		logger.info("User is using firefox")
+		flash('''Warning: parts of this web portal are not supported by your browser: Firefox.
+		 We recommend switching to Google Chrome for a better experience.''','danger')
 	hostname = socket.gethostname()
 	if hostname == 'braincogs00.pni.princeton.edu':
 		username = request.headers['X-Remote-User']
