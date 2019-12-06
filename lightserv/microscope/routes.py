@@ -121,26 +121,59 @@ def microscope_center_js():
 def status_monitor(microscope):
     microscope_form = microscope_form_picker(microscope)
 
-    ''' Pre-populate the select field choices with all options in the db '''
-    # LASER
-    laser_names = db_microscope.Laser().fetch('laser_name')
-    laser_name_choices = [(laser_name,laser_name) for laser_name in laser_names]
-    microscope_form.laser_name.choices = laser_name_choices
+    if request.method == 'GET':
+        logger.info("GET request")
+        ''' Pre-populate the select field choices with all options in the db '''
+        # LASER
+        laser_names = db_microscope.Laser().fetch('laser_name')
+        laser_name_choices = [(laser_name,laser_name) for laser_name in laser_names]
+        microscope_form.laser_name.choices = laser_name_choices
 
-    # OBJECTIVE
-    lens_types = db_microscope.ObjectiveLensType().fetch('lens_type')
-    lens_type_choices = [(lens_type,lens_type) for lens_type in lens_types]
-    microscope_form.lens_type.choices = lens_type_choices
+        # OBJECTIVE
+        lens_types = db_microscope.ObjectiveLensType().fetch('lens_type')
+        lens_type_choices = [(lens_type,lens_type) for lens_type in lens_types]
+        microscope_form.objective_lens_type.choices = lens_type_choices
 
-    # SCANNER
-    scanner_types = db_microscope.ScannerType().fetch('scanner_type')
-    scanner_type_choices = [(scanner_type,scanner_type) for scanner_type in scanner_types]
-    microscope_form.scanner_type.choices = scanner_type_choices
-    ''' Now set the values to ones stored last in the database '''
-    # ...
-    # ...
-    #####
+        # SCANNER
+        scanner_types = db_microscope.ScannerType().fetch('scanner_type')
+        scanner_type_choices = [(scanner_type,scanner_type) for scanner_type in scanner_types]
+        microscope_form.scanner_type.choices = scanner_type_choices
 
+        ## FILTERS
+        filter_types = db_microscope.FilterType().fetch('filter_type')
+        filter_type_choices = [(filter_type,filter_type) for filter_type in filter_types]
+        # CH1_FILTER
+        microscope_form.ch1_filter_type.choices = filter_type_choices
+        # CH2_FILTER
+        microscope_form.ch2_filter_type.choices = filter_type_choices
+        # NIR_FILTER
+        microscope_form.nir_filter_type.choices = filter_type_choices
+
+        ## PREAMPS
+        preamp_types = db_microscope.PreAmplifierType().fetch('amp_type')
+        preamp_type_choices = [(preamp_type,preamp_type) for preamp_type in preamp_types]
+        # CH1 PreAmp
+        microscope_form.ch1_preamp_type.choices = preamp_type_choices    
+        # CH2 PreAmp
+        microscope_form.ch2_preamp_type.choices = preamp_type_choices    
+
+        # DICHROIC
+        mirror_types = db_microscope.DichroicMirrorType().fetch('mirror_type')
+        mirror_type_choices = [(mirror_type,mirror_type) for mirror_type in mirror_types]
+        microscope_form.laser_dichroic_mirror_type.choices = mirror_type_choices
+     
+        # DAQ
+        daq_names = db_microscope.DaqSystemType().fetch('daq_name')
+        daq_name_choices = [(daq_name,daq_name) for daq_name in daq_names]
+        microscope_form.daq_name.choices = daq_name_choices
+      
+        # SOFTWARE
+        acq_software_names = db_microscope.AcquisitionSoftware().fetch('acq_software')
+        acq_software_name_choices = [(acq_software_name,acq_software_name) for acq_software_name in acq_software_names]
+        microscope_form.acq_software_name.choices = acq_software_name_choices
+        ''' Now set the values in the form to ones stored last in the database '''
+        
+        
     return render_template('microscope/status_monitor.html',
         microscope_form=microscope_form,microscope=microscope)
 

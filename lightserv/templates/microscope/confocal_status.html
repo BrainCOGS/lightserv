@@ -1,5 +1,5 @@
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="1000" viewBox="0 0 1024 768" style="enable-background:new 0 0 1024 768;" xml:space="preserve">
+	 width="1000" viewBox="0 0 1200 768" style="enable-background:new 0 0 1024 768;" xml:space="preserve">
 <style type="text/css">
 	.st0{fill:#FFFFFF;stroke:#000000;stroke-miterlimit:10;}
 	.st1{fill:#E6E6E6;stroke:url(#SVGID_1_);stroke-miterlimit:10;}
@@ -110,7 +110,7 @@
 </g>
 <text transform="matrix(1.0227 0 0 1 {{objective_label_left}} {{objective_label_top}})" class="st9 st11">Objective</text>
 <foreignobject class="node" x="{{objective_label_left}}" y="{{objective_selector_top}}" width="150" height=50>
-	{{ microscope_form.lens_type(class="form-control form-control-sm col-sm-10") }}
+	{{ microscope_form.objective_lens_type(class="form-control form-control-sm col-sm-10") }}
 </foreignobject>
 
 <!-- Beam splitter -->
@@ -119,14 +119,25 @@
 	<stop  offset="1" style="stop-color:#000000"/>
 </linearGradient>
 <rect x="117" y="199" transform="matrix(0.693 0.7209 -0.7209 0.693 220.5096 -10.8542)" class="st1" width="12" height="109"/>
+<text transform="matrix(1.0227 0 0 1 40 250)" class="st9 st11">Beam Splitter</text>
+
 
 <!-- LaserDichroic -->
+{% set laser_dichroic_left = 250 %}
+{% set laser_dichroic_top = 211 %}
+{% set laser_dichroic_label_left = laser_dichroic_left + 15 %}
+{% set laser_dichroic_label_top = laser_dichroic_top + 75 %}
+{% set laser_dichroic_selector_left = laser_dichroic_label_left %}
+{% set laser_dichroic_selector_top = laser_dichroic_label_top + 20 %}
 <linearGradient id="SVGID_2_" gradientUnits="userSpaceOnUse" x1="222.9045" y1="155.0419" x2="235.9045" y2="155.0419" gradientTransform="matrix(0.693 0.7209 -0.7209 0.693 208.789 -7.3286)">
 	<stop  offset="0" style="stop-color:#FFFFFF"/>
 	<stop  offset="1" style="stop-color:#000000"/>
 </linearGradient>
-<rect x="250" y="211" transform="matrix(0.693 0.7209 -0.7209 0.693 269.9883 -103.052)" class="st2" width="12" height="109"/>
-<text transform="matrix(1.0227 0 0 1 254.2983 290.3057)" class="st9 st11">LaserDichroic</text>
+<rect x="{{laser_dichroic_left}}" y="{{laser_dichroic_top}}" transform="matrix(0.693 0.7209 -0.7209 0.693 269.9883 -103.052)" class="st2" width="12" height="109"/>
+<text transform="matrix(1.0227 0 0 1 {{laser_dichroic_label_left}} {{laser_dichroic_label_top}})" class="st9 st11">LaserDichroic</text>
+<foreignobject class="node" x="{{laser_dichroic_selector_left}}" y="{{laser_dichroic_selector_top}}" width="150" height=50>
+	{{ microscope_form.laser_dichroic_mirror_type(class="form-control form-control-sm col-sm-10") }}
+</foreignobject>
 <!-- ##### -->
 
 <!-- Emission Dichroic -->
@@ -139,6 +150,14 @@
 <!-- ##### -->
 
 <!-- Scanners -->
+
+{% set scanner_left = 245 %}
+{% set scanner_top = 52.4 %}
+{% set scanner_label_left = scanner_left - 80 %}
+{% set scanner_label_top = scanner_top + 30 %}
+{% set scanner_selector_left = scanner_left - 130 %}
+{% set scanner_selector_top = scanner_top + 60 %}
+
 <g>
 	
 		<linearGradient id="SVGID_4_" gradientUnits="userSpaceOnUse" x1="64.9359" y1="-22.4469" x2="77.9359" y2="-22.4469" gradientTransform="matrix(0.3295 0.3427 -0.3291 0.3164 216.9036 59.9148)">
@@ -146,32 +165,65 @@
 		<stop  offset="1" style="stop-color:#000000"/>
 	</linearGradient>
 	
-		<rect x="245" y="52.4" transform="matrix(0.693 0.7209 -0.7209 0.693 131.8013 -154.9338)" class="st4" width="5.7" height="49.8"/>
+		<rect x="{{scanner_left}}" y="{{scanner_top}}" transform="matrix(0.693 0.7209 -0.7209 0.693 131.8013 -154.9338)" class="st4" width="5.7" height="49.8"/>
 	
 		<linearGradient id="SVGID_5_" gradientUnits="userSpaceOnUse" x1="83.8441" y1="-9.1418" x2="96.8441" y2="-9.1418" gradientTransform="matrix(0.2438 0.4082 -0.3919 0.2341 222.2199 42.5626)">
 		<stop  offset="0" style="stop-color:#FFFFFF"/>
 		<stop  offset="1" style="stop-color:#000000"/>
 	</linearGradient>
 	
-		<rect x="245" y="52.4" transform="matrix(0.5128 0.8585 -0.8585 0.5128 187.1085 -175.104)" class="st5" width="5.7" height="49.8"/>
+		<rect x="{{scanner_left}}" y="{{scanner_top}}" transform="matrix(0.5128 0.8585 -0.8585 0.5128 187.1085 -175.104)" class="st5" width="5.7" height="49.8"/>
 </g>
-<text transform="matrix(1.0227 0 0 1 179.2983 75.3057)" class="st9 st11">Scanners</text>
+<text transform="matrix(1.0227 0 0 1 {{scanner_label_left}} {{scanner_label_top}})" class="st9 st11">Scanners</text>
+<foreignobject class="node" x="{{scanner_selector_left}}" y="{{scanner_selector_top}}" width="150" height=50>
+	{{ microscope_form.scanner_type(class="form-control form-control-sm col-sm-10") }}
+</foreignobject>
+
 
 <!-- ##### -->
 
 <!-- CH1 1 filter -->
-<rect x="643.5" y="323.5" class="st6" width="105" height="9"/>
-<text transform="matrix(1.0227 0 0 1 732.2983 347.3057)" class="st9 st11">CH1Filter</text>
+{% set ch1_filter_left = 643.5 %}
+{% set ch1_filter_top = 323.5 %}
+{% set ch1_filter_label_left = ch1_filter_left + 80 %}
+{% set ch1_filter_label_top = ch1_filter_top + 25 %}
+{% set ch1_filter_selector_left = ch1_filter_label_left %}
+{% set ch1_filter_selector_top = ch1_filter_top + 35 %}
+<rect x="{{ch1_filter_left}}" y="{{ch1_filter_top}}" class="st6" width="105" height="9"/>
+<text transform="matrix(1.0227 0 0 1 {{ch1_filter_label_left}} {{ch1_filter_label_top}})" class="st9 st11">CH1Filter</text>
+<foreignobject class="node" x="{{ch1_filter_selector_left}}" y="{{ch1_filter_selector_top}}" width="150" height=50>
+	{{ microscope_form.ch1_filter_type(class="form-control form-control-sm col-sm-10") }}
+</foreignobject>
 <!-- ##### -->
 
 <!-- NIR filter -->
-<rect x="503.5" y="272.5" transform="matrix(4.490281e-11 -1 1 4.490281e-11 279 833)" class="st7" width="105" height="9"/>
-<text transform="matrix(1.0227 0 0 1 505.2983 255.3057)" class="st9 st11">NIR filter</text>
+{% set nir_filter_left = 503.5 %}
+{% set nir_filter_height = 105 %}
+{% set central_beam_path_y = 268 %}
+{% set nir_filter_top = central_beam_path_y - nir_filter_height/2.0 %}
+{% set nir_filter_label_left = nir_filter_left - 35 %}
+{% set nir_filter_label_top = nir_filter_top - 50 %}
+{% set nir_filter_selector_left = nir_filter_label_left %}
+{% set nir_filter_selector_top = nir_filter_top - 40 %}
+<rect x="{{nir_filter_left}}" y="{{nir_filter_top}}" class="st7" width="9" height="105"/>
+<text transform="matrix(1.0227 0 0 1 {{nir_filter_label_left}} {{nir_filter_label_top}})" class="st9 st11">NIR filter</text>
+<foreignobject class="node" x="{{nir_filter_selector_left}}" y="{{nir_filter_selector_top}}" width="150" height=50>
+	{{ microscope_form.nir_filter_type(class="form-control form-control-sm col-sm-10") }}
+</foreignobject>
 <!-- ##### -->
 
 <!-- CH2 filter -->
-<rect x="715.5" y="260.5" transform="matrix(4.490281e-11 -1 1 4.490281e-11 503 1033)" class="st8" width="105" height="9"/>
-<text transform="matrix(1.0227 0 0 1 756.2983 198.3057)" class="st9 st11">CH2 Filter</text>
+{% set ch2_filter_left = 715.5 %}
+{% set ch2_filter_top = 260.5 %}
+{% set ch2_filter_label_left = ch2_filter_left %}
+{% set ch2_filter_label_top = ch2_filter_top - 95 %}
+{% set ch2_filter_selector_left = ch2_filter_label_left %}
+{% set ch2_filter_selector_top = ch2_filter_top - 85 %}
+<rect x="{{ch2_filter_left}}" y="{{ch2_filter_top}}" transform="matrix(4.490281e-11 -1 1 4.490281e-11 503 1033)" class="st8" width="105" height="9"/>
+<text transform="matrix(1.0227 0 0 1 {{ch2_filter_label_left}} {{ch2_filter_label_top}})" class="st9 st11">CH2 Filter</text>
+<foreignobject class="node" x="{{ch2_filter_selector_left}}" y="{{ch2_filter_selector_top}}" width="150" height=50>
+	{{ microscope_form.ch2_filter_type(class="form-control form-control-sm col-sm-10") }}
+</foreignobject>
 <!-- ##### -->
 
 <!-- Laser -->
@@ -197,28 +249,61 @@
 <!-- ##### -->
 
 <!-- CH1 PreAmp -->
-<linearGradient id="SVGID_6_" gradientUnits="userSpaceOnUse" x1="664.5" y1="509.5" x2="726.5" y2="509.5">
+{% set ch1_preamp_left = 664.5 %}
+{% set ch1_preamp_top = 485.5 %}
+{% set ch1_preamp_width = 62 %}
+
+{% set ch1_preamp_label_left = ch1_preamp_left + 75 %}
+{% set ch1_preamp_label_top = ch1_preamp_top + 20 %}
+{% set ch1_preamp_selector_left = ch1_preamp_label_left %}
+{% set ch1_preamp_selector_top = ch1_preamp_label_top + 20 %}
+<linearGradient id="SVGID_6_" gradientUnits="userSpaceOnUse" x1="{{ch1_preamp_left}}" y1="{{ch1_preamp_top}}" x2="{{ch1_preamp_left + ch1_preamp_width}}" y2="{{ch1_preamp_top}}">
 	<stop  offset="0" style="stop-color:#FFFFFF"/>
 	<stop  offset="1" style="stop-color:#000000"/>
 </linearGradient>
-<rect x="664.5" y="485.5" class="st16" width="62" height="48"/>
-<text transform="matrix(1.0227 0 0 1 736.2983 503.3057)" class="st9 st11">CH1 PreAmp</text>
-<text transform="matrix(1.0227 0 0 1 737.2983 520.3057)" class="st9 st11">CH1 PreAmpSettings</text>
+<rect x="{{ch1_preamp_left}}" y="{{ch1_preamp_top}}" class="st16" width="{{ch1_preamp_width}}" height="48"/>
+<text transform="matrix(1.0227 0 0 1 {{ch1_preamp_label_left}} {{ch1_preamp_label_top}})" class="st9 st11">CH1 PreAmp</text>
+<text transform="matrix(1.0227 0 0 1 {{ch1_preamp_label_left}} 520.3057)" class="st9 st11">CH1 PreAmpSettings</text>
+<foreignobject class="node" x="{{ch1_preamp_selector_left}}" y="{{ch1_preamp_selector_top}}" width="150" height=50>
+	{{ microscope_form.ch1_preamp_type(class="form-control form-control-sm col-sm-10") }}
+</foreignobject>
 <!-- ##### -->
 
 <!-- CH2 PreAmp -->
+{% set ch2_preamp_left = 943.5 %}
+{% set ch2_preamp_top = 308.5 %}
+{% set ch2_preamp_width = 62 %}
+
+{% set ch2_preamp_label_left = ch2_preamp_left + 75 %}
+{% set ch2_preamp_label_top = ch2_preamp_top + 20 %}
+{% set ch2_preamp_selector_left = ch2_preamp_label_left %}
+{% set ch2_preamp_selector_top = ch2_preamp_label_top + 20 %}
 <linearGradient id="SVGID_7_" gradientUnits="userSpaceOnUse" x1="943.5" y1="332.5" x2="1005.5" y2="332.5">
 	<stop  offset="0" style="stop-color:#FFFFFF"/>
 	<stop  offset="1" style="stop-color:#000000"/>
 </linearGradient>
-<rect x="943.5" y="308.5" class="st18" width="62" height="48"/>
-<text transform="matrix(1.0227 0 0 1 835.2983 327.3057)" class="st9 st11">CH2 PreAmp</text>
-<text transform="matrix(1.0227 0 0 1 836.2983 344.3057)" class="st9 st11">CH2 PreAmpSettings</text>
+<rect x="{{ch2_preamp_left}}" y="{{ch2_preamp_top}}" class="st18" width="{{ch2_preamp_width}}" height="48"/>
+<text transform="matrix(1.0227 0 0 1 {{ch2_preamp_label_left}} 327.3057)" class="st9 st11">CH2 PreAmp</text>
+<text transform="matrix(1.0227 0 0 1 {{ch2_preamp_label_left}} 344.3057)" class="st9 st11">CH2 PreAmpSettings</text>
+<foreignobject class="node" x="{{ch2_preamp_selector_left}}" y="{{ch2_preamp_selector_top}}" width="150" height=50>
+	{{ microscope_form.ch2_preamp_type(class="form-control form-control-sm col-sm-10") }}
+</foreignobject>
 <!-- ##### -->
 
 <!-- Sofware & Version -->
-<rect x="347" y="608" class="st12" width="118" height="85"/>
-<text transform="matrix(1.0227 0 0 1 359.2983 600.3057)" class="st9 st11">Software &amp; version</text>
+{% set acq_software_left = 347 %}
+{% set acq_software_top = 608 %}
+{% set acq_software_width =118 %}
+
+{% set acq_software_label_left = acq_software_left + 10 %}
+{% set acq_software_label_top = acq_software_top - 30 %}
+{% set acq_software_selector_left = acq_software_left - 50 %}
+{% set acq_software_selector_top = acq_software_top + 100 %}
+<rect x="{{acq_software_left}}" y="{{acq_software_top}}" class="st12" width="{{acq_software_width}}" height="85"/>
+<text transform="matrix(1.0227 0 0 1 {{acq_software_label_left}} {{acq_software_label_top}})" class="st9 st11">Software &amp; version</text>
+<foreignobject class="node" x="{{acq_software_selector_left}}" y="{{acq_software_selector_top}}" width="200" height=50>
+	{{ microscope_form.acq_software_name(class="form-control form-control-sm col-md-11") }}
+</foreignobject>
 <!-- ##### -->
 
 <!-- Custom Optical Assembly -->
@@ -237,8 +322,19 @@
 <!-- ##### -->
 
 <!-- vDAQ System -->
-<rect x="519" y="614" class="st24" width="81" height="63"/>
-<text transform="matrix(1.0227 0 0 1 528.2983 608.3057)" class="st9 st11">vDAQ system</text>
+{% set daq_left = 519 %}
+{% set daq_top = 614 %}
+{% set daq_width = 81 %}
+
+{% set daq_label_left = daq_left + 10 %}
+{% set daq_label_top = daq_top - 30 %}
+{% set daq_selector_left = daq_left-20 %}
+{% set daq_selector_top = acq_software_selector_top %}
+<rect x="{{daq_left}}" y="{{daq_top}}" class="st24" width="{{daq_width}}" height="63"/>
+<text transform="matrix(1.0227 0 0 1 {{daq_label_left}} {{daq_label_top}})" class="st9 st11">vDAQ system</text>
+<foreignobject class="node" x="{{daq_selector_left}}" y="{{daq_selector_top}}" width="200" height=50>
+	{{ microscope_form.daq_name(class="form-control form-control-sm col-md-11") }}
+</foreignobject>
 <!-- ##### -->
 
 <!-- ############### -->

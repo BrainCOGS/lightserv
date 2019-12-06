@@ -38,8 +38,16 @@ class TwoPhotonStatusForm(FlaskForm):
 class ConfocalStatusForm(FlaskForm):
 	""" The form for the confocal microscope """
 	laser_name = SelectField('Laser',choices=[],validators=[InputRequired()])
-	lens_type = SelectField('Objective',choices=[],validators=[InputRequired()])
+	objective_lens_type = SelectField('Objective',choices=[],validators=[InputRequired()])
 	scanner_type = SelectField('Scanner',choices=[],validators=[InputRequired()])
+	ch1_filter_type = SelectField('CH1 Filter',choices=[],validators=[InputRequired()])
+	ch2_filter_type = SelectField('CH2 Filter',choices=[],validators=[InputRequired()])
+	nir_filter_type = SelectField('NIR Filter',choices=[],validators=[InputRequired()])
+	ch1_preamp_type = SelectField('CH1 PreAmp',choices=[],validators=[InputRequired()])
+	ch2_preamp_type = SelectField('CH2 PreAmp',choices=[],validators=[InputRequired()])
+	laser_dichroic_mirror_type = SelectField('Dichroic',choices=[],validators=[InputRequired()])
+	daq_name = SelectField('DAQ name',choices=[],validators=[InputRequired()])
+	acq_software_name = SelectField('Acqusition Software name',choices=[],validators=[InputRequired()])
 
 
 class NewSwapLogEntryForm(FlaskForm):
