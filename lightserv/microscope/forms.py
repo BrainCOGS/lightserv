@@ -48,7 +48,7 @@ class ConfocalStatusForm(FlaskForm):
 	laser_dichroic_mirror_type = SelectField('Dichroic',choices=[],validators=[InputRequired()])
 	daq_name = SelectField('DAQ name',choices=[],validators=[InputRequired()])
 	acq_software_name = SelectField('Acqusition Software name',choices=[],validators=[InputRequired()])
-
+	submit = SubmitField("Save changes")
 
 class NewSwapLogEntryForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
