@@ -2,7 +2,7 @@ from flask import request
 from flask_table import create_table,Table, Col, LinkCol, ButtonCol
 from functools import partial
 from lightserv.main.utils import table_sorter
-from lightserv.main.tables import BoldTextCol, DateTimeCol
+from lightserv.main.tables import BoldTextCol, DateTimeCol, DesignatedRoleCol
 
 def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     name='Dynamic Imaging Management Table', **sort_kwargs):
@@ -56,7 +56,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     table_class.add_column('antibody2',Col('antibody2'))
     table_class.add_column('request_name',Col('request name'))
     table_class.add_column('username',Col('username'))
-    table_class.add_column('clearer',Col('clearer'))
+    table_class.add_column('clearer',DesignatedRoleCol('clearer'))
     
     if table_class.table_id == 'horizontal_ready_to_clear_table':
         table_class.add_column('clearing_progress',BoldTextCol('clearing progress'))

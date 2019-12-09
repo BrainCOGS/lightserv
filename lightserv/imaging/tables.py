@@ -48,7 +48,7 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     if table_class.table_id != 'horizontal_already_imaged_table':
         table_class.add_column('clearing_progress',Col('clearing progress'))
     if table_class.table_id == 'horizontal_on_deck_table':
-        table_class.add_column('clearer',Col('clearer'))
+        table_class.add_column('clearer',DesignatedRoleCol('clearer'))
     table_class.add_column('imaging_progress',Col('imaging progress'))
     table_class.add_column('imager',DesignatedRoleCol('imager'))
     table_class.add_column('species',Col('species'))    

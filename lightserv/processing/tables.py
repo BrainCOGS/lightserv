@@ -2,7 +2,7 @@ from flask import request
 from flask_table import Table, Col, LinkCol, ButtonCol, create_table
 from functools import partial
 from lightserv.main.utils import table_sorter
-from lightserv.main.tables import DateTimeCol
+from lightserv.main.tables import DateTimeCol, BoldTextCol,DesignatedRoleCol
 
 def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
     name='Dynamic Processing Management Table', **sort_kwargs):
@@ -25,7 +25,7 @@ def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
     options = dict(
         border = True,
         allow_sort = True,
-        no_items = "No jobs at the moment",
+        no_items = "No samples at the moment",
         html_attrs = {"style":'font-size:18px'}, 
         table_id = table_id,
         classes = ["table-striped"]
@@ -44,13 +44,16 @@ def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
     table_class.add_column('sample_name',Col('sample name'))
     table_class.add_column('username',Col('username'))    
     table_class.add_column('imaging_request_number',Col('imaging request number'))    
-    
-    if table_class == 'horizontal_ready_to_process_table':
+
+    if table_class.table_id == 'horizontal_ready_to_process_table':
         table_class.add_column('processing_progress',BoldTextCol('processing_progress'))
     else: 
-
         table_class.add_column('processing_progress',Col('processing progress'))
-    table_class.add_column('imager',Col('imager'))
+
+    if table_class.table_id == 'horizontal_on_deck_table':
+        table_class.add_column('imager',DesignatedRoleCol('imager'))
+
+    table_class.add_column('processor',DesignatedRoleCol('processor'))
     table_class.add_column('species',Col('species'))    
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
