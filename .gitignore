@@ -9,3 +9,4 @@ token.pickle
 **/logs
 *.log
 screenshots
+**/.cache
