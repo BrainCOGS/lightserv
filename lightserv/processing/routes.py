@@ -149,7 +149,6 @@ def processing_entry(username,request_name,sample_name,imaging_request_number):
 				atlas_name = form_resolution_dict['atlas_name']
 				dj.Table._update(this_image_resolution_content,'atlas_name',atlas_name)
 
-
 			logger.info(f"Starting step0 without celery for testing")
 			# run_step0.delay(username=username,request_name=request_name,sample_name=sample_name)
 			run_step0(username=username,request_name=request_name,sample_name=sample_name,
@@ -227,7 +226,7 @@ def run_step0(username,request_name,sample_name,imaging_request_number):
 	sample_contents_dict = sample_contents.fetch1() 
 
 	raw_basepath = os.path.join(current_app.config['RAWDATA_ROOTPATH'],username,
-		request_name,sample_name)
+		request_name,sample_name,'rawdata')
 
 	""" Can now go in and find the z=0 plane 
 	which contains the metadata for each channel """
@@ -338,7 +337,6 @@ def run_step0(username,request_name,sample_name,imaging_request_number):
 				inputdictionary = {}
 				inputdictionary[rawdata_fullpath] = []
 				channel_contents_this_subfolder = channel_contents_this_resolution & f'rawdata_subfolder="{rawdata_subfolder}"'
-				# logger.info(channel_contents_this_subfolder)
 				channel_contents_dict_list_this_subfolder = channel_contents_this_subfolder.fetch(as_dict=True)
 				for channel_dict in channel_contents_dict_list_this_subfolder:		
 					channel_name = channel_dict['channel_name']
@@ -386,6 +384,7 @@ def run_step0(username,request_name,sample_name,imaging_request_number):
 				param_dict['inputdictionary'] = inputdictionary
 				xyz_scale = (x_scale,y_scale,z_step)
 				param_dict['xyz_scale'] = xyz_scale
+				param_dict['slurmjobfactor'] = 50
 				logger.info(param_dict)
 				""" Prepare insert to processing db table """
 				
@@ -401,7 +400,8 @@ def run_step0(username,request_name,sample_name,imaging_request_number):
 				""" Now run step 0 in the code via paramiko """
 				hostname = 'spock.pni.princeton.edu'
 
-				command = 'cd %s;sbatch --array=0 slurm_files/step0.sh ' % (current_app.config['PROCESSING_CODE_DIR'])
+				command = """cd %s;sbatch --export=output_directory='%s' main.sh """ % \
+				(current_app.config['PROCESSING_CODE_DIR'],output_directory)
 				port = 22
 				try:
 					client = paramiko.SSHClient()
