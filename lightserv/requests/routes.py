@@ -84,7 +84,7 @@ def new_request():
 						image_resolution_form = image_resolution_forms[resolution_table_index]
 						image_resolution_form.image_resolution.data = image_resolution_forsetup
 						
-						column_name = f'imaging_samples-{ii}-image_resolution_forms-{resolution_table_index}-channels-0-registration'
+						column_name = f'imaging_samples-{ii}-image_resolution_forms-{resolution_table_index}-channel_forms-0-registration'
 						# Now make 4 new channel formfields and set defaults and channel names
 						for x in range(4):
 							# image_resolution_form.channels.append_entry()
