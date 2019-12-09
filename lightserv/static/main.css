@@ -64,7 +64,7 @@ hr.class-5 {
   border: 1px solid #dddddd;
   border-radius: 3px;
   margin-bottom: 20px;
-  width: 750px;
+  width: 850px;
 }
 
 .article-title {
@@ -125,3 +125,8 @@ width: 1.25rem;
 height: 1.25rem;
 }
 
+.legend { list-style: none; }
+.legend li { float: left; margin-right: 10px; }
+.legend span { border: 1px solid #ccc; float: left; width: 30px; height: 20px; margin-right: 5px; }
+/* your colors */
+.legend .secondary-request { background-color: #FCA5A4; }

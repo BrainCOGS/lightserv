@@ -2,7 +2,7 @@ from flask import request
 from flask_table import create_table,Table, Col, LinkCol, ButtonCol
 from functools import partial
 from lightserv.main.utils import table_sorter
-from lightserv.main.tables import BooltoStringCol, DateTimeCol
+from lightserv.main.tables import BooltoStringCol, DateTimeCol, DesignatedRoleCol
 
 def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     name='Dynamic Imaging Management Table', **sort_kwargs):
@@ -45,12 +45,12 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     table_class.add_column('username',Col('username'))    
     table_class.add_column('imaging_request_number',Col('imaging request number'))    
     
-    if table_class == 'horizontal_ready_to_image_table':
-        table_class.add_column('imaging_progress',BoldTextCol('imaging_progress'))
-    else: 
+    if table_class.table_id != 'horizontal_already_imaged_table':
         table_class.add_column('clearing_progress',Col('clearing progress'))
-        table_class.add_column('imaging_progress',Col('imaging progress'))
-    table_class.add_column('imager',Col('imager'))
+    if table_class.table_id == 'horizontal_on_deck_table':
+        table_class.add_column('clearer',Col('clearer'))
+    table_class.add_column('imaging_progress',Col('imaging progress'))
+    table_class.add_column('imager',DesignatedRoleCol('imager'))
     table_class.add_column('species',Col('species'))    
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''

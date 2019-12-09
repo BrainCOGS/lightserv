@@ -1,7 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
 <h1 align="center"> Imaging management GUI </h1>
-
 <hr class="class-5">	
 
 <h3>Samples ready to be imaged:</h3>
@@ -31,5 +30,15 @@
 <div style="display:inline-block;">
 	{{ table_already_imaged }}
 </div>
+
+<hr class="class-5">
+<h3> Key: </h3>
+<hr class="class-2">	
+N/A : "Not Assigned"
+<div class="legend">
+    <li><span class="secondary-request mb-4"></span> Follow-up imaging request</li>
+</ul>
+
+
 
 {% endblock content %}

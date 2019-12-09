@@ -28,6 +28,13 @@ class BoldTextCol(Col):
         else:
             return content
 
+class DesignatedRoleCol(Col):
+    """ Conditional bold fonting """
+    def td_format(self, content):
+        if content == None or content == '':
+            return 'N/A'
+        else:
+            return content
 
 class ConditionalLinkCol(LinkCol):
     """ Subclassing linkcol to only show the link

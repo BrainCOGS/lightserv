@@ -49,7 +49,7 @@ def imaging_manager():
 	sample_contents = db_lightsheet.Sample()
 	request_contents = db_lightsheet.Request()
 	imaging_request_contents = (db_lightsheet.Sample.ImagingRequest() * sample_contents * request_contents).\
-		proj('clearing_progress',
+		proj('clearer','clearing_progress',
 		'imaging_request_date_submitted','imaging_request_time_submitted',
 		'imaging_progress','imager','species',
 		datetime_submitted='TIMESTAMP(imaging_request_date_submitted,imaging_request_time_submitted)')
