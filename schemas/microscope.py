@@ -5,10 +5,9 @@ dj.config['database.host'] = '127.0.0.1'
 dj.config['database.port'] = 3306
 
 dj.config['database.user'] = 'ahoag'
-if socket.gethostname() == 'braincogs00.pni.princeton.edu':
-    dj.config['database.password'] = 'gaoha'
-else:
-    dj.config['database.password'] = 'p@sswd' 
+# if socket.gethostname() == 'braincogs00.pni.princeton.edu':
+dj.config['database.password'] = 'gaoha'
+
 
 schema = dj.schema('ahoag_microscope_demo')
 schema.drop()
