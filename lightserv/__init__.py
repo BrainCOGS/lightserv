@@ -14,10 +14,12 @@ cel = Celery(__name__,broker='amqp://localhost//',
 	backend='db+mysql+pymysql://ahoag:p@sswd@localhost:3306/ahoag_celery')
 
 dj.config['database.user'] = 'ahoag'
-if socket.gethostname() == 'braincogs00.pni.princeton.edu':
-	dj.config['database.password'] = 'gaoha'
-else:
-	dj.config['database.password'] = 'p@sswd'
+# if socket.gethostname() == 'braincogs00.pni.princeton.edu':
+# 	dj.config['database.password'] = 'gaoha'
+# else:
+# 	dj.config['database.password'] = 'p@sswd'
+dj.config['database.password'] = 'gaoha'
+
 
 ''' Allow writing python objects to db as blob '''
 dj.config["enable_python_native_blobs"] = True
