@@ -20,8 +20,7 @@ def test_setup_samples_uniform(test_client,test_login):
 	renders the rest of the form (clearing and imaging/processing sections) 
 	using uniform clearing and imaging and renders only 1 sample sub-form
 
-	Does not actually enter any data into the db so does not need test_schema 
-	fixture.
+	Does not actually enter any data into the db 
 	 """
 
 	# Simulate pressing the "Setup samples" button
@@ -58,8 +57,7 @@ def test_setup_samples_nonuniform(test_client,test_login):
 	This link explains this issue somewhat:
 	https://code.luasoftware.com/tutorials/python/wtforms-booleanfield-value-and-validation/ 
 
-	Does not actually enter any data into the db so does not need test_schema 
-	fixture.
+	Does not actually enter any data into the db
 	"""
 
 	# Simulate pressing the "Setup samples" button
@@ -77,11 +75,11 @@ def test_setup_samples_nonuniform(test_client,test_login):
 		data=data, content_type='multipart/form-data',
 			follow_redirects=True
 		)	
-	with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
-		url = 'file://' + f.name 
-		f.write(response.data)
-	# print(url)
-	webbrowser.open(url)
+	# with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
+	# 	url = 'file://' + f.name 
+	# 	f.write(response.data)
+	# # print(url)
+	# webbrowser.open(url)
 	assert b'Clearing setup' in response.data  
 	assert b'Sample 1:' in response.data
 	assert b'Sample 2:' in response.data  
@@ -92,8 +90,7 @@ def test_setup_image_resolution_form(test_client,test_login,):
 	in the samples section (assuming samples are already set up)
 	renders the imaging table for the user to fill out 
 	
-	Does not actually enter any data into the db so does not need test_schema 
-	fixture.
+	Does not actually enter any data into the db
 	"""
 
 	# Simulate pressing the "Set up imaging parameters" button
@@ -125,8 +122,7 @@ def test_setup_samples_too_many_samples(test_client,test_login):
 	""" Ensure that hitting the "setup samples" button 
 	when user has entered >50 samples gives a validation error
 
-	Does not actually enter any data into the db so does not need test_schema 
-	fixture.
+	Does not actually enter any data into the db 
 	"""
 
 	# Simulate pressing the "Setup samples" button
@@ -148,15 +144,16 @@ def test_setup_samples_too_many_samples(test_client,test_login):
 	assert b'Clearing setup' not in response.data  
 	assert b'Please limit your requested number of samples' in response.data
 
-def test_submit_good_request(test_client,test_login,test_schema):
+def test_submit_good_request(test_client,test_login,test_delete_request_db_contents):
 	""" Ensure that entire new request form submits when good
 	data are used.
 
-	Having test_schema as a parameter means that the db entry
-	will be removed after this test completes.
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
 	""" 
 	from lightserv import db_lightsheet
-
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -179,16 +176,15 @@ def test_submit_good_request(test_client,test_login,test_schema):
 	assert b"core facility requests" in response.data
 	assert b"This is a demo experiment" in response.data
 	assert b"New Request Form" not in response.data
-	# db_lightsheet.Request.delete_quick()
+	
 
-def test_setup_samples_duplicate(test_client_single_request):
+def test_setup_samples_duplicate(test_client,test_login,test_single_request):
 	""" Ensure that hitting the "setup samples" button 
 	when user has entered a duplicate request name 
 	gives a validation error.
 
-	Does not actually enter any data into the db so does not need test_schema 
-	fixture.
 	"""
+	from lightserv import db_lightsheet
 
 	# Simulate pressing the "Setup samples" button
 	data = dict(
@@ -201,10 +197,50 @@ def test_setup_samples_duplicate(test_client_single_request):
 			sample_submit_button=True
 			)
 
-	response = test_client_single_request.post(url_for('requests.new_request'),
+	response = test_client.post(url_for('requests.new_request'),
 		data=data,
 			follow_redirects=True
 		)	
 
 	assert b'Clearing setup' not in response.data  
 	assert b'There already exists a request named' in response.data
+
+
+def test_duplicate_image_resolution_form(test_client,test_login):
+	""" Ensure that hitting the "Set up imaging parameters" button
+	in the samples section results in an error if the user tries 
+	to render an image resolution table that already exists. 
+	
+	"""
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	# Simulate pressing the "Set up imaging parameters" button
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Demo Experiment",
+			'description':"This is a demo experiment",
+			'species':"mouse",'number_of_samples':1,
+			'sample_prefix':'sample',
+			'username':current_user,
+			'uniform_clearing':True,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'imaging_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forsetup':"1.3x",
+			'imaging_samples-0-new_image_resolution_form_submit':True
+			},
+			content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	# with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
+	# 	url = 'file://' + f.name 
+	# 	f.write(response.data)
+	# # print(url)
+	# webbrowser.open(url)
+	assert b'Imaging/Processing setup' in response.data  
+	assert b'You tried to make a table for image_resolution 1.3x. But that resolution was already picked for this sample:' in response.data

@@ -58,34 +58,33 @@ def test_login(test_client):
 	pass
 
 @pytest.fixture(scope='function') 
-def test_schema():
-	""" Create the database and the database tables """
-	print('----------Setup test schema----------')
-	# test_schema = dj.create_virtual_module('test_lightsheet','test_lightsheet')
+def test_delete_request_db_contents(test_client,test_login):
+	""" A fixture to simply delete the db contents 
+	(starting at Request() as the root - does not delete User() contents)
+	after each test runs
+	"""
+	print('----------Setup test_delete_request_db_contents fixture ----------')
+
 	from lightserv import db_lightsheet
-	yield db_lightsheet  
-	# this is where the testing happens!
-	print('----------Teardown test schema----------')
-	pass
-	
+
+	yield # this is where the test is run
+	print('-------Teardown test_delete_request_db_contents fixture --------')
+	db_lightsheet.Request().delete()	
+
 @pytest.fixture(scope='function') 
-def test_client_single_request(test_schema):
-	""" Creates a new request as 'ahoag' that can be used for various testing.
+def test_single_request(test_client,test_login,test_delete_request_db_contents):
+	""" Creates a new request as 'ahoag' that can be used for various tests.
 	having test_schema as a parameter means that the entry in the database
 	will only exist as long as the test is inside the scope of this fixture.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
 	"""
-	current_user = 'ahoag'
-	print('----------Setup test client single request----------')
-	app = create_app(config_class=config.TestConfig)
-	testing_client = app.test_client()
-
-	ctx = app.test_request_context() # makes it so I can use the url_for() function in the tests
-
-	ctx.push()
-	""" Log the user in """
-	with testing_client.session_transaction() as sess:
-		sess['user'] = current_user
-	response = testing_client.post(
+	print('----------Setup test_single_request fixture ----------')
+	from lightserv import db_lightsheet
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
 			'request_name':"Demo Experiment",
@@ -98,13 +97,12 @@ def test_client_single_request(test_schema):
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
-			'imaging_samples-0-image_resolution_forms-0-channels-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',
 			follow_redirects=True
 		)	
-	yield testing_client # this is where the testing happens
-	print('-------Teardown test client single request--------')
-	ctx.pop()
 
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_single_request fixture --------')
 	

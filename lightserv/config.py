@@ -3,6 +3,7 @@
 for both testing and deployment """
 
 import os
+import datajoint as dj
 
 # Base class which I will inherit for use with DEV and TEST configs
 class BaseConfig(object):
@@ -24,6 +25,7 @@ class BaseConfig(object):
 	'princeton_mouse_atlas:':'/jukebox/LightSheetTransfer/atlas/annotation_sagittal_atlas_20um_iso_16bit.tif'
 	}
 	PROCESSING_CODE_DIR = '/jukebox/wang/ahoag/lightsheet_py3'
+	dj.config['safemode'] = True
 
 
 # The default config
@@ -38,4 +40,4 @@ class Config(BaseConfig):
 class TestConfig(BaseConfig):
 	TESTING = True
 	WTF_CSRF_ENABLED = False # disables the csrf token validation in forms
-	
+	dj.config['safemode'] = False

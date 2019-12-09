@@ -10,3 +10,5 @@ token.pickle
 *.log
 screenshots
 **/.cache
+**/htmlcov
+.coverage
