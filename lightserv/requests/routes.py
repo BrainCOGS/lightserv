@@ -207,12 +207,14 @@ def new_request():
 								sample_insert_dict[key] = val
 
 
-						""" Set up ImagingRequest insert dict """
+						""" Set up ImagingRequest and ProcessingRequest insert dicts """
 
 						""" When user submits this request form it is always 
-						the first imaging request for this sample """
-						imaging_request_number = 1
+						the first imaging request and processing request for this sample """
+
+						""" ImagingRequest """
 						imaging_request_insert_dict = {}
+						imaging_request_number = 1
 						imaging_request_insert_dict['request_name'] = form.request_name.data
 						imaging_request_insert_dict['username'] = username 
 						imaging_request_insert_dict['sample_name'] = sample_name
@@ -222,6 +224,21 @@ def new_request():
 						imaging_request_insert_dict['imaging_request_date_submitted'] = date
 						imaging_request_insert_dict['imaging_request_time_submitted'] = time
 						imaging_request_insert_dict['imaging_progress'] = "incomplete"
+
+						""" ProcessingRequest """
+						processing_request_insert_dict = {}
+						processing_request_number = 1
+						processing_request_insert_dict['request_name'] = form.request_name.data
+						processing_request_insert_dict['username'] = username 
+						processing_request_insert_dict['sample_name'] = sample_name
+						processing_request_insert_dict['imaging_request_number'] = imaging_request_number
+						processing_request_insert_dict['processing_request_number'] = processing_request_number
+						processing_request_insert_dict['processing_request_date_submitted'] = date
+						processing_request_insert_dict['processing_request_time_submitted'] = time
+						processing_request_insert_dict['processing_progress'] = "incomplete"
+						""" The user is always the "processor" - i.e. the person
+						 who double-checks the processing form and hits GO """
+						processing_request_insert_dict['processor'] = username
 
 						""" Now insert each image resolution/channel combo """
 						resolution_insert_list = []
@@ -262,13 +279,15 @@ def new_request():
 									channel_insert_list.append(channel_insert_dict)
 							logger.info(channel_insert_list)
 								
-						
 						logger.info("Sample() insert:")
 						logger.info(sample_insert_dict)
 						db_lightsheet.Sample().insert1(sample_insert_dict)
 						logger.info("ImagingRequest() insert:")
 						logger.info(imaging_request_insert_dict)
 						db_lightsheet.Sample.ImagingRequest().insert1(imaging_request_insert_dict)
+						logger.info("ProcessingRequest() insert:")
+						logger.info(processing_request_insert_dict)
+						db_lightsheet.Sample.ProcessingRequest().insert1(processing_request_insert_dict)
 						logger.info("ImageResolutionRequest() insert:")
 						logger.info(resolution_insert_list)
 						db_lightsheet.Sample.ImageResolutionRequest().insert(resolution_insert_list)
