@@ -40,13 +40,13 @@ def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
     table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted'))
-    table_class.add_column('request_name',Col('experiment name'))
+    table_class.add_column('request_name',Col('request name'))
     table_class.add_column('sample_name',Col('sample name'))
     table_class.add_column('username',Col('username'))    
     table_class.add_column('imaging_request_number',Col('imaging request number'))    
 
     if table_class.table_id == 'horizontal_ready_to_process_table':
-        table_class.add_column('processing_progress',BoldTextCol('processing_progress'))
+        table_class.add_column('processing_progress',BoldTextCol('processing progress'))
     else: 
         table_class.add_column('processing_progress',Col('processing progress'))
 
@@ -58,7 +58,8 @@ def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
     processing_url_kwargs = {'username':'username','request_name':'request_name',
-        'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
+        'sample_name':'sample_name','imaging_request_number':'imaging_request_number',
+        'processing_request_number':'processing_request_number'}
 
     anchor_attrs = {'target':"_blank",}
     if table_id == 'horizontal_ready_to_process_table':
@@ -82,8 +83,6 @@ def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
     
     return table 
 
-
-
 def create_dynamic_channels_table_for_processing(contents,table_id,ignore_columns=[],
     name='Dynamic Channels Table for Processing'):
     options = dict(
@@ -103,6 +102,8 @@ def create_dynamic_channels_table_for_processing(contents,table_id,ignore_column
     table_class.add_column('request_name',Col('request_name'))
     table_class.add_column('sample_name',Col('sample_name'))
     table_class.add_column('image_resolution',Col('image_resolution'))
+    table_class.add_column('imaging_request_number',Col('imaging request number'))
+    table_class.add_column('processing_request_number',Col('processing request number'))
     # table_class.add_column('channel_name',Col('channel_name'))
     # table_class.add_column('tiling_scheme',Col('tiling_scheme'))
     table_class.add_column('processor',Col('processor'))

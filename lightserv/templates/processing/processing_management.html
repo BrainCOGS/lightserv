@@ -3,12 +3,22 @@
 <h1 align="center"> Processing management GUI </h1>
 <hr class="class-5">	
 
+{% if table_failed_processing.items %}
+	<h3>Failed processes:</h3>
+	<div style="display:inline-block;">
+
+	 {{ table_failed_processing }}
+
+	</div>
+	<hr class="class-5">	
+
+{% endif %}
 <h3>Samples ready to be processed:</h3>
 <div style="display:inline-block;">
 
  {{ table_ready_to_process }}
 
-	</div>
+</div>
 
 <hr class="class-5">	
 
@@ -16,6 +26,7 @@
 <div style="display:inline-block;">
 	{{ table_being_processed }}
 <div>
+
 
 <hr class="class-5">	
 

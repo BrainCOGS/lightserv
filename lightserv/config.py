@@ -13,7 +13,7 @@ class BaseConfig(object):
 	PROCESSING_ADMINS = ['ahoag','jduva','zmd']
 	CLEARING_ADMINS = ['ahoag','ll3','jduva','zmd']
 	IMAGING_MODES = ['registration','injection_detection','probe_detection','cell_detection','generic_imaging']
-	RAWDATA_ROOTPATH = '/jukebox/LightSheetData/lightserv_testing'
+	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_testing'
 	IMAGING_CHANNELS = ['488','555','647','790']
 	ATLAS_NAME_FILE_DICTIONARY = {
 	'allen_2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/average_template_25_sagittal_forDVscans.tif',

@@ -89,51 +89,23 @@ def logged_in_as_processor(f):
 			sample_name = kwargs['sample_name']
 			username = kwargs['username']
 			imaging_request_number = kwargs['imaging_request_number']
+			processing_request_number = kwargs['processing_request_number']
 			
-			imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
+			processing_request_contents = db_lightsheet.Sample.ProcessingRequest() & f'request_name="{request_name}"' & \
 			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
-			 	f'imaging_request_number="{imaging_request_number}"'
-			processor = imaging_request_contents.fetch1('processor')
-			''' check to see if user assigned themself as processor '''
-			if processor == None:
-				logger.info("processing entry form accessed with processor not yet assigned. ")
-				''' now check to see if user is a designated processor ''' 
-				if current_user in current_app.config['PROCESSING_ADMINS']: # 
-					dj.Table._update(imaging_request_contents,'processor',current_user)
-					logger.info(f"{current_user} is a designated processor and is now assigned as the processor")
-					return f(*args, **kwargs)
-				else: # user is not a designated processor and did not self assign
-					logger.info(f"""Current user: {current_user} is not a designated processor and did not specify themselves
-					 as the processor when submitting request. Denying them access""")
-					flash('''You do not have permission to access the processing form for this experiment. 
-						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
-					return redirect(url_for('main.welcome'))
-			else: # processor is assigned 
-				if processor in current_app.config['PROCESSING_ADMINS']: # one of the admins started the form
-					if current_user in current_app.config['PROCESSING_ADMINS']: # one of the admins is accessing the form
-						
-						if current_user != processor:
-							logger.info(f"""Current user: {current_user} accessed the form of which {processor} is the processor""")
-							flash("While you have access to this page, "
-								  "you are not the primary processor "
-								  "so please proceed with caution.",'warning')
-							return f(*args, **kwargs)
-						else:
-							logger.info(f"""Current user: {current_user} is the rightful processor and so is allowed access""")
-							return f(*args, **kwargs)
-					else:
-						flash(("The processor has already been assigned for this entry "
+			 	f'imaging_request_number="{imaging_request_number}"' & \
+			 	f'processing_request_number="{processing_request_number}"'
+			processor = processing_request_contents.fetch1('processor')
+			# ''' check to see if user assigned themself as processor '''
+			if current_user != processor:
+				flash(("The processor has already been assigned for this entry "
 							  "and you are not them. Please email us at lightservhelper@gmail.com "  
 						      "if you think there has been a mistake."),'warning')
-				elif processor == current_user:
-					logger.info(f"Current user: {current_user} is the rightful processor and so is allowed access")
-					return f(*args, **kwargs)
-				else:
-					logger.info(f"""{current_user} is not the processor. Denying them access""")
-					flash(("The processor has already been assigned for this entry "
-							  "and you are not them. Please email us at lightservhelper@gmail.com "  
-						      "if you think there has been a mistake."),'warning')
-					return redirect(url_for('main.welcome'))
+				return redirect(url_for('processing.processing_manager'))
+			else:
+				next_url = request.url
+				login_url = '%s?next=%s' % (url_for('main.login'), next_url)
+				return redirect(login_url)
 		else:
 			next_url = request.url
 			login_url = '%s?next=%s' % (url_for('main.login'), next_url)

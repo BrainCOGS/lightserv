@@ -16,7 +16,7 @@ class ChannelProcessingForm(FlaskForm):
 
 class ImageResolutionProcessingForm(FlaskForm):
 	max_number_of_channels = 4
-	atlas_name = SelectField('Choose atlas for registration (defaults to choice selected in the initial request form):',
+	atlas_name = SelectField('Confirm atlas for registration (defaults to choice selected in your request form):',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
 				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()],default='allen_2017')
 	image_resolution = HiddenField('Image resolution')
@@ -32,3 +32,15 @@ class StartProcessingForm(FlaskForm):
 									   " that you would like recorded.")
 	
 	submit = SubmitField('Start the processing pipeline for this sample')	
+
+
+class NewProcessingRequestForm(FlaskForm):
+	""" The form for entering imaging information """
+	max_number_of_resolutions=4
+	image_resolution_forms = FieldList(FormField(ImageResolutionProcessingForm),min_entries=0,
+		max_entries=max_number_of_resolutions)
+	notes_from_processing = TextAreaField("Note down anything additional about the processing"
+									   " that you would like recorded.")
+	
+	submit = SubmitField('Start the processing pipeline for this sample')	
+
