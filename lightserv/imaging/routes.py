@@ -230,7 +230,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 		channel_contents_lists=channel_contents_lists,
 		overview_dict=overview_dict,imaging_table=imaging_table)
 
-@imaging.route("/imaging/imaging_entry/<username>/<request_name>/<sample_name>/new_imaging_request",methods=['GET','POST'])
+@imaging.route("/imaging/new_imaging_request/<username>/<request_name>/<sample_name>/",methods=['GET','POST'])
 @logged_in
 def new_imaging_request(username,request_name,sample_name): 
 	""" Route for user to submit a new imaging request to an 
