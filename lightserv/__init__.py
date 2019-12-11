@@ -34,7 +34,8 @@ def set_schema():
 		db_microscope = dj.create_virtual_module('microscope_demo','ahoag_microscope_demo',create_schema=True)
 		# db = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
 	elif os.environ['FLASK_MODE'] == 'TEST':
-		test_schema = create_test_schema() 
+		# test_schema = create_test_schema() 
+		from schemas import lightsheet
 		db_lightsheet = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
 		db_microscope = dj.create_virtual_module('ahoag_microscope_test','ahoag_microscope_test',create_schema=True)
 

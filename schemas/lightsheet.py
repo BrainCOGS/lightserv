@@ -1,5 +1,6 @@
 import datajoint as dj
 import socket
+import os
 
 dj.config['database.host'] = '127.0.0.1'
 dj.config['database.port'] = 3306
@@ -7,11 +8,16 @@ dj.config['database.port'] = 3306
 dj.config['database.user'] = 'ahoag'
 # if socket.gethostname() == 'braincogs00.pni.princeton.edu':
 dj.config['database.password'] = 'gaoha'
-
-
-schema = dj.schema('ahoag_lightsheet_demo')
-schema.drop()
-schema = dj.schema('ahoag_lightsheet_demo')
+if os.environ.get('FLASK_MODE') == 'TEST':
+    print("setting up test light sheet schema")
+    schema = dj.schema('ahoag_lightsheet_test')
+    schema.drop()
+    schema = dj.schema('ahoag_lightsheet_test')
+else:
+    print("setting up real light sheet schema")
+    schema = dj.schema('ahoag_lightsheet_demo')
+    schema.drop()
+    schema = dj.schema('ahoag_lightsheet_demo')
 
 @schema
 class User(dj.Lookup):
@@ -68,8 +74,6 @@ class Sample(dj.Manual):
         imaging_request_time_submitted            :   time # time that the user submitted the request for imaging
         imaging_performed_date = NULL             :   date # date that the imaging form was submitted by the imager
         imaging_progress                          :   enum("incomplete","in progress","complete")
-        -> [nullable] User.proj(processor='username') # defines column "processor" whose value must be one of the "username" entries in the User() table
-        processing_progress                       :   enum("not started", "running","failed","complete")
         """
 
     class ImageResolutionRequest(dj.Part):
@@ -104,18 +108,30 @@ class Sample(dj.Manual):
         imspector_channel_index = NULL            :   tinyint    # refers to multi-channel imaging - 0 if first (or only) channel in rawdata_subfolder, 1 if second, 2 if third, ...
         """
 
-    class ProcessingChannel(dj.Part):
-        definition = """ # Processing parameters for a channel
-        -> master.ImagingChannel
+    class ProcessingRequest(dj.Part):
+        definition = """ # Imaging request
+        -> master.ImagingRequest
+        processing_request_number                    :   tinyint
         ----
+        -> [nullable] User.proj(processor='username') # defines column "processor" whose value must be one of the "username" entries in the User() table
+        processing_request_date_submitted            :   date # date that the user submitted the request for processing
+        processing_request_time_submitted            :   time # time that the user submitted the request for processing
+        processing_performed_date = NULL             :   date # date that the processing form was submitted by the processor
+        processing_progress                          :   enum("incomplete","running","failed","complete")
+        """
+
+    class ProcessingChannel(dj.Part):
+        definition = """ # Processing parameters for a channel. There can be more than one purpose for a single channel, hence why lightsheet_channel_str is a primary key
+        -> master.ImagingChannel
+        -> master.ProcessingRequest
         lightsheet_channel_str                    :   enum("regch","injch","cellch","gench")
+        ----
         imspector_version = ''                    :   varchar(128)
         datetime_processing_started               :   datetime
         intensity_correction = 1                  :   boolean
         metadata_xml_string = NULL                :   mediumblob # The entire metadata xml string. Sometimes it is not available so those times it will be NULL
         """ 
                 
-
     class IdiscoPlusClearing(dj.Part): # 
         definition = """ # iDISCO+ clearing table
         -> Sample           
