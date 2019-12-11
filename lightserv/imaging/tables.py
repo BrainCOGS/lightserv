@@ -18,7 +18,7 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     
     def dynamic_get_tr_attrs(self, item, reverse=False):
         if item['imaging_request_number'] > 1:
-            return {'bgcolor':'#FCA5A4'} # red
+            return {'bgcolor':'#757680'} # gray
         else:
             return {}
 
