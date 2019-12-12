@@ -223,6 +223,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				this_channel_form = this_resolution_form.channel_forms[-1]
 				this_channel_form.channel_name.data = channel_content['channel_name']
 				this_channel_form.image_resolution.data = channel_content['image_resolution']
+				this_channel_form.rawdata_subfolder.data = 'test488'
 
 	overview_dict = imaging_request_contents.fetch1()
 	imaging_table = ImagingTable(imaging_request_contents)
@@ -287,7 +288,7 @@ def new_imaging_request(username,request_name,sample_name):
 
 				connection = db_lightsheet.Sample.ImagingRequest.connection
 				with connection.transaction:
-					""" First insert the ImagingRequest() entry """
+					""" First handle the ImagingRequest() and ProcessingRequest() entries """
 					now = datetime.now()
 					date = now.strftime("%Y-%m-%d")
 					time = now.strftime("%H:%M:%S") 
@@ -301,27 +302,58 @@ def new_imaging_request(username,request_name,sample_name):
 					imaging_request_insert_dict['imaging_progress'] = "incomplete" # when it is submitted it starts out as incomplete
 					if form.self_imaging.data == True:
 						imaging_request_insert_dict['imager'] = username
+
+					""" ProcessingRequest """
+					processing_request_insert_dict = {}
+					processing_request_number = 1 # because the imaging request is just now being created there are no processing requests already for this imaging request
+					processing_request_insert_dict['request_name'] = request_name
+					processing_request_insert_dict['username'] = username 
+					processing_request_insert_dict['sample_name'] = sample_name
+					processing_request_insert_dict['imaging_request_number'] = new_imaging_request_number
+					processing_request_insert_dict['processing_request_number'] = processing_request_number
+					processing_request_insert_dict['processing_request_date_submitted'] = date
+					processing_request_insert_dict['processing_request_time_submitted'] = time
+					processing_request_insert_dict['processing_progress'] = "incomplete"
+					""" The user is always the "processor" - i.e. the person
+					 who double-checks the processing form and hits GO """
+					processing_request_insert_dict['processor'] = username
+
 					logger.info("ImagingRequest() insert:")
 					logger.info(imaging_request_insert_dict)
 					logger.info("")
 					db_lightsheet.Sample.ImagingRequest().insert1(imaging_request_insert_dict)
 
+					logger.info("ProcessingRequest() insert:")
+					logger.info(processing_request_insert_dict)
+					logger.info("")
+					db_lightsheet.Sample.ProcessingRequest().insert1(processing_request_insert_dict)
+
 					""" Now insert each image resolution/channel combo """
-					resolution_insert_list = []
+					imaging_resolution_insert_list = []
+					processing_resolution_insert_list = []
 					channel_insert_list = []
 					for resolution_dict in form.image_resolution_forms.data:
 						logger.debug(resolution_dict)
-						resolution_insert_dict = {}
-						resolution_insert_dict['request_name'] = request_name
-						resolution_insert_dict['username'] = username 
-						resolution_insert_dict['sample_name'] = sample_name
-						resolution_insert_dict['imaging_request_number'] = new_imaging_request_number
-						resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
-						resolution_insert_dict['notes_for_imager'] = resolution_dict['notes_for_imager']
-						resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
-						resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
-						resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
-						resolution_insert_list.append(resolution_insert_dict)
+						""" imaging entry first """
+						imaging_resolution_insert_dict = {}
+						imaging_resolution_insert_dict['request_name'] = request_name
+						imaging_resolution_insert_dict['username'] = username 
+						imaging_resolution_insert_dict['sample_name'] = sample_name
+						imaging_resolution_insert_dict['imaging_request_number'] = new_imaging_request_number
+						imaging_resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
+						imaging_resolution_insert_dict['notes_for_imager'] = resolution_dict['notes_for_imager']
+						imaging_resolution_insert_list.append(imaging_resolution_insert_dict)
+						""" now processing entry """
+						processing_resolution_insert_dict = {}
+						processing_resolution_insert_dict['request_name'] = request_name
+						processing_resolution_insert_dict['username'] = username 
+						processing_resolution_insert_dict['sample_name'] = sample_name
+						processing_resolution_insert_dict['imaging_request_number'] = new_imaging_request_number
+						processing_resolution_insert_dict['processing_request_number'] = processing_request_number
+						processing_resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
+						processing_resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
+						processing_resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
+						processing_resolution_insert_list.append(processing_resolution_insert_dict)
 						""" Now loop through channels and make insert dict for each """
 						for imaging_channel_dict in resolution_dict['channels']:
 							logger.debug(imaging_channel_dict)
@@ -346,14 +378,18 @@ def new_imaging_request(username,request_name,sample_name):
 
 								channel_insert_list.append(channel_insert_dict)
 					
-					logger.info('ImageResolutionRequest() insert:')
-					logger.info(resolution_insert_list)
-					db_lightsheet.Sample.ImageResolutionRequest().insert(resolution_insert_list)		
+					logger.info('ImagingResolutionRequest() insert:')
+					logger.info(imaging_resolution_insert_list)
+					db_lightsheet.Sample.ImagingResolutionRequest().insert(imaging_resolution_insert_list)		
+
+					logger.info('ProcessingResolutionRequest() insert:')
+					logger.info(processing_resolution_insert_list)
+					db_lightsheet.Sample.ProcessingResolutionRequest().insert(processing_resolution_insert_list)	
 					
 					logger.info('ImagingChannel() insert:')
 					logger.info(channel_insert_list)
 					db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
-					flash("Imaging request submitted successfully.", "success")
+					flash("Your new imaging request was submitted successfully.", "success")
 					return redirect(url_for('main.home'))
 		else:
 			if 'submit' in form.errors:

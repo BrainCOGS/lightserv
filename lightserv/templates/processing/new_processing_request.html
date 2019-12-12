@@ -1,15 +1,21 @@
 {% extends "layout.html" %}
 {% block content %}
-	<h1 class="mb-2" align="center">New Imaging Request</h1>
+	<h1 class="mb-2" align="center">New Image Processing Request</h1>
 	<hr class='class-2'>
-	<h3>Overview of this image processing request:</h3>
-	{{ overview_table }}
+	<h3>Imaging available in this request:</h3>
+		{{ imaging_overview_table}}
+	<hr class='class-1'>
+
+	<h3>Overview of the previous processing done for this request:</h3>
+		{{ existing_processing_table }}
 	<hr class='class-1'>
 
 	<!-- BEGIN FORM -->
 	<form method="POST" action="">
 		{{ form.hidden_tag() }}
 		<fieldset class="form-group">
+			<h2 class='mb-2'> Choose how you want the processing to be completed for each image resolution in this request:  </h2>
+			<hr class='class-2'>
 			<!-- Loop over the different image resolutions -->
 			{% for ii in range(form.image_resolution_forms|length) %}
 				{% set image_resolution_form = form.image_resolution_forms[ii] %}
@@ -17,9 +23,6 @@
 				{{ image_resolution_form.image_resolution() }}
 				{% set image_resolution = image_resolution_form.image_resolution.data %}
 				
-				<hr class='class-1'>
-				<h2 class='mb-2'> Summary of processing to be completed for each image resolution chosen:  </h2>
-				<hr class='class-2'>
 				<h3 class='mb-4'> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
 				
 				{% for jj in range(image_resolution_form.channel_forms|length) %}
@@ -40,10 +43,10 @@
 						</div>
 
 						<div>
-							<a id='larger' >Raw data folder:</a> <span> /jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/rawdata/{{channel_content['rawdata_subfolder']}} </span>
+							<a id='larger' >Raw data folder:</a> <span> /jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/rawdata/{{channel_content['rawdata_subfolder']}} </span>
 						</div>
 						<div>
-							<a id='larger' >Output folder:</a> <span> /jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/output/{{channel_content['rawdata_subfolder']}} </span>
+							<a id='larger' >Output folder:</a> <span> /jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/output/processing_request_{{channel_content['imaging_request_number']}}/{{channel_content['rawdata_subfolder']}} </span>
 						</div>
 
 						<div>
@@ -57,7 +60,7 @@
 						{% if 'registration' in channel_purposes_str %}
 							
 								<div class="form-group">
-									{{ image_resolution_form.atlas_name.label(class="form-control-label text-danger", id='larger') }}
+									{{ image_resolution_form.atlas_name.label(class="form-control-label", id='larger') }}
 									{% if image_resolution_form.atlas_name.errors %}
 										{{ image_resolution_form.atlas_name(class="form-control form-control-lg is-invalid col-md-8") }}
 										<div class="invalid-feedback">

@@ -59,9 +59,6 @@ class Sample(dj.Manual):
     antibody1 = ''               :   varchar(100)
     antibody2 = ''               :   varchar(100)
     notes_for_clearer = ""                    :   varchar(1024)
-    stitching_method                          :   enum("blending","terastitcher")
-    blend_type                                :   enum("sigmoidal","flat")
-    notes_from_processing = ""                :   varchar(1024)
     """  
 
     class ImagingRequest(dj.Part):
@@ -76,20 +73,18 @@ class Sample(dj.Manual):
         imaging_progress                          :   enum("incomplete","in progress","complete")
         """
 
-    class ImageResolutionRequest(dj.Part):
+    class ImagingResolutionRequest(dj.Part):
         definition = """ # Imaging parameters for a channel, belonging to a sample
         -> master.ImagingRequest
         image_resolution                          :   enum("1.3x","4x","1.1x","2x")
         ----        
-        atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas") # only one atlas can be used for a given resolution
         notes_for_imager = ""                     :   varchar(1024)
         notes_from_imaging = ""                   :   varchar(1024)
-        notes_for_processor = ""                  :   varchar(1024)
         """
 
     class ImagingChannel(dj.Part):
         definition = """ # Imaging parameters for a channel, belonging to a sample
-        -> master.ImageResolutionRequest
+        -> master.ImagingResolutionRequest
         channel_name                              :   varchar(64)                
         ----
         imaging_date = NULL                       :   date 
@@ -109,7 +104,7 @@ class Sample(dj.Manual):
         """
 
     class ProcessingRequest(dj.Part):
-        definition = """ # Imaging request
+        definition = """ # Processing request - this needs to exist because for each imaging request there can be multiple processing requests 
         -> master.ImagingRequest
         processing_request_number                    :   tinyint
         ----
@@ -120,10 +115,20 @@ class Sample(dj.Manual):
         processing_progress                          :   enum("incomplete","running","failed","complete")
         """
 
+    class ProcessingResolutionRequest(dj.Part):
+        definition = """ # Processing parameters at the image resolution level
+        -> master.ProcessingRequest
+        image_resolution                          :   enum("1.3x","4x","1.1x","2x")
+        ----        
+        atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
+        notes_for_processor = ""                  :   varchar(1024)
+        notes_from_processing = ""                :   varchar(1024)
+        """
+
     class ProcessingChannel(dj.Part):
         definition = """ # Processing parameters for a channel. There can be more than one purpose for a single channel, hence why lightsheet_channel_str is a primary key
         -> master.ImagingChannel
-        -> master.ProcessingRequest
+        -> master.ProcessingResolutionRequest
         lightsheet_channel_str                    :   enum("regch","injch","cellch","gench")
         ----
         imspector_version = ''                    :   varchar(128)

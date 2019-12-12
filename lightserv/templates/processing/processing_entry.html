@@ -28,7 +28,7 @@
 				{% set image_resolution = image_resolution_form.image_resolution.data %}
 				
 				<hr class='class-1'>
-				<h2 class='mb-2'> Summary of processing to be completed for each image resolution chosen:  </h2>
+				<h2 class='mb-2'> Summary of processing to be completed for each image resolution:  </h2>
 				<hr class='class-2'>
 				<h3 class='mb-4'> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
 				
@@ -50,10 +50,10 @@
 						</div>
 
 						<div>
-							<a id='larger' >Raw data folder:</a> <span> /jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/rawdata/{{channel_content['rawdata_subfolder']}} </span>
+							<a id='larger' >Raw data folder:</a> <span> /jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/rawdata/{{channel_content['rawdata_subfolder']}} </span>
 						</div>
 						<div>
-							<a id='larger' >Output folder:</a> <span> /jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/output/{{channel_content['rawdata_subfolder']}} </span>
+							<a id='larger' >Output folder:</a> <span> /jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/output/processing_request_{{channel_content['imaging_request_number']}}/{{channel_content['rawdata_subfolder']}} </span>
 						</div>
 
 						<div>

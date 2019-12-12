@@ -241,25 +241,34 @@ def new_request():
 						processing_request_insert_dict['processor'] = username
 
 						""" Now insert each image resolution/channel combo """
-						resolution_insert_list = []
+						imaging_resolution_insert_list = []
+						processing_resolution_insert_list = [] 
 						channel_insert_list = []
 
 						for resolution_dict in imaging_sample_dict['image_resolution_forms']:
 							logger.info(resolution_dict)
-							resolution_insert_dict = {}
-							resolution_insert_dict['request_name'] = form.request_name.data
-							resolution_insert_dict['username'] = username 
-							resolution_insert_dict['sample_name'] = sample_name
-							resolution_insert_dict['imaging_request_number'] = imaging_request_number
-							resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
-							resolution_insert_dict['notes_for_imager'] = resolution_dict['notes_for_imager']
-							resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
-							resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
-							resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
-							resolution_insert_list.append(resolution_insert_dict)
-
+							""" imaging entry first """
+							imaging_resolution_insert_dict = {}
+							imaging_resolution_insert_dict['request_name'] = form.request_name.data
+							imaging_resolution_insert_dict['username'] = username 
+							imaging_resolution_insert_dict['sample_name'] = sample_name
+							imaging_resolution_insert_dict['imaging_request_number'] = imaging_request_number
+							imaging_resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
+							imaging_resolution_insert_dict['notes_for_imager'] = resolution_dict['notes_for_imager']
+							imaging_resolution_insert_list.append(imaging_resolution_insert_dict)
+							""" now processing entry """
+							processing_resolution_insert_dict = {}
+							processing_resolution_insert_dict['request_name'] = form.request_name.data
+							processing_resolution_insert_dict['username'] = username 
+							processing_resolution_insert_dict['sample_name'] = sample_name
+							processing_resolution_insert_dict['imaging_request_number'] = imaging_request_number
+							processing_resolution_insert_dict['processing_request_number'] = processing_request_number
+							processing_resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
+							processing_resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
+							processing_resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
+							processing_resolution_insert_list.append(processing_resolution_insert_dict)
+							""" now loop through the imaging channels and fill out the ImagingChannel entries """
 							for imaging_channel_dict in resolution_dict['channel_forms']:
-								
 								""" The way to tell which channels were picked is to see 
 								which have at least one imaging mode selected """
 								used_imaging_modes = [key for key in all_imaging_modes if imaging_channel_dict[key] == True]
@@ -288,9 +297,12 @@ def new_request():
 						logger.info("ProcessingRequest() insert:")
 						logger.info(processing_request_insert_dict)
 						db_lightsheet.Sample.ProcessingRequest().insert1(processing_request_insert_dict)
-						logger.info("ImageResolutionRequest() insert:")
-						logger.info(resolution_insert_list)
-						db_lightsheet.Sample.ImageResolutionRequest().insert(resolution_insert_list)
+						logger.info("ImagingResolutionRequest() insert:")
+						logger.info(imaging_resolution_insert_list)
+						db_lightsheet.Sample.ImagingResolutionRequest().insert(imaging_resolution_insert_list)
+						logger.info("ProcessingResolutionRequest() insert:")
+						logger.info(processing_resolution_insert_list)
+						db_lightsheet.Sample.ProcessingResolutionRequest().insert(processing_resolution_insert_list)
 						logger.info('channel insert:')
 						logger.info(channel_insert_list)
 						db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
@@ -363,7 +375,8 @@ def request_overview(username,request_name):
 	table_id = request.args.get('table_id', '')
 
 	combined_contents = (dj.U('request_name','sample_name').aggr(
-    channel_contents) * samples_contents)
+    channel_contents,imaging_request_number='imaging_request_number') * samples_contents)
+
 	request_table_id = 'horizontal_request_table'
 	samples_table_id = 'vertical_samples_table'
 

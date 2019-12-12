@@ -6,5 +6,6 @@
 # dj.config['database.user'] = 'ahoag'
 # dj.config['database.password'] = 'p@sswd'
 
-from schemas import lightsheet, microscope
+from schemas import lightsheet
+# from schemas import microscope
 
