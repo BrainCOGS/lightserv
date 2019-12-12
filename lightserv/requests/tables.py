@@ -95,15 +95,22 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
     imaging_url_kwargs = {'username':'username','request_name':'request_name',
     'sample_name':'sample_name',}
+    processing_url_kwargs = {'username':'username','request_name':'request_name',
+    'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
     anchor_attrs = {'target':"_blank",}
     table_class.add_column('view_clearing_link',
          ConditionalLinkCol('View clearing log', 
         'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
        anchor_attrs=anchor_attrs,allow_sort=False))
     
-    table_class.add_column('new_imaging_request',
+    table_class.add_column('new imaging request',
         LinkCol('New imaging request', 
         'imaging.new_imaging_request',url_kwargs=imaging_url_kwargs,
+        anchor_attrs=anchor_attrs,allow_sort=False))
+   
+    table_class.add_column('new processing request',
+        LinkCol('New processing request', 
+        'processing.new_processing_request',url_kwargs=processing_url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False))
    
     sorted_contents = sorted(contents.fetch(as_dict=True),

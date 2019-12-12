@@ -3,7 +3,7 @@ from flask import (render_template, url_for, flash,
 				   Markup, current_app)
 from lightserv.processing.forms import StartProcessingForm, NewProcessingRequestForm
 from lightserv.processing.tables import (create_dynamic_channels_table_for_processing,
-	dynamic_processing_management_table)
+	dynamic_processing_management_table,ExistingProcessingTable)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed)
@@ -16,6 +16,7 @@ import glob
 import os, errno
 import pickle
 import paramiko
+import numpy as np
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -244,16 +245,18 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 
 	sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"'								
-	
-	sample_table = SampleTable(sample_contents)
+	sample_dict = sample_contents.fetch1()
+	# sample_table = SampleTable(sample_contents)
 	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"')
-	""" figure out the new imaging request number to give the new request """
-	imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"' 
-	previous_imaging_request_numbers = np.unique(imaging_request_contents.fetch('imaging_request_number'))
-	previous_max_imaging_request_number = max(previous_imaging_request_numbers)
-	new_imaging_request_number = previous_max_imaging_request_number + 1
+	""" figure out the new processing request number to give the new request """
+	processing_request_contents = db_lightsheet.Sample.ProcessingRequest() & f'request_name="{request_name}"' & \
+	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
+	 		f'imaging_request_number="{imaging_request_number}"' 
+	previous_processing_request_numbers = np.unique(processing_request_contents.\
+		fetch('processing_request_number'))
+	previous_max_processing_request_number = max(previous_processing_request_numbers)
+	new_processing_request_number = previous_max_processing_request_number + 1
 
 	if request.method == 'POST':
 		if form.validate_on_submit():
@@ -352,7 +355,7 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 					db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
 					flash("Imaging request submitted successfully.", "success")
 					return redirect(url_for('main.home'))
-		else:
+		else: # form not validated
 			if 'submit' in form.errors:
 				for error_str in form.errors['submit']:
 					flash(error_str,'danger')
@@ -371,11 +374,44 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 							flash(error_str,'danger')
 				elif isinstance(obj,str):
 					flash(obj,'danger')
-	
-	existing_imaging_table = ExistingImagingTable(channel_contents)
+	elif request.method == 'GET': # get request
+		logger.info("GET request")
+		channel_contents_lists = []
+		while len(form.image_resolution_forms) > 0:
+			form.image_resolution_forms.pop_entry()
+		""" Figure out the unique number of image resolutions """
+		unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
+		for ii in range(len(unique_image_resolutions)):
+			this_image_resolution = unique_image_resolutions[ii]
+			image_resolution_request_content = db_lightsheet.Sample.ImageResolutionRequest() & f'request_name="{request_name}"' & f'username="{username}"' & f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & f'image_resolution="{this_image_resolution}"'
 
-	return render_template('imaging/new_imaging_request.html',form=form,
-		sample_table=sample_table,existing_imaging_table=existing_imaging_table)
+			channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
+			channel_contents_lists.append([])
+			form.image_resolution_forms.append_entry()
+			this_resolution_form = form.image_resolution_forms[-1]
+			this_resolution_form.image_resolution.data = this_image_resolution
+			this_resolution_form.atlas_name.data = image_resolution_request_content.fetch1('atlas_name')
+
+			''' Now go and add the channel subforms to the image resolution form '''
+			for jj in range(len(channel_contents_list_this_resolution)):
+				channel_content = channel_contents_list_this_resolution[jj]
+				channel_contents_lists[ii].append(channel_content)
+				this_resolution_form.channel_forms.append_entry()
+				this_channel_form = this_resolution_form.channel_forms[-1]
+				this_channel_form.channel_name.data = channel_content['channel_name']
+
+				""" figure out the channel purposes """
+				used_imaging_modes = []
+				for imaging_mode in current_app.config['IMAGING_MODES']:
+					if channel_content[imaging_mode]:
+						used_imaging_modes.append(imaging_mode)
+				channel_purposes_str = ', '.join(mode for mode in used_imaging_modes)
+				this_channel_form.channel_purposes_str.data = channel_purposes_str
+	existing_processing_table = ExistingProcessingTable(channel_contents)
+
+	return render_template('processing/new_processing_request.html',form=form,
+		existing_processing_table=existing_processing_table,
+		channel_contents_lists=channel_contents_lists,sample_dict=sample_dict)
 
 # @cel.task()
 def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,processing_request_number):
@@ -511,7 +547,8 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 				""" Loop through the channels themselves to make the input dictionary """
 				inputdictionary = {}
 				inputdictionary[rawdata_fullpath] = []
-				channel_contents_this_subfolder = channel_contents_this_resolution & f'rawdata_subfolder="{rawdata_subfolder}"'
+				channel_contents_this_subfolder = channel_contents_this_resolution & \
+				 f'rawdata_subfolder="{rawdata_subfolder}"'
 				channel_contents_dict_list_this_subfolder = channel_contents_this_subfolder.fetch(as_dict=True)
 				for channel_dict in channel_contents_dict_list_this_subfolder:		
 					channel_name = channel_dict['channel_name']

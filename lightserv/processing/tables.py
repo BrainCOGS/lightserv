@@ -112,3 +112,21 @@ def create_dynamic_channels_table_for_processing(contents,table_id,ignore_column
     table = table_class(contents)
     
     return table 
+
+class ExistingProcessingTable(Table):
+    """ A table to show the existing processing already
+    requested for a given sample """ 
+    border = True
+    allow_sort=False
+    no_items = "No processing requested yet"
+    html_attrs = {"style":'font-size:18px'} # gets assigned to table header
+    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    imaging_request_number = Col('imaging request number',column_html_attrs=column_html_attrs)
+    processing_request_number = Col('processing request number',column_html_attrs=column_html_attrs)
+    image_resolution = Col('image resolution',column_html_attrs=column_html_attrs)
+    # channel_name = Col('channel name',column_html_attrs=column_html_attrs)
+    # registration = BooltoStringCol('registration',column_html_attrs=column_html_attrs)
+    # injection_detection = BooltoStringCol('injection detection',column_html_attrs=column_html_attrs)
+    # probe_detection = BooltoStringCol('probe detection',column_html_attrs=column_html_attrs)
+    # cell_detection = BooltoStringCol('cell detection',column_html_attrs=column_html_attrs)
