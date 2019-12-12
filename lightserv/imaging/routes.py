@@ -171,7 +171,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				
 			correspondence_email = (db_lightsheet.Request() &\
 			 f'request_name="{request_name}"').fetch1('correspondence_email')
-			path_to_data = f'/jukebox/LightSheetData/lightserv_testing/{username}/{request_name}/{sample_name}'
+			path_to_data = f'/jukebox/LightSheetData/lightserv_testing/{username}/{request_name}/\
+				{sample_name}/rawdata/imaging_request_number_{imaging_request_number}'
 			msg = Message('Lightserv automated email',
 			          sender='lightservhelper@gmail.com',
 			          recipients=['ahoag@princeton.edu']) # keep it to me while in DEV phase
