@@ -5,7 +5,6 @@ from flask_mail import Mail
 from flask_wtf.csrf import CSRFProtect
 from lightserv.config import Config
 import datajoint as dj
-from lightserv.tests.make_test_schemata import create_test_schema
 import socket
 from celery import Celery
 
