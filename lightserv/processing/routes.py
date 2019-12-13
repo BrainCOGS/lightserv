@@ -6,7 +6,8 @@ from lightserv.processing.tables import (create_dynamic_channels_table_for_proce
 	dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
-	check_clearing_completed,check_imaging_completed,run_spock_pipeline)
+	check_clearing_completed,check_imaging_completed,)
+from lightserv.processing.utils import run_spock_pipeline
 from lightserv import cel,mail
 import datajoint as dj
 from datetime import datetime
