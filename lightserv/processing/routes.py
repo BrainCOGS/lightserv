@@ -196,9 +196,11 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 			form.image_resolution_forms.pop_entry()
 		""" Figure out the unique number of image resolutions """
 		unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
+
 		for ii in range(len(unique_image_resolutions)):
 			this_image_resolution = unique_image_resolutions[ii]
-			processing_resolution_request_content = db_lightsheet.Sample.ProcessingResolutionRequest() & f'request_name="{request_name}"' & f'username="{username}"' & f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & f'image_resolution="{this_image_resolution}"'
+			processing_resolution_request_content = processing_resolution_request_contents & \
+			 f'image_resolution="{this_image_resolution}"'
 
 			channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
 			channel_contents_lists.append([])
@@ -228,6 +230,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 		flash(f"Processing is {processing_progress} for this sample. "
 			"This page is read only and hitting submit will do nothing",'warning')
 	return render_template('processing/processing_entry.html',
+		processing_request_number=processing_request_number,
 		channel_contents_lists=channel_contents_lists,
 		sample_dict=sample_dict,form=form,overview_table=overview_table)	
 
@@ -260,52 +263,78 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 	imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
 	 		f'imaging_request_number="{imaging_request_number}"'
-	image_resolution_request_contents = db_lightsheet.Sample.ImagingResolutionRequest() & f'request_name="{request_name}"' & \
+	previous_processing_resolution_request_contents = db_lightsheet.Sample.ProcessingResolutionRequest() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
 	 		f'imaging_request_number="{imaging_request_number}"'  
+
 	previous_processing_request_contents = db_lightsheet.Sample.ProcessingRequest() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
 	 		f'imaging_request_number="{imaging_request_number}"' 
+
 	previous_processing_request_numbers = np.unique(previous_processing_request_contents.\
 		fetch('processing_request_number'))
+
 	previous_max_processing_request_number = max(previous_processing_request_numbers)
 	new_processing_request_number = previous_max_processing_request_number + 1
-	existing_processing_table = ExistingProcessingTable(channel_contents * previous_processing_request_contents * image_resolution_request_contents)
+	
+	existing_processing_table = ExistingProcessingTable(channel_contents * \
+		previous_processing_request_contents * previous_processing_resolution_request_contents)
 	imaging_overview_table = ImagingOverviewTable(channel_contents * imaging_request_contents)
 	if request.method == 'POST':
 		if form.validate_on_submit():
 			logger.debug("form validated")
-			''' Now update the db table with the data collected in the form'''
-			# logger.info("updating sample contents from form data")
-			# dj.Table._update(sample_contents,'notes_from_processing',form.notes_from_processing.data)
-			""" loop through and update the atlas to be used based on what the user supplied """
-			for form_resolution_dict in form.image_resolution_forms.data:
-				this_image_resolution = form_resolution_dict['image_resolution']
-				logger.info(this_image_resolution)
-				# this_image_resolution_content = image_resolution_request_contents & \
-				# f'image_resolution="{this_image_resolution}"'
-				# logger.debug(this_image_resolution_content)
-				# atlas_name = form_resolution_dict['atlas_name']
-				# dj.Table._update(this_image_resolution_content,'atlas_name',atlas_name)
+			connection = db_lightsheet.Sample.ProcessingRequest.connection
+			with connection.transaction:
+				""" First handle the ImagingRequest() and ProcessingRequest() entries """
+				now = datetime.now()
+				date = now.strftime("%Y-%m-%d")
+				time = now.strftime("%H:%M:%S") 
+				
+				""" ProcessingRequest """
+				processing_request_insert_dict = {}
+				processing_request_number = 1 # because the imaging request is just now being created there are no processing requests already for this imaging request
+				processing_request_insert_dict['request_name'] = request_name
+				processing_request_insert_dict['username'] = username 
+				processing_request_insert_dict['sample_name'] = sample_name
+				processing_request_insert_dict['imaging_request_number'] = imaging_request_number
+				processing_request_insert_dict['processing_request_number'] = new_processing_request_number
+				processing_request_insert_dict['processing_request_date_submitted'] = date
+				processing_request_insert_dict['processing_request_time_submitted'] = time
+				processing_request_insert_dict['processing_progress'] = "incomplete" 
+				""" The user is always the "processor" - i.e. the person
+				 who double-checks the processing form and hits GO """
+				processing_request_insert_dict['processor'] = username
 
-			# logger.info(f"Starting step0 without celery for testing")
-			# # run_step0.delay(username=username,request_name=request_name,sample_name=sample_name)
-			# ''' Update the processing progress before starting the jobs on spock 
-			# to avoid a race condition (the pipeline also updates the processing_progress flag if it fails or succeeds) '''
-			# dj.Table._update(processing_request_contents,'processing_progress','running')
-			# try:
-			# 	run_spock_pipeline(username=username,request_name=request_name,sample_name=sample_name,
-			# 		imaging_request_number=imaging_request_number,
-			# 		processing_request_number=processing_request_number)
-			# 	flash('Your data processing has begun. You will receive an email \
-			# 	when the first steps are completed.','success')
-			# except:
-			# 	logger.info("Pipeline initialization failed. Updating processing progress to 'failed' ")
-			# 	dj.Table._update(processing_request_contents,'processing_progress','failed')
-			# 	return redirect('errors.error_500')
+				logger.info("ProcessingRequest() insert:")
+				logger.info(processing_request_insert_dict)
+				logger.info("")
+				db_lightsheet.Sample.ProcessingRequest().insert1(processing_request_insert_dict)
 
-			
-			# return redirect(url_for('main.home'))
+				# logger.info("updating sample contents from form data")
+				# dj.Table._update(sample_contents,'notes_from_processing',form.notes_from_processing.data)
+				processing_resolution_insert_list = []
+				""" loop through image resolution forms and make a new entry for each resolution """
+				for form_resolution_dict in form.image_resolution_forms.data:
+					logger.debug(form_resolution_dict)
+					this_image_resolution = form_resolution_dict['image_resolution']
+					processing_resolution_insert_dict = {}
+					processing_resolution_insert_dict['request_name'] = request_name
+					processing_resolution_insert_dict['username'] = username 
+					processing_resolution_insert_dict['sample_name'] = sample_name
+					processing_resolution_insert_dict['imaging_request_number'] = imaging_request_number
+					processing_resolution_insert_dict['processing_request_number'] = new_processing_request_number
+					processing_resolution_insert_dict['image_resolution'] = form_resolution_dict['image_resolution']
+					processing_resolution_insert_dict['atlas_name'] = form_resolution_dict['atlas_name']
+					processing_resolution_insert_list.append(processing_resolution_insert_dict)
+
+				logger.info("ProcessingResolutionRequest() insert:")
+				logger.info(processing_resolution_insert_list)
+				logger.info("")
+				db_lightsheet.Sample.ProcessingResolutionRequest().insert1(processing_resolution_insert_dict)
+
+
+			flash("Processing request successfully submitted. ","success")
+			return redirect(url_for('processing.processing_manager'))
 			
 		else: # form not validated
 			if 'submit' in form.errors:
@@ -326,6 +355,7 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 							flash(error_str,'danger')
 				elif isinstance(obj,str):
 					flash(obj,'danger')
+	
 	elif request.method == 'GET': # get request
 		logger.info("GET request")
 		channel_contents_lists = []
@@ -335,14 +365,17 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 		unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
 		for ii in range(len(unique_image_resolutions)):
 			this_image_resolution = unique_image_resolutions[ii]
-			image_resolution_request_content = db_lightsheet.Sample.ImagingResolutionRequest() & f'request_name="{request_name}"' & f'username="{username}"' & f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & f'image_resolution="{this_image_resolution}"'
+			image_resolution_request_content = db_lightsheet.Sample.ImagingResolutionRequest() & \
+			 f'request_name="{request_name}"' & f'username="{username}"' & \
+			 f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & \
+			 f'image_resolution="{this_image_resolution}"'
 
 			channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
 			channel_contents_lists.append([])
 			form.image_resolution_forms.append_entry()
 			this_resolution_form = form.image_resolution_forms[-1]
 			this_resolution_form.image_resolution.data = this_image_resolution
-			this_resolution_form.atlas_name.data = image_resolution_request_content.fetch1('atlas_name')
+			# this_resolution_form.atlas_name.data = image_resolution_request_content.fetch1('atlas_name')
 
 			''' Now go and add the channel subforms to the image resolution form '''
 			for jj in range(len(channel_contents_list_this_resolution)):
@@ -355,12 +388,15 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 				""" figure out the channel purposes """
 				used_imaging_modes = []
 				for imaging_mode in current_app.config['IMAGING_MODES']:
-					if channel_content[imaging_mode]:
+					if channel_content[imaging_mode] == True:
+						this_channel_form[imaging_mode].data = 1
 						used_imaging_modes.append(imaging_mode)
 				channel_purposes_str = ', '.join(mode for mode in used_imaging_modes)
 				this_channel_form.channel_purposes_str.data = channel_purposes_str
 
-	return render_template('processing/new_processing_request.html',form=form,
+	return render_template('processing/new_processing_request.html',
+		imaging_request_number=imaging_request_number,
+		new_processing_request_number=new_processing_request_number,form=form,
 		imaging_overview_table=imaging_overview_table,
 		existing_processing_table=existing_processing_table,
 		channel_contents_lists=channel_contents_lists,sample_dict=sample_dict)
@@ -387,8 +423,8 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 	f'imaging_request_number="{imaging_request_number}"'
 	channel_content_dict_list = all_channel_contents.fetch(as_dict=True)
 	sample_contents_dict = sample_contents.fetch1() 
-	sample_basepath = raw_basepath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-		request_name,sample_name)
+	sample_basepath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+		request_name,sample_name,f'imaging_request_{imaging_request_number}')
 	raw_basepath = os.path.join(sample_basepath,'rawdata')
 
 	""" Can now go in and find the z=0 plane 
@@ -426,7 +462,8 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 				""" set up the parameter dictionary """
 				param_dict = {}
 				param_dict['systemdirectory'] = '/jukebox'
-				output_directory = os.path.join(sample_basepath,'output',rawdata_subfolder)
+				output_directory = os.path.join(sample_basepath,'output',
+					f'processing_request_{processing_request_number}',rawdata_subfolder)
 				param_dict['outputdirectory'] = output_directory
 				param_dict['blendtype'] = 'sigmoidal' # no exceptions
 				param_dict['intensitycorrection'] = True # no exceptions

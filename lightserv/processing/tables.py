@@ -44,6 +44,7 @@ def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
     table_class.add_column('sample_name',Col('sample name'))
     table_class.add_column('username',Col('username'))    
     table_class.add_column('imaging_request_number',Col('imaging request number'))    
+    table_class.add_column('processing_request_number',Col('processing request number'))    
 
     if table_class.table_id == 'horizontal_ready_to_process_table':
         table_class.add_column('processing_progress',BoldTextCol('processing progress'))

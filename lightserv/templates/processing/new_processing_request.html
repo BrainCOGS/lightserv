@@ -1,12 +1,14 @@
 {% extends "layout.html" %}
 {% block content %}
 	<h1 class="mb-2" align="center">New Image Processing Request</h1>
+	<p id='larger' align="center"> Imaging request number: {{imaging_request_number}}</p>
+	<p id='larger' align="center"> Processing request number: {{new_processing_request_number}}</p>
 	<hr class='class-2'>
-	<h3>Imaging available in this request:</h3>
+	<h3>The following imaging has been taken for this imaging request:</h3>
 		{{ imaging_overview_table}}
 	<hr class='class-1'>
 
-	<h3>Overview of the previous processing done for this request:</h3>
+	<h3>The following processing has been done for this imaging request:</h3>
 		{{ existing_processing_table }}
 	<hr class='class-1'>
 
@@ -14,7 +16,7 @@
 	<form method="POST" action="">
 		{{ form.hidden_tag() }}
 		<fieldset class="form-group">
-			<h2 class='mb-2'> Choose how you want the processing to be completed for each image resolution in this request:  </h2>
+			<h2 class='mb-2'> Choose how you want the processing to be completed for each image resolution/channel in this request:  </h2>
 			<hr class='class-2'>
 			<!-- Loop over the different image resolutions -->
 			{% for ii in range(form.image_resolution_forms|length) %}
@@ -25,85 +27,69 @@
 				
 				<h3 class='mb-4'> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
 				
-				{% for jj in range(image_resolution_form.channel_forms|length) %}
-					{% set channel_form = image_resolution_form.channel_forms[jj] %}
-					{% set channel_content = channel_contents_lists[ii][jj] %}
-					<!-- Render hiddenfields for channel_form -->
-					{{ channel_form.channel_name() }}
-					{{ channel_form.channel_purposes_str() }}
+				<h4 > Set up for image resolution: {{ image_resolution_form.image_resolution.data }} </h4>
+				<table class="table table-bordered table-striped text-center mb-4">
+	                <tr>
+	                    <th>Channel wavelength(nm)</th>
+	                    <th>Image resolution</th>
+	                    <th>Registration</th>
+	                    <th>Injection detection</th>
+	                    <th>Probe detection</th>
+	                    <th>Cell detection</th>
+	                    <th>General Imaging</th>
+	                </tr>
+	            	{% set channel_forms = image_resolution_form.channel_forms.data %}
+	                {% for jj in range(channel_forms|length) %}
+	                	{% set channel_entry = image_resolution_form.channel_forms[jj] %}
+	                	{% set channel_contents = channel_contents_lists[ii][jj] %}
+		                <!-- Render the channel_name which is a hidden field just so it is set -->
+	                	{{ channel_entry.channel_name() }} 
+		                <tr>   
+		                    <td>{{channel_entry.channel_name.data}}</td>
+		                    <td>{{image_resolution_form.image_resolution.data }}</td>
+		                    <td>{{channel_contents['registration']}}</td>
+		                    <td>{{channel_contents['injection_detection']}}</td>
+		                    <td>{{channel_contents['probe_detection']}}</td>
+		                    <td>{{channel_contents['cell_detection']}}</td>
+		                    <td>{{channel_contents['generic_imaging']}}</td>
+		                </tr>
+	               {% endfor %}
+	            </table>
 
-					{% set channel_name = channel_form.channel_name.data %}
-					{% set channel_purposes_str = channel_form.channel_purposes_str.data %}
-					
-					<!-- Channel processing params -->
-					<div class="content-section">
-					
-						<div>
-							<a id='larger' class='font-weight-bold'>Channel: {{  channel_name }} </a>
+				<div class="form-group">
+					{% if image_resolution_form.notes_for_processor.flags.required %}*{% endif %}
+					{{ image_resolution_form.notes_for_processor.label(class="form-control-label") }}
+					{% if image_resolution_form.notes_for_processor.errors %}
+						{{ image_resolution_form.notes_for_processor(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in image_resolution_form.notes_for_processor.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
 						</div>
+					{% else %}
+						{{ image_resolution_form.notes_for_processor(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
 
-						<div>
-							<a id='larger' >Raw data folder:</a> <span> /jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/rawdata/{{channel_content['rawdata_subfolder']}} </span>
+				<div class="form-group">
+					{% if image_resolution_form.atlas_name.flags.required %}*{% endif %}
+					{{ image_resolution_form.atlas_name.label(class="form-control-label") }}
+					{% if image_resolution_form.atlas_name.errors %}
+						{{ image_resolution_form.atlas_name(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in image_resolution_form.atlas_name.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
 						</div>
-						<div>
-							<a id='larger' >Output folder:</a> <span> /jukebox/LightSheetData/lightserv_testing/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/output/processing_request_{{channel_content['imaging_request_number']}}/{{channel_content['rawdata_subfolder']}} </span>
-						</div>
+					{% else %}
+						{{ image_resolution_form.atlas_name(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
 
-						<div>
-							<a id='larger'>Image resolution: {{channel_content['image_resolution'] }} </a>
-						</div>
+            	<hr class='class-2'>
+            
 
-						<div>
-							<a id='larger'>Channel purpose(s): {% if channel_purposes_str %} {{ channel_purposes_str}} {% else %} None specified {% endif %}</a>
-						</div>
-
-						{% if 'registration' in channel_purposes_str %}
-							
-								<div class="form-group">
-									{{ image_resolution_form.atlas_name.label(class="form-control-label", id='larger') }}
-									{% if image_resolution_form.atlas_name.errors %}
-										{{ image_resolution_form.atlas_name(class="form-control form-control-lg is-invalid col-md-8") }}
-										<div class="invalid-feedback">
-											{% for error in image_resolution_form.atlas_name.errors %}
-												<span>{{ error }}</span>
-											{% endfor %}
-										</div>
-									{% else %}
-										{{ image_resolution_form.atlas_name(class="form-control form-control-lg col-md-8") }}
-									{% endif %}
-								</div>
-							
-						{% endif %}
-
-				  		<a id='larger'>
-				  		Tiling scheme: {{ channel_content['tiling_scheme']}}
-						{% if channel_content['tiling_scheme'] != '1x1' %}
-							- stitching with: terastitcher
-						{% else %}
-							(No need to stitch)
-						{% endif %}
-						</a>
-					
-						<hr class='class-2'>
-						<!-- Data products section -->
-						<a id='larger'>Data products that will be created for this channel: <a>
-
-						<ul>
-							<li>Blended raw data (.TIFs for each z plane)</li>
-							<li>Downsampled data (.TIFs for each z plane)</li>
-							{% if 'registration' in channel_purposes_str %}
-								<li>Downsampled data registered to atlas (.TIF stack)</li>
-								<li>Registration parameters</li>
-							{% else %}
-								<li>Downsampled data registered to registration channel (.TIF stack)</li>
-								<li>Parameters for the transformation from this channel to registration channel</li>
-							{% endif %}
-
-						</ul>  
-					</div>
-				{% endfor %} <!-- Loop over channel forms --> 
-
-			{% endfor %} <!-- Loop over image resolution forms --> 
+			{% endfor %} <!-- Loop over image resolution forms -->
 
 			<hr class='class-1'>
 			<h3 class='mb-4'>Final steps:</h3>
