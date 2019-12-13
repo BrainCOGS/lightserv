@@ -6,7 +6,7 @@ from lightserv.processing.tables import (create_dynamic_channels_table_for_proce
 	dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
-	check_clearing_completed,check_imaging_completed)
+	check_clearing_completed,check_imaging_completed,run_spock_pipeline)
 from lightserv import cel,mail
 import datajoint as dj
 from datetime import datetime
@@ -623,3 +623,18 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 				finally:
 					client.close()
 	return "success"
+
+
+
+# @processing.route("/processing/progress_update/<username>/<request_name>/<sample_name>/\
+# 	<imaging_request_number>/<processing_request_number>",methods=['POST'])
+@processing.route("/processing/progress_update",methods=['GET','POST'])
+def progress_update():	
+	""" A route for handling POST requests specifically from spock 
+	to update the processing_progress flag for a given processing request """
+	# print(request.data)
+	if request.method == 'POST':
+		print("received post request from outside app")
+	elif request.method == 'GET':
+		print("received post request from outside app")
+	return
