@@ -57,6 +57,28 @@ def test_login(test_client):
 	print('----------Teardown login response----------')
 	pass
 
+@pytest.fixture(scope='function')
+def test_login_ll3(test_client):
+	""" Log the user in. Requires a test_client fixture to do this. """
+	print('----------Setup login response----------')
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'll3'
+
+	yield sess
+	print('----------Teardown login response----------')
+	pass
+
+@pytest.fixture(scope='function')
+def test_login_nonadmin(test_client):
+	""" Log the user in. Requires a test_client fixture to do this. """
+	print('----------Setup login response----------')
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'ms81'
+
+	yield sess
+	print('----------Teardown login response----------')
+	pass	
+
 @pytest.fixture(scope='function') 
 def test_delete_request_db_contents(test_client,test_login):
 	""" A fixture to simply delete the db contents 
