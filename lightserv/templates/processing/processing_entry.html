@@ -96,14 +96,14 @@
 						<a id='larger'>Data products that will be created for this channel: <a>
 
 						<ul>
-							<li>Blended raw data (.TIFs for each z plane)</li>
-							<li>Downsampled data (.TIFs for each z plane)</li>
+							<li>Blended "raw" planes (.TIFs for each z plane)</li>
+							<li>Downsampled planes (.TIFs for each z plane)</li>
 							{% if 'registration' in channel_purposes_str %}
-								<li>Downsampled data registered to atlas (.TIF stack)</li>
-								<li>Registration parameters</li>
+								<li>Downsampled volume registered to atlas (.TIF stack)</li>
+								<li>Registration parameters (registration channel -> atlas )</li>
 							{% else %}
-								<li>Downsampled data registered to registration channel (.TIF stack)</li>
-								<li>Parameters for the transformation from this channel to registration channel</li>
+								<li>Downsampled volume registered to atlas (.TIF stack)</li>
+								<li>Registration parameters (this channel -> registration channel)</li>
 							{% endif %}
 
 						</ul>  
