@@ -176,6 +176,43 @@ def test_submit_good_request(test_client,test_login,test_delete_request_db_conte
 	assert b"core facility requests" in response.data
 	assert b"This is a demo experiment" in response.data
 	assert b"New Request Form" not in response.data
+
+def test_rat_request_generic_imaging_only(test_client,test_login,test_delete_request_db_contents):
+	""" Ensure that only generic imaging is allowed (other options disabled)
+	for rat imaging (we cannot register for them because they don't have an atlas yet)
+
+	Does not enter data into the db if it passes, but it might 
+	by accident so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	from lightserv import db_lightsheet
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Demo Experiment",
+			'description':"This is a demo experiment",
+			'species':"rat",'number_of_samples':1,
+			'sample_prefix':'sample',
+			'username':test_login['user'],
+			'uniform_clearing':True,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing (rat)',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	# with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
+	# 	url = 'file://' + f.name 
+	# 	f.write(response.data)
+	# # print(url)
+	# webbrowser.open(url)
+	assert b"Only generic imaging is currently available" in response.data
+	assert b"New Request Form" in response.data
 	
 
 def test_setup_samples_duplicate(test_client,test_login,test_single_request):
