@@ -84,15 +84,27 @@ def new_request():
 						image_resolution_form = image_resolution_forms[resolution_table_index]
 						image_resolution_form.image_resolution.data = image_resolution_forsetup
 						
-						column_name = f'imaging_samples-{ii}-image_resolution_forms-{resolution_table_index}-channel_forms-0-registration'
+						""" Set the focus point for javascript to scroll to """
+						if form.species.data == 'mouse':
+							column_name = f'imaging_samples-{ii}-image_resolution_forms-{resolution_table_index}-channel_forms-0-registration'
+						else:
+							column_name = f'imaging_samples-{ii}-image_resolution_forms-{resolution_table_index}-channel_forms-0-generic_imaging'
+							
 						# Now make 4 new channel formfields and set defaults and channel names
 						for x in range(4):
 							# image_resolution_form.channels.append_entry()
 							channel_name = current_app.config['IMAGING_CHANNELS'][x]
 							image_resolution_form.channel_forms[x].channel_name.data = channel_name
 							# Make the default for channel 488 to be 1.3x imaging with registration checked
-							if channel_name == '488' and image_resolution_forsetup == "1.3x":
+							if form.species.data != 'mouse':
+								logger.info("Species != mouse! Disabling registration/detection options")
+								image_resolution_form.channel_forms[x].registration.render_kw = {'disabled':'disabled'}
+								image_resolution_form.channel_forms[x].injection_detection.render_kw = {'disabled':'disabled'}
+								image_resolution_form.channel_forms[x].probe_detection.render_kw = {'disabled':'disabled'}
+								image_resolution_form.channel_forms[x].cell_detection.render_kw = {'disabled':'disabled'}
+							elif channel_name == '488' and image_resolution_forsetup == "1.3x":
 								image_resolution_form.channel_forms[x].registration.data = 1
+
 				
 			""" Handle "setup samples" button pressed """
 			if submit_key == 'sample_submit_button': # The sample setup button
@@ -100,13 +112,17 @@ def new_request():
 				nsamples = form.number_of_samples.data
 				logger.info(form.uniform_clearing.data)
 				logger.info(type(form.uniform_clearing.data))
+
 				if form.uniform_clearing.data == True: # UNIFORM clearing
 					logger.info("Clearing is uniform")
 					while len(form.clearing_samples.data) > 0:
 						form.clearing_samples.pop_entry()
-					# Just make one set of sample fields
+					""" Just make one set of sample fields """
 					form.clearing_samples.append_entry()
 					form.clearing_samples[0].sample_name.data = form.sample_prefix.data + '-001'
+					""" If species == rat then autofill the clearing protocol to iDISCO NOF (rat) """
+					if form.species.data == 'rat':
+						form.clearing_samples[0].clearing_protocol.data = 'iDISCO abbreviated clearing (rat)'
 
 				else: # CUSTOM clearing
 					logger.info("Clearing is custom")
@@ -116,6 +132,8 @@ def new_request():
 					for ii in range(nsamples):
 						form.clearing_samples.append_entry()
 						form.clearing_samples[ii].sample_name.data = form.sample_prefix.data + '-' + f'{ii+1}'.zfill(3)
+						if form.species.data == 'rat':
+							form.clearing_samples[ii].clearing_protocol.data = 'iDISCO abbreviated clearing (rat)'
 
 				if form.uniform_imaging.data == True: # UNIFORM imaging
 					logger.info("imaging is uniform")
@@ -154,7 +172,8 @@ def new_request():
 						correspondence_email=form.correspondence_email.data.lower(),
 						description=form.description.data,species=form.species.data,
 						number_of_samples=form.number_of_samples.data,
-						sample_prefix=form.sample_prefix.data,uniform_clearing=form.uniform_clearing.data)
+						sample_prefix=form.sample_prefix.data,uniform_clearing=form.uniform_clearing.data,
+						testing=form.testing.data)
 					now = datetime.now()
 					date = now.strftime("%Y-%m-%d")
 					time = now.strftime("%H:%M:%S") 

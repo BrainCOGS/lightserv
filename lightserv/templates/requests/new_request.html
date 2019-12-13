@@ -7,6 +7,7 @@
 			{{ form.hidden_tag() }}
 			<fieldset class="form-group">
 				<legend class="border-bottom mb-2 mt-4">Background Info</legend>
+
 				<div class="form-group">
 					{% if form.labname.flags.required %}*{% endif %}
 					{{ form.labname.label(class="form-control-label") }}
@@ -97,6 +98,11 @@
 					{% else %}
 						{{ form.sample_prefix(class="form-control form-control-lg") }}
 					{% endif %}
+				</div>
+
+				<div class="checkbox">
+					{{ form.testing(class="form-check-input" ) }}
+					{{ form.testing.label(class="form-check-label") }}
 				</div>
 
 				<!-- ############### -->

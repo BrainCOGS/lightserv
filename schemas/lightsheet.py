@@ -43,6 +43,7 @@ class Request(dj.Manual):
     number_of_samples            :   tinyint
     sample_prefix                :   varchar(32)
     uniform_clearing             :   boolean
+    testing = 0                  :   boolean
     """  
 
 @schema
@@ -122,7 +123,7 @@ class Sample(dj.Manual):
         ----        
         atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
         notes_for_processor = ""                  :   varchar(1024)
-        notes_from_processing = ""                :   varchar(1024)
+        notes_from_processing = ""                :   varchar(1024) 
         """
 
     class ProcessingChannel(dj.Part):

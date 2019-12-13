@@ -81,15 +81,21 @@ class ImagingForm(FlaskForm):
 class NewRequestForm(FlaskForm):
 	""" The form for a new request """
 	max_number_of_samples = 50
-	request_name = StringField('Title - a unique identifier for this request -- max 100 characters --',validators=[InputRequired(),Length(max=100)],default="test")
-	description = TextAreaField('Description of request',validators=[InputRequired(),Length(max=250)],default='test')
+	request_name = StringField('Title - a unique identifier for this request -- max 100 characters --',
+		validators=[InputRequired(),Length(max=100)],default="test")
+	description = TextAreaField('Description of request',validators=[InputRequired(),Length(max=250)],default="test")
 	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)],default="Braincogs")
 	correspondence_email = StringField('Correspondence email (default is princeton email)',
 		validators=[DataRequired(),Length(max=100),Email()])
 
-	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],validators=[InputRequired(),Length(max=50)]) # for choices first element of tuple is the value of the option, the second is the displayed text
+	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],
+		validators=[InputRequired(),Length(max=50)],default="mouse") # for choices first element of tuple is the value of the option, the second is the displayed text
 	number_of_samples = IntegerField('Number of samples (a.k.a. tubes)',widget=html5.NumberInput(),validators=[InputRequired()],default=1)
 	sample_prefix = StringField('Sample prefix (your samples will be named prefix-1, prefix-2, ...)',validators=[InputRequired(),Length(max=32)],default='sample')
+	# subject_fullnames_known = BooleanField("Check if any of your samples have subject_fullname entries in the u19_subject database table")
+	# subject_fullnames = FieldList(StringField('subject name - the subject_fullname entry in the u19_subject database table (leave blank if unknown) --',
+		# validators=[InputRequired(),Length(max=100)]),min_entries=0,max_entries=max_number_of_samples)
+	testing = BooleanField("Check if this request is for testing purposes (e.g. new clearing protocol, processing technique)")
 	""" Clearing """
 	self_clearing = BooleanField('Check if you plan to do the clearing yourself',default=False)
 	clearing_samples = FieldList(FormField(ClearingForm),min_entries=0,max_entries=max_number_of_samples)
