@@ -164,13 +164,18 @@ class NewRequestForm(FlaskForm):
 			for resolution_form_dict in sample_dict['image_resolution_forms']:
 				image_resolution = resolution_form_dict['image_resolution']
 				current_image_resolutions_rendered.append(image_resolution)
-				
 				channel_dict_list = resolution_form_dict['channel_forms']
 				selected_imaging_modes = [key for channel_dict in channel_dict_list \
 					for key in channel_dict if key in current_app.config['IMAGING_MODES'] and channel_dict[key] == True]
 				if selected_imaging_modes == []:
 					raise ValidationError(f"The image resolution table: {image_resolution}"
 										  f" for sample name: {sample_name} is empty. Please select at least one option. ")
+				elif self.species.data != 'mouse' and \
+					  ('injection_detection' in selected_imaging_modes or \
+					  'probe_detection' in selected_imaging_modes  or \
+					  'cell_detection' in selected_imaging_modes or \
+					  'registration' in selected_imaging_modes):
+					raise ValidationError(f"Only generic imaging is currently available for species: {self.species.data}")
 				elif ('injection_detection' in selected_imaging_modes or \
 					  'probe_detection' in selected_imaging_modes  or \
 					  'cell_detection' in selected_imaging_modes) and \
