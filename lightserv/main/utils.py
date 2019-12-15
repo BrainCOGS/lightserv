@@ -1,6 +1,6 @@
 from flask import session,request,url_for,redirect, flash, current_app
 from functools import wraps
-from lightserv import db_lightsheet
+from lightserv import db_lightsheet, db_logger
 import datajoint as dj
 
 import logging
@@ -27,6 +27,15 @@ def table_sorter(dic,sort_key):
         return dic[sort_key].lower()
     else:
 	    return (dic[sort_key] is None, dic[sort_key])
+
+def log_http_requests(f):
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		current_user = session['user']
+		logstr = f'{current_user} {request.method} request to route: "{f.__name__}" in {f.__module__}'
+		db_logger(logstr)
+		return f(*args, **kwargs)
+	return decorated_function
 
 def logged_in(f):
 	@wraps(f)

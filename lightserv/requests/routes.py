@@ -8,7 +8,7 @@ from lightserv.requests.forms import NewRequestForm, UpdateNotesForm
 from lightserv.requests.tables import (ExpTable, create_dynamic_samples_table)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
-	check_clearing_completed,check_imaging_completed)
+	check_clearing_completed,check_imaging_completed,log_http_requests)
 from lightserv import cel,mail
 import datajoint as dj
 
@@ -50,6 +50,7 @@ requests = Blueprint('requests',__name__)
 
 @requests.route("/request/new",methods=['GET','POST'])
 @logged_in
+@log_http_requests
 def new_request():
 	""" Route for a user to enter a new request via a form """
 	all_imaging_modes = current_app.config['IMAGING_MODES']
@@ -378,6 +379,7 @@ def new_request():
 
 @requests.route("/request_overview/<username>/<request_name>",)
 @logged_in
+@log_http_requests
 def request_overview(username,request_name):
 	""" A route for displaying a single request. Also acts as a gateway to start data processing. """
 	

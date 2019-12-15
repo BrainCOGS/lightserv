@@ -6,7 +6,7 @@ from lightserv.processing.tables import (create_dynamic_channels_table_for_proce
 	dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
-	check_clearing_completed,check_imaging_completed,)
+	check_clearing_completed,check_imaging_completed,log_http_requests)
 from lightserv.processing.utils import run_spock_pipeline
 from lightserv import cel,mail
 import datajoint as dj
@@ -41,6 +41,7 @@ processing = Blueprint('processing',__name__)
 
 @processing.route("/processing/processing_manager",methods=['GET','POST'])
 @logged_in
+@log_http_requests
 def processing_manager():
 	""" A user interface for handling past, present and future clearing batches.
 	Can be  used by a clearing admin to handle all clearing batches (except those claimed
@@ -110,7 +111,7 @@ def processing_manager():
 @logged_in
 @check_clearing_completed
 @check_imaging_completed
-# @logged_in_as_processor
+@log_http_requests
 def processing_entry(username,request_name,sample_name,imaging_request_number,processing_request_number):
 	""" Route for the person assigned as data processor for a sample 
 	to start the data processing. """
@@ -237,6 +238,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 
 @processing.route("/processing/new_processing_request/<username>/<request_name>/<sample_name>/<imaging_request_number>",methods=['GET','POST'])
 @logged_in
+@log_http_requests
 def new_processing_request(username,request_name,sample_name,imaging_request_number): 
 	""" Route for user to submit a new processing request to an 
 	already existing sample/imaging request combo 

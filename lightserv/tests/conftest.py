@@ -10,9 +10,7 @@ import os, sys
 if os.environ.get('FLASK_MODE') != 'TEST':
 	raise KeyError("Must set environmental variable FLASK_MODE=TEST")
 from flask import url_for
-from flask_testing import TestCase
 from lightserv import create_app, config
-# from ..models import User, Experiment
 import secrets
 import pytest
 from flask import url_for

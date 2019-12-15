@@ -5,7 +5,7 @@ from lightserv import db_lightsheet, mail, cel
 
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 								  logged_in_as_imager,check_clearing_completed,
-								  image_manager)
+								  image_manager,log_http_requests)
 from lightserv.imaging.tables import (ImagingTable, dynamic_imaging_management_table,
 	SampleTable, ExistingImagingTable)
 from .forms import ImagingForm, NewImagingRequestForm
@@ -38,6 +38,7 @@ imaging = Blueprint('imaging',__name__)
 
 @imaging.route("/imaging/imaging_manager",methods=['GET','POST'])
 @logged_in
+@log_http_requests
 def imaging_manager(): 
 	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
@@ -91,6 +92,7 @@ def imaging_manager():
 @logged_in
 @logged_in_as_imager
 @check_clearing_completed
+@log_http_requests
 def imaging_entry(username,request_name,sample_name,imaging_request_number): 
 	form = ImagingForm(request.form)
 
@@ -234,6 +236,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 
 @imaging.route("/imaging/new_imaging_request/<username>/<request_name>/<sample_name>/",methods=['GET','POST'])
 @logged_in
+@log_http_requests
 def new_imaging_request(username,request_name,sample_name): 
 	""" Route for user to submit a new imaging request to an 
 	already existing sample - this takes place after the initial request

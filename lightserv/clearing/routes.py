@@ -7,7 +7,8 @@ from lightserv.clearing.tables import ClearingTable,IdiscoPlusTable, dynamic_cle
 from lightserv import db_lightsheet
 from .utils import (determine_clearing_form, add_clearing_calendar_entry,
 				   determine_clearing_dbtable, determine_clearing_table) 
-from lightserv.main.utils import logged_in, logged_in_as_clearer, logged_in_as_clearing_manager
+from lightserv.main.utils import (logged_in, logged_in_as_clearer,
+	 logged_in_as_clearing_manager, log_http_requests)
 import numpy as np
 import datajoint as dj
 import re
@@ -35,6 +36,7 @@ clearing = Blueprint('clearing',__name__)
 
 @clearing.route("/clearing/clearing_manager",methods=['GET','POST'])
 @logged_in
+@log_http_requests
 def clearing_manager():
 	""" A user interface for handling past, present and future clearing batches.
 	Can be used by a clearing admin to handle all clearing batches (except those claimed
@@ -88,6 +90,7 @@ def clearing_manager():
 @clearing.route("/clearing/clearing_entry/<username>/<request_name>/<sample_name>/<clearing_protocol>",
 	methods=['GET','POST'])
 @logged_in_as_clearer
+@log_http_requests
 def clearing_entry(username,request_name,sample_name,clearing_protocol): 
 	sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'clearing_protocol="{clearing_protocol}"'								
@@ -224,6 +227,7 @@ def clearing_entry(username,request_name,sample_name,clearing_protocol):
 
 @clearing.route("/clearing/clearing_table/<username>/<request_name>/<sample_name>/<clearing_protocol>/",methods=['GET'])
 @logged_in_as_clearer
+@log_http_requests
 def clearing_table(username,request_name,sample_name,clearing_protocol): 
 	sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'clearing_protocol="{clearing_protocol}"'		

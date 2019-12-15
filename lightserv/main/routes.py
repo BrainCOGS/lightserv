@@ -4,7 +4,7 @@ from flask import (render_template, request, redirect,
 from lightserv import db_lightsheet
 from lightserv.requests.tables import ExpTable
 import pandas as pd
-from .utils import logged_in, table_sorter
+from lightserv.main.utils import logged_in, table_sorter, log_http_requests
 from functools import partial, wraps
 from lightserv.tasks import reverse
 
@@ -36,6 +36,7 @@ main = Blueprint('main',__name__)
 @main.route("/") 
 @main.route("/welcome")
 @logged_in
+@log_http_requests
 def welcome(): 
 	current_user = session['user']
 	logger.info(f"{current_user} accessed welcome page")
@@ -43,6 +44,7 @@ def welcome():
 
 @main.route("/home")
 @logged_in
+@log_http_requests
 def home(): 
 	current_user = session['user']
 	logger.info(f"{current_user} accessed home page")
@@ -65,6 +67,7 @@ def home():
 	return render_template('main/home.html',request_contents=request_contents,request_table=table,legend=legend)
 
 @main.route('/login', methods=['GET', 'POST'])
+@log_http_requests
 def login():
 	next_url = request.args.get("next")
 	logger.info("Logging you in first!")
@@ -91,6 +94,7 @@ def login():
 	return redirect(next_url)
 
 @main.route("/allenatlas")
+@log_http_requests
 def allenatlas():
 	""" Makes a neuroglancer viewer for the allen brain atlas and then generates a link for the user to click 
 	to enter neuroglancer."""
@@ -118,6 +122,7 @@ def allenatlas():
 
 @main.route("/npp_table",methods=['GET'])
 @logged_in
+@log_http_requests
 def npp_table(): 
 	r = requests.get('http://localhost:8001/api/routes')
 	return Response(
@@ -128,6 +133,7 @@ def npp_table():
 
 @main.route("/post_to_table/",methods=['POST','GET'])
 @logged_in
+@log_http_requests
 def post_npp_table(): 
 	""" Send a post request to the npp table, opening a port """
 	data = {

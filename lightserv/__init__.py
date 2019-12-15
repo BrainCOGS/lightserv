@@ -5,8 +5,11 @@ from flask_mail import Mail
 from flask_wtf.csrf import CSRFProtect
 from lightserv.config import Config
 import datajoint as dj
+from datajoint.table import Log
 import socket
 from celery import Celery
+
+
 
 
 cel = Celery(__name__,broker='amqp://localhost//',
@@ -31,15 +34,17 @@ def set_schema():
 	if os.environ['FLASK_MODE'] == 'DEV':
 		db_lightsheet = dj.create_virtual_module('lightsheet_demo','ahoag_lightsheet_demo',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
 		db_microscope = dj.create_virtual_module('microscope_demo','ahoag_microscope_demo',create_schema=True)
+		db_logger = Log(dj.conn(), database='ahoag_lightsheet_demo') # Initialize logger
 		# db = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
 	elif os.environ['FLASK_MODE'] == 'TEST':
 		# test_schema = create_test_schema() 
 		from schemas import lightsheet
 		db_lightsheet = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
 		db_microscope = dj.create_virtual_module('ahoag_microscope_test','ahoag_microscope_test',create_schema=True)
+		db_logger = Log(dj.conn(), database='ahoag_lightsheet_test') # Initialize logger
 
-	return db_lightsheet,db_microscope
-db_lightsheet,db_microscope = set_schema()
+	return db_lightsheet,db_microscope, db_logger
+db_lightsheet,db_microscope,db_logger = set_schema()
 
 # bcrypt = Bcrypt()
 # login_manager = LoginManager()
