@@ -9,13 +9,21 @@ This file must have the name conftest.py
 import os, sys
 if os.environ.get('FLASK_MODE') != 'TEST':
 	raise KeyError("Must set environmental variable FLASK_MODE=TEST")
-from flask import url_for
+from flask import url_for,request
 from lightserv import create_app, config
 import secrets
 import pytest
 from flask import url_for
 import datajoint as dj
 
+class FlaskTestClientProxy(object):
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        environ['REMOTE_ADDR'] = environ.get('REMOTE_ADDR', '127.0.0.1')
+        environ['HTTP_USER_AGENT'] = environ.get('HTTP_USER_AGENT', 'Chrome')
+        return self.app(environ, start_response)
 
 @pytest.fixture(scope='session') 
 def test_client():
@@ -35,6 +43,7 @@ def test_client():
 	"""
 	print('----------Setup test client----------')
 	app = create_app(config_class=config.TestConfig)
+	# app.wsgi_app = FlaskTestClientProxy(app.wsgi_app)
 	testing_client = app.test_client()
 
 	ctx = app.test_request_context() # makes it so I can use the url_for() function in the tests

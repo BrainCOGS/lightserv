@@ -14,6 +14,7 @@ import requests
 import numpy as np
 
 import logging
+from time import sleep
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -38,14 +39,18 @@ main = Blueprint('main',__name__)
 @logged_in
 @log_http_requests
 def welcome(): 
+	browser_string = request.headers['User-Agent']
+	logger.debug(browser_string)
+	user_agent = request.user_agent
 	current_user = session['user']
 	logger.info(f"{current_user} accessed welcome page")
 	return render_template('main/welcome.html',)
 
 @main.route("/home")
-@logged_in
 @log_http_requests
+@logged_in
 def home(): 
+	print(request.user_agent == None)
 	current_user = session['user']
 	logger.info(f"{current_user} accessed home page")
 	if current_user in ['ahoag','zmd','ll3','kellyms','jduva']:
@@ -67,15 +72,18 @@ def home():
 	return render_template('main/home.html',request_contents=request_contents,request_table=table,legend=legend)
 
 @main.route('/login', methods=['GET', 'POST'])
-@log_http_requests
 def login():
 	next_url = request.args.get("next")
 	logger.info("Logging you in first!")
-	browser_string = request.headers['User-Agent']
-	if 'firefox' in browser_string.lower():
-		logger.info("User is using firefox")
-		flash('''Warning: parts of this web portal are not supported by your browser: Firefox.
-		 We recommend switching to Google Chrome for a better experience.''','danger')
+	user_agent = request.user_agent
+	browser_name = user_agent.browser # e.g. chrome
+	browser_version = user_agent.version # e.g. '78.0.3904.108'
+	platform = user_agent.platform # e.g. linux
+	
+	if browser_name.lower() != 'chrome':
+		logger.info(f"User is using browser {browser_name}")
+		flash(f"Warning: parts of this web portal were not completely tested on your browser: {browser_name}. "
+		 "Firefox users will experience some known issues. We recommend switching to Google Chrome for a better experience.",'danger')
 	hostname = socket.gethostname()
 	if hostname == 'braincogs00.pni.princeton.edu':
 		username = request.headers['X-Remote-User']
@@ -90,7 +98,11 @@ def login():
 		user_dict = {'username':username,'princeton_email':email}
 		db_lightsheet.User().insert1(user_dict)
 		logger.info(f"Added {username} to User table in database")
-	logger.info(session)
+	# logger.info(session)
+	logstr = f'{username} logged in via "login()" route in lightserv.main.routes'
+	insert_dict = {'browser_name':browser_name,'browser_version':browser_version,
+				   'event':logstr,'platform':platform}
+	db_lightsheet.UserActionLog().insert1(insert_dict)
 	return redirect(next_url)
 
 @main.route("/allenatlas")

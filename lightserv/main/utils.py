@@ -1,6 +1,6 @@
 from flask import session,request,url_for,redirect, flash, current_app
 from functools import wraps
-from lightserv import db_lightsheet, db_logger
+from lightserv import db_lightsheet
 import datajoint as dj
 
 import logging
@@ -31,14 +31,20 @@ def table_sorter(dic,sort_key):
 def log_http_requests(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
-		print("In the http logger decorator")
 		try:
 			current_user = session['user']
 		except:
 			current_user = 'logged out user'
-
-		logstr = f'{current_user} {request.method} request to route: "{f.__name__}" in {f.__module__}'
-		db_logger(logstr)
+		logstr = '{0} {1} request to route: "{2}()" in {3}'.\
+			format(current_user,request.method,f.__name__,f.__module__)
+		user_agent = request.user_agent
+		browser_name = user_agent.browser # e.g. chrome
+		browser_version = user_agent.version # e.g. '78.0.3904.108'
+		platform = user_agent.platform # e.g. linux
+		
+		insert_dict = {'browser_name':browser_name,'browser_version':browser_version,
+					   'event':logstr,'platform':platform}
+		db_lightsheet.UserActionLog().insert1(insert_dict)
 		return f(*args, **kwargs)
 	return decorated_function
 

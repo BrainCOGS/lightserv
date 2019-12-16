@@ -19,6 +19,19 @@ else:
     schema.drop()
     schema = dj.schema('ahoag_lightsheet_demo')
 
+
+@schema 
+class UserActionLog(dj.Manual):
+    definition = """    # event logging table 
+    event_number  : int auto_increment
+    ---
+    timestamp = CURRENT_TIMESTAMP : timestamp 
+    browser_name    : varchar(255)
+    browser_version : varchar(255)
+    platform        : varchar(255)
+    event=""  : varchar(255)  # custom message
+    """
+
 @schema
 class User(dj.Lookup):
     definition = """

@@ -41,10 +41,9 @@ def set_schema():
 		from schemas import lightsheet
 		db_lightsheet = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
 		db_microscope = dj.create_virtual_module('ahoag_microscope_test','ahoag_microscope_test',create_schema=True)
-		db_logger = Log(dj.conn(), database='ahoag_lightsheet_test') # Initialize logger
 
-	return db_lightsheet,db_microscope, db_logger
-db_lightsheet,db_microscope,db_logger = set_schema()
+	return db_lightsheet,db_microscope
+db_lightsheet,db_microscope = set_schema()
 
 # bcrypt = Bcrypt()
 # login_manager = LoginManager()
