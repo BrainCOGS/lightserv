@@ -31,7 +31,12 @@ def table_sorter(dic,sort_key):
 def log_http_requests(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
-		current_user = session['user']
+		print("In the http logger decorator")
+		try:
+			current_user = session['user']
+		except:
+			current_user = 'logged out user'
+
 		logstr = f'{current_user} {request.method} request to route: "{f.__name__}" in {f.__module__}'
 		db_logger(logstr)
 		return f(*args, **kwargs)
