@@ -382,7 +382,7 @@ def new_request():
 @log_http_requests
 def request_overview(username,request_name):
 	""" A route for displaying a single request. Also acts as a gateway to start data processing. """
-	asdf
+
 	request_contents = db_lightsheet.Request() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"'
 	request_contents = request_contents.proj('description','species','number_of_samples',
@@ -399,7 +399,8 @@ def request_overview(username,request_name):
     channel_contents,imaging_request_number='imaging_request_number') * samples_contents)
 
 	request_table_id = 'horizontal_request_table'
-	samples_table_id = 'vertical_samples_table'
+	# samples_table_id = 'vertical_samples_table'
+	samples_table_id = 'horizontal_samples_table'
 
 	if table_id == request_table_id: # the click to sort a column was in the experiment table
 		sorted_results = sorted(request_contents.fetch(as_dict=True),

@@ -34,9 +34,9 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
         border = True,
         allow_sort = True,
         no_items = "No samples at the moment",
-        html_attrs = {"style":'font-size:18px; table-layout: fixed; width: 100%;',}, 
+        html_attrs = {"style":'font-size:18px;'}, 
         table_id = table_id,
-        classes = ['mb-4']
+        classes = ["table-striped","mb-4"]
         ) 
 
     table_class = create_table(name,options=options)
@@ -58,9 +58,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     table_class.add_column('username',Col('username'))
     table_class.add_column('clearer',DesignatedRoleCol('clearer'))
     
-    if table_class.table_id == 'horizontal_ready_to_clear_table':
-        table_class.add_column('clearing_progress',BoldTextCol('clearing progress'))
-    else: 
+    if not table_class.table_id == 'horizontal_ready_to_clear_table':
         table_class.add_column('clearing_progress',Col('clearing progress'))
 
     table_class.add_column('species',Col('species'))    

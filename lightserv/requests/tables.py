@@ -56,7 +56,7 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
         border = True,
         allow_sort = True,
         no_items = "No Samples",
-        html_attrs = {"style":'font-size:18px'}, 
+        html_attrs = {"style":'font-size:18px;'}, 
         table_id = table_id,
         classes = ["table-striped","mb-4"]
         ) 

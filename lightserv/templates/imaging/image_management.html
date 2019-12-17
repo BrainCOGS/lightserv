@@ -4,30 +4,28 @@
 <hr class="class-5">	
 
 <h3>Samples ready to be imaged:</h3>
-<div style="display:inline-block;">
-
- {{ table_ready_to_image }}
-
-	</div>
+<div style="max-height: 300px; overflow: auto;">
+	{{ table_ready_to_image }}
+</div>
 
 <hr class="class-5">	
 
 <h3>Samples currently being imaged:</h3>
-<div style="display:inline-block;">
+<div style="max-height: 300px; overflow: auto;">
 	{{ table_being_imaged }}
-<div>
+</div>
 
 <hr class="class-5">	
 
 <h3>Samples on deck (in clearing stage):</h3>
-<div style="display:inline-block;">
+<div style="max-height: 300px; overflow: auto;">
 	{{ table_on_deck }}
 </div>
 
 <hr class="class-5">	
 
 <h3>Samples already imaged:</h3>
-<div style="display:inline-block;">
+<div style="max-height: 300px; overflow: auto;">
 	{{ table_already_imaged }}
 </div>
 
@@ -44,7 +42,6 @@
 	  </ul>
 	</div>
 	</div>
-
 
 
 {% endblock content %}

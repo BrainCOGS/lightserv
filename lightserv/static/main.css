@@ -171,3 +171,30 @@ height: 1.25rem;
 .my-legend a {
   color: #777;
   }
+
+#body {
+    position: absolute;
+    top; 150px;
+    left: 150px;
+    height: 300px;
+    width: 500px;
+    border: black dashed 2px;
+    display: flex;
+    flex-direction: column;
+}
+
+#head {
+    border: green solid 1px;
+    flex-shrink: 0;
+}
+
+#content{
+    overflow-y: auto;
+    /*height: 100%;*/
+}
+
+#foot {
+    border: blue solid 1px;
+    height: 50px;
+    flex-shrink: 0;
+}

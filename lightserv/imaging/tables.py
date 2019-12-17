@@ -27,9 +27,9 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
         border = True,
         allow_sort = True,
         no_items = "No samples at the moment",
-        html_attrs = {"style":'font-size:18px'}, 
+        html_attrs = {"style":'font-size:18px; width=100%'}, 
         table_id = table_id,
-        classes = ["table-striped"]
+        classes = ["table-striped","mb-4"]
         ) 
 
     table_class = create_table(name,options=options)
@@ -60,7 +60,7 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
 
     anchor_attrs = {'target':"_blank",}
     if table_id == 'horizontal_ready_to_image_table':
-        print(imaging_url_kwargs)
+
         table_class.add_column('start_imaging_link',LinkCol('Start imaging',
          'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))

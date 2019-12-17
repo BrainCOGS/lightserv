@@ -2,13 +2,14 @@
 	{% block content %}
 		
 		<h3>Request overview: </h3>
-		{{ request_table }}
-
+			{{ request_table }}
 		
 		<hr class='class-4'>
 		<h3>Samples in this request: </h3>
 		<!-- Samples Section -->
-		{{ samples_table }}
+		<div style="max-height: 300px; overflow: auto;">
+			{{ samples_table }}
+		</div>
 		<hr class='class-4'>
 		<hr class='class-4'>
 

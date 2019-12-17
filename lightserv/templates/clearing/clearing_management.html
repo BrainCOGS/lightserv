@@ -1,48 +1,44 @@
 {% extends "layout.html" %}
 {% block content %}
 
-	<h1 align="center"> Clearing management GUI </h1>
-	<hr class="class-5" style="width: 100%">	
+<h1 align="center"> Clearing management GUI </h1>
+<hr class="class-5">	
 
-	<h3>Batches ready to be cleared:</h3>
-	<div style="display:inline-block;">
+<h3>Batches ready to be cleared:</h3>
+<div style="max-height: 300px; overflow: auto;">
+	{{ table_ready_to_clear }}
+</div>
 
-	 {{ table_ready_to_clear }}
+<hr class="class-5">	
 
-	</div>
+<h3>Batches currently being cleared:</h3>
+<div style="max-height: 300px; overflow: auto;">
+	{{ table_being_cleared }}
+</div>
 
-	<hr class="class-5" style="width: 100%">	
+<hr class="class-5">	
 
-	<h3>Batches currently being cleared:</h3>
-	<div style="display:inline-block;">
-		{{ table_being_cleared }}
-	<div>
+<h3>Batches already cleared:</h3>
+<div style="max-height: 300px; overflow: auto;">
+	{{ table_already_cleared }}
+</div>
 
+<hr class="class-5">
 
-	<hr class="class-5" style="width: 100%">	
+<h3> Key: </h3>
+<hr class="class-2">	
+N/A : "Not Assigned"
 
-	<h3>Batches already cleared:</h3>
-	<!-- <div style="display:inline-block;"> -->
-	<div>
-		{{ table_already_cleared }}
-	</div>
-
-	<hr class="class-5">
-
-	<h3> Key: </h3>
-	<hr class="class-2">	
-	N/A : "Not Assigned"
-
-	<div class='my-legend'>
-	<div class='legend-scale'>
-	  <ul class='legend-labels'>
-	    <li><span style='background:#FCA5A4;'></span>iDISCO abbreviated clearing</li>
-	    <li><span style='background:#A4FCAC;'></span>iDISCO abbreviated clearing (rat)</li>
-	    <li><span style='background:#A4FCFA;'></span>iDISCO+ immunostaining'</li>
-	    <li><span style='background:#B5B9D4;'></span>uDISCO</li>
-	    <li class='mb-4'><span style='background:#F4F96A;'></span>iDISCO_EdU</li>
-	  </ul>
-	</div>
-	</div>
+<div class='my-legend'>
+<div class='legend-scale'>
+  <ul class='legend-labels'>
+    <li><span style='background:#FCA5A4;'></span>iDISCO abbreviated clearing</li>
+    <li><span style='background:#A4FCAC;'></span>iDISCO abbreviated clearing (rat)</li>
+    <li><span style='background:#A4FCFA;'></span>iDISCO+ immunostaining'</li>
+    <li><span style='background:#B5B9D4;'></span>uDISCO</li>
+    <li class='mb-4'><span style='background:#F4F96A;'></span>iDISCO_EdU</li>
+  </ul>
+</div>
+</div>
 
 {% endblock content %}
