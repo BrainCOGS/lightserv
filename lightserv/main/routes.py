@@ -50,7 +50,6 @@ def welcome():
 @log_http_requests
 @logged_in
 def home(): 
-	print(request.user_agent == None)
 	current_user = session['user']
 	logger.info(f"{current_user} accessed home page")
 	if current_user in ['ahoag','zmd','ll3','kellyms','jduva']:

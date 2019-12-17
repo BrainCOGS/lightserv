@@ -45,9 +45,12 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
             direction = 'desc'
         else:
             direction = 'asc'
-
-        next_url = request.url.split('?')[0]
+        # print(url_for('requests.request_overview'))
+        next_url = '/' + '/'.join(request.url.split('?')[0].split('/')[3:])
+        # next_url = '/request_overview/kellyms/test_for_20191216'
+        # print(url_for('main.home'))
         next_url += f'?sort={col_key}&direction={direction}&table_id={table_id}'
+        print(next_url)
         return next_url
 
     options = dict(
