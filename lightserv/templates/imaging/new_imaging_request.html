@@ -126,10 +126,13 @@
 			<!-- Final submit button -->
 			<hr class='class-3'>
 			<hr class='class-4'>
-			<div class="form-group">
-				{{ form.submit(class="btn btn-success mt-2") }}
-			</div>
+			{% if form.image_resolution_forms|length > 0 %}
+				<div class="form-group">
+					{{ form.submit(class="btn btn-success mt-2") }}
+				</div>
+			{% endif %}
 		</form>
+
 	</div>
 
 {% if column_name %}

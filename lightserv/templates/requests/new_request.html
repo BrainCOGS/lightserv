@@ -109,29 +109,30 @@
 				<!-- SAMPLES section -->
 				<!-- ############### -->
 				<hr class='class-3'>
-				<h3 class='border-bottom'>Samples setup</h3>
-				<div class="checkbox">
-					{{ form.uniform_clearing(class="form-check-input" ) }}
-					{{ form.uniform_clearing.label(class="form-check-label") }}
-				</div>
-				<div class="checkbox">
-					{{ form.uniform_imaging(class="form-check-input") }}
-					{{ form.uniform_imaging.label(class="form-check-label") }}
-				</div>
-				<hr class='class-2'>
-				<div class="checkbox">
-                    {{ form.self_clearing(class="form-check-input") }}
-                    {{ form.self_clearing.label(class="form-check-label") }}
-                </div>
-                <div class="checkbox">
-                    {{ form.self_imaging(class="form-check-input") }}
-                    {{ form.self_imaging.label(class="form-check-label") }}
-                </div>
+				{% if form.imaging_samples.data|length == 0 %}
+					<h3 class='border-bottom'>Samples setup</h3>
+					<div class="checkbox">
+						{{ form.uniform_clearing(class="form-check-input" ) }}
+						{{ form.uniform_clearing.label(class="form-check-label") }}
+					</div>
+					<div class="checkbox">
+						{{ form.uniform_imaging(class="form-check-input") }}
+						{{ form.uniform_imaging.label(class="form-check-label") }}
+					</div>
+					<hr class='class-2'>
+					<div class="checkbox">
+	                    {{ form.self_clearing(class="form-check-input") }}
+	                    {{ form.self_clearing.label(class="form-check-label") }}
+	                </div>
+	                <div class="checkbox">
+	                    {{ form.self_imaging(class="form-check-input") }}
+	                    {{ form.self_imaging.label(class="form-check-label") }}
+	                </div>
 
-				<div class="form-group mt-2">
-					{{ form.sample_submit_button(class="btn btn-success mt-2") }}
-				</div>
-				
+					<div class="form-group mt-2">
+						{{ form.sample_submit_button(class="btn btn-success mt-2") }}
+					</div>
+				{% endif %}
 				<!-- ################ -->
 				<!-- CLEARING section -->
 				<!-- ################ -->
@@ -390,9 +391,15 @@
 			</fieldset>
 			<hr class='class-3'>
 			<hr class='class-4'>
-			<div class="form-group">
-				{{ form.submit(class="btn btn-success mt-2") }}
-			</div>
+			<!-- Final submit button -->
+			<!-- Only show it if form is ready to be submitted -->
+			{% if form.imaging_samples.data|length > 0 %}
+				{% if form.imaging_samples[0].image_resolution_forms|length > 0 %}
+					<div class="form-group">
+						{{ form.submit(class="btn btn-success mt-2") }}
+					</div>
+				{% endif %}
+			{% endif %}
 	
 		</form>
 	</div>
