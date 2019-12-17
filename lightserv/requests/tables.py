@@ -5,6 +5,7 @@ from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import DateTimeCol
 from lightserv import db_lightsheet
+import os
 
 class ExpTable(Table):
     border = True
@@ -35,7 +36,7 @@ class ExpTable(Table):
             direction = 'desc'
         else:
             direction = 'asc'
-        next_url = request.url.split('?')[0]
+        next_url = os.path.join('/',*request.url.split('?')[0].split('/')[3:])
         next_url += f'?sort={col_key}&direction={direction}&table_id={self.table_id}'
         return next_url
 
@@ -45,10 +46,8 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
             direction = 'desc'
         else:
             direction = 'asc'
-        # print(url_for('requests.request_overview'))
-        next_url = '/' + '/'.join(request.url.split('?')[0].split('/')[3:])
-        # next_url = '/request_overview/kellyms/test_for_20191216'
-        # print(url_for('main.home'))
+
+        next_url = os.path.join('/',*request.url.split('?')[0].split('/')[3:])
         next_url += f'?sort={col_key}&direction={direction}&table_id={table_id}'
         print(next_url)
         return next_url

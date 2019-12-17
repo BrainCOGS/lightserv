@@ -3,6 +3,7 @@ from flask_table import create_table,Table, Col, LinkCol, ButtonCol
 from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import BooltoStringCol, DateTimeCol, DesignatedRoleCol
+import os
 
 def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     name='Dynamic Imaging Management Table', **sort_kwargs):
@@ -12,7 +13,7 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
         else:
             direction = 'asc'
 
-        next_url = request.url.split('?')[0]
+        next_url = os.path.join('/',*request.url.split('?')[0].split('/')[3:])
         next_url += f'?sort={col_key}&direction={direction}&table_id={table_id}'
         return next_url
     
