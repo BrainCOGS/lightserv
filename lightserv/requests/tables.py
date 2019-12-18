@@ -25,8 +25,8 @@ class ExpTable(Table):
     species = Col('species',column_html_attrs=column_html_attrs)
     number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
     fraction_cleared = Col('fraction cleared',column_html_attrs=column_html_attrs)
-    fraction_imaged = Col('fraction imaged',column_html_attrs=column_html_attrs)
-    fraction_processed = Col('fraction processed',column_html_attrs=column_html_attrs)
+    fraction_imaged = Col('fraction imaged*',column_html_attrs=column_html_attrs)
+    fraction_processed = Col('fraction processed**',column_html_attrs=column_html_attrs)
     
     # sample_prefix = Col('sample prefix')
 
