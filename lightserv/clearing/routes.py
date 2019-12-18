@@ -234,7 +234,7 @@ def clearing_table(username,request_name,sample_name,clearing_protocol):
 	if not sample_contents:
 		flash(f"No sample contents for request_name={request_name}, sample_name={sample_name}\
 			   with clearing_protocol={clearing_protocol} for username={username}",'danger')
-		return redirect(url_for('main.home'))
+		return redirect(url_for('requests.all_requests'))
 	overview_table = ClearingTable(sample_contents)
 	clearing_table.table_id = 'horizontal'
 	dbTable = determine_clearing_dbtable(clearing_protocol)

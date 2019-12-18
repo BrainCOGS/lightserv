@@ -15,15 +15,7 @@ import secrets
 import pytest
 from flask import url_for
 import datajoint as dj
-
-class FlaskTestClientProxy(object):
-    def __init__(self, app):
-        self.app = app
-
-    def __call__(self, environ, start_response):
-        environ['REMOTE_ADDR'] = environ.get('REMOTE_ADDR', '127.0.0.1')
-        environ['HTTP_USER_AGENT'] = environ.get('HTTP_USER_AGENT', 'Chrome')
-        return self.app(environ, start_response)
+user_agent_str = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'
 
 @pytest.fixture(scope='session') 
 def test_client():
@@ -43,11 +35,11 @@ def test_client():
 	"""
 	print('----------Setup test client----------')
 	app = create_app(config_class=config.TestConfig)
-	# app.wsgi_app = FlaskTestClientProxy(app.wsgi_app)
+	# testing_client = app.test_client()
 	testing_client = app.test_client()
 
 	ctx = app.test_request_context() # makes it so I can use the url_for() function in the tests
-
+	print(dir(ctx))
 	ctx.push()
 	yield testing_client # this is where the testing happens
 	print('-------Teardown test client--------')
@@ -129,6 +121,7 @@ def test_single_request(test_client,test_login,test_delete_request_db_contents):
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',
+			environ_base={'HTTP_USER_AGENT': user_agent_str},
 			follow_redirects=True
 		)	
 

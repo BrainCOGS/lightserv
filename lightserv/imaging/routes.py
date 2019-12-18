@@ -103,7 +103,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 	 		f'imaging_request_number="{imaging_request_number}"' 
 	if len(imaging_request_contents) == 0:
 		flash("Imaging request does not exist. Submit the request first, then try again.",'danger')
-		return redirect(url_for('main.home'))
+		return redirect(url_for('requests.all_requests'))
 	''' If imaging is already complete (from before), then dont change imaging_progress '''
 	imaging_progress = imaging_request_contents.fetch1('imaging_progress')
 	
@@ -393,7 +393,7 @@ def new_imaging_request(username,request_name,sample_name):
 					logger.info(channel_insert_list)
 					db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
 					flash("Your new imaging request was submitted successfully.", "success")
-					return redirect(url_for('main.home'))
+					return redirect(url_for('requests.all_requests'))
 		else:
 			if 'submit' in form.errors:
 				for error_str in form.errors['submit']:

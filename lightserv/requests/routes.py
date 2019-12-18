@@ -48,6 +48,78 @@ logger.addHandler(file_handler)
 
 requests = Blueprint('requests',__name__)
 
+@requests.route("/requests/all_requests")
+@log_http_requests
+@logged_in
+def all_requests(): 
+	current_user = session['user']
+	logger.info(f"{current_user} accessed home page")
+	request_contents = db_lightsheet.Request()
+	sample_contents = db_lightsheet.Sample()
+	imaging_request_contents = db_lightsheet.Sample.ImagingRequest()
+	processing_request_contents = db_lightsheet.Sample.ProcessingRequest()
+	if current_user in ['ahoag','zmd','ll3','kellyms','jduva']:
+		legend = 'All core facility requests'
+	else:
+		legend = 'Your core facility requests'
+		request_contents = request_contents & f'username="{current_user}"'
+		sample_contents = sample_contents & f'username="{current_user}"'
+		imaging_request_contents = imaging_request_contents & f'username="{current_user}"'
+		processing_request_contents = processing_request_contents & f'username="{current_user}"'
+	''' Now figure out what fraction of the samples in each request are cleared/imaged/processed '''	
+	sample_joined_contents = dj.U('username','request_name').aggr(
+		request_contents * sample_contents,description='description',
+		number_of_samples='number_of_samples',species='species',
+		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)',
+		n_cleared='CONVERT(SUM(clearing_progress="complete"),char)').proj(
+			number_of_samples='number_of_samples',
+			fraction_cleared='CONCAT(n_cleared,"/",CONVERT(number_of_samples,char))',
+			description='description',species='species',datetime_submitted='datetime_submitted')
+	imaging_joined_contents = dj.U('username','request_name').aggr(
+	sample_joined_contents * imaging_request_contents,
+	number_of_samples='number_of_samples',
+	species='species',description='description',
+	datetime_submitted='datetime_submitted',
+	fraction_cleared='fraction_cleared',
+	n_imaged='CONVERT(SUM(imaging_progress="complete"),char)',
+	total_imaging_requests='CONVERT(COUNT(*),char)'
+	).proj(
+		number_of_samples='number_of_samples',
+		species='species',description='description',
+		datetime_submitted='datetime_submitted',
+		fraction_cleared='fraction_cleared',
+		fraction_imaged='CONCAT(n_imaged,"/",total_imaging_requests)'
+		)
+
+	processing_joined_contents = dj.U('username','request_name').aggr(
+	imaging_joined_contents * processing_request_contents,
+	number_of_samples='number_of_samples',
+	species='species',description='description',
+	datetime_submitted='datetime_submitted',
+	fraction_cleared='fraction_cleared',
+	fraction_imaged='fraction_imaged',
+	n_processed='CONVERT(SUM(processing_progress="complete"),char)',
+	total_processing_requests='CONVERT(COUNT(*),char)'
+	).proj(
+		number_of_samples='number_of_samples',
+		species='species',description='description',
+		datetime_submitted='datetime_submitted',
+		fraction_cleared='fraction_cleared',
+		fraction_imaged='fraction_imaged',
+		fraction_processed='CONCAT(n_processed,"/",total_processing_requests)'
+		)
+
+	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
+	reverse = (request.args.get('direction', 'asc') == 'desc')
+	sorted_results = sorted(processing_joined_contents.fetch(as_dict=True),
+		key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
+
+	table = ExpTable(sorted_results,sort_by=sort,
+					  sort_reverse=reverse)
+	table.table_id = 'horizontal'
+	return render_template('requests/all_requests.html',request_contents=processing_joined_contents,request_table=table,legend=legend)
+
+
 @requests.route("/request/new",methods=['GET','POST'])
 @logged_in
 @log_http_requests
@@ -328,7 +400,7 @@ def new_request():
 						db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
 						
 					flash("Request submitted successfully.", "success")
-					return redirect(url_for('main.home'))
+					return redirect(url_for('requests.all_requests'))
 			
 		else: # post request but not validated. Need to handle some errors
 

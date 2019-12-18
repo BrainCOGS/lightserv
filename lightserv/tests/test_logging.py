@@ -15,19 +15,19 @@ user_agent_str = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, lik
 def test_GET_log_entry(test_client,test_login):
 	""" Ensure that when the user issues a GET request
 	to the home page a log entry is inserted into the Log() table """
-	response = test_client.get(url_for('main.home'),
+	response = test_client.get(url_for('requests.all_requests'),
 		environ_base={'HTTP_USER_AGENT': user_agent_str},
 		follow_redirects=True)
 	log_event = db_lightsheet.UserActionLog().fetch()[-1]['event']
-	assert log_event == '''ahoag GET request to route: "home()" in lightserv.main.routes'''
+	assert log_event == '''ahoag GET request to route: "all_requests()" in lightserv.requests.routes'''
 	# assert b'Background Info' in response.data and b"Clearing setup" not in response.data
 
 def test_GET_log_entry_other_user(test_client,test_login_nonadmin):
 	""" Ensure that when a user other than ahoag issues a GET request
 	to the home page a log entry is inserted into the Log() table
 	under their name. """
-	response = test_client.get(url_for('main.home'),
+	response = test_client.get(url_for('requests.all_requests'),
 		environ_base={'HTTP_USER_AGENT': user_agent_str},
 		follow_redirects=True)
 	log_event = db_lightsheet.UserActionLog().fetch()[-1]['event']
-	assert log_event == '''ms81 GET request to route: "home()" in lightserv.main.routes'''
+	assert log_event == '''ms81 GET request to route: "all_requests()" in lightserv.requests.routes'''

@@ -190,7 +190,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 			# 	return redirect(url_for('errors.error_500'))
 
 			
-			return redirect(url_for('main.home'))
+			return redirect(url_for('requests.all_requests'))
 
 	elif request.method == 'GET': # get request
 		channel_contents_lists = []

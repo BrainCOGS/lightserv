@@ -43,77 +43,6 @@ def welcome():
 	logger.info(f"{current_user} accessed welcome page")
 	return render_template('main/welcome.html',)
 
-@main.route("/home")
-@log_http_requests
-@logged_in
-def home(): 
-	current_user = session['user']
-	logger.info(f"{current_user} accessed home page")
-	request_contents = db_lightsheet.Request()
-	sample_contents = db_lightsheet.Sample()
-	imaging_request_contents = db_lightsheet.Sample.ImagingRequest()
-	processing_request_contents = db_lightsheet.Sample.ProcessingRequest()
-	if current_user in ['ahoag','zmd','ll3','kellyms','jduva']:
-		legend = 'All core facility requests'
-	else:
-		legend = 'Your core facility requests'
-		request_contents = request_contents & f'username="{current_user}"'
-		sample_contents = sample_contents & f'username="{current_user}"'
-		imaging_request_contents = imaging_request_contents & f'username="{current_user}"'
-		processing_request_contents = processing_request_contents & f'username="{current_user}"'
-	''' Now figure out what fraction of the samples in each request are cleared/imaged/processed '''	
-	sample_joined_contents = dj.U('username','request_name').aggr(
-		request_contents * sample_contents,description='description',
-		number_of_samples='number_of_samples',species='species',
-		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)',
-		n_cleared='CONVERT(SUM(clearing_progress="complete"),char)').proj(
-			number_of_samples='number_of_samples',
-			fraction_cleared='CONCAT(n_cleared,"/",CONVERT(number_of_samples,char))',
-			description='description',species='species',datetime_submitted='datetime_submitted')
-	imaging_joined_contents = dj.U('username','request_name').aggr(
-	sample_joined_contents * imaging_request_contents,
-	number_of_samples='number_of_samples',
-	species='species',description='description',
-	datetime_submitted='datetime_submitted',
-	fraction_cleared='fraction_cleared',
-	n_imaged='CONVERT(SUM(imaging_progress="complete"),char)',
-	total_imaging_requests='CONVERT(COUNT(*),char)'
-	).proj(
-		number_of_samples='number_of_samples',
-		species='species',description='description',
-		datetime_submitted='datetime_submitted',
-		fraction_cleared='fraction_cleared',
-		fraction_imaged='CONCAT(n_imaged,"/",total_imaging_requests)'
-		)
-
-	processing_joined_contents = dj.U('username','request_name').aggr(
-	imaging_joined_contents * processing_request_contents,
-	number_of_samples='number_of_samples',
-	species='species',description='description',
-	datetime_submitted='datetime_submitted',
-	fraction_cleared='fraction_cleared',
-	fraction_imaged='fraction_imaged',
-	n_processed='CONVERT(SUM(processing_progress="complete"),char)',
-	total_processing_requests='CONVERT(COUNT(*),char)'
-	).proj(
-		number_of_samples='number_of_samples',
-		species='species',description='description',
-		datetime_submitted='datetime_submitted',
-		fraction_cleared='fraction_cleared',
-		fraction_imaged='fraction_imaged',
-		fraction_processed='CONCAT(n_processed,"/",total_processing_requests)'
-		)
-
-	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
-	reverse = (request.args.get('direction', 'asc') == 'desc')
-	sorted_results = sorted(processing_joined_contents.fetch(as_dict=True),
-		key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
-
-	table = ExpTable(sorted_results,sort_by=sort,
-					  sort_reverse=reverse)
-	table.table_id = 'horizontal'
-	return render_template('main/home.html',request_contents=processing_joined_contents,request_table=table,legend=legend)
-
 @main.route('/login', methods=['GET', 'POST'])
 def login():
 	next_url = request.args.get("next")
@@ -172,7 +101,7 @@ def allenatlas():
 			)
 	except:
 		flash('Something went wrong starting Neuroglancer. Try again later.','danger')
-		return redirect(url_for('main.home'))
+		return redirect(url_for('requests.all_requests'))
 	return render_template('experiments/datalink.html',viewer=viewer)
 
 @main.route("/npp_table",methods=['GET'])
@@ -198,4 +127,4 @@ def post_npp_table():
 	response = requests.post('http://localhost:8001/api/routes/test',json=data,headers=headers)
 	print(response)
 	flash(f'Entered port 1337 into routing table','success')
-	return redirect(url_for('main.home'))
+	return redirect(url_for('requests.all_requests'))
