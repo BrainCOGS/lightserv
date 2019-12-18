@@ -85,21 +85,6 @@
 					{% endif %}
 				</div>
 
-				<div class="form-group">
-					{% if form.sample_prefix.flags.required %}*{% endif %}
-					{{ form.sample_prefix.label(class="form-control-label") }}
-					{% if form.sample_prefix.errors %}
-						{{ form.sample_prefix(class="form-control form-control-lg is-invalid") }}
-						<div class="invalid-feedback">
-							{% for error in form.sample_prefix.errors %}
-								<span>{{ error }}</span>
-							{% endfor %}
-						</div>
-					{% else %}
-						{{ form.sample_prefix(class="form-control form-control-lg") }}
-					{% endif %}
-				</div>
-
 				<div class="checkbox">
 					{{ form.testing(class="form-check-input" ) }}
 					{{ form.testing.label(class="form-check-label") }}
@@ -127,6 +112,11 @@
 	                <div class="checkbox">
 	                    {{ form.self_imaging(class="form-check-input") }}
 	                    {{ form.self_imaging.label(class="form-check-label") }}
+	                </div>
+
+	                <div class="checkbox">
+	                    {{ form.custom_sample_names(class="form-check-input") }}
+	                    {{ form.custom_sample_names.label(class="form-check-label") }}
 	                </div>
 
 					<div class="form-group mt-2">
@@ -270,9 +260,9 @@
 						<!-- Handle what the sample name looks like depending on whether 
 						uniform_imaging was selected -->
 						{% if form.uniform_imaging.data == false %}
-					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} </legend>
+					        <legend class="form-control-label">Sample {{ loop.index }}: {{form.request_name.data }}-{{ loop.index }} </legend>
 					    {% else %}
-					    	<legend class="form-control-label">Sample {{ loop.index }}: {{form.sample_prefix.data }}-{{ loop.index }} <br/>(Your entries below will apply to all of your samples) </legend>
+					    	<legend class="form-control-label">Sample {{ loop.index }}: {{form.request_name.data }}-{{ loop.index }} <br/>(Your entries below will apply to all of your samples) </legend>
 						{% endif %}
 				        <hr class='class-2'>
 

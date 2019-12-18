@@ -19,7 +19,6 @@ else:
     schema.drop()
     schema = dj.schema('ahoag_lightsheet_demo')
 
-
 @schema 
 class UserActionLog(dj.Manual):
     definition = """    # event logging table 
@@ -54,7 +53,6 @@ class Request(dj.Manual):
     description                  :   varchar(250)
     species                      :   varchar(50)
     number_of_samples            :   tinyint
-    sample_prefix                :   varchar(32)
     uniform_clearing             :   boolean
     testing = 0                  :   boolean
     """  
@@ -63,8 +61,9 @@ class Request(dj.Manual):
 class Sample(dj.Manual):
     definition = """ # Samples from a particular request
     -> Request
-    sample_name                               :   varchar(64)                
+    sample_name                  :   varchar(64)                
     ----
+    sample_nickname = ""         :   varchar(64)
     perfusion_date = NULL        :   date
     expected_handoff_date = NULL :   date
     -> [nullable] User.proj(clearer='username') # defines a new column here called "clearer" whose value must be either None or one of the "username" entries in the User() table

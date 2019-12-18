@@ -7,7 +7,7 @@ from lightserv.main.tables import DateTimeCol
 from lightserv import db_lightsheet
 import os
 
-class ExpTable(Table):
+class AllRequestTable(Table):
     border = True
     allow_sort = True
     no_items = "No Requests Yet"
@@ -37,6 +37,34 @@ class ExpTable(Table):
     samples_link = LinkCol('View request status', 'requests.request_overview',url_kwargs=url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False)
     
+    def sort_url(self, col_key, reverse=False):
+        if reverse:
+            direction = 'desc'
+        else:
+            direction = 'asc'
+        next_url = os.path.join('/',*request.url.split('?')[0].split('/')[3:])
+        next_url += f'?sort={col_key}&direction={direction}&table_id={self.table_id}'
+        return next_url
+
+class RequestOverviewTable(Table):
+    border = True
+    allow_sort = True
+    no_items = "No Requests Yet"
+    html_attrs = {"style":'font-size:18px',} # gets assigned to table header
+    table_id = 'vert_table' # override this when you make an instance if you dont want vertical layout by default
+    # column_html_attrs = {'style':'text-align: center; min-width:10px', 'bgcolor':"#FF0000"} # gets assigned to both th and td
+    column_html_attrs = [] # javascript tableswapper does not preserve these.
+    classes = ["table-striped"] # gets assigned to table classes. 
+    # Striped is alternating bright and dark rows for visual ease.
+    datetime_submitted = DateTimeCol('datetime submitted')
+
+    username = Col('username',column_html_attrs=column_html_attrs)
+    request_name = Col('request name',column_html_attrs=column_html_attrs)
+    description = Col('description',column_html_attrs=column_html_attrs)
+    species = Col('species',column_html_attrs=column_html_attrs)
+    number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
+
+        
     def sort_url(self, col_key, reverse=False):
         if reverse:
             direction = 'desc'

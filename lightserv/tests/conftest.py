@@ -39,7 +39,6 @@ def test_client():
 	testing_client = app.test_client()
 
 	ctx = app.test_request_context() # makes it so I can use the url_for() function in the tests
-	print(dir(ctx))
 	ctx.push()
 	yield testing_client # this is where the testing happens
 	print('-------Teardown test client--------')

@@ -5,7 +5,8 @@ from flask import (render_template, url_for, flash,
 # from lightserv import db_lightsheet
 # from lightserv.models import Experiment
 from lightserv.requests.forms import NewRequestForm, UpdateNotesForm
-from lightserv.requests.tables import (ExpTable, create_dynamic_samples_table)
+from lightserv.requests.tables import (AllRequestTable,
+	RequestOverviewTable, create_dynamic_samples_table)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests)
@@ -66,44 +67,41 @@ def all_requests():
 		sample_contents = sample_contents & f'username="{current_user}"'
 		imaging_request_contents = imaging_request_contents & f'username="{current_user}"'
 		processing_request_contents = processing_request_contents & f'username="{current_user}"'
+	
 	''' Now figure out what fraction of the samples in each request are cleared/imaged/processed '''	
+	replicated_args = dict(number_of_samples='number_of_samples',description='description',
+		species='species',datetime_submitted='datetime_submitted')
+
 	sample_joined_contents = dj.U('username','request_name').aggr(
-		request_contents * sample_contents,description='description',
-		number_of_samples='number_of_samples',species='species',
+		request_contents * sample_contents,
+		number_of_samples='number_of_samples',
+		description='description',
+		species='species',
 		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)',
 		n_cleared='CONVERT(SUM(clearing_progress="complete"),char)').proj(
-			number_of_samples='number_of_samples',
-			fraction_cleared='CONCAT(n_cleared,"/",CONVERT(number_of_samples,char))',
-			description='description',species='species',datetime_submitted='datetime_submitted')
+		**replicated_args,
+			fraction_cleared='CONCAT(n_cleared,"/",CONVERT(number_of_samples,char))')
+
 	imaging_joined_contents = dj.U('username','request_name').aggr(
 	sample_joined_contents * imaging_request_contents,
-	number_of_samples='number_of_samples',
-	species='species',description='description',
-	datetime_submitted='datetime_submitted',
+	**replicated_args,
 	fraction_cleared='fraction_cleared',
 	n_imaged='CONVERT(SUM(imaging_progress="complete"),char)',
 	total_imaging_requests='CONVERT(COUNT(*),char)'
-	).proj(
-		number_of_samples='number_of_samples',
-		species='species',description='description',
-		datetime_submitted='datetime_submitted',
+	).proj(**replicated_args,
 		fraction_cleared='fraction_cleared',
 		fraction_imaged='CONCAT(n_imaged,"/",total_imaging_requests)'
 		)
 
 	processing_joined_contents = dj.U('username','request_name').aggr(
 	imaging_joined_contents * processing_request_contents,
-	number_of_samples='number_of_samples',
-	species='species',description='description',
-	datetime_submitted='datetime_submitted',
+	**replicated_args,
 	fraction_cleared='fraction_cleared',
 	fraction_imaged='fraction_imaged',
 	n_processed='CONVERT(SUM(processing_progress="complete"),char)',
 	total_processing_requests='CONVERT(COUNT(*),char)'
 	).proj(
-		number_of_samples='number_of_samples',
-		species='species',description='description',
-		datetime_submitted='datetime_submitted',
+		**replicated_args,
 		fraction_cleared='fraction_cleared',
 		fraction_imaged='fraction_imaged',
 		fraction_processed='CONCAT(n_processed,"/",total_processing_requests)'
@@ -114,7 +112,7 @@ def all_requests():
 	sorted_results = sorted(processing_joined_contents.fetch(as_dict=True),
 		key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
 
-	table = ExpTable(sorted_results,sort_by=sort,
+	table = AllRequestTable(sorted_results,sort_by=sort,
 					  sort_reverse=reverse)
 	table.table_id = 'horizontal'
 	return render_template('requests/all_requests.html',request_contents=processing_joined_contents,request_table=table,legend=legend)
@@ -184,7 +182,6 @@ def new_request():
 				logger.info("sample submit")
 				nsamples = form.number_of_samples.data
 				logger.info(form.uniform_clearing.data)
-				logger.info(type(form.uniform_clearing.data))
 
 				if form.uniform_clearing.data == True: # UNIFORM clearing
 					logger.info("Clearing is uniform")
@@ -192,7 +189,7 @@ def new_request():
 						form.clearing_samples.pop_entry()
 					""" Just make one set of sample fields """
 					form.clearing_samples.append_entry()
-					form.clearing_samples[0].sample_name.data = form.sample_prefix.data + '-001'
+					form.clearing_samples[0].sample_name.data = form.request_name.data + '-001'
 					""" If species == rat then autofill the clearing protocol to iDISCO NOF (rat) """
 					if form.species.data == 'rat':
 						form.clearing_samples[0].clearing_protocol.data = 'iDISCO abbreviated clearing (rat)'
@@ -204,7 +201,7 @@ def new_request():
 					# make nsamples sets of sample fields
 					for ii in range(nsamples):
 						form.clearing_samples.append_entry()
-						form.clearing_samples[ii].sample_name.data = form.sample_prefix.data + '-' + f'{ii+1}'.zfill(3)
+						form.clearing_samples[ii].sample_name.data = form.request_name.data + '-' + f'{ii+1}'.zfill(3)
 						if form.species.data == 'rat':
 							form.clearing_samples[ii].clearing_protocol.data = 'iDISCO abbreviated clearing (rat)'
 
@@ -214,7 +211,7 @@ def new_request():
 						form.imaging_samples.pop_entry()
 					# Just make one set of sample fields
 					form.imaging_samples.append_entry()
-					form.imaging_samples[0].sample_name.data = form.sample_prefix.data + '-001'
+					form.imaging_samples[0].sample_name.data = form.request_name.data + '-001'
 				else: # CUSTOM imaging
 					logger.info("imaging is custom")
 					while len(form.imaging_samples.data) > 0:
@@ -222,9 +219,10 @@ def new_request():
 					# make nsamples sets of sample fields
 					for ii in range(nsamples):
 						form.imaging_samples.append_entry()
-						form.imaging_samples[ii].sample_name.data = form.sample_prefix.data + '-' + f'{ii+1}'.zfill(3)
+						form.imaging_samples[ii].sample_name.data = form.request_name.data + '-' + f'{ii+1}'.zfill(3)
 				
-				column_name = 'clearing_samples-0-clearing_protocol'
+				column_name = 'clearing_samples-0-perfusion_date'
+				# column_name = ''
 
 			elif submit_key == 'submit': # The final submit button
 				logger.debug("Final submission")
@@ -245,7 +243,7 @@ def new_request():
 						correspondence_email=form.correspondence_email.data.lower(),
 						description=form.description.data,species=form.species.data,
 						number_of_samples=form.number_of_samples.data,
-						sample_prefix=form.sample_prefix.data,uniform_clearing=form.uniform_clearing.data,
+						uniform_clearing=form.uniform_clearing.data,
 						testing=form.testing.data)
 					now = datetime.now()
 					date = now.strftime("%Y-%m-%d")
@@ -271,7 +269,7 @@ def new_request():
 						uniform_imaging = True
 
 					for ii in range(number_of_samples):
-						sample_name = form.sample_prefix.data + '-' + f'{ii+1}'.zfill(3)
+						sample_name = form.request_name.data + '-' + f'{ii+1}'.zfill(3)
 						logger.info(sample_name)
 						sample_insert_dict = {}
 						""" Set up sample insert dict """
@@ -399,7 +397,11 @@ def new_request():
 						logger.info(channel_insert_list)
 						db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
 						
-					flash("Request submitted successfully.", "success")
+					flash("Request submitted successfully. If you elected to clear any of your tubes "
+                         "then head to the Clearing Manager in the Menu Bar to start the clearing entry form. "
+                         "If not, your tubes will be cleared by the Core Facility and "
+                         "you will receive an email once they are cleared. You can check the "
+                         "status of your samples at your request page (see table below).", "success")
 					return redirect(url_for('requests.all_requests'))
 			
 		else: # post request but not validated. Need to handle some errors
@@ -478,17 +480,17 @@ def request_overview(username,request_name):
 		sorted_results = sorted(request_contents.fetch(as_dict=True),
 			key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
 
-		request_table = ExpTable(sorted_results,sort_by=sort,
+		request_table = RequestOverviewTable(sorted_results,sort_by=sort,
 						  sort_reverse=reverse)
 		samples_table = create_dynamic_samples_table(combined_contents,table_id=samples_table_id)
 	elif table_id == samples_table_id: # the click was in the samples table
 		samples_table = create_dynamic_samples_table(combined_contents,
 			sort_by=sort,sort_reverse=reverse,table_id=samples_table_id)
-		request_table = ExpTable(request_contents)
+		request_table = RequestOverviewTable(request_contents)
 	else:
 		samples_table = create_dynamic_samples_table(combined_contents,
 			table_id=samples_table_id)
-		request_table = ExpTable(request_contents)
+		request_table = RequestOverviewTable(request_contents)
 
 	samples_table.table_id = samples_table_id
 	request_table.table_id = request_table_id

@@ -81,9 +81,9 @@ class ImagingForm(FlaskForm):
 class NewRequestForm(FlaskForm):
 	""" The form for a new request """
 	max_number_of_samples = 50
-	request_name = StringField('Title - a unique identifier for this request -- max 64 characters --',
+	request_name = StringField('Request_name - a unique identifier for this request -- max 64 characters --',
 		validators=[InputRequired(),Length(max=64)],default="test")
-	description = TextAreaField('Description of request',validators=[InputRequired(),Length(max=250)],default="test")
+	description = TextAreaField('Description of request -- max 250 characters --',validators=[InputRequired(),Length(max=250)],default="test")
 	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)],default="Braincogs")
 	correspondence_email = StringField('Correspondence email (default is princeton email)',
 		validators=[DataRequired(),Length(max=100),Email()])
@@ -91,7 +91,7 @@ class NewRequestForm(FlaskForm):
 	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],
 		validators=[InputRequired(),Length(max=50)],default="mouse") # for choices first element of tuple is the value of the option, the second is the displayed text
 	number_of_samples = IntegerField('Number of samples (a.k.a. tubes)',widget=html5.NumberInput(),validators=[InputRequired()],default=1)
-	sample_prefix = StringField('Sample prefix (your samples will be named prefix-1, prefix-2, ...)',validators=[InputRequired(),Length(max=32)],default='sample')
+	# sample_prefix = StringField('Sample prefix (your samples will be named prefix-1, prefix-2, ...)',validators=[InputRequired(),Length(max=32)],default='sample')
 	# subject_fullnames_known = BooleanField("Check if any of your samples have subject_fullname entries in the u19_subject database table")
 	# subject_fullnames = FieldList(StringField('subject name - the subject_fullname entry in the u19_subject database table (leave blank if unknown) --',
 		# validators=[InputRequired(),Length(max=100)]),min_entries=0,max_entries=max_number_of_samples)
@@ -105,6 +105,10 @@ class NewRequestForm(FlaskForm):
 	self_imaging = BooleanField('Check if you plan to do the imaging yourself',default=False)
 	imaging_samples = FieldList(FormField(ImagingForm),min_entries=0,max_entries=max_number_of_samples)
 	uniform_imaging = BooleanField('Check if imaging/processing will be the same for all samples')
+
+	custom_sample_names = BooleanField("Check if you want to give custom names to each of your samples. "
+		          					   "If unchecked, your sample names will be {request_name}-sample-001, "
+		          					   "{request_name}-sample-002, ...")
 
 	sample_submit_button = SubmitField('Setup samples')
 
