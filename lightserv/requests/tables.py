@@ -17,18 +17,24 @@ class ExpTable(Table):
     column_html_attrs = [] # javascript tableswapper does not preserve these.
     classes = ["table-striped"] # gets assigned to table classes. 
     # Striped is alternating bright and dark rows for visual ease.
+    datetime_submitted = DateTimeCol('datetime submitted')
+
     username = Col('username',column_html_attrs=column_html_attrs)
     request_name = Col('request name',column_html_attrs=column_html_attrs)
     description = Col('description',column_html_attrs=column_html_attrs)
     species = Col('species',column_html_attrs=column_html_attrs)
     number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
+    fraction_cleared = Col('fraction cleared',column_html_attrs=column_html_attrs)
+    fraction_imaged = Col('fraction imaged',column_html_attrs=column_html_attrs)
+    fraction_processed = Col('fraction processed',column_html_attrs=column_html_attrs)
+    
     # sample_prefix = Col('sample prefix')
-    datetime_submitted = DateTimeCol('datetime submitted')
+
 
     url_kwargs = {'username':'username','request_name':'request_name'}
     anchor_attrs = {'target':"_blank",}
     
-    experiment_link = LinkCol('View request status', 'requests.request_overview',url_kwargs=url_kwargs,
+    samples_link = LinkCol('View request status', 'requests.request_overview',url_kwargs=url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False)
     
     def sort_url(self, col_key, reverse=False):
