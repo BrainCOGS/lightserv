@@ -54,7 +54,7 @@ class ImageResolutionForm(FlaskForm):
 	image_resolution = HiddenField('image resolution')
 	channel_forms = FieldList(FormField(ChannelForm),min_entries=4,max_entries=4)
 	notes_for_imager = TextAreaField('''Special notes for imaging 
-		(e.g. z step size, exposure time, suggested tiling scheme -- make sure to specify which channel) -- max 1024 characters --''',
+		(e.g. z step size, brain orientation, exposure time, suggested tiling scheme -- make sure to specify which channel) -- max 1024 characters --''',
 		validators=[Length(max=1024)])
 
 	notes_for_processor = TextAreaField('''Special notes for processing 
@@ -83,7 +83,7 @@ class NewRequestForm(FlaskForm):
 	max_number_of_samples = 50
 	request_name = StringField('Request_name - a unique identifier for this request -- max 64 characters --',
 		validators=[InputRequired(),Length(max=64)],default="test")
-	description = TextAreaField('Description of request -- max 250 characters --',validators=[InputRequired(),Length(max=250)],default="test")
+	description = TextAreaField('What is the goal of this request? -- max 250 characters --',validators=[InputRequired(),Length(max=250)],default="test")
 	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)],default="Braincogs")
 	correspondence_email = StringField('Correspondence email (default is princeton email)',
 		validators=[DataRequired(),Length(max=100),Email()])
