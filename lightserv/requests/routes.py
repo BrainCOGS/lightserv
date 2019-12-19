@@ -117,6 +117,52 @@ def all_requests():
 	table.table_id = 'horizontal'
 	return render_template('requests/all_requests.html',request_contents=processing_joined_contents,request_table=table,legend=legend)
 
+@requests.route("/request_overview/<username>/<request_name>",)
+@logged_in
+@log_http_requests
+def request_overview(username,request_name):
+	""" A route for displaying a single request. """
+
+	request_contents = db_lightsheet.Request() & f'request_name="{request_name}"' & \
+	 		f'username="{username}"'
+	request_contents = request_contents.proj('description','species','number_of_samples',
+		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
+	samples_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & f'username="{username}"' 
+	''' Get rid of the rows where none of the channels are used '''
+	imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & f'username="{username}"' 
+	# The first time page is loaded, sort, reverse, table_id are all not set so they become their default
+	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
+	reverse = (request.args.get('direction', 'asc') == 'desc')
+	table_id = request.args.get('table_id', '')
+
+	combined_contents = (dj.U('request_name','sample_name').aggr(
+    imaging_request_contents,imaging_request_number='imaging_request_number',
+    imaging_progress='imaging_progress') * samples_contents)
+
+	request_table_id = 'horizontal_request_table'
+	# samples_table_id = 'vertical_samples_table'
+	samples_table_id = 'horizontal_samples_table'
+
+	if table_id == request_table_id: # the click to sort a column was in the experiment table
+		sorted_results = sorted(request_contents.fetch(as_dict=True),
+			key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
+
+		request_table = RequestOverviewTable(sorted_results,sort_by=sort,
+						  sort_reverse=reverse)
+		samples_table = create_dynamic_samples_table(combined_contents,table_id=samples_table_id,ignore_columns=['notes_for_clearer',])
+	elif table_id == samples_table_id: # the click was in the samples table
+		samples_table = create_dynamic_samples_table(combined_contents,
+			sort_by=sort,sort_reverse=reverse,table_id=samples_table_id,ignore_columns=['notes_for_clearer'])
+		request_table = RequestOverviewTable(request_contents)
+	else:
+		samples_table = create_dynamic_samples_table(combined_contents,
+			table_id=samples_table_id,ignore_columns=['notes_for_clearer'])
+		request_table = RequestOverviewTable(request_contents)
+
+	samples_table.table_id = samples_table_id
+	request_table.table_id = request_table_id
+	return render_template('requests/request.html',request_contents=request_contents,
+		request_table=request_table,samples_table=samples_table)
 
 @requests.route("/request/new",methods=['GET','POST'])
 @logged_in
@@ -450,52 +496,4 @@ def new_request():
 
 	return render_template('requests/new_request.html', title='new_request',
 		form=form,legend='New Request',column_name=column_name)	
-
-@requests.route("/request_overview/<username>/<request_name>",)
-@logged_in
-@log_http_requests
-def request_overview(username,request_name):
-	""" A route for displaying a single request. Also acts as a gateway to start data processing. """
-
-	request_contents = db_lightsheet.Request() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"'
-	request_contents = request_contents.proj('description','species','number_of_samples',
-		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
-	samples_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & f'username="{username}"' 
-	''' Get rid of the rows where none of the channels are used '''
-	channel_contents = db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & f'username="{username}"' 
-	# The first time page is loaded, sort, reverse, table_id are all not set so they become their default
-	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
-	reverse = (request.args.get('direction', 'asc') == 'desc')
-	table_id = request.args.get('table_id', '')
-
-	combined_contents = (dj.U('request_name','sample_name').aggr(
-    channel_contents,imaging_request_number='imaging_request_number') * samples_contents)
-
-	request_table_id = 'horizontal_request_table'
-	# samples_table_id = 'vertical_samples_table'
-	samples_table_id = 'horizontal_samples_table'
-
-	if table_id == request_table_id: # the click to sort a column was in the experiment table
-		sorted_results = sorted(request_contents.fetch(as_dict=True),
-			key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
-
-		request_table = RequestOverviewTable(sorted_results,sort_by=sort,
-						  sort_reverse=reverse)
-		samples_table = create_dynamic_samples_table(combined_contents,table_id=samples_table_id)
-	elif table_id == samples_table_id: # the click was in the samples table
-		samples_table = create_dynamic_samples_table(combined_contents,
-			sort_by=sort,sort_reverse=reverse,table_id=samples_table_id)
-		request_table = RequestOverviewTable(request_contents)
-	else:
-		samples_table = create_dynamic_samples_table(combined_contents,
-			table_id=samples_table_id)
-		request_table = RequestOverviewTable(request_contents)
-
-	samples_table.table_id = samples_table_id
-	request_table.table_id = request_table_id
-	return render_template('requests/request.html',request_contents=request_contents,
-		request_table=request_table,samples_table=samples_table)
-
-
 

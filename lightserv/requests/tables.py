@@ -83,7 +83,6 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 
         next_url = os.path.join('/',*request.url.split('?')[0].split('/')[3:])
         next_url += f'?sort={col_key}&direction={direction}&table_id={table_id}'
-        print(next_url)
         return next_url
 
     options = dict(
@@ -106,26 +105,19 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
-    table_class.add_column('sample_name',Col('sample name'))
+    table_class.add_column('sample_name',Col('sample name'))    
     table_class.add_column('request_name',Col('request name'))
     table_class.add_column('username',Col('username'))
-    for column_name in colnames:
-        if column_name in ignore_columns:
-            continue
-        if column_name == 'clearer':
-             table_class.add_column('clearing',HeadingCol('Clearing parameters',endpoint='main.welcome'))
-        if column_name == 'imager':
-             table_class.add_column('imaging',HeadingCol('Imaging parameters',endpoint='requests.all_requests'))
-        if column_name == 'processor':
-             table_class.add_column('processing',HeadingCol('Image processing parameters',endpoint='requests.all_requests'))
-        if 'channel' in column_name:
-            vals = contents.fetch(column_name)
-            if not any(vals):
-                continue
-        if '_' in column_name:
-            table_class.add_column(column_name,Col(column_name.replace('_',' ')),)    
-        else:
-            table_class.add_column(column_name,Col(column_name),)
+    table_class.add_column('imaging_request_number',Col('imaging request number'))
+    table_class.add_column('perfusion_date',Col('perfusion date'))
+    table_class.add_column('expected_handoff_date',Col('expected handoff date'))
+    table_class.add_column('clearer',Col('clearer'))
+    table_class.add_column('clearing_protocol',Col('clearing protocol'))
+    table_class.add_column('clearing_progress',Col('clearing progress'))
+    table_class.add_column('antibody1',Col('antibody 1'))
+    table_class.add_column('antibody2',Col('antibody 2'))
+    table_class.add_column('imaging_progress',Col('imaging progress'))
+
     """ Now add in the link columns """
     clearing_url_kwargs = {'username':'username','request_name':'request_name',
     'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}

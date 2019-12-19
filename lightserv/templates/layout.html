@@ -25,31 +25,38 @@
 				<div class="container">
 				<!-- Navbar Left Side -->
 
-					<a class="navbar-brand mr-4" href="/">Lightserv</a>
+					<a class="navbar-brand mr-4" >Lightserv</a>
 					<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
 						<span class="navbar-toggler-icon"></span>
 					</button>
 					<div class="collapse navbar-collapse" id="navbarToggle">
 
 
-
-
 							<div class="navbar-nav mr-auto">
 								<a class="nav-item nav-link" href="{{ url_for('main.welcome') }}">About Us</a>
-								<a class="nav-item nav-link" href="{{ url_for('requests.all_requests') }}">Requests</a>
-
-								<a class="nav-item nav-link"></a>	
-								<a class="nav-item nav-link"></a>	
-								
-								<a class="nav-item nav-link" href="{{ url_for('clearing.clearing_manager')}}" target="_blank">Clearing Manager</a>
-	
-								<a class="nav-item nav-link" href="{{ url_for('imaging.imaging_manager')}}" target="_blank">Imaging Manager</a>
-
-								<a class="nav-item nav-link" href="{{ url_for('processing.processing_manager')}}" target="_blank">Processing Manager</a>
-
-								{% if session['user'] == 'ahoag' or session['user'] == 'zmd' or session['user'] == 'jduva' or session['user'] == 'thiberge' %}
-									<a class="nav-item nav-link" href="{{ url_for('microscope.landing_page')}}" target="_blank">Microscope Manager</a>
+								{% if session['user'] == 'ahoag' or session['user'] == 'zmd' or session['user'] == 'jduva' %}
+									<a class="nav-item nav-link" href="{{ url_for('requests.all_requests') }}">All Requests</a>
+								{% else %}
+									<a class="nav-item nav-link" href="{{ url_for('requests.all_requests') }}">Your Requests</a>
 								{% endif %}
+
+								<li class="nav-item dropdown">
+							        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							          Task Management
+							        </a>
+							        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+										<a class="dropdown-item" href="{{ url_for('clearing.clearing_manager')}}">All Clearing Tasks</a>
+										<a class="dropdown-item" href="{{ url_for('imaging.imaging_manager')}}">All Imaging Tasks</a>
+										<a class="dropdown-item" href="{{ url_for('processing.processing_manager')}}">All Processing Tasks</a>
+
+										{% if session['user'] == 'ahoag' or session['user'] == 'zmd' or session['user'] == 'jduva' or session['user'] == 'thiberge' %}
+											<div class="dropdown-divider"></div>
+											<a class="dropdown-item" href="{{ url_for('microscope.landing_page')}}">Microscope Manager</a>
+										{% endif %}
+							        </div>
+								</li>
+		
+								
 							</div>
 						
 						<!-- Navbar Right Side -->
