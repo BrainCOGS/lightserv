@@ -60,6 +60,7 @@
 								<!-- </div> -->
 							{% else %}
 								{{ form[key](class="datetime-local") }}
+								<button type="button" class="btn btn-sm btn-primary" onclick="autoFill(key='{{key}}')">Autofill with current timestamp</button>
 								{{ form[submit_key](class="btn btn-sm btn-info") }}
 							{% endif %}
 							</br>
@@ -92,6 +93,23 @@
 			</div>
 		</form>
 	</div>
+
+	<script> 
+		function autoFill(key) { 
+			console.log(key)
+			var d = new Date();
+			var day = d.getDate();
+			var month = d.getMonth()
+			var year = d.getFullYear()
+			var hour = d.getHours()
+			var minute = d.getMinutes()
+			// var second = d.getSeconds()
+			var s = year + '-' + month + '-' + day + 'T' + hour + ':' + minute;
+			
+			console.log(s);
+			document.getElementById(key).value = s;
+		}
+	</script>
 {% if column_name %}
 	<script>
 	window.onload = function() {

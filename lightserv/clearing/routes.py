@@ -176,7 +176,7 @@ def clearing_entry(username,request_name,sample_name,clearing_protocol):
 							flash("Clearing form was successfully completed.",'success')
 							return redirect(url_for('requests.request_overview',username=username,request_name=request_name))
 
-					elif re.search("^(?!perfusion).*_date_submit$",key) != None:
+					elif re.search("^(?!perfusion).*_date_submit$",key) != None: # one of the calendar date submit buttons
 						column_name = key.split('_submit')[0]
 						date = form[column_name].data
 						if date == None:
@@ -190,13 +190,13 @@ def clearing_entry(username,request_name,sample_name,clearing_protocol):
 							summary=summary)
 							flash("Event added to Clearing Calendar. Check the calendar.",'success')
 						break
-					else: 
+					else: # an update button was pressed
 						''' Update the row '''
 						column_name = key.split('_submit')[0]
 						clearing_entry_dict = clearing_contents.fetch1() # returns as a dict
 						clearing_entry_dict[column_name]=form[column_name].data
-						clearing_contents.delete_quick()
-						clearing_dbTable().insert1(clearing_entry_dict)
+						# clearing_contents.delete_quick()
+						clearing_dbTable().insert1(clearing_entry_dict,replace=True)
 						logger.debug(f"Entered into database: {column_name}:{form[column_name].data}")
 						this_index = submit_keys.index(key)
 						next_index = this_index + 1 if 'notes' in column_name else this_index+2
@@ -220,7 +220,7 @@ def clearing_entry(username,request_name,sample_name,clearing_protocol):
 			"This page is read only and hitting any of the buttons will not update the clearing log",'warning')
 	else:
 		dj.Table._update(sample_contents,'clearing_progress','in progress')
-
+	# form.time_pbs_wash1.data = "2019-16-19T16:54:17"
 	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,
 		form=form,clearing_table=clearing_table,username=username,request_name=request_name,
 		sample_name=sample_name,column_name=column_name)
