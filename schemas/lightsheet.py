@@ -57,26 +57,33 @@ class Request(dj.Manual):
     testing = 0                  :   boolean
     """  
 
-@schema
-class Sample(dj.Manual):
-    definition = """ # Samples from a particular request
-    -> Request
-    sample_name                  :   varchar(64)                
-    ----
-    sample_nickname = ""         :   varchar(64)
-    perfusion_date = NULL        :   date
-    expected_handoff_date = NULL :   date
-    -> [nullable] User.proj(clearer='username') # defines a new column here called "clearer" whose value must be either None or one of the "username" entries in the User() table
-    clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
-    clearing_progress            :   enum("incomplete","in progress","complete")
-    antibody1 = ''               :   varchar(100)
-    antibody2 = ''               :   varchar(100)
-    notes_for_clearer = ""                    :   varchar(1024)
-    """  
+    class ClearingBatch(dj.Part):
+        definition = """ # Samples from a particular request
+        -> Request
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
+        antibody1 = ''               :   varchar(100)
+        antibody2 = ''               :   varchar(100)
+        clearing_batch_number        :   tinyint
+        ----
+        clearing_progress            :   enum("incomplete","in progress","complete")
+        number_in_batch 
+        perfusion_date = NULL        :   date
+        expected_handoff_date = NULL :   date
+        -> [nullable] User.proj(clearer='username') # defines a new column here called "clearer" whose value must be either None or one of the "username" entries in the User() table
+        notes_for_clearer = ""       :   varchar(1024)                
+        """  
+
+    class Sample(dj.Part):
+        definition = """ # Samples from a request, belonging to a clearing batch
+        -> master.Request
+        sample_name                  :   varchar(64)                
+        ----
+        clearing_batch_number        :   batch_number # so one can refer to the clearing batch
+        """  
 
     class ImagingRequest(dj.Part):
         definition = """ # Imaging request
-        -> Sample
+        -> master.Sample
         imaging_request_number                    :   tinyint
         ----
         -> [nullable] User.proj(imager='username') # defines a new column here called "imager" whose value must be one of the "username" entries in the User() table
