@@ -56,15 +56,16 @@ def all_requests():
 	current_user = session['user']
 	logger.info(f"{current_user} accessed home page")
 	request_contents = db_lightsheet.Request()
-	sample_contents = db_lightsheet.Sample()
-	imaging_request_contents = db_lightsheet.Sample.ImagingRequest()
-	processing_request_contents = db_lightsheet.Sample.ProcessingRequest()
+	# sample_contents = db_lightsheet.Sample()
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest()
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest()
 	if current_user in ['ahoag','zmd','ll3','kellyms','jduva']:
 		legend = 'All core facility requests'
 	else:
 		legend = 'Your core facility requests'
 		request_contents = request_contents & f'username="{current_user}"'
-		sample_contents = sample_contents & f'username="{current_user}"'
+		# sample_contents = sample_contents & f'username="{current_user}"'
 		imaging_request_contents = imaging_request_contents & f'username="{current_user}"'
 		processing_request_contents = processing_request_contents & f'username="{current_user}"'
 	
@@ -73,7 +74,7 @@ def all_requests():
 		species='species',datetime_submitted='datetime_submitted')
 
 	sample_joined_contents = dj.U('username','request_name').aggr(
-		request_contents * sample_contents,
+		request_contents * clearing_batch_contents,
 		number_of_samples='number_of_samples',
 		description='description',
 		species='species',
@@ -229,43 +230,31 @@ def new_request():
 				nsamples = form.number_of_samples.data
 				logger.info(form.uniform_clearing.data)
 
-				if form.uniform_clearing.data == True: # UNIFORM clearing
-					logger.info("Clearing is uniform")
-					while len(form.clearing_samples.data) > 0:
-						form.clearing_samples.pop_entry()
-					""" Just make one set of sample fields """
+				# if form.uniform_clearing.data == True: # UNIFORM clearing
+				# 	logger.info("Clearing is uniform")
+				# 	while len(form.clearing_samples.data) > 0:
+				# 		form.clearing_samples.pop_entry()
+				# 	""" Just make one set of sample fields """
+				# 	form.clearing_samples.append_entry()
+				# 	form.clearing_samples[0].sample_name.data = form.request_name.data + '-001'
+				# 	""" If species == rat then autofill the clearing protocol to iDISCO NOF (rat) """
+				# 	if form.species.data == 'rat':
+				# 		form.clearing_samples[0].clearing_protocol.data = 'iDISCO abbreviated clearing (rat)'
+
+				""" Render all of the clearing and imaging fields """
+				while len(form.clearing_samples.data) > 0:
+					form.clearing_samples.pop_entry()
+				while len(form.imaging_samples.data) > 0:
+					form.imaging_samples.pop_entry()
+				# make nsamples sets of sample fields
+				for ii in range(nsamples):
 					form.clearing_samples.append_entry()
-					form.clearing_samples[0].sample_name.data = form.request_name.data + '-001'
-					""" If species == rat then autofill the clearing protocol to iDISCO NOF (rat) """
+					form.clearing_samples[ii].sample_name.data = form.request_name.data + '-' + f'{ii+1}'.zfill(3)
 					if form.species.data == 'rat':
-						form.clearing_samples[0].clearing_protocol.data = 'iDISCO abbreviated clearing (rat)'
+						form.clearing_samples[ii].clearing_protocol.data = 'iDISCO abbreviated clearing (rat)'
 
-				else: # CUSTOM clearing
-					logger.info("Clearing is custom")
-					while len(form.clearing_samples.data) > 0:
-						form.clearing_samples.pop_entry()
-					# make nsamples sets of sample fields
-					for ii in range(nsamples):
-						form.clearing_samples.append_entry()
-						form.clearing_samples[ii].sample_name.data = form.request_name.data + '-' + f'{ii+1}'.zfill(3)
-						if form.species.data == 'rat':
-							form.clearing_samples[ii].clearing_protocol.data = 'iDISCO abbreviated clearing (rat)'
-
-				if form.uniform_imaging.data == True: # UNIFORM imaging
-					logger.info("imaging is uniform")
-					while len(form.imaging_samples.data) > 0:
-						form.imaging_samples.pop_entry()
-					# Just make one set of sample fields
 					form.imaging_samples.append_entry()
-					form.imaging_samples[0].sample_name.data = form.request_name.data + '-001'
-				else: # CUSTOM imaging
-					logger.info("imaging is custom")
-					while len(form.imaging_samples.data) > 0:
-						form.imaging_samples.pop_entry()
-					# make nsamples sets of sample fields
-					for ii in range(nsamples):
-						form.imaging_samples.append_entry()
-						form.imaging_samples[ii].sample_name.data = form.request_name.data + '-' + f'{ii+1}'.zfill(3)
+					form.imaging_samples[ii].sample_name.data = form.request_name.data + '-' + f'{ii+1}'.zfill(3)
 				
 				column_name = 'clearing_samples-0-perfusion_date'
 				# column_name = ''

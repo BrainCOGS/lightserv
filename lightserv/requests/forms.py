@@ -90,7 +90,7 @@ class NewRequestForm(FlaskForm):
 
 	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],
 		validators=[InputRequired(),Length(max=50)],default="mouse") # for choices first element of tuple is the value of the option, the second is the displayed text
-	number_of_samples = IntegerField('Number of samples (a.k.a. tubes)',widget=html5.NumberInput(),validators=[InputRequired()],default=1)
+	number_of_samples = IntegerField('Number of samples (a.k.a. tubes)',widget=html5.NumberInput(),validators=[InputRequired()],default=0)
 	# sample_prefix = StringField('Sample prefix (your samples will be named prefix-1, prefix-2, ...)',validators=[InputRequired(),Length(max=32)],default='sample')
 	# subject_fullnames_known = BooleanField("Check if any of your samples have subject_fullname entries in the u19_subject database table")
 	# subject_fullnames = FieldList(StringField('subject name - the subject_fullname entry in the u19_subject database table (leave blank if unknown) --',

@@ -63,10 +63,9 @@ class Request(dj.Manual):
         clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
         antibody1 = ''               :   varchar(100)
         antibody2 = ''               :   varchar(100)
-        clearing_batch_number        :   tinyint
         ----
         clearing_progress            :   enum("incomplete","in progress","complete")
-        number_in_batch 
+        number_in_batch              :   tinyint
         perfusion_date = NULL        :   date
         expected_handoff_date = NULL :   date
         -> [nullable] User.proj(clearer='username') # defines a new column here called "clearer" whose value must be either None or one of the "username" entries in the User() table
@@ -75,10 +74,9 @@ class Request(dj.Manual):
 
     class Sample(dj.Part):
         definition = """ # Samples from a request, belonging to a clearing batch
-        -> master.Request
+        -> master.ClearingBatch
         sample_name                  :   varchar(64)                
         ----
-        clearing_batch_number        :   batch_number # so one can refer to the clearing batch
         """  
 
     class ImagingRequest(dj.Part):
@@ -159,7 +157,7 @@ class Request(dj.Manual):
                 
     class IdiscoPlusClearing(dj.Part): # 
         definition = """ # iDISCO+ clearing table
-        -> Sample           
+        -> master.Sample           
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request handling that could affect clearing
         time_dehydr_pbs_wash1 = NULL                             :   datetime
@@ -266,7 +264,7 @@ class Request(dj.Manual):
 
     class IdiscoAbbreviatedClearing(dj.Part): 
         definition = """ # iDISCO abbreviated clearing table
-        -> Sample           
+        -> master.Sample           
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request handling that could affect clearing
         time_pbs_wash1 = NULL                                    :   datetime
@@ -302,7 +300,7 @@ class Request(dj.Manual):
 
     class IdiscoAbbreviatedRatClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
         definition = """ # iDISCO Abbreviated Rat clearing table
-        -> Sample              
+        -> master.Sample              
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
         time_pbs_wash1 = NULL                                    :   datetime
@@ -352,7 +350,7 @@ class Request(dj.Manual):
 
     class UdiscoClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
         definition = """ # uDISCO clearing table
-        -> Sample              
+        -> master.Sample              
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
         time_dehydr_pbs_wash1 = NULL                             :   datetime
@@ -380,7 +378,7 @@ class Request(dj.Manual):
 
     class IdiscoEdUClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
         definition = """ # uDISCO clearing table
-        -> Sample              
+        -> master.Sample              
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
         time_dehydr_pbs_wash1 = NULL                             :   datetime

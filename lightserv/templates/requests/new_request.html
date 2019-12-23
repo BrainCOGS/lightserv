@@ -91,19 +91,12 @@
 				</div>
 
 				<!-- ############### -->
-				<!-- SAMPLES section -->
+				<!-- SAMPLES SETUP section -->
 				<!-- ############### -->
 				<hr class='class-3'>
 				{% if form.imaging_samples.data|length == 0 %}
 					<h3 class='border-bottom'>Samples setup</h3>
-					<div class="checkbox">
-						{{ form.uniform_clearing(class="form-check-input" ) }}
-						{{ form.uniform_clearing.label(class="form-check-label") }}
-					</div>
-					<div class="checkbox">
-						{{ form.uniform_imaging(class="form-check-input") }}
-						{{ form.uniform_imaging.label(class="form-check-label") }}
-					</div>
+					
 					<hr class='class-2'>
 					<div class="checkbox">
 	                    {{ form.self_clearing(class="form-check-input") }}
@@ -114,33 +107,22 @@
 	                    {{ form.self_imaging.label(class="form-check-label") }}
 	                </div>
 
-	                <div class="checkbox">
-	                    {{ form.custom_sample_names(class="form-check-input") }}
-	                    {{ form.custom_sample_names.label(class="form-check-label") }}
-	                </div>
-
 					<div class="form-group mt-2">
 						{{ form.sample_submit_button(class="btn btn-success mt-2") }}
 					</div>
 				{% endif %}
+				
 				<!-- ################ -->
-				<!-- CLEARING section -->
+				<!-- SAMPLES section -->
 				<!-- ################ -->
 				
-				{% if form.clearing_samples.data|length > 0 %}
-					<hr class='class-2'>
-					<h3 class='border-bottom'>Clearing setup</h3>
-				{% endif %}
+				<hr class='class-2'>
 				<div>
-					{% for clearing_entry in form.clearing_samples %}
-						{% if form.uniform_clearing.data == false %}
-							<!-- Render the hiddenfield sample_name to keep track of it in debugging -->
-							{{ clearing_entry.sample_name }}
-					        <legend class="form-control-label">Sample {{ loop.index }}: {{clearing_entry.sample_name.data }} </legend>
+					{% for ii in range(form.number_of_samples.data) %}
+						{% set clearing_entry = form.clearing_samples[ii] %}
+						<h3 class='border-bottom'>Clearing setup</h3>
 						
-					    {% else %}
-					    	<legend class="form-control-label">Sample {{ loop.index }}: {{clearing_entry.sample_name.data }} <br/>(Your entries below will apply to all of your samples) </legend>
-						{% endif %}
+				    	<legend class="form-control-label">Sample {ii+1}: {{clearing_entry.sample_name.data }} <br/>(Your entries below will apply to all of your samples) </legend>
 				        <hr>
 
 				        <div class="form-group">
