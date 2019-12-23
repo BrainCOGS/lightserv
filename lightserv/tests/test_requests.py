@@ -7,12 +7,10 @@ import tempfile,webbrowser
 # 	response = test_client.get(url_for('main.home'), follow_redirects=True)
 
 # 	assert b'light sheet requests' in response.data and b'rabbit anti-RFP 1:1000' in response.data
-user_agent_str = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'
 
 def test_requests_redirects(test_client):
 	""" Tests that the requests page returns a 302 code (i.e. a redirect signal) for a not logged in user """
 	response = test_client.get(url_for('requests.all_requests'),
-		environ_base={'HTTP_USER_AGENT': user_agent_str},
 		content_type='html/text')
 	assert response.status_code == 302, \
 			'Status code is {0}, but should be 302 (redirect)'.\
@@ -21,7 +19,6 @@ def test_requests_redirects(test_client):
 def test_home_login_redirects(test_client):
 	""" Tests that the home page redirects to the login route """
 	response = test_client.get(url_for('requests.all_requests'),
-		environ_base={'HTTP_USER_AGENT': user_agent_str},
 		content_type='html/text',
 		follow_redirects=True)
 
@@ -31,7 +28,6 @@ def test_home_login_redirects(test_client):
 def test_home_page(test_client,test_login):
 	""" Check that the home page loads properly """
 	response = test_client.get(url_for('requests.all_requests'),
-		environ_base={'HTTP_USER_AGENT': user_agent_str},
 		follow_redirects=True)
 
 	assert b'All core facility requests:' in response.data 
@@ -40,7 +36,6 @@ def test_new_request_form_renders(test_client,test_login):
 	""" Ensure that the new request form renders properly (only the top part of the form)"""
 
 	response = test_client.get(url_for('requests.new_request'),
-		environ_base={'HTTP_USER_AGENT': user_agent_str},
 		follow_redirects=True)
 
 	assert b'Background Info' in response.data and b"Clearing setup" not in response.data
@@ -67,7 +62,6 @@ def test_setup_samples_uniform(test_client,test_login):
 	response = test_client.post(url_for('requests.new_request'),
 		data=data,
 			follow_redirects=True,
-			environ_base={'HTTP_USER_AGENT': user_agent_str}
 		)	
 
 	assert b'Clearing setup' in response.data  
@@ -104,7 +98,6 @@ def test_setup_samples_nonuniform(test_client,test_login):
 
 	response = test_client.post(url_for('requests.new_request'),
 		data=data, content_type='multipart/form-data',
-		environ_base={'HTTP_USER_AGENT': user_agent_str},
 			follow_redirects=True
 		)	
 	# with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
@@ -139,7 +132,6 @@ def test_setup_image_resolution_form(test_client,test_login,):
 			'imaging_samples-0-image_resolution_forsetup':"1.3x",
 			'imaging_samples-0-new_image_resolution_form_submit':True
 			},content_type='multipart/form-data',
-			environ_base={'HTTP_USER_AGENT': user_agent_str},
 			follow_redirects=True
 		)	
 
@@ -171,7 +163,6 @@ def test_setup_samples_too_many_samples(test_client,test_login):
 
 	response = test_client.post(url_for('requests.new_request'),
 		data=data,
-		environ_base={'HTTP_USER_AGENT': user_agent_str},
 			follow_redirects=True
 		)	
 
@@ -204,7 +195,6 @@ def test_submit_good_request(test_client,test_login,test_delete_request_db_conte
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',
-			environ_base={'HTTP_USER_AGENT': user_agent_str},
 			follow_redirects=True
 		)	
 
@@ -239,7 +229,6 @@ def test_rat_request_generic_imaging_only(test_client,test_login,test_delete_req
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',
-			environ_base={'HTTP_USER_AGENT': user_agent_str},
 			follow_redirects=True
 		)	
 	# with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
@@ -272,7 +261,6 @@ def test_setup_samples_duplicate(test_client,test_login,test_single_request):
 
 	response = test_client.post(url_for('requests.new_request'),
 		data=data,
-		environ_base={'HTTP_USER_AGENT': user_agent_str},
 			follow_redirects=True
 		)	
 
@@ -308,7 +296,6 @@ def test_duplicate_image_resolution_form(test_client,test_login):
 			'imaging_samples-0-new_image_resolution_form_submit':True
 			},
 			content_type='multipart/form-data',
-			environ_base={'HTTP_USER_AGENT': user_agent_str},
 			follow_redirects=True
 		)	
 
