@@ -37,7 +37,7 @@ def test_client():
 	app = create_app(config_class=config.TestConfig)
 	# testing_client = app.test_client()
 	testing_client = app.test_client()
-
+	testing_client.environ_base["HTTP_USER_AGENT"] = user_agent_str 
 	ctx = app.test_request_context() # makes it so I can use the url_for() function in the tests
 	ctx.push()
 	yield testing_client # this is where the testing happens
