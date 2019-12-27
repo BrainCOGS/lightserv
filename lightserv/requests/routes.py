@@ -254,10 +254,8 @@ def new_request():
 						form.clearing_samples[ii].clearing_protocol.data = 'iDISCO abbreviated clearing (rat)'
 
 					form.imaging_samples.append_entry()
-					form.imaging_samples[ii].sample_name.data = form.request_name.data + '-' + f'{ii+1}'.zfill(3)
 				
-				column_name = 'clearing_samples-0-perfusion_date'
-				# column_name = ''
+				column_name = 'clearing_samples-0-sample_name'
 
 			elif submit_key == 'submit': # The final submit button
 				logger.debug("Final submission")
@@ -285,27 +283,21 @@ def new_request():
 					time = now.strftime("%H:%M:%S") 
 					request_insert_dict['date_submitted'] = date
 					request_insert_dict['time_submitted'] = time
+
 					db_lightsheet.Request().insert1(request_insert_dict)
-				
-					''' Now loop through samples and get clearing and imaging parameters for each sample '''
+					
+					''' Sample section '''
 					clearing_samples = form.clearing_samples.data
 					imaging_samples = form.imaging_samples.data
 					number_of_samples = form.number_of_samples.data
-					''' First need to figure out if clearing and imaging 
-					were custom or uniform for each sample '''
-					if len(clearing_samples) == number_of_samples:
-						uniform_clearing = False
-					else:
-						uniform_clearing = True
+					uniform_clearing = form.uniform_clearing.data
+					uniform_imaging = form.uniform_imaging.data
 
-					if len(imaging_samples) == number_of_samples:
-						uniform_imaging = False
-					else:
-						uniform_imaging = True
-
+					''' Now loop through all samples and figure out clearing batches '''
+					
 					for ii in range(number_of_samples):
-						sample_name = form.request_name.data + '-' + f'{ii+1}'.zfill(3)
-						logger.info(sample_name)
+						clearing_sample_form_dict = form.clearing_samples[ii].data		
+						sample_name = clearing_sample_form_dict['sample_name']				
 						sample_insert_dict = {}
 						""" Set up sample insert dict """
 						''' Add primary keys that are not in the form '''

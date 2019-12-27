@@ -21,7 +21,7 @@ class ClearingForm(FlaskForm):
 	""" A form that is used in ExpForm() via a FormField FieldList
 	so I dont have to write the clearing parameters out for each sample 
 	"""
-	sample_name = HiddenField("sample_name") # helpful for flash message -- keeps track of sample a form error occurred in
+	sample_name = StringField("Sample name",validators=[InputRequired()]) # helpful for flash message -- keeps track of sample a form error occurred in
 	clearing_protocol = SelectField('Clearing Protocol:', choices= \
 		[('iDISCO abbreviated clearing','iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
 		 ('iDISCO abbreviated clearing (rat)','Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
@@ -68,7 +68,6 @@ class ImagingForm(FlaskForm):
 	""" A form that is used in ExpForm() via a FormField FieldList
 	so I dont have to write the imaging parameters out for each sample
 	"""
-	sample_name = HiddenField("sample_name") # helpful for flash message -- keeps track of sample a form error occurred in
 
 	image_resolution_forsetup = SelectField('Select an image resolution you want to use:', 
 		choices=[('1.3x','1.3x'),
@@ -99,12 +98,12 @@ class NewRequestForm(FlaskForm):
 	""" Clearing """
 	self_clearing = BooleanField('Check if you plan to do the clearing yourself',default=False)
 	clearing_samples = FieldList(FormField(ClearingForm),min_entries=0,max_entries=max_number_of_samples)
-	uniform_clearing = BooleanField('Check if clearing will be the same for all samples') # setting default=True does not do anything, so I have to do it in the view function:  https://github.com/lepture/flask-wtf/issues/362
+	uniform_clearing = BooleanField('Check if you want these clearing parameters to apply to all samples') # setting default=True does not do anything, so I have to do it in the view function:  https://github.com/lepture/flask-wtf/issues/362
 	
 	""" Imaging """
 	self_imaging = BooleanField('Check if you plan to do the imaging yourself',default=False)
 	imaging_samples = FieldList(FormField(ImagingForm),min_entries=0,max_entries=max_number_of_samples)
-	uniform_imaging = BooleanField('Check if imaging/processing will be the same for all samples')
+	uniform_imaging = BooleanField('Check if you want these imaging/processing parameters to apply to all samples')
 
 	custom_sample_names = BooleanField("Check if you want to give custom names to each of your samples. "
 		          					   "If unchecked, your sample names will be {request_name}-sample-001, "
@@ -159,13 +158,14 @@ class NewRequestForm(FlaskForm):
 			Also make sure that user cannot create multiple 
 			image resolution sub-forms for the same image resolution. 
 		"""
-		for sample_dict in imaging_samples.data:
-			sample_name = sample_dict['sample_name']
+		for ii in range(len(imaging_samples.data)):
+			imaging_sample_dict = imaging_samples[ii].data
+			sample_name = self.clearing_samples[ii].data['sample_name']
 			current_image_resolutions_rendered = []
-			if sample_dict['image_resolution_forms'] == [] and self.submit.data == True:
+			if imaging_sample_dict['image_resolution_forms'] == [] and self.submit.data == True:
 				raise ValidationError(f"Sample name: {sample_name}, you must set up"
 									   " the imaging parameters for at least one image resolution")
-			for resolution_form_dict in sample_dict['image_resolution_forms']:
+			for resolution_form_dict in imaging_sample_dict['image_resolution_forms']:
 				image_resolution = resolution_form_dict['image_resolution']
 				current_image_resolutions_rendered.append(image_resolution)
 				channel_dict_list = resolution_form_dict['channel_forms']
@@ -188,8 +188,8 @@ class NewRequestForm(FlaskForm):
 					  						f" You must select a registration channel"
 					  						 " when requesting any of the 'detection' channels")
 
-			if sample_dict['new_image_resolution_form_submit'] == True:
-				image_resolution = sample_dict['image_resolution_forsetup']
+			if imaging_sample_dict['new_image_resolution_form_submit'] == True:
+				image_resolution = imaging_sample_dict['image_resolution_forsetup']
 				if image_resolution in current_image_resolutions_rendered:
 					raise ValidationError(f"You tried to make a table for image_resolution {image_resolution}"
 										  f". But that resolution was already picked for this sample: {sample_name}.")
