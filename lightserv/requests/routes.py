@@ -128,9 +128,9 @@ def request_overview(username,request_name):
 			f'username="{username}"'
 	request_contents = request_contents.proj('description','species','number_of_samples',
 		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
-	samples_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & f'username="{username}"' 
+	samples_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & f'username="{username}"' 
 	''' Get rid of the rows where none of the channels are used '''
-	imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & f'username="{username}"' 
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & f'username="{username}"' 
 	# The first time page is loaded, sort, reverse, table_id are all not set so they become their default
 	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
