@@ -145,8 +145,8 @@ class NewRequestForm(FlaskForm):
 		for sample_dict in clearing_samples.data:
 			sample_name = sample_dict['sample_name']
 			if sample_name in all_sample_names:
-				raise ValidationError(f'''Sample name "{sample_name}" is duplicated. \
-				 Make sure to pick unique names for each sample''')
+				raise ValidationError(f"Sample name: {sample_name} is duplicated. \
+				 Make sure to pick unique names for each sample")
 			all_sample_names.append(sample_name)
 
 			clearing_protocol_sample = sample_dict['clearing_protocol']

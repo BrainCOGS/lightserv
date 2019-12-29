@@ -239,7 +239,11 @@ def test_duplicate_image_resolution_form(test_client,test_login):
 			content_type='multipart/form-data',
 			follow_redirects=True
 		)	
-
+	with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
+		url = 'file://' + f.name 
+		f.write(response.data)
+	# print(url)
+	webbrowser.open(url)
 	assert b'Imaging/Processing setup' in response.data  
 	assert b'You tried to make a table for image_resolution 1.3x. But that resolution was already picked for this sample:' in response.data
 
@@ -272,6 +276,10 @@ def test_duplicate_sample_names(test_client,test_login):
 			},content_type='multipart/form-data',
 			follow_redirects=True
 		)	
-
+	with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
+		url = 'file://' + f.name 
+		f.write(response.data)
+	# print(url)
+	webbrowser.open(url)
 	assert b"New Request Form" in response.data
-	assert b'''Sample name "sample-001" is duplicated''' in response.data
+	assert b"Sample name: sample-001 is duplicated." in response.data
