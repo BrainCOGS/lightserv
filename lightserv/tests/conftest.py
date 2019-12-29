@@ -38,6 +38,7 @@ def test_client():
 	# testing_client = app.test_client()
 	testing_client = app.test_client()
 	testing_client.environ_base["HTTP_USER_AGENT"] = user_agent_str
+	testing_client.environ_base["HTTP_X_REMOTE_USER"] = 'ahoag'
 
 	ctx = app.test_request_context() # makes it so I can use the url_for() function in the tests
 	ctx.push()
