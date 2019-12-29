@@ -53,30 +53,35 @@ class Request(dj.Manual):
     description                  :   varchar(250)
     species                      :   varchar(50)
     number_of_samples            :   tinyint
-    uniform_clearing             :   boolean
     testing = 0                  :   boolean
     """  
 
-@schema
-class Sample(dj.Manual):
-    definition = """ # Samples from a particular request
-    -> Request
-    sample_name                  :   varchar(64)                
-    ----
-    sample_nickname = ""         :   varchar(64)
-    perfusion_date = NULL        :   date
-    expected_handoff_date = NULL :   date
-    -> [nullable] User.proj(clearer='username') # defines a new column here called "clearer" whose value must be either None or one of the "username" entries in the User() table
-    clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
-    clearing_progress            :   enum("incomplete","in progress","complete")
-    antibody1 = ''               :   varchar(100)
-    antibody2 = ''               :   varchar(100)
-    notes_for_clearer = ""                    :   varchar(1024)
-    """  
+    class ClearingBatch(dj.Part):
+        definition = """ # Samples from a particular request
+        -> Request
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
+        antibody1 = ''               :   varchar(100)
+        antibody2 = ''               :   varchar(100)
+        ----
+        clearing_progress            :   enum("incomplete","in progress","complete")
+        number_in_batch              :   tinyint
+        perfusion_date = NULL        :   date
+        expected_handoff_date = NULL :   date
+        -> [nullable] User.proj(clearer='username') # defines a new column here called "clearer" whose value must be either None or one of the "username" entries in the User() table
+        notes_for_clearer = ""       :   varchar(1024)                
+        """  
+
+    class Sample(dj.Part):
+        definition = """ # Samples from a request, belonging to a clearing batch
+        -> Request
+        sample_name                  :   varchar(64)                
+        ----
+        -> master.ClearingBatch
+        """  
 
     class ImagingRequest(dj.Part):
         definition = """ # Imaging request
-        -> Sample
+        -> master.Sample
         imaging_request_number                    :   tinyint
         ----
         -> [nullable] User.proj(imager='username') # defines a new column here called "imager" whose value must be one of the "username" entries in the User() table
@@ -152,7 +157,7 @@ class Sample(dj.Manual):
                 
     class IdiscoPlusClearing(dj.Part): # 
         definition = """ # iDISCO+ clearing table
-        -> Sample           
+        -> master.ClearingBatch           
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request handling that could affect clearing
         time_dehydr_pbs_wash1 = NULL                             :   datetime
@@ -259,7 +264,7 @@ class Sample(dj.Manual):
 
     class IdiscoAbbreviatedClearing(dj.Part): 
         definition = """ # iDISCO abbreviated clearing table
-        -> Sample           
+        -> master.ClearingBatch           
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request handling that could affect clearing
         time_pbs_wash1 = NULL                                    :   datetime
@@ -295,7 +300,7 @@ class Sample(dj.Manual):
 
     class IdiscoAbbreviatedRatClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
         definition = """ # iDISCO Abbreviated Rat clearing table
-        -> Sample              
+        -> master.ClearingBatch              
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
         time_pbs_wash1 = NULL                                    :   datetime
@@ -345,7 +350,7 @@ class Sample(dj.Manual):
 
     class UdiscoClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
         definition = """ # uDISCO clearing table
-        -> Sample              
+        -> master.ClearingBatch              
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
         time_dehydr_pbs_wash1 = NULL                             :   datetime
@@ -373,7 +378,7 @@ class Sample(dj.Manual):
 
     class IdiscoEdUClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
         definition = """ # uDISCO clearing table
-        -> Sample              
+        -> master.ClearingBatch              
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
         time_dehydr_pbs_wash1 = NULL                             :   datetime

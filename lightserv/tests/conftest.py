@@ -37,7 +37,10 @@ def test_client():
 	app = create_app(config_class=config.TestConfig)
 	# testing_client = app.test_client()
 	testing_client = app.test_client()
-	testing_client.environ_base["HTTP_USER_AGENT"] = user_agent_str 
+
+	testing_client.environ_base["HTTP_USER_AGENT"] = user_agent_str
+	testing_client.environ_base["HTTP_X_REMOTE_USER"] = 'ahoag'
+
 	ctx = app.test_request_context() # makes it so I can use the url_for() function in the tests
 	ctx.push()
 	yield testing_client # this is where the testing happens
@@ -110,17 +113,15 @@ def test_single_request(test_client,test_login,test_delete_request_db_contents):
 			'request_name':"Demo Experiment",
 			'description':"This is a demo experiment",
 			'species':"mouse",'number_of_samples':1,
-			'sample_prefix':'sample',
 			'username':current_user,
-			'uniform_clearing':True,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',
-			environ_base={'HTTP_USER_AGENT': user_agent_str},
 			follow_redirects=True
 		)	
 

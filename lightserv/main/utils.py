@@ -66,17 +66,22 @@ def logged_in_as_clearer(f):
 			current_user = session['user']
 
 			request_name = kwargs['request_name']
-			sample_name = kwargs['sample_name']
 			username = kwargs['username']
-			sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
-			 	f'username="{username}"' & f'sample_name="{sample_name}"'
-			clearer = sample_contents.fetch1('clearer')
+			clearing_protocol = kwargs['clearing_protocol']
+			antibody1 = kwargs['antibody1']
+			antibody2 = kwargs['antibody2']
+			print(clearing_protocol,antibody1,antibody2)
+			clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & \
+			f'request_name="{request_name}"' & 	f'username="{username}"' & \
+			f'clearing_protocol="{clearing_protocol}"' & \
+	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'
+			clearer = clearing_batch_contents.fetch1('clearer')
 			''' check to see if user assigned themself as clearer '''
 			if clearer == None:
 				logger.info("Clearing entry form accessed with clearer not yet assigned. ")
 				''' now check to see if user is a designated clearer ''' 
 				if current_user in current_app.config['CLEARING_ADMINS']: # 
-					dj.Table._update(sample_contents,'clearer',current_user)
+					dj.Table._update(clearing_batch_contents,'clearer',current_user)
 					logger.info(f"Current user: {current_user} is a designated clearer and is now assigned as the clearer")
 					return f(*args, **kwargs)
 				else: # user is not a designated clearer and did not self assign

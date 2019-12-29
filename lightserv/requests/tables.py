@@ -109,27 +109,28 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     table_class.add_column('request_name',Col('request name'))
     table_class.add_column('username',Col('username'))
     table_class.add_column('imaging_request_number',Col('imaging request number'))
-    table_class.add_column('perfusion_date',Col('perfusion date'))
-    table_class.add_column('expected_handoff_date',Col('expected handoff date'))
-    table_class.add_column('clearer',Col('clearer'))
+    # table_class.add_column('perfusion_date',Col('perfusion date'))
+    # table_class.add_column('expected_handoff_date',Col('expected handoff date'))
+    # table_class.add_column('clearer',Col('clearer'))
     table_class.add_column('clearing_protocol',Col('clearing protocol'))
-    table_class.add_column('clearing_progress',Col('clearing progress'))
+    # table_class.add_column('clearing_progress',Col('clearing progress'))
     table_class.add_column('antibody1',Col('antibody 1'))
     table_class.add_column('antibody2',Col('antibody 2'))
     table_class.add_column('imaging_progress',Col('imaging progress'))
 
     """ Now add in the link columns """
-    clearing_url_kwargs = {'username':'username','request_name':'request_name',
-    'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
+    # clearing_url_kwargs = {'username':'username','request_name':'request_name',
+    # 'sample_name':'sample_name','clearing_protocol':'clearing_protocol',
+    # 'antibody1':'antibody1','antibody2':'antibody2'}
     imaging_url_kwargs = {'username':'username','request_name':'request_name',
     'sample_name':'sample_name',}
     processing_url_kwargs = {'username':'username','request_name':'request_name',
     'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
     anchor_attrs = {'target':"_blank",}
-    table_class.add_column('view_clearing_link',
-         ConditionalLinkCol('View clearing log', 
-        'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
-       anchor_attrs=anchor_attrs,allow_sort=False))
+    # table_class.add_column('view_clearing_link',
+    #      LinkCol('View clearing log', 
+    #     'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
+    #    anchor_attrs=anchor_attrs,allow_sort=False))
     
     table_class.add_column('new imaging request',
         LinkCol('New imaging request', 

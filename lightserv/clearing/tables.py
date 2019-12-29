@@ -36,7 +36,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
         no_items = "No samples at the moment",
         html_attrs = {"style":'font-size:18px;'}, 
         table_id = table_id,
-        classes = ["table-striped","mb-4"]
+        classes = ["mb-4"]
         ) 
 
     table_class = create_table(name,options=options)
@@ -66,7 +66,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
     clearing_url_kwargs = {'username':'username','request_name':'request_name',
-        'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
+        'clearing_protocol':'clearing_protocol','antibody1':'antibody1','antibody2':'antibody2'}
     anchor_attrs = {'target':"_blank",}
     if table_id == 'horizontal_ready_to_clear_table':
         table_class.add_column('start_clearing_link',LinkCol('Start clearing',
@@ -77,7 +77,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
          'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))
     elif table_id == 'horizontal_already_cleared_table':
-        table_class.add_column('view_clearing_link',LinkCol('View clearing',
+        table_class.add_column('view_clearing_link',LinkCol('View clearing log',
          'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))
          
@@ -97,10 +97,12 @@ class ClearingTable(Table):
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
     request_name = Col('request_name',column_html_attrs=column_html_attrs)
-    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
-    clearing_protocol = Col('clearing_protocol',column_html_attrs=column_html_attrs)
+    clearing_protocol = Col('clearing protocol',column_html_attrs=column_html_attrs)
+    antibody1 = Col('antibody1',column_html_attrs=column_html_attrs)
+    antibody2 = Col('antibody2',column_html_attrs=column_html_attrs)
+    number_in_batch = Col('number in batch',column_html_attrs=column_html_attrs)
     clearer = Col('clearer',column_html_attrs=column_html_attrs)
-    clearing_progress = Col('clearing_progress',column_html_attrs=column_html_attrs)
+    clearing_progress = Col('clearing progress',column_html_attrs=column_html_attrs)
 
 class IdiscoPlusTable(Table):
     border = True
