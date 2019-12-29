@@ -157,7 +157,7 @@ class Request(dj.Manual):
                 
     class IdiscoPlusClearing(dj.Part): # 
         definition = """ # iDISCO+ clearing table
-        -> master.Sample           
+        -> master.ClearingBatch           
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request handling that could affect clearing
         time_dehydr_pbs_wash1 = NULL                             :   datetime
@@ -264,7 +264,7 @@ class Request(dj.Manual):
 
     class IdiscoAbbreviatedClearing(dj.Part): 
         definition = """ # iDISCO abbreviated clearing table
-        -> master.Sample           
+        -> master.ClearingBatch           
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request handling that could affect clearing
         time_pbs_wash1 = NULL                                    :   datetime
@@ -300,7 +300,7 @@ class Request(dj.Manual):
 
     class IdiscoAbbreviatedRatClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
         definition = """ # iDISCO Abbreviated Rat clearing table
-        -> master.Sample              
+        -> master.ClearingBatch              
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
         time_pbs_wash1 = NULL                                    :   datetime
@@ -350,7 +350,7 @@ class Request(dj.Manual):
 
     class UdiscoClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
         definition = """ # uDISCO clearing table
-        -> master.Sample              
+        -> master.ClearingBatch              
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
         time_dehydr_pbs_wash1 = NULL                             :   datetime
@@ -378,7 +378,7 @@ class Request(dj.Manual):
 
     class IdiscoEdUClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
         definition = """ # uDISCO clearing table
-        -> master.Sample              
+        -> master.ClearingBatch              
         ----
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
         time_dehydr_pbs_wash1 = NULL                             :   datetime

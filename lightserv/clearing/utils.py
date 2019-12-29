@@ -28,15 +28,15 @@ def determine_clearing_form(clearing_protocol,existing_form):
 
 def determine_clearing_dbtable(clearing_protocol):
 	if clearing_protocol == 'iDISCO+_immuno': 
-		dbtable = db_lightsheet.Sample.IdiscoPlusClearing
+		dbtable = db_lightsheet.Request.IdiscoPlusClearing
 	elif clearing_protocol == 'iDISCO abbreviated clearing':
-		dbtable = db_lightsheet.Sample.IdiscoAbbreviatedClearing
+		dbtable = db_lightsheet.Request.IdiscoAbbreviatedClearing
 	elif clearing_protocol == 'iDISCO abbreviated clearing (rat)':
-		dbtable = db_lightsheet.Sample.IdiscoAbbreviatedRatClearing
+		dbtable = db_lightsheet.Request.IdiscoAbbreviatedRatClearing
 	elif clearing_protocol == 'uDISCO':
-		dbtable = db_lightsheet.Sample.UdiscoClearing
+		dbtable = db_lightsheet.Request.UdiscoClearing
 	elif clearing_protocol == 'iDISCO_EdU':
-		dbtable = db_lightsheet.Sample.IdiscoEdUClearing
+		dbtable = db_lightsheet.Request.IdiscoEdUClearing
 
 	return dbtable
 

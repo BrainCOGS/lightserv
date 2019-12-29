@@ -90,28 +90,24 @@ def clearing_manager():
 		table_ready_to_clear=table_ready_to_clear,
 		table_already_cleared=table_already_cleared)
 
-@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<sample_name>/<clearing_protocol>",
+@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<antibody1>/<antibody2>",
 	methods=['GET','POST'])
 @logged_in_as_clearer
 @log_http_requests
-def clearing_entry(username,request_name,sample_name,clearing_protocol): 
-	sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'clearing_protocol="{clearing_protocol}"'								
-	if not sample_contents:
-		flash(f'Experiment must exist for request_name={request_name}, sample_name={sample_name} with \
-			clearing_protocol="{clearing_protocol}" before clearing can be done. \
-			Please submit a new request for this experiment first. ','danger')
-		return redirect(url_for('requests.new_request'))
-	antibody1,antibody2=sample_contents.fetch1('antibody1','antibody2')
-
-	clearing_table = ClearingTable(sample_contents)
+def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2): 
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'request_name="{request_name}"' & \
+	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
+	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'						
+	
+	clearing_table = ClearingTable(clearing_batch_contents)
 	
 	clearing_dbTable = determine_clearing_dbtable(clearing_protocol)
 	''' Check to see if there is an entry in the db yet. If not create one with all NULL values.
 	They will get updated as the user fills out the form '''
 	clearing_contents = clearing_dbTable() & f'request_name="{request_name}"' & \
-	 	f'username="{username}"' & f'sample_name="{sample_name}"'
-	
+	 	f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
+	 	f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	
+
 	''' If there are contents and the form is blank, then that means the user is accessing the form 
 	to edit it from a previous session and we should pre-load the current contents of the db '''
 	if clearing_contents and (not request.form):
@@ -124,9 +120,10 @@ def clearing_entry(username,request_name,sample_name,clearing_protocol):
 		form = determine_clearing_form(clearing_protocol,existing_form=request.form)
 
 	if not clearing_contents:
-		sample_username = sample_contents.fetch1('username')
-		insert_dict = {'request_name':request_name,
-						'username':sample_username,'sample_name':sample_name}
+
+		insert_dict = {'username':username,'request_name':request_name,
+					   'clearing_protocol':clearing_protocol,'antibody1':antibody1,
+					   'antibody2':antibody2}
 		clearing_dbTable().insert1(insert_dict)
 		logger.info("Created clearing database entry")
 	
@@ -135,7 +132,7 @@ def clearing_entry(username,request_name,sample_name,clearing_protocol):
 		logger.debug("Post request")
 		if form.validate_on_submit():
 			logger.debug("Form validated")
-			clearing_progress = sample_contents.fetch1('clearing_progress')
+			clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
 			if clearing_progress == 'complete':
 				return redirect(url_for('clearing.clearing_entry',username=username,
 			request_name=request_name,sample_name=sample_name,clearing_protocol=clearing_protocol))
@@ -146,36 +143,24 @@ def clearing_entry(username,request_name,sample_name,clearing_protocol):
 						logger.debug("Submitting entire form")
 						''' Get data from the form and submit it to the database
 						for all entries in the batch (same request,username,clearing_protocol,antibodies)'''
-						connection = db_lightsheet.Sample.connection
+						connection = clearing_dbTable.connection
 						with connection.transaction:
 							form_data_dict = form.data
 							clearing_contents_dict = clearing_contents.fetch1()
-							''' Figure out all samples that match these clearing params '''
-							all_sample_match_dict_list = (db_lightsheet.Sample() & \
-								f'request_name="{request_name}"' & f'username="{username}"' & \
-								f'clearing_protocol="{clearing_protocol}"' & f'antibody1="{antibody1}"' & \
-								f'antibody2="{antibody2}"').fetch(as_dict=True)
-							common_form_entry_dict = {key:form_data_dict[key] for key in form_data_dict.keys() \
-								if key in clearing_contents_dict.keys()}
-							''' loop through all samples that match and make an insert dict for each one ''' 
-							clearing_insert_list = []
-							for ii in range(len(all_sample_match_dict_list)):
-								sample_name = all_sample_match_dict_list[ii]['sample_name']
-								clearing_insert_dict = {'request_name':request_name,
-											   'username':username,
-							                   'sample_name':sample_name,
-							                   }
+							base_insert_dict = {'username':username,'request_name':request_name,
+							   'clearing_protocol':clearing_protocol,'antibody1':antibody1,
+							   'antibody2':antibody2} # the columns not in the form
+							clearing_insert_dict = {key:form_data_dict[key] for key in form_data_dict.keys() \
+									if key in clearing_contents_dict.keys()} # the columns from the form
 
-								for k in common_form_entry_dict.keys():
-									clearing_insert_dict[k] = common_form_entry_dict[k]
-								clearing_insert_list.append(clearing_insert_dict)
+							for k in base_insert_dict.keys():
+								clearing_insert_dict[k] = base_insert_dict[k]
 
-								''' update the clearing progress to "complete" for this sample entry '''
-								this_sample_content = db_lightsheet.Sample() & f'request_name="{request_name}"' & f'username="{username}"' & f'sample_name="{sample_name}"'
-								dj.Table._update(this_sample_content,'clearing_progress','complete')
+							''' update the clearing progress to "complete" for this sample entry '''
+							dj.Table._update(clearing_batch_contents,'clearing_progress','complete')
 
 							''' Update the entries by inserting with replace=True'''
-							clearing_dbTable().insert(clearing_insert_list,replace=True)	
+							clearing_dbTable().insert1(clearing_insert_dict,replace=True)	
 							flash("Clearing form was successfully completed.",'success')
 							return redirect(url_for('requests.request_overview',username=username,request_name=request_name))
 
@@ -217,16 +202,15 @@ def clearing_entry(username,request_name,sample_name,clearing_protocol):
 	else: # not a post request
 		column_name = None
 
-	clearing_progress = sample_contents.fetch1('clearing_progress')
+	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
 	if clearing_progress == 'complete':
 		flash("clearing is already complete for this sample. "
 			"This page is read only and hitting any of the buttons will not update the clearing log",'warning')
 	else:
-		dj.Table._update(sample_contents,'clearing_progress','in progress')
+		dj.Table._update(clearing_batch_contents,'clearing_progress','in progress')
 	# form.time_pbs_wash1.data = "2019-16-19T16:54:17"
-	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,
-		form=form,clearing_table=clearing_table,username=username,request_name=request_name,
-		sample_name=sample_name,column_name=column_name)
+	return render_template('clearing/clearing_entry.html',
+		form=form,clearing_table=clearing_table,column_name=column_name)
 
 @clearing.route("/clearing/clearing_table/<username>/<request_name>/<sample_name>/<clearing_protocol>/",methods=['GET'])
 @logged_in_as_clearer
