@@ -2,12 +2,6 @@ from flask import url_for, session, request
 import json
 import tempfile,webbrowser
 
-# def test_exps_show_up_on_main_page(test_client,test_login):
-# 	""" Check that the test post is rendered on the home page """
-# 	response = test_client.get(url_for('main.home'), follow_redirects=True)
-
-# 	assert b'light sheet requests' in response.data and b'rabbit anti-RFP 1:1000' in response.data
-
 def test_requests_redirects(test_client):
 	""" Tests that the requests page returns a 302 code (i.e. a redirect signal) for a not logged in user """
 	response = test_client.get(url_for('requests.all_requests'),
@@ -64,7 +58,6 @@ def test_setup_samples(test_client,test_login):
 	assert b'Clearing setup' in response.data  
 	assert b'Sample 1' in response.data
 	assert b'Sample 2' in response.data 
-
 
 def test_setup_image_resolution_form(test_client,test_login,):
 	""" Ensure that hitting the "Set up imaging parameters" button
@@ -249,3 +242,36 @@ def test_duplicate_image_resolution_form(test_client,test_login):
 
 	assert b'Imaging/Processing setup' in response.data  
 	assert b'You tried to make a table for image_resolution 1.3x. But that resolution was already picked for this sample:' in response.data
+
+def test_duplicate_sample_names(test_client,test_login):
+	""" Ensure that having duplicate sample names raises an error
+
+	Does not enter data into the db 
+	""" 
+	from lightserv import db_lightsheet
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Demo Experiment",
+			'description':"This is a demo experiment",
+			'species':"mouse",'number_of_samples':2,
+			'username':test_login['user'],
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'clearing_samples-1-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-1-sample_name':'sample-001',
+			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-1-image_resolution_forsetup':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"New Request Form" in response.data
+	assert b'''Sample name "sample-001" is duplicated''' in response.data
