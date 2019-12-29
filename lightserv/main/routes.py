@@ -2,6 +2,7 @@ from flask import (render_template, request, redirect,
 				   Blueprint, session, url_for, flash,
 				   Markup, Request, Response)
 from lightserv import db_lightsheet
+from lightserv.models import UserActionLog
 import pandas as pd
 from lightserv.main.utils import logged_in, table_sorter, log_http_requests
 from functools import partial, wraps
@@ -14,6 +15,7 @@ import numpy as np
 
 import logging
 from time import sleep
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -73,7 +75,9 @@ def login():
 	logstr = f'{username} logged in via "login()" route in lightserv.main.routes'
 	insert_dict = {'browser_name':browser_name,'browser_version':browser_version,
 				   'event':logstr,'platform':platform}
-	db_lightsheet.UserActionLog().insert1(insert_dict)
+	log_entry = UserActionLog(browser_name=browser_name, browser_version=browswer_version, event=logstr)
+	db_admin.session.add(log_entry)
+	# db_lightsheet.UserActionLog().insert1(insert_dict)
 	return redirect(next_url)
 
 @main.route("/allenatlas")

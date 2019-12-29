@@ -8,18 +8,13 @@ import datajoint as dj
 from datajoint.table import Log
 import socket
 from celery import Celery
-
-
+from flask_sqlalchemy import SQLAlchemy
 
 
 cel = Celery(__name__,broker='amqp://localhost//',
 	backend='db+mysql+pymysql://ahoag:p@sswd@localhost:3306/ahoag_celery')
 
 dj.config['database.user'] = 'ahoag'
-# if socket.gethostname() == 'braincogs00.pni.princeton.edu':
-# 	dj.config['database.password'] = 'gaoha'
-# else:
-# 	dj.config['database.password'] = 'p@sswd'
 dj.config['database.password'] = 'gaoha'
 
 
@@ -45,11 +40,13 @@ def set_schema():
 	return db_lightsheet,db_microscope
 db_lightsheet,db_microscope = set_schema()
 
+
 # bcrypt = Bcrypt()
 # login_manager = LoginManager()
 # login_manager.login_view = 'users.login' # function name - like the url_for() argument. 
 # This is how the login manager knows where to redirect us when a page requires a login
 # login_manager.login_message_category = 'info' # bootstrap class - a blue alert
+db_admin = SQLAlchemy()
 mail = Mail()
 
 def create_app(config_class=Config):
@@ -58,8 +55,9 @@ def create_app(config_class=Config):
 	csrf = CSRFProtect(app)
 	app.config.from_object(config_class)
 	cel.conf.update(app.config)
-	# db.init_app(app)
+	db_admin.init_app(app)
 	# login_manager.init_app(app)
+
 	mail.init_app(app)
 	# from lightserv.users.routes import users
 	from lightserv.requests.routes import requests
