@@ -64,7 +64,6 @@ def logged_in_as_clearer(f):
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
 			current_user = session['user']
-
 			request_name = kwargs['request_name']
 			username = kwargs['username']
 			clearing_protocol = kwargs['clearing_protocol']
@@ -137,7 +136,6 @@ def logged_in_as_processor(f):
 			return redirect(login_url)
 	return decorated_function
 
-
 def logged_in_as_clearing_manager(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
@@ -163,13 +161,11 @@ def logged_in_as_imager(f):
 	def decorated_function(*args, **kwargs):
 		if 'user' in session: # user is logged in 
 			current_user = session['user']
-
 			username = kwargs['username']
 			request_name = kwargs['request_name']
 			sample_name = kwargs['sample_name']
 			imaging_request_number = kwargs['imaging_request_number']
-			
-			imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
+			imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
 			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			 	f'imaging_request_number="{imaging_request_number}"'
 			imager = imaging_request_contents.fetch1('imager')
@@ -238,17 +234,21 @@ def image_manager(f):
 			return redirect(login_url)
 	return decorated_function
 
-
-
 def check_clearing_completed(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
 		request_name = kwargs['request_name']
 		sample_name = kwargs['sample_name']
 		username = kwargs['username']
-		sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
-		 	f'username="{username}"' & f'sample_name="{sample_name}"'
-		clearing_progress = sample_contents.fetch1('clearing_progress')
+		sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
+			f'username="{username}"' & f'sample_name="{sample_name}"'
+		clearing_protocol, antibody1, antibody2 = sample_contents.fetch1(
+			'clearing_protocol','antibody1','antibody2')
+		clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'request_name="{request_name}"' & \
+	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
+	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'
+		clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
+
 		if clearing_progress != 'complete':
 			flash(f"Clearing must be completed first for sample_name={sample_name}",'warning')
 			return redirect(url_for('requests.request_overview',username=username,

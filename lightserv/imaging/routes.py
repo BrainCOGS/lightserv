@@ -99,9 +99,9 @@ def imaging_manager():
 def imaging_entry(username,request_name,sample_name,imaging_request_number): 
 	form = ImagingForm(request.form)
 
-	sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
+	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' 
-	imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
 	 		f'imaging_request_number="{imaging_request_number}"' 
 	if len(imaging_request_contents) == 0:
@@ -110,7 +110,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 	''' If imaging is already complete (from before), then dont change imaging_progress '''
 	imaging_progress = imaging_request_contents.fetch1('imaging_progress')
 	
-	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
+	channel_contents = (db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"')
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
 	if request.method == 'POST':
@@ -172,7 +172,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					logger.info("Updating db entry with channel contents:")
 					logger.info(channel_insert_dict)
 			
-					db_lightsheet.Sample.ImagingChannel().insert1(channel_insert_dict,replace=True)
+					db_lightsheet.Request.ImagingChannel().insert1(channel_insert_dict,replace=True)
 				
 			correspondence_email = (db_lightsheet.Request() &\
 			 f'request_name="{request_name}"').fetch1('correspondence_email')
@@ -256,10 +256,10 @@ def new_imaging_request(username,request_name,sample_name):
 	 		f'username="{username}"' & f'sample_name="{sample_name}"'								
 	
 	sample_table = SampleTable(sample_contents)
-	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
+	channel_contents = (db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"')
 	""" figure out the new imaging request number to give the new request """
-	imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' 
 	previous_imaging_request_numbers = np.unique(imaging_request_contents.fetch('imaging_request_number'))
 	previous_max_imaging_request_number = max(previous_imaging_request_numbers)
@@ -292,7 +292,7 @@ def new_imaging_request(username,request_name,sample_name):
 						image_resolution_form.channels[x].registration.data = 1
 			elif submit_key == 'submit':
 
-				connection = db_lightsheet.Sample.ImagingRequest.connection
+				connection = db_lightsheet.Request.ImagingRequest.connection
 				with connection.transaction:
 					""" First handle the ImagingRequest() and ProcessingRequest() entries """
 					now = datetime.now()
@@ -327,12 +327,12 @@ def new_imaging_request(username,request_name,sample_name):
 					logger.info("ImagingRequest() insert:")
 					logger.info(imaging_request_insert_dict)
 					logger.info("")
-					db_lightsheet.Sample.ImagingRequest().insert1(imaging_request_insert_dict)
+					db_lightsheet.Request.ImagingRequest().insert1(imaging_request_insert_dict)
 
 					logger.info("ProcessingRequest() insert:")
 					logger.info(processing_request_insert_dict)
 					logger.info("")
-					db_lightsheet.Sample.ProcessingRequest().insert1(processing_request_insert_dict)
+					db_lightsheet.Request.ProcessingRequest().insert1(processing_request_insert_dict)
 
 					""" Now insert each image resolution/channel combo """
 					imaging_resolution_insert_list = []
@@ -386,15 +386,15 @@ def new_imaging_request(username,request_name,sample_name):
 					
 					logger.info('ImagingResolutionRequest() insert:')
 					logger.info(imaging_resolution_insert_list)
-					db_lightsheet.Sample.ImagingResolutionRequest().insert(imaging_resolution_insert_list)		
+					db_lightsheet.Request.ImagingResolutionRequest().insert(imaging_resolution_insert_list)		
 
 					logger.info('ProcessingResolutionRequest() insert:')
 					logger.info(processing_resolution_insert_list)
-					db_lightsheet.Sample.ProcessingResolutionRequest().insert(processing_resolution_insert_list)	
+					db_lightsheet.Request.ProcessingResolutionRequest().insert(processing_resolution_insert_list)	
 					
 					logger.info('ImagingChannel() insert:')
 					logger.info(channel_insert_list)
-					db_lightsheet.Sample.ImagingChannel().insert(channel_insert_list)
+					db_lightsheet.Request.ImagingChannel().insert(channel_insert_list)
 					flash("Your new imaging request was submitted successfully.", "success")
 					return redirect(url_for('requests.all_requests'))
 		else:
