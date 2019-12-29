@@ -36,7 +36,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
         no_items = "No samples at the moment",
         html_attrs = {"style":'font-size:18px;'}, 
         table_id = table_id,
-        classes = ["table-striped","mb-4"]
+        classes = ["mb-4"]
         ) 
 
     table_class = create_table(name,options=options)
@@ -66,20 +66,20 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
     clearing_url_kwargs = {'username':'username','request_name':'request_name',
-        'sample_name':'sample_name','clearing_protocol':'clearing_protocol'}
+        'clearing_protocol':'clearing_protocol'}
     anchor_attrs = {'target':"_blank",}
-    if table_id == 'horizontal_ready_to_clear_table':
-        table_class.add_column('start_clearing_link',LinkCol('Start clearing',
-         'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False))
-    elif table_id == 'horizontal_being_cleared_table':
-        table_class.add_column('continue_clearing_link',LinkCol('Continue clearing',
-         'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False))
-    elif table_id == 'horizontal_already_cleared_table':
-        table_class.add_column('view_clearing_link',LinkCol('View clearing',
-         'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False))
+    # if table_id == 'horizontal_ready_to_clear_table':
+    #     table_class.add_column('start_clearing_link',LinkCol('Start clearing',
+    #      'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
+    #         anchor_attrs=anchor_attrs,allow_sort=False))
+    # elif table_id == 'horizontal_being_cleared_table':
+    #     table_class.add_column('continue_clearing_link',LinkCol('Continue clearing',
+    #      'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
+    #         anchor_attrs=anchor_attrs,allow_sort=False))
+    # elif table_id == 'horizontal_already_cleared_table':
+    #     table_class.add_column('view_clearing_link',LinkCol('View clearing',
+    #      'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
+    #         anchor_attrs=anchor_attrs,allow_sort=False))
          
     sorted_contents = sorted(contents.fetch(as_dict=True),
             key=partial(table_sorter,sort_key=sort),reverse=reverse)

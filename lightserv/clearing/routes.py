@@ -49,35 +49,38 @@ def clearing_manager():
 
 	clearing_admins = current_app.config['CLEARING_ADMINS']
 	if current_user not in clearing_admins:
-		sample_contents = db_lightsheet.Sample() & f'clearer="{current_user}"'
+		clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'clearer="{current_user}"'
 	else:
-		sample_contents = db_lightsheet.Sample()
+		clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
 	request_contents = db_lightsheet.Request()
-
-	
-	combined_contents = dj.U('request_name','username','clearing_protocol','antibody1','antibody2').aggr(sample_contents, 
-        clearer='clearer',clearing_progress='clearing_progress',
-        sample_name='min(sample_name)',number_in_batch='count(*)') * request_contents	
-	all_contents_unique_clearing_protocol = combined_contents.proj('sample_name','number_in_batch',
+	combined_contents = (clearing_batch_contents * request_contents).proj(
+		'number_in_batch',
 		'clearing_protocol','species',
 		'clearer','clearing_progress','clearing_protocol','antibody1','antibody2',
-		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)') # will pick up the primary keys by default
+		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
+	# combined_contents = dj.U('request_name','username','clearing_protocol','antibody1','antibody2').aggr(sample_contents, 
+ #        clearer='clearer',clearing_progress='clearing_progress',
+ #        sample_name='min(sample_name)',number_in_batch='count(*)') * request_contents	
+	# all_contents_unique_clearing_protocol = combined_contents.proj('sample_name','number_in_batch',
+	# 	'clearing_protocol','species',
+	# 	'clearer','clearing_progress','clearing_protocol','antibody1','antibody2',
+	# 	datetime_submitted='TIMESTAMP(date_submitted,time_submitted)') # will pick up the primary keys by default
 
 	''' First get all entities that are currently being cleared '''
-	contents_being_cleared = all_contents_unique_clearing_protocol & 'clearing_progress="in progress"'
+	contents_being_cleared = combined_contents & 'clearing_progress="in progress"'
 	being_cleared_table_id = 'horizontal_being_cleared_table'
 	table_being_cleared = dynamic_clearing_management_table(contents_being_cleared,
 		table_id=being_cleared_table_id,
 		sort_by=sort,sort_reverse=reverse)
 	''' Next get all entities that are ready to be cleared '''
-	contents_ready_to_clear = all_contents_unique_clearing_protocol & 'clearing_progress="incomplete"' 
+	contents_ready_to_clear = combined_contents & 'clearing_progress="incomplete"' 
 	ready_to_clear_table_id = 'horizontal_ready_to_clear_table'
 	table_ready_to_clear = dynamic_clearing_management_table(contents_ready_to_clear,
 		table_id=ready_to_clear_table_id,
 		sort_by=sort,sort_reverse=reverse)
 	''' Now get all entities on deck (currently being cleared) '''
 	''' Finally get all entities that have already been imaged '''
-	contents_already_cleared = all_contents_unique_clearing_protocol & 'clearing_progress="complete"'
+	contents_already_cleared = combined_contents & 'clearing_progress="complete"'
 	already_cleared_table_id = 'horizontal_already_cleared_table'
 	table_already_cleared = dynamic_clearing_management_table(contents_already_cleared,
 		table_id=already_cleared_table_id,
