@@ -121,7 +121,7 @@
 				<!-- ################ -->
 				
 				<div>
-					{% for ii in range(form.number_of_samples.data) %}
+					{% for ii in range(form.clearing_samples|length) %}
 						{% set clearing_entry = form.clearing_samples[ii] %}
 						
 				    	<h3 class="form-control-label">Sample {{ii+1}} </h3>
