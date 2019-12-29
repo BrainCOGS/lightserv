@@ -65,6 +65,7 @@ def test_setup_samples(test_client,test_login):
 	assert b'Sample 1' in response.data
 	assert b'Sample 2' in response.data 
 
+
 def test_setup_image_resolution_form(test_client,test_login,):
 	""" Ensure that hitting the "Set up imaging parameters" button
 	in the samples section (assuming samples are already set up)
@@ -112,8 +113,7 @@ def test_setup_samples_too_many_samples(test_client,test_login):
 			)
 
 	response = test_client.post(url_for('requests.new_request'),
-		data=data,
-			follow_redirects=True,
+		data=data
 		)	
 
 	assert b'Clearing setup' not in response.data  

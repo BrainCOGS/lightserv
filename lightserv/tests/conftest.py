@@ -37,6 +37,7 @@ def test_client():
 	app = create_app(config_class=config.TestConfig)
 	# testing_client = app.test_client()
 	testing_client = app.test_client()
+
 	testing_client.environ_base["HTTP_USER_AGENT"] = user_agent_str
 	testing_client.environ_base["HTTP_X_REMOTE_USER"] = 'ahoag'
 
