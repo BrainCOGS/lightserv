@@ -53,7 +53,6 @@ class Request(dj.Manual):
     description                  :   varchar(250)
     species                      :   varchar(50)
     number_of_samples            :   tinyint
-    uniform_clearing             :   boolean
     testing = 0                  :   boolean
     """  
 
@@ -74,9 +73,10 @@ class Request(dj.Manual):
 
     class Sample(dj.Part):
         definition = """ # Samples from a request, belonging to a clearing batch
-        -> master.ClearingBatch
+        -> Request
         sample_name                  :   varchar(64)                
         ----
+        -> master.ClearingBatch
         """  
 
     class ImagingRequest(dj.Part):

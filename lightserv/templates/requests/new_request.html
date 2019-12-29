@@ -67,7 +67,7 @@
 				<div class="form-group">
 					{% if form.species.flags.required %}*{% endif %}
 					{{ form.species.label(class="form-control-label mr-2") }}
-					{{ form.species(class="form-control form-control-lg border-bottom") }}
+					{{ form.species(class="form-control form-control-lg") }}
 				</div>
 
 				<div class="form-group">
@@ -81,7 +81,11 @@
 							{% endfor %}
 						</div>
 					{% else %}
-						{{ form.number_of_samples(class="form-control form-control-lg") }}
+						{% if form.clearing_samples|length > 0 %}
+							{{ form.number_of_samples(readonly=true, class="form-control form-control-lg") }}
+						{% else %}
+							{{ form.number_of_samples(class="form-control form-control-lg") }}
+						{% endif %}
 					{% endif %}
 				</div>
 
@@ -141,12 +145,6 @@
 						<!-- CLEARING section -->
 						<!-- ################ -->
 				        <h3 class='border-bottom'>Clearing setup</h3>
-						{% if ii == 0 and form.number_of_samples.data > 1 %}
-							<div class="checkbox">
-			                    {{ form.uniform_clearing(class="form-check-input ") }}
-			                    {{ form.uniform_clearing.label(class="form-check-label mb-4") }}
-			                </div>
-			            {% endif %}
 
 				        <div class="form-group">
 							{% if clearing_entry.perfusion_date.flags.required %}*{% endif %}
@@ -238,24 +236,24 @@
 								{{ clearing_entry.notes_for_clearer(class="form-control form-control-lg") }}
 							{% endif %}
 						</div>
+						{% if ii == 0 and form.number_of_samples.data > 1 %}
+							<div class="form-group">
+			                    {{ form.uniform_clearing_submit_button(class="btn btn-success ") }}
+			                </div>
+			            {% endif %}
 
 						<!-- ################ -->
-						<!-- CLEARING section -->
+						<!-- IMAGING section -->
 						<!-- ################ -->
 						<hr class='class-2'>
 						<h3 class='border-bottom'>Imaging/Processing setup</h3>
 						{% set imaging_entry = form.imaging_samples[ii] %}
-						{% if ii == 0 and form.number_of_samples.data > 1 %}
-							<div class="checkbox">
-			                    {{ form.uniform_imaging(class="form-check-input ") }}
-			                    {{ form.uniform_imaging.label(class="form-check-label mb-4") }}
-			                </div>
-			            {% endif %}
+						
 						<!-- Loop through all image resolution forms and make a table for each -->
 						{% for image_resolution_form in imaging_entry.image_resolution_forms %}
 							<!-- render the hidden field -->
 							{{ image_resolution_form.image_resolution() }}
-							<h4 > Set up for image resolution: {{ image_resolution_form.image_resolution.data }} </h4>
+							<h4 > Setup for image resolution: {{ image_resolution_form.image_resolution.data }} </h4>
 							<a> Select all imaging channels and their uses: </a>
 							<table class="table table-bordered table-striped text-center mb-4">
 				                <tr>
@@ -327,16 +325,16 @@
 									{{ image_resolution_form.atlas_name(class="form-control form-control-lg") }}
 								{% endif %}
 							</div>
-
-			            	<hr class='class-2'>
-			            
+			           
 
 						{% endfor %} <!-- Loop over image resolution forms -->
 
-						<!-- Make the image resolution select field and button for making a new table of channels -->
-						{% if imaging_entry.image_resolution_forms|length > 0 %}
+						<!-- Add an additional imaging resolution? -->
+						{% if imaging_entry.image_resolution_forms|length > 0 and imaging_entry.image_resolution_forms|length < 4 %}
 							<h5> Add an additional imaging resolution? </h5>
 						{% endif %}
+
+						{% if imaging_entry.image_resolution_forms|length < 4 %}
 						<div class="form-group">
 							{{ imaging_entry.image_resolution_forsetup.label(class="form-control-label") }}
 							{% if imaging_entry.image_resolution_forsetup.errors %}
@@ -353,19 +351,21 @@
 				        <div class="form-group">
 							{{ imaging_entry.new_image_resolution_form_submit(class="btn btn-primary mt-2") }}
 						</div>
-					{% if not loop.last %}
-						<br/>
+
+						{% endif %}
+		            	
 		            	<hr class='class-2'>
-		            {% endif %}
 
-					{% endfor %}
+						 {% if ii == 0 and form.number_of_samples.data > 1 %}
+							<div class="form-group">
+								{{ form.uniform_imaging_submit_button(class="btn btn-success ") }}
+			                </div>
+			            {% endif %}
+						<br/>
+
+		            	<hr class='class-2'>
+					{% endfor %} <!-- Loop over all samples -->
 				</div>
-
-				<!-- ############### -->
-				<!-- IMAGING section -->
-				<!-- ############### -->
-				
-				
 			
 
 

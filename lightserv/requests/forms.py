@@ -3,12 +3,13 @@ from flask_wtf import FlaskForm
 from wtforms import (StringField, SubmitField, TextAreaField,
 					 SelectField, BooleanField, IntegerField,
 					 DecimalField, FieldList,FormField,HiddenField)
-from wtforms.fields.html5 import DateField
+# from wtforms.fields.html5 import DateField
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email, Optional
 from wtforms.widgets import html5, HiddenInput
 import os
 import glob
 from lightserv import db_lightsheet
+from wtforms import DateField
 
 
 def OptionalDateField(description='',validators=[]):
@@ -29,8 +30,8 @@ class ClearingForm(FlaskForm):
 	     ('uDISCO','uDISCO'),('iDISCO_EdU','Wang Lab iDISCO Protocol-EdU')],validators=[InputRequired()]) 
 	antibody1 = TextAreaField('Primary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
 	antibody2 = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
-	perfusion_date = OptionalDateField('Perfusion Date (MM/DD/YYYY; leave blank if unsure):')
-	expected_handoff_date = OptionalDateField('Expected date of hand-off (MM/DD/YYYY; leave blank if not sure or not applicable):')
+	perfusion_date = StringField('Perfusion Date (YYYY-MM-DD); leave blank if unsure):')
+	expected_handoff_date = StringField('Expected date of hand-off (YYYY-MM-DD; leave blank if not sure or not applicable):')
 	notes_for_clearer = TextAreaField('Special notes for clearing  -- max 1024 characters --',validators=[Length(max=1024)])
 
 	def validate_antibody1(self,antibody1):
@@ -68,7 +69,6 @@ class ImagingForm(FlaskForm):
 	""" A form that is used in ExpForm() via a FormField FieldList
 	so I dont have to write the imaging parameters out for each sample
 	"""
-
 	image_resolution_forsetup = SelectField('Select an image resolution you want to use:', 
 		choices=[('1.3x','1.3x'),
 	('4x','4x'),('1.1x','1.1x'),('2x','2x')],default='')   
@@ -98,12 +98,12 @@ class NewRequestForm(FlaskForm):
 	""" Clearing """
 	self_clearing = BooleanField('Check if you plan to do the clearing yourself',default=False)
 	clearing_samples = FieldList(FormField(ClearingForm),min_entries=0,max_entries=max_number_of_samples)
-	uniform_clearing = BooleanField('Check if you want these clearing parameters to apply to all samples') # setting default=True does not do anything, so I have to do it in the view function:  https://github.com/lepture/flask-wtf/issues/362
+	uniform_clearing_submit_button = SubmitField('Apply these clearing parameters to all samples') # setting default=True does not do anything, so I have to do it in the view function:  https://github.com/lepture/flask-wtf/issues/362
 	
 	""" Imaging """
 	self_imaging = BooleanField('Check if you plan to do the imaging yourself',default=False)
 	imaging_samples = FieldList(FormField(ImagingForm),min_entries=0,max_entries=max_number_of_samples)
-	uniform_imaging = BooleanField('Check if you want these imaging/processing parameters to apply to all samples')
+	uniform_imaging_submit_button = SubmitField('Apply these imaging/processing parameters to all samples') # setting default=True does not do anything, so I have to do it in the view function:  https://github.com/lepture/flask-wtf/issues/362
 
 	custom_sample_names = BooleanField("Check if you want to give custom names to each of your samples. "
 		          					   "If unchecked, your sample names will be {request_name}-sample-001, "
