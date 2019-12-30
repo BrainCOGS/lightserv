@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+	{% block content %}
+	<a class="text-muted">Logged in as: {{ session['user'] }}</a></br></br>
+	<legend class="border-bottom mb-4 mt-4">{{ legend }}:</legend>
+		<div style="max-height: 300px; overflow: auto;">
+			{{ samples_table }}
+		</div>
+		{% if combined_contents %}
+			<input id = "tableSwapper" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
+		{% endif %}
+		
+		
+	<script type="text/javascript" defer="defer">
+
+		   $("#tableSwapper").click(function() {
+		   MYLIBRARY.swapTable("{{samples_table.table_id}}");
+		});
+
+	</script>
+	{% endblock content %}

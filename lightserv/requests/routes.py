@@ -6,7 +6,8 @@ from flask import (render_template, url_for, flash,
 # from lightserv.models import Experiment
 from lightserv.requests.forms import NewRequestForm, UpdateNotesForm
 from lightserv.requests.tables import (AllRequestTable,
-	RequestOverviewTable, create_dynamic_samples_table)
+	RequestOverviewTable, create_dynamic_samples_table,
+	AllSamplesTable)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests)
@@ -27,7 +28,6 @@ import numpy as np
 import pymysql
 import logging
 from datetime import datetime
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -54,7 +54,7 @@ requests = Blueprint('requests',__name__)
 @logged_in
 def all_requests(): 
 	current_user = session['user']
-	logger.info(f"{current_user} accessed home page")
+	logger.info(f"{current_user} accessed all_requests page")
 	request_contents = db_lightsheet.Request()
 	# sample_contents = db_lightsheet.Sample()
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
@@ -552,4 +552,78 @@ def new_request():
 
 	return render_template('requests/new_request.html', title='new_request',
 		form=form,legend='New Request',column_name=column_name)	
+
+
+@requests.route("/requests/all_samples")
+@log_http_requests
+@logged_in
+def all_samples(): 
+	current_user = session['user']
+	logger.info(f"{current_user} accessed all_samples page")
+	request_contents = db_lightsheet.Request()
+	sample_contents = db_lightsheet.Request.Sample()
+	# clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
+	# imaging_request_contents = db_lightsheet.Request.ImagingRequest()
+	# processing_request_contents = db_lightsheet.Request.ProcessingRequest()
+	if current_user in ['ahoag','zmd','ll3','kellyms','jduva']:
+		legend = 'All core facility samples'
+	else:
+		legend = 'Your core facility samples'
+		sample_contents = sample_contents & f'username="{current_user}"'
+		request_contents = request_contents & f'username="{current_user}"'
+		# imaging_request_contents = imaging_request_contents & f'username="{current_user}"'
+		# processing_request_contents = processing_request_contents & f'username="{current_user}"'
+	combined_contents = (sample_contents * request_contents).proj(
+		request_name='request_name',sample_name='sample_name',
+		species='species',clearing_protocol='clearing_protocol',
+		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
+	# ''' Now figure out what fraction of the samples in each request are cleared/imaged/processed '''	
+	# replicated_args = dict(number_of_samples='number_of_samples',description='description',
+	# 	species='species',datetime_submitted='datetime_submitted')
+
+	# sample_joined_contents = dj.U('username','request_name').aggr(
+	# 	request_contents * clearing_batch_contents,
+	# 	number_of_samples='number_of_samples',
+	# 	description='description',
+	# 	species='species',
+	# 	datetime_submitted='TIMESTAMP(date_submitted,time_submitted)',
+	# 	n_cleared='CONVERT(SUM(clearing_progress="complete"),char)').proj(
+	# 	**replicated_args,
+	# 		fraction_cleared='CONCAT(n_cleared,"/",CONVERT(number_of_samples,char))')
+
+	# imaging_joined_contents = dj.U('username','request_name').aggr(
+	# sample_joined_contents * imaging_request_contents,
+	# **replicated_args,
+	# fraction_cleared='fraction_cleared',
+	# n_imaged='CONVERT(SUM(imaging_progress="complete"),char)',
+	# total_imaging_requests='CONVERT(COUNT(*),char)'
+	# ).proj(**replicated_args,
+	# 	fraction_cleared='fraction_cleared',
+	# 	fraction_imaged='CONCAT(n_imaged,"/",total_imaging_requests)'
+	# 	)
+
+	# processing_joined_contents = dj.U('username','request_name').aggr(
+	# imaging_joined_contents * processing_request_contents,
+	# **replicated_args,
+	# fraction_cleared='fraction_cleared',
+	# fraction_imaged='fraction_imaged',
+	# n_processed='CONVERT(SUM(processing_progress="complete"),char)',
+	# total_processing_requests='CONVERT(COUNT(*),char)'
+	# ).proj(
+	# 	**replicated_args,
+	# 	fraction_cleared='fraction_cleared',
+	# 	fraction_imaged='fraction_imaged',
+	# 	fraction_processed='CONCAT(n_processed,"/",total_processing_requests)'
+	# 	)
+
+	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
+	reverse = (request.args.get('direction', 'asc') == 'desc')
+	sorted_results = sorted(combined_contents.fetch(as_dict=True),
+		key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
+
+	table = AllSamplesTable(sorted_results,sort_by=sort,
+					  sort_reverse=reverse)
+	table.table_id = 'horizontal'
+	return render_template('requests/all_samples.html',samples_table=table,
+		combined_contents=combined_contents,legend=legend)
 

@@ -33,12 +33,18 @@
 
 
 							<div class="navbar-nav mr-auto">
-								<a class="nav-item nav-link" href="{{ url_for('main.welcome') }}">About Us</a>
-								{% if session['user'] == 'ahoag' or session['user'] == 'zmd' or session['user'] == 'jduva' %}
-									<a class="nav-item nav-link" href="{{ url_for('requests.all_requests') }}">All Requests</a>
-								{% else %}
-									<a class="nav-item nav-link" href="{{ url_for('requests.all_requests') }}">Your Requests</a>
-								{% endif %}
+								<a class="nav-item nav-link" href="{{ url_for('main.welcome') }}">About</a>
+
+								<li class="nav-item dropdown">
+							        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							          Your Data
+							        </a>
+							        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+										<a class="dropdown-item" href="{{ url_for('requests.all_requests') }}">Your Requests</a>
+										<a class="dropdown-item" href="{{ url_for('requests.all_samples') }}">Your Samples</a>
+										
+							        </div>
+								</li>
 
 								<li class="nav-item dropdown">
 							        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
