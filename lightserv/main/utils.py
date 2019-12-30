@@ -1,7 +1,6 @@
 from flask import session,request,url_for,redirect, flash, current_app
 from functools import wraps
 from lightserv import db_lightsheet, db_admin
-from lightserv.models import UserActionLog
 import datajoint as dj
 
 import logging
@@ -45,10 +44,8 @@ def log_http_requests(f):
 		
 		insert_dict = {'browser_name':browser_name,'browser_version':browser_version,
 					   'event':logstr,'platform':platform}
-		log_entry = UserActionLog(browser_name=browser_name,event=logstr)
-    
-		db_admin.session.add(log_entry)
-		# db_lightsheet.UserActionLog().insert1(insert_dict)
+
+		db_admin.UserActionLog().insert1(insert_dict)
 		return f(*args, **kwargs)
 	return decorated_function
 

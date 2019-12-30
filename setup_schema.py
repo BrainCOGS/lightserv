@@ -7,5 +7,6 @@
 # dj.config['database.password'] = 'p@sswd'
 
 from schemas import lightsheet
+from schemas import admin
 # from schemas import microscope
 

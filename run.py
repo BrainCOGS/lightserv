@@ -4,7 +4,6 @@ os.environ['FLASK_MODE']='DEV'
 from lightserv import create_app
 import socket
 
-
 app = create_app()
 
 

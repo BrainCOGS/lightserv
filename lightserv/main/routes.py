@@ -1,8 +1,7 @@
 from flask import (render_template, request, redirect,
 				   Blueprint, session, url_for, flash,
 				   Markup, Request, Response)
-from lightserv import db_lightsheet
-from lightserv.models import UserActionLog
+from lightserv import db_lightsheet, db_admin
 import pandas as pd
 from lightserv.main.utils import logged_in, table_sorter, log_http_requests
 from functools import partial, wraps
@@ -71,13 +70,10 @@ def login():
 		user_dict = {'username':username,'princeton_email':email}
 		db_lightsheet.User().insert1(user_dict)
 		logger.info(f"Added {username} to User table in database")
-	# logger.info(session)
 	logstr = f'{username} logged in via "login()" route in lightserv.main.routes'
 	insert_dict = {'browser_name':browser_name,'browser_version':browser_version,
 				   'event':logstr,'platform':platform}
-	log_entry = UserActionLog(browser_name=browser_name, browser_version=browswer_version, event=logstr)
-	db_admin.session.add(log_entry)
-	# db_lightsheet.UserActionLog().insert1(insert_dict)
+	db_admin.UserActionLog().insert1(insert_dict)
 	return redirect(next_url)
 
 @main.route("/allenatlas")
