@@ -72,7 +72,7 @@ def logged_in_as_clearer(f):
 			antibody2 = kwargs['antibody2']
 			print(clearing_protocol,antibody1,antibody2)
 			clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & \
-			f'request_name="{request_name}"' & 	f'username="{username}"' & \
+			f'request_name="{request_name}"' & f'username="{username}"' & \
 			f'clearing_protocol="{clearing_protocol}"' & \
 	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'
 			clearer = clearing_batch_contents.fetch1('clearer')

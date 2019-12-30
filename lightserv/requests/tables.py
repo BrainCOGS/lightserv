@@ -108,6 +108,7 @@ class RequestOverviewTable(Table):
         return next_url
 
 def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynamic Samples Table', **sort_kwargs):
+
     def dynamic_sort_url(self, col_key, reverse=False):
         if reverse:
             direction = 'desc'
@@ -152,18 +153,18 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     table_class.add_column('imaging_progress',Col('imaging progress'))
 
     """ Now add in the link columns """
-    # clearing_url_kwargs = {'username':'username','request_name':'request_name',
-    # 'sample_name':'sample_name','clearing_protocol':'clearing_protocol',
-    # 'antibody1':'antibody1','antibody2':'antibody2'}
+    clearing_url_kwargs = {'username':'username','request_name':'request_name',
+    'clearing_protocol':'clearing_protocol',
+    'antibody1':'antibody1','antibody2':'antibody2'}
     imaging_url_kwargs = {'username':'username','request_name':'request_name',
     'sample_name':'sample_name',}
     processing_url_kwargs = {'username':'username','request_name':'request_name',
     'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
     anchor_attrs = {'target':"_blank",}
-    # table_class.add_column('view_clearing_link',
-    #      LinkCol('View clearing log', 
-    #     'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
-    #    anchor_attrs=anchor_attrs,allow_sort=False))
+    table_class.add_column('view_clearing_link',
+         LinkCol('View clearing log', 
+        'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
+       anchor_attrs=anchor_attrs,allow_sort=False))
     
     table_class.add_column('new imaging request',
         LinkCol('New imaging request', 

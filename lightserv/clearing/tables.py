@@ -112,7 +112,7 @@ class IdiscoPlusTable(Table):
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
     request_name = Col('request_name',column_html_attrs=column_html_attrs)
-    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
+    # sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     exp_notes = Col('exp_notes')
 
     time_dehydr_pbs_wash1 = Col('time_dehydr_pbs_wash1',)
@@ -142,8 +142,8 @@ class IdiscoPlusTable(Table):
     time_dehydr_methanol_100percent_wash2          = Col('time_dehydr_methanol_100percent_wash2',)
     dehydr_methanol_100percent_wash2_notes          = Col('dehydr_methanol_100percent_wash2_notes',)
     
-    time_dehydr_h202_wash1                      = Col('time_dehydr_h202_wash1',)
-    dehydr_h202_wash1_notes                      = Col('dehydr_h202_wash1_notes',)
+    time_dehydr_peroxide_wash1                      = Col('time_dehydr_peroxide_wash1',)
+    dehydr_peroxide_wash1_notes                      = Col('dehydr_peroxide_wash1_notes',)
     
     time_rehydr_methanol_100percent_wash1          = Col('time_rehydr_methanol_100percent_wash1',)
     rehydr_methanol_100percent_wash1_notes          = Col('rehydr_methanol_100percent_wash1_notes',)
@@ -272,7 +272,7 @@ class IdiscoAbbreviatedTable(Table):
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
     request_name = Col('request_name',column_html_attrs=column_html_attrs)
-    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
+    # sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     exp_notes = Col('exp_notes')
     time_pbs_wash1 = Col('time_pbs_wash1',)
     pbs_wash1_notes = Col('pbs_wash1_notes',)
@@ -323,7 +323,7 @@ class IdiscoAbbreviatedRatTable(Table):
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
     request_name = Col('request_name',column_html_attrs=column_html_attrs)
-    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
+    # sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     exp_notes = Col('exp_notes')
 
     time_pbs_wash1 = Col('time_pbs_wash1',)
@@ -362,8 +362,8 @@ class IdiscoAbbreviatedRatTable(Table):
     time_dehydr_methanol_100percent_wash2          = Col('time_dehydr_methanol_100percent_wash2',)
     dehydr_methanol_100percent_wash2_notes          = Col('dehydr_methanol_100percent_wash2_notes',)
 
-    time_dehydr_h202_wash1 = Col('time_dehydr_h202_wash1')
-    dehydr_h202_wash1_notes = Col('dehydr_h202_wash1_notes')
+    time_dehydr_peroxide_wash1 = Col('time_dehydr_peroxide_wash1')
+    dehydr_peroxide_wash1_notes = Col('dehydr_peroxide_wash1_notes')
     
     time_dehydr_methanol_100percent_wash3 = Col('time_dehydr_methanol_100percent_wash3')
     dehydr_methanol_100percent_wash3_notes = Col('dehydr_methanol_100percent_wash3_notes')
@@ -399,7 +399,7 @@ class UdiscoTable(Table):
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
     request_name = Col('request_name',column_html_attrs=column_html_attrs)
-    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
+    # sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     exp_notes = Col('exp_notes')
 
     time_dehydr_pbs_wash1 = Col('time_dehydr_pbs_wash1')
@@ -441,7 +441,7 @@ class IdiscoEdUTable(Table):
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
     request_name = Col('request_name',column_html_attrs=column_html_attrs)
-    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
+    # sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     exp_notes = Col('exp_notes')
 
     time_dehydr_pbs_wash1 = Col('time_dehydr_pbs_wash1',)
@@ -471,8 +471,8 @@ class IdiscoEdUTable(Table):
     time_dehydr_methanol_100percent_wash2          = Col('time_dehydr_methanol_100percent_wash2',)
     dehydr_methanol_100percent_wash2_notes          = Col('dehydr_methanol_100percent_wash2_notes',)
 
-    time_dehydr_h202_wash1                      = Col('time_dehydr_h202_wash1',)
-    dehydr_h202_wash1_notes                      = Col('dehydr_h202_wash1_notes',)
+    time_dehydr_peroxide_wash1                      = Col('time_dehydr_peroxide_wash1',)
+    dehydr_peroxide_wash1_notes                      = Col('dehydr_peroxide_wash1_notes',)
 
     time_rehydr_methanol_100percent_wash1          = Col('time_rehydr_methanol_100percent_wash1',)
     rehydr_methanol_100percent_wash1_notes          = Col('rehydr_methanol_100percent_wash1_notes',)

@@ -15,6 +15,7 @@ import re
 import datetime
 
 import logging
+from werkzeug.routing import BaseConverter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -90,8 +91,11 @@ def clearing_manager():
 		table_ready_to_clear=table_ready_to_clear,
 		table_already_cleared=table_already_cleared)
 
+@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/",
+	methods=['GET','POST'],defaults={'antibody1':'','antibody2':''})
 @clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<antibody1>/<antibody2>",
 	methods=['GET','POST'])
+
 @logged_in_as_clearer
 @log_http_requests
 def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2): 
@@ -212,21 +216,22 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2):
 	return render_template('clearing/clearing_entry.html',
 		form=form,clearing_table=clearing_table,column_name=column_name)
 
-@clearing.route("/clearing/clearing_table/<username>/<request_name>/<sample_name>/<clearing_protocol>/",methods=['GET'])
+@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/",methods=['GET'],defaults={'antibody1':'','antibody2':''})
+@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<string:antibody1>/<string:antibody2>",methods=['GET'])
 @logged_in_as_clearer
 @log_http_requests
-def clearing_table(username,request_name,sample_name,clearing_protocol): 
-	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'clearing_protocol="{clearing_protocol}"'		
-	if not sample_contents:
-		flash(f"No sample contents for request_name={request_name}, sample_name={sample_name}\
-			   with clearing_protocol={clearing_protocol} for username={username}",'danger')
-		return redirect(url_for('requests.all_requests'))
-	overview_table = ClearingTable(sample_contents)
+def clearing_table(username,request_name,clearing_protocol,antibody1,antibody2):
+	""" Show the clearing contents for a clearing batch """ 
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'request_name="{request_name}"' & \
+	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
+	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	
+
+	overview_table = ClearingTable(clearing_batch_contents)
 	clearing_table.table_id = 'horizontal'
 	dbTable = determine_clearing_dbtable(clearing_protocol)
 	db_contents = dbTable() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"'
+	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
+	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	
 	table = determine_clearing_table(clearing_protocol)(db_contents)
 	table.table_id = 'vertical'
 
