@@ -116,7 +116,7 @@ def logged_in_as_processor(f):
 			imaging_request_number = kwargs['imaging_request_number']
 			processing_request_number = kwargs['processing_request_number']
 			
-			processing_request_contents = db_lightsheet.Sample.ProcessingRequest() & f'request_name="{request_name}"' & \
+			processing_request_contents = db_lightsheet.Request.ProcessingRequest() & f'request_name="{request_name}"' & \
 			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			 	f'imaging_request_number="{imaging_request_number}"' & \
 			 	f'processing_request_number="{processing_request_number}"'
@@ -267,7 +267,7 @@ def check_imaging_completed(f):
 		sample_name = kwargs['sample_name']
 		username = kwargs['username']
 		imaging_request_number = kwargs['imaging_request_number']
-		imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & \
+		imaging_request_contents = db_lightsheet.Request.ImagingRequest() & \
 		 	f'request_name="{request_name}"' & \
 		 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
 		 	f'imaging_request_number="{imaging_request_number}"'

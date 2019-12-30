@@ -216,7 +216,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2):
 @logged_in_as_clearer
 @log_http_requests
 def clearing_table(username,request_name,sample_name,clearing_protocol): 
-	sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
+	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'clearing_protocol="{clearing_protocol}"'		
 	if not sample_contents:
 		flash(f"No sample contents for request_name={request_name}, sample_name={sample_name}\

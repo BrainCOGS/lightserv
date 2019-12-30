@@ -54,11 +54,12 @@ def processing_manager():
 
 	processing_admins = current_app.config['PROCESSING_ADMINS']
 	
-	sample_contents = db_lightsheet.Sample()
+	sample_contents = db_lightsheet.Request.Sample()
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
 	request_contents = db_lightsheet.Request()
-	imaging_request_contents = db_lightsheet.Sample.ImagingRequest()
-	processing_request_contents = (db_lightsheet.Sample.ProcessingRequest() * \
-	 	sample_contents * request_contents * imaging_request_contents).\
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest()
+	processing_request_contents = (db_lightsheet.Request.ProcessingRequest() * \
+	 	clearing_batch_contents * request_contents * imaging_request_contents).\
 			proj('clearing_progress','processing_request_date_submitted','processing_request_time_submitted',
 			'imaging_progress','imager','species','processing_progress','processor',
 			datetime_submitted='TIMESTAMP(processing_request_date_submitted,processing_request_time_submitted)')
@@ -117,7 +118,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 	to start the data processing. """
 	logger.info(f"{session['user']} accessed start_processing route")
 	
-	sample_contents = (db_lightsheet.Sample() & f'request_name="{request_name}"' & \
+	sample_contents = (db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"')
 	sample_dict = sample_contents.fetch1()
 	# image_resolution_request_contents = db_lightsheet.Sample.ImagingResolutionRequest() & f'request_name="{request_name}"' & \
@@ -125,17 +126,17 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 	# 			f'imaging_request_number="{imaging_request_number}"'
 
 	logger.info(f'{username}, {request_name}, {sample_name}, {imaging_request_number}, {processing_request_number}')
-	processing_request_contents = db_lightsheet.Sample.ProcessingRequest() & f'request_name="{request_name}"' & \
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			 f'imaging_request_number="{imaging_request_number}"' & \
 			 f'processing_request_number="{processing_request_number}"'
 
-	processing_resolution_request_contents = db_lightsheet.Sample.ProcessingResolutionRequest() & f'request_name="{request_name}"' & \
+	processing_resolution_request_contents = db_lightsheet.Request.ProcessingResolutionRequest() & f'request_name="{request_name}"' & \
 				f'username="{username}"' & f'sample_name="{sample_name}"' & \
 				f'imaging_request_number="{imaging_request_number}"' & \
 				f'processing_request_number="{processing_request_number}"'
 	logger.debug(processing_request_contents)
-	channel_contents = db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
+	channel_contents = db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			f'imaging_request_number="{imaging_request_number}"' # all of the channels for this sample
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
@@ -256,21 +257,21 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 
 	all_imaging_modes = current_app.config['IMAGING_MODES']
 
-	sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
+	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"'								
 	sample_dict = sample_contents.fetch1()
 	# sample_table = SampleTable(sample_contents)
-	channel_contents = (db_lightsheet.Sample.ImagingChannel() & f'request_name="{request_name}"' & \
+	channel_contents = (db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"')
 	""" figure out the new processing request number to give the new request """
-	imaging_request_contents = db_lightsheet.Sample.ImagingRequest() & f'request_name="{request_name}"' & \
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
 	 		f'imaging_request_number="{imaging_request_number}"'
-	previous_processing_resolution_request_contents = db_lightsheet.Sample.ProcessingResolutionRequest() & f'request_name="{request_name}"' & \
+	previous_processing_resolution_request_contents = db_lightsheet.Request.ProcessingResolutionRequest() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
 	 		f'imaging_request_number="{imaging_request_number}"'  
 
-	previous_processing_request_contents = db_lightsheet.Sample.ProcessingRequest() & f'request_name="{request_name}"' & \
+	previous_processing_request_contents = db_lightsheet.Request.ProcessingRequest() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
 	 		f'imaging_request_number="{imaging_request_number}"' 
 
@@ -286,7 +287,7 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 	if request.method == 'POST':
 		if form.validate_on_submit():
 			logger.debug("form validated")
-			connection = db_lightsheet.Sample.ProcessingRequest.connection
+			connection = db_lightsheet.Request.ProcessingRequest.connection
 			with connection.transaction:
 				""" First handle the ImagingRequest() and ProcessingRequest() entries """
 				now = datetime.now()
@@ -311,7 +312,7 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 				logger.info("ProcessingRequest() insert:")
 				logger.info(processing_request_insert_dict)
 				logger.info("")
-				db_lightsheet.Sample.ProcessingRequest().insert1(processing_request_insert_dict)
+				db_lightsheet.Request.ProcessingRequest().insert1(processing_request_insert_dict)
 
 				# logger.info("updating sample contents from form data")
 				# dj.Table._update(sample_contents,'notes_from_processing',form.notes_from_processing.data)
@@ -333,7 +334,7 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 				logger.info("ProcessingResolutionRequest() insert:")
 				logger.info(processing_resolution_insert_list)
 				logger.info("")
-				db_lightsheet.Sample.ProcessingResolutionRequest().insert1(processing_resolution_insert_dict)
+				db_lightsheet.Request.ProcessingResolutionRequest().insert1(processing_resolution_insert_dict)
 
 
 			flash("Processing request successfully submitted. ","success")
@@ -368,7 +369,7 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 		unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
 		for ii in range(len(unique_image_resolutions)):
 			this_image_resolution = unique_image_resolutions[ii]
-			image_resolution_request_content = db_lightsheet.Sample.ImagingResolutionRequest() & \
+			image_resolution_request_content = db_lightsheet.Request.ImagingResolutionRequest() & \
 			 f'request_name="{request_name}"' & f'username="{username}"' & \
 			 f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & \
 			 f'image_resolution="{this_image_resolution}"'
@@ -418,10 +419,10 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 	from xml.etree import ElementTree as ET 
 	
 	''' Fetch the processing params from the table to run the code '''
-	sample_contents = db_lightsheet.Sample() & f'username="{username}"' \
+	sample_contents = db_lightsheet.Request.Sample() & f'username="{username}"' \
 	& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"'
 	
-	all_channel_contents = db_lightsheet.Sample.ImagingChannel() & f'username="{username}"' \
+	all_channel_contents = db_lightsheet.Request.ImagingChannel() & f'username="{username}"' \
 	& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
 	f'imaging_request_number="{imaging_request_number}"'
 	channel_content_dict_list = all_channel_contents.fetch(as_dict=True)
@@ -439,11 +440,11 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 	was performed """
 
 	all_imaging_modes = current_app.config['IMAGING_MODES']
-	connection = db_lightsheet.Sample.connection
+	connection = db_lightsheet.Request.Sample.connection
 	with connection.transaction:
 		unique_image_resolutions = sorted(list(set(all_channel_contents.fetch('image_resolution'))))
 		for image_resolution in unique_image_resolutions:
-			this_image_resolution_content = db_lightsheet.Sample.ProcessingResolutionRequest() & \
+			this_image_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & \
 			 f'request_name="{request_name}"' & f'username="{username}"' & \
 			 f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & \
 			 f'processing_request_number="{processing_request_number}"' & \
@@ -586,7 +587,7 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 					processing_insert_dict['datetime_processing_started'] = now
 					logger.info("Inserting into ProcessingChannel()")
 					logger.info(processing_insert_dict)
-					db_lightsheet.Sample.ProcessingChannel().insert1(processing_insert_dict,replace=True)
+					db_lightsheet.Request.ProcessingChannel().insert1(processing_insert_dict,replace=True)
 
 				param_dict['inputdictionary'] = inputdictionary
 				xyz_scale = (x_scale,y_scale,z_step)

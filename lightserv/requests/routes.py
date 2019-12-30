@@ -56,7 +56,6 @@ def all_requests():
 	current_user = session['user']
 	logger.info(f"{current_user} accessed all_requests page")
 	request_contents = db_lightsheet.Request()
-	# sample_contents = db_lightsheet.Sample()
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
 	imaging_request_contents = db_lightsheet.Request.ImagingRequest()
 	processing_request_contents = db_lightsheet.Request.ProcessingRequest()

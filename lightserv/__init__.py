@@ -16,7 +16,6 @@ cel = Celery(__name__,broker='amqp://localhost//',
 dj.config['database.user'] = 'ahoag'
 dj.config['database.password'] = 'gaoha'
 
-
 ''' Allow writing python objects to db as blob '''
 dj.config["enable_python_native_blobs"] = True
 ''' Initialize all the extensions outside of our app so 

@@ -47,10 +47,10 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 	from xml.etree import ElementTree as ET 
 	
 	''' Fetch the processing params from the table to run the code '''
-	sample_contents = db_lightsheet.Sample() & f'username="{username}"' \
+	sample_contents = db_lightsheet.Request.Sample() & f'username="{username}"' \
 	& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"'
 	
-	all_channel_contents = db_lightsheet.Sample.ImagingChannel() & f'username="{username}"' \
+	all_channel_contents = db_lightsheet.Request.ImagingChannel() & f'username="{username}"' \
 	& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
 	f'imaging_request_number="{imaging_request_number}"'
 	channel_content_dict_list = all_channel_contents.fetch(as_dict=True)
@@ -68,11 +68,11 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 	was performed """
 
 	all_imaging_modes = current_app.config['IMAGING_MODES']
-	connection = db_lightsheet.Sample.connection
+	connection = db_lightsheet.Request.Sample.connection
 	with connection.transaction:
 		unique_image_resolutions = sorted(list(set(all_channel_contents.fetch('image_resolution'))))
 		for image_resolution in unique_image_resolutions:
-			this_image_resolution_content = db_lightsheet.Sample.ProcessingResolutionRequest() & \
+			this_image_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & \
 			 f'request_name="{request_name}"' & f'username="{username}"' & \
 			 f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & \
 			 f'processing_request_number="{processing_request_number}"' & \
@@ -215,7 +215,7 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 					processing_insert_dict['datetime_processing_started'] = now
 					logger.info("Inserting into ProcessingChannel()")
 					logger.info(processing_insert_dict)
-					db_lightsheet.Sample.ProcessingChannel().insert1(processing_insert_dict,replace=True)
+					db_lightsheet.Request.ProcessingChannel().insert1(processing_insert_dict,replace=True)
 
 				param_dict['inputdictionary'] = inputdictionary
 				xyz_scale = (x_scale,y_scale,z_step)

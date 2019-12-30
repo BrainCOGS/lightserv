@@ -252,7 +252,7 @@ def new_imaging_request(username,request_name,sample_name):
 
 	all_imaging_modes = current_app.config['IMAGING_MODES']
 
-	sample_contents = db_lightsheet.Sample() & f'request_name="{request_name}"' & \
+	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"'								
 	
 	sample_table = SampleTable(sample_contents)
