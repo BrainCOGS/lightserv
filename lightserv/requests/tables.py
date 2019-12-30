@@ -27,9 +27,6 @@ class AllRequestTable(Table):
     fraction_cleared = Col('fraction cleared',column_html_attrs=column_html_attrs)
     fraction_imaged = Col('fraction imaged*',column_html_attrs=column_html_attrs)
     fraction_processed = Col('fraction processed**',column_html_attrs=column_html_attrs)
-    
-    # sample_prefix = Col('sample prefix')
-
 
     url_kwargs = {'username':'username','request_name':'request_name'}
     anchor_attrs = {'target':"_blank",}
