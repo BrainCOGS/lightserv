@@ -55,7 +55,8 @@ class ImageResolutionForm(FlaskForm):
 	image_resolution = HiddenField('image resolution')
 	channel_forms = FieldList(FormField(ChannelForm),min_entries=4,max_entries=4)
 	notes_for_imager = TextAreaField('''Special notes for imaging 
-		(e.g. z step size, brain orientation, exposure time, suggested tiling scheme -- make sure to specify which channel) -- max 1024 characters --''',
+		(e.g. z step size, brain orientation, region of brain to image, exposure time, \
+			suggested tiling scheme -- make sure to specify which channel(s) these apply to) -- max 1024 characters --''',
 		validators=[Length(max=1024)])
 
 	notes_for_processor = TextAreaField('''Special notes for processing 

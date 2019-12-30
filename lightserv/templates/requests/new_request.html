@@ -281,7 +281,7 @@
 				               {% endfor %}
 				            </table>
 
-				             <div class="form-group">
+				             <div class="form-group infolink" data-toggle="tooltip" title="While this notes field is not required, we strongly recommend that you fill it out if you want your images taken of a specific brain region only or at a specific orientation (e.g. sagittal). Otherwise, we will assume that you want the entire brain imaged, and we will image it in a sagittal orientation. ">
 								{% if image_resolution_form.notes_for_imager.flags.required %}*{% endif %}
 								{{ image_resolution_form.notes_for_imager.label(class="form-control-label") }}
 								{% if image_resolution_form.notes_for_imager.errors %}
