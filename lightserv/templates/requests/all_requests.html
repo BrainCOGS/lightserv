@@ -7,10 +7,11 @@
 		</div>
 		{% if request_contents %}
 			<input id = "tableSwapper" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
-		{% endif %}
+		
 		<hr class="class-2">
 		<b>*</b> A given sample can have multiple imaging requests, so the denominator may be larger than the number of samples </br>
 		<b>**</b> A given sample can have multiple processing requests per imaging request, so the denominator may be larger than the number of samples or the number of imaging requests 
+		{% endif %}
 		<hr class="class-5">
 		
 		<form action="{{url_for('requests.new_request')}}">
