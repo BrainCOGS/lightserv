@@ -93,9 +93,10 @@ def clearing_manager():
 
 @clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/",
 	methods=['GET','POST'],defaults={'antibody1':'','antibody2':''})
+@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<antibody1>/",
+	methods=['GET','POST'],defaults={'antibody2':''})
 @clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<antibody1>/<antibody2>",
 	methods=['GET','POST'])
-
 @logged_in_as_clearer
 @log_http_requests
 def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2): 
@@ -216,8 +217,12 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2):
 	return render_template('clearing/clearing_entry.html',
 		form=form,clearing_table=clearing_table,column_name=column_name)
 
-@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/",methods=['GET'],defaults={'antibody1':'','antibody2':''})
-@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<string:antibody1>/<string:antibody2>",methods=['GET'])
+@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/",
+	methods=['GET'],defaults={'antibody1':'','antibody2':''})
+@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<antibody1>/",
+	methods=['GET','POST'],defaults={'antibody2':''})
+@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<antibody1>/<antibody2>",
+	methods=['GET'])
 @logged_in_as_clearer
 @log_http_requests
 def clearing_table(username,request_name,clearing_protocol,antibody1,antibody2):
