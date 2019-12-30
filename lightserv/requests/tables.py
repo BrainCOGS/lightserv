@@ -58,8 +58,8 @@ class AllSamplesTable(Table):
     classes = ["table-striped"] # gets assigned to table classes. 
     # Striped is alternating bright and dark rows for visual ease.
     sample_name = Col('sample name',column_html_attrs=column_html_attrs)
-    username = Col('username',column_html_attrs=column_html_attrs)
     request_name = Col('request name',column_html_attrs=column_html_attrs)
+    username = Col('username',column_html_attrs=column_html_attrs)
     species = Col('species',column_html_attrs=column_html_attrs)
     datetime_submitted = DateTimeCol('datetime submitted')
 

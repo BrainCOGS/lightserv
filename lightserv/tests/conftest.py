@@ -60,10 +60,21 @@ def test_login(test_client):
 
 @pytest.fixture(scope='function')
 def test_login_ll3(test_client):
-	""" Log the user in. Requires a test_client fixture to do this. """
+	""" Log Laura in. Requires a test_client fixture to do this. """
 	print('----------Setup login response----------')
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'll3'
+
+	yield sess
+	print('----------Teardown login response----------')
+	pass
+
+@pytest.fixture(scope='function')
+def test_login_zmd(test_client):
+	""" Log Zahra in. Requires a test_client fixture to do this. """
+	print('----------Setup login response----------')
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'zmd'
 
 	yield sess
 	print('----------Teardown login response----------')
@@ -95,10 +106,8 @@ def test_delete_request_db_contents(test_client,test_login):
 	db_lightsheet.Request().delete()	
 
 @pytest.fixture(scope='function') 
-def test_single_request(test_client,test_login,test_delete_request_db_contents):
-	""" Creates a new request as 'ahoag' that can be used for various tests.
-	having test_schema as a parameter means that the entry in the database
-	will only exist as long as the test is inside the scope of this fixture.
+def test_single_request_ahoag(test_client,test_login,test_delete_request_db_contents):
+	""" Submits a new request as 'ahoag' that can be used for various tests.
 
 	It uses the test_delete_request_db_contents fixture, which means that 
 	the entry is deleted as soon as the test has been run
@@ -110,8 +119,40 @@ def test_single_request(test_client,test_login,test_delete_request_db_contents):
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Demo Experiment",
-			'description':"This is a demo experiment",
+			'request_name':"Admin request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'username':current_user,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_single_request fixture --------')
+
+@pytest.fixture(scope='function') 
+def test_single_request_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits a new request as 'ms81' (a nonadmin) that can be used for various tests.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_single_request fixture ----------')
+	from lightserv import db_lightsheet
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Tank/Brody",'correspondence_email':"ms81@princeton.edu",
+			'request_name':"Nonadmin request",
+			'description':"This is a request by ms81, a non admin",
 			'species':"mouse",'number_of_samples':1,
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',

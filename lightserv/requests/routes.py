@@ -67,7 +67,7 @@ def all_requests():
 		# sample_contents = sample_contents & f'username="{current_user}"'
 		imaging_request_contents = imaging_request_contents & f'username="{current_user}"'
 		processing_request_contents = processing_request_contents & f'username="{current_user}"'
-	
+	logger.debug(request_contents)
 	''' Now figure out what fraction of the samples in each request are cleared/imaged/processed '''	
 	replicated_args = dict(number_of_samples='number_of_samples',description='description',
 		species='species',datetime_submitted='datetime_submitted')
@@ -551,7 +551,6 @@ def new_request():
 
 	return render_template('requests/new_request.html', title='new_request',
 		form=form,legend='New Request',column_name=column_name)	
-
 
 @requests.route("/requests/all_samples")
 @log_http_requests
