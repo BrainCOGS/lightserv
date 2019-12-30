@@ -549,3 +549,4 @@ def test_sort_request_samples_table_all_columns(test_client,test_single_request_
 				table_id='horizontal_samples_table',sort=column_name,direction='desc'),
 			follow_redirects=True)
 		assert b'Samples in this request' in response.data	
+

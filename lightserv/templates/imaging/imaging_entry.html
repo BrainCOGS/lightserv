@@ -15,9 +15,15 @@
 		<!-- Render hiddenfield for image resolution -->
 		{{ image_resolution_form.image_resolution() }}
 		{% set image_resolution = image_resolution_form.image_resolution.data %}
-	
+
 		<hr class='class-2'>
 		<h3 class='mb-4'> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+		<div class="form-group">
+			{{ image_resolution_form.notes_for_imager.label(class="form-control-label")}}
+			{{ image_resolution_form.notes_for_imager(readonly=true, class="form-control form-control-lg") }}
+		</div>
+
+		<hr class='class-2'>
 
 		<table class="table table-bordered table-striped text-center mb-4">
 	        <tr>

@@ -215,11 +215,20 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 		unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
 		for ii in range(len(unique_image_resolutions)):
 			this_image_resolution = unique_image_resolutions[ii]
+			image_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
+			f'username="{username}" ' & f'request_name="{request_name}" ' & \
+			f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}' & \
+			f'image_resolution="{this_image_resolution}" '
+			notes_for_imager = image_resolution_request_contents.fetch1('notes_for_imager')
 			channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
 			channel_contents_lists.append([])
 			form.image_resolution_forms.append_entry()
 			this_resolution_form = form.image_resolution_forms[-1]
 			this_resolution_form.image_resolution.data = this_image_resolution
+			if notes_for_imager:
+				this_resolution_form.notes_for_imager.data = notes_for_imager
+			else:
+				this_resolution_form.notes_for_imager.data = 'No special notes'
 			''' Now add the channel subforms to the image resolution form '''
 			for jj in range(len(channel_contents_list_this_resolution)):
 				channel_content = channel_contents_list_this_resolution[jj]
