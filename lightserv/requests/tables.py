@@ -77,6 +77,10 @@ class AllSamplesTable(Table):
     request_name = Col('request name',column_html_attrs=column_html_attrs)
     username = Col('username',column_html_attrs=column_html_attrs)
     species = Col('species',column_html_attrs=column_html_attrs)
+    clearing_protocol = Col('clearing protocol')
+    clearing_progress = Col('clearing progress')
+    n_imaging_requests = Col('number of imaging requests')
+    n_processing_requests = Col('number of processing requests')
     datetime_submitted = DateTimeCol('datetime submitted')
 
     # fraction_cleared = Col('fraction cleared',column_html_attrs=column_html_attrs)

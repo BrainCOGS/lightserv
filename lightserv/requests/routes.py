@@ -16,7 +16,6 @@ from flask_mail import Message
 import datajoint as dj
 
 
-
 from functools import partial
 # from lightsheet_py3
 import glob
@@ -594,68 +593,47 @@ def all_samples():
 	logger.info(f"{current_user} accessed all_samples page")
 	request_contents = db_lightsheet.Request()
 	sample_contents = db_lightsheet.Request.Sample()
-	# clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
-	# imaging_request_contents = db_lightsheet.Request.ImagingRequest()
-	# processing_request_contents = db_lightsheet.Request.ProcessingRequest()
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest()
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest()
 	if current_user in ['ahoag','zmd','ll3','kellyms','jduva']:
-		legend = 'All core facility samples'
+		legend = 'All core facility samples (from all requests)'
 	else:
-		legend = 'Your core facility samples'
+		legend = 'Your core facility samples (from all of your requests)'
 		sample_contents = sample_contents & f'username="{current_user}"'
 		request_contents = request_contents & f'username="{current_user}"'
-		# imaging_request_contents = imaging_request_contents & f'username="{current_user}"'
-		# processing_request_contents = processing_request_contents & f'username="{current_user}"'
-	combined_contents = (sample_contents * request_contents).proj(
+		clearing_batch_contents = clearing_batch_contents & f'username="{current_user}"'
+		imaging_request_contents = imaging_request_contents & f'username="{current_user}"'
+		processing_request_contents = processing_request_contents & f'username="{current_user}"'
+	
+	clearing_joined_contents = (sample_contents * request_contents * clearing_batch_contents).proj(
 		request_name='request_name',sample_name='sample_name',
 		species='species',clearing_protocol='clearing_protocol',
+		clearing_progress='clearing_progress',
 		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
-	# ''' Now figure out what fraction of the samples in each request are cleared/imaged/processed '''	
-	# replicated_args = dict(number_of_samples='number_of_samples',description='description',
-	# 	species='species',datetime_submitted='datetime_submitted')
+	''' Now figure out what fraction of imaging requests have been fulfilled '''	
+	replicated_args = dict(species='species',clearing_protocol='clearing_protocol',
+    clearing_progress='clearing_progress',
+    datetime_submitted='datetime_submitted')
 
-	# sample_joined_contents = dj.U('username','request_name').aggr(
-	# 	request_contents * clearing_batch_contents,
-	# 	number_of_samples='number_of_samples',
-	# 	description='description',
-	# 	species='species',
-	# 	datetime_submitted='TIMESTAMP(date_submitted,time_submitted)',
-	# 	n_cleared='CONVERT(SUM(clearing_progress="complete"),char)').proj(
-	# 	**replicated_args,
-	# 		fraction_cleared='CONCAT(n_cleared,"/",CONVERT(number_of_samples,char))')
+	imaging_joined_contents = dj.U('username','request_name','sample_name').aggr(
+	    clearing_joined_contents*imaging_request_contents,
+	    **replicated_args,n_imaging_requests="COUNT(*)")
 
-	# imaging_joined_contents = dj.U('username','request_name').aggr(
-	# sample_joined_contents * imaging_request_contents,
-	# **replicated_args,
-	# fraction_cleared='fraction_cleared',
-	# n_imaged='CONVERT(SUM(imaging_progress="complete"),char)',
-	# total_imaging_requests='CONVERT(COUNT(*),char)'
-	# ).proj(**replicated_args,
-	# 	fraction_cleared='fraction_cleared',
-	# 	fraction_imaged='CONCAT(n_imaged,"/",total_imaging_requests)'
-	# 	)
+	processing_joined_contents = dj.U('username','request_name','sample_name').aggr(
+	    imaging_joined_contents*processing_request_contents,
+	    **replicated_args,n_imaging_requests="n_imaging_requests",
+	    n_processing_requests="COUNT(*)")
 
-	# processing_joined_contents = dj.U('username','request_name').aggr(
-	# imaging_joined_contents * processing_request_contents,
-	# **replicated_args,
-	# fraction_cleared='fraction_cleared',
-	# fraction_imaged='fraction_imaged',
-	# n_processed='CONVERT(SUM(processing_progress="complete"),char)',
-	# total_processing_requests='CONVERT(COUNT(*),char)'
-	# ).proj(
-	# 	**replicated_args,
-	# 	fraction_cleared='fraction_cleared',
-	# 	fraction_imaged='fraction_imaged',
-	# 	fraction_processed='CONCAT(n_processed,"/",total_processing_requests)'
-	# 	)
 
 	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
-	sorted_results = sorted(combined_contents.fetch(as_dict=True),
+	sorted_results = sorted(processing_joined_contents.fetch(as_dict=True),
 		key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
 
 	table = AllSamplesTable(sorted_results,sort_by=sort,
 					  sort_reverse=reverse)
 	table.table_id = 'horizontal'
 	return render_template('requests/all_samples.html',samples_table=table,
-		combined_contents=combined_contents,legend=legend)
+		combined_contents=processing_joined_contents,legend=legend)
 
