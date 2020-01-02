@@ -148,4 +148,5 @@ class ExistingProcessingTable(Table):
     injection_detection = BooltoStringCol('injection detection',column_html_attrs=column_html_attrs)
     probe_detection = BooltoStringCol('probe detection',column_html_attrs=column_html_attrs)
     cell_detection = BooltoStringCol('cell detection',column_html_attrs=column_html_attrs)
+    generic_imaging = BooltoStringCol('generic imaging',column_html_attrs=column_html_attrs)
     atlas_name = Col('atlas name',column_html_attrs=column_html_attrs)
