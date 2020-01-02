@@ -12,7 +12,9 @@ from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests)
 from lightserv import cel,mail
+from flask_mail import Message
 import datajoint as dj
+
 
 
 from functools import partial
@@ -498,12 +500,38 @@ def new_request():
 					logger.info(channel_insert_list)
 					db_lightsheet.Request.ImagingChannel().insert(channel_insert_list)
 					
-
-					flash("Request submitted successfully. If you elected to clear any of your tubes "
-						 "then head to the Clearing Manager in the Menu Bar to start the clearing entry form. "
+					flash("Request submitted successfully. You will receive an email at "
+						  f"{form.correspondence_email.data} with instructions " 
+						  "for setting up your spock account in order for this "
+						  "portal to run your jobs.","success")
+					flash("If you elected to clear any of your tubes "
+						 "then head to Task Management -> All Clearing Tasks in the Menu Bar"
+						 " to start the clearing entry form. "
 						 "If not, your tubes will be cleared by the Core Facility and "
 						 "you will receive an email once they are cleared. You can check the "
 						 "status of your samples at your request page (see table below).", "success")
+					msg = Message('Lightserv automated email',
+						sender='lightservhelper@gmail.com',
+						recipients=['ahoag@princeton.edu']) # keep it to me while in DEV phase
+					with open('/home/ahoag/.ssh/id_rsa.pub','r') as keyfile: 
+						keyfile_contents = keyfile.readlines() 
+					ssh_key_text = keyfile_contents[0].strip('\n')
+					msg.body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
+						'Your request:\n'
+						f'request_name: "{form.request_name.data}"\n'
+						'was successfully submitted.\nIn order for us to process your data, '
+						'you will need to copy the following ssh public key into the following file on spock.pni.princeton.edu: '
+						f'/home/{username}/.ssh/authorized_keys\n\n'
+						'If this file does not already exist, log in to spock and create it using the command: '
+						f'touch /home/{username}/.ssh/authorized_keys\n\n'
+						'If you have never logged in to spock before, os x and linux users may log from a terminal via: '
+						f'ssh {username}@spock.pni.princeton.edu\n'
+						'Then enter you pni netid password. If you are unable to log in to to spock and make the file, '
+						'please contact pnihelp@princeton.edu\n\n'
+						f'The ssh key you need to copy is: \n{ssh_key_text}\n'
+						'\n\nThanks,\nThe Histology and Brain Registration Core Facility.')
+					mail.send(msg)
 					return redirect(url_for('requests.all_requests'))
 			
 		else: # post request but not validated. Need to handle some errors
