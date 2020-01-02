@@ -291,14 +291,17 @@ def new_request():
 						this_image_resolution_form.notes_for_processor.data = sample1_notes_for_processor
 						this_image_resolution_form.atlas_name.data = sample1_atlas_name
 						sample1_channel_form_dicts = sample1_image_resolution_form_dict['channel_forms']
+						""" Loop through channel dicts and copy the values for each key """
 						for kk in range(len(sample1_channel_form_dicts)):
 							sample1_channel_form_dict = sample1_channel_form_dicts[kk]
+							sample1_channel_name = sample1_channel_form_dict['channel_name']
 							sample1_channel_registration = sample1_channel_form_dict['registration']
 							sample1_channel_injection_detection = sample1_channel_form_dict['injection_detection']
 							sample1_channel_probe_detection = sample1_channel_form_dict['probe_detection']
 							sample1_channel_cell_detection = sample1_channel_form_dict['cell_detection']
 							sample1_channel_generic_imaging = sample1_channel_form_dict['generic_imaging']
 							this_channel_form = this_image_resolution_form.channel_forms[kk]
+							this_channel_form.channel_name.data = sample1_channel_name
 							this_channel_form.registration.data = sample1_channel_registration
 							this_channel_form.injection_detection.data = sample1_channel_injection_detection
 							this_channel_form.probe_detection.data = sample1_channel_probe_detection
@@ -520,16 +523,19 @@ def new_request():
 						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 						'Your request:\n'
 						f'request_name: "{form.request_name.data}"\n'
-						'was successfully submitted.\nIn order for us to process your data, '
+						'was successfully submitted.\n\nIn order for us to process your data, '
 						'you will need to copy the following ssh public key into the following file on spock.pni.princeton.edu: '
 						f'/home/{username}/.ssh/authorized_keys\n\n'
 						'If this file does not already exist, log in to spock and create it using the command: '
 						f'touch /home/{username}/.ssh/authorized_keys\n\n'
-						'If you have never logged in to spock before, os x and linux users may log from a terminal via: '
+						'If you have never logged in to spock before, os x and linux users may log in from a terminal via: '
 						f'ssh {username}@spock.pni.princeton.edu\n'
-						'Then enter you pni netid password. If you are unable to log in to to spock and make the file, '
+						'Then enter your pni netid password. If you are unable to log in to to spock and make the file, '
 						'please contact pnihelp@princeton.edu\n\n'
-						f'The ssh key you need to copy is: \n{ssh_key_text}\n'
+						f'The ssh key you need to copy is: \n{ssh_key_text}\n\n'
+						'DISCLAIMER: Note that by copying this key over to your account on spock, you are authorizing the Core Facility to '
+						'run spock jobs as you, and as a result your spock karma will be affected as if you ran the job yourself. '
+						'Please respond to this message if you have any questions about this or any other issue regarding your request. '
 						'\n\nThanks,\nThe Histology and Brain Registration Core Facility.')
 					mail.send(msg)
 					return redirect(url_for('requests.all_requests'))
