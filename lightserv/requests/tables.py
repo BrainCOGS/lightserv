@@ -15,7 +15,7 @@ class AllRequestTable(Table):
     table_id = 'vert_table' # override this when you make an instance if you dont want vertical layout by default
     # column_html_attrs = {'style':'text-align: center; min-width:10px', 'bgcolor':"#FF0000"} # gets assigned to both th and td
     column_html_attrs = [] # javascript tableswapper does not preserve these.
-    classes = ["table-striped"] # gets assigned to table classes. 
+    classes = [] # gets assigned to table classes. 
     # Striped is alternating bright and dark rows for visual ease.
     datetime_submitted = DateTimeCol('datetime submitted')
 
@@ -34,6 +34,24 @@ class AllRequestTable(Table):
     samples_link = LinkCol('View request status', 'requests.request_overview',url_kwargs=url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False)
     
+    def get_tr_attrs(self, item, reverse=False):
+        fraction_cleared_str = item['fraction_cleared']
+        n_cleared,n_possible_to_clear = map(int,fraction_cleared_str.split("/"))
+
+        fraction_imaged_str = item['fraction_imaged']
+        n_imaged,n_possible_to_image = map(int,fraction_imaged_str.split("/"))
+
+        fraction_processed_str = item['fraction_processed']
+        n_processed,n_possible_to_process = map(int,fraction_processed_str.split("/"))
+        
+        if n_cleared == n_possible_to_clear and n_imaged == n_possible_to_image and \
+            n_processed == n_possible_to_process: # request was completely fulfilled
+            return {'bgcolor':'#A4FCAC'} # green
+        elif n_cleared > 0: # in progress
+            return {'bgcolor':'#A4FCFA'} # cyan
+        else: # nothing done yet
+            return {'bgcolor':'#FCA5A4'} # red
+           
     def sort_url(self, col_key, reverse=False):
         if reverse:
             direction = 'desc'

@@ -7,12 +7,31 @@
 		</div>
 		{% if request_contents %}
 			<input id = "tableSwapper" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/>
-		
-		<hr class="class-2">
-		<b>*</b> A given sample can have multiple imaging requests, so the denominator may be larger than the number of samples </br>
-		<b>**</b> A given sample can have multiple processing requests per imaging request, so the denominator may be larger than the number of samples or the number of imaging requests 
-		{% endif %}
+
 		<hr class="class-5">
+		<h3> Key: </h3>
+		<hr class="class-2">	
+
+		<div class='my-legend'>
+		<div class='legend-scale'>
+		  <ul class='legend-labels'>
+		    <li><span style='background:#FCA5A4;'></span>Request not yet started</li>
+		    <li><span style='background:#A4FCFA;'></span>Request in progress</li>
+		    <li><span style='background:#A4FCAC;'></span>Request complete</li>
+		  </ul>
+		  <br/>
+		  <br/>
+		  <br/>
+		</div>
+		</div>
+		<hr class="class-2">	
+
+		<div>
+			<b>*</b> A given sample can have multiple imaging requests, so the denominator may be larger than the number of samples </br>
+			<b>**</b> A given sample can have multiple processing requests per imaging request, so the denominator may be larger than the number of samples or the number of imaging requests 
+		</div>
+
+		{% endif %}
 		
 		<form action="{{url_for('requests.new_request')}}">
 			<button type="submit" class="btn btn-info mt-4 mb-4">Start a new request</button>
