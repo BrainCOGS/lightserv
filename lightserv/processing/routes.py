@@ -2,7 +2,7 @@ from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup, current_app)
 from lightserv.processing.forms import StartProcessingForm, NewProcessingRequestForm
-from lightserv.processing.tables import (create_dynamic_channels_table_for_processing,
+from lightserv.processing.tables import (create_dynamic_processing_overview_table,
 	dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
@@ -144,7 +144,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 	joined_contents = sample_contents * processing_request_contents * processing_resolution_request_contents 
 	
 	overview_table_id = 'horizontal_procsesing_table'
-	overview_table = create_dynamic_channels_table_for_processing(joined_contents,table_id=overview_table_id)
+	overview_table = create_dynamic_processing_overview_table(joined_contents,table_id=overview_table_id)
 	overview_table.table_id = overview_table_id
 
 	form = StartProcessingForm()
@@ -180,9 +180,9 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 			to avoid a race condition (the pipeline also updates the processing_progress flag if it fails or succeeds) '''
 			dj.Table._update(processing_request_contents,'processing_progress','running')
 			# try:
-			run_spock_pipeline(username=username,request_name=request_name,sample_name=sample_name,
-				imaging_request_number=imaging_request_number,
-				processing_request_number=processing_request_number)
+			# run_spock_pipeline(username=username,request_name=request_name,sample_name=sample_name,
+			# 	imaging_request_number=imaging_request_number,
+			# 	processing_request_number=processing_request_number)
 			flash('Your data processing has begun. You will receive an email \
 				when the first steps are completed.','success')
 			# except:

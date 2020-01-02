@@ -2,8 +2,7 @@ from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup, current_app)
 from lightserv.processing.forms import StartProcessingForm, NewProcessingRequestForm
-from lightserv.processing.tables import (create_dynamic_channels_table_for_processing,
-	dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable)
+from lightserv.processing.tables import (dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable)
 from lightserv import db_lightsheet
 from lightserv import cel,mail
 import datajoint as dj
