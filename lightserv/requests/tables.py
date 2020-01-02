@@ -29,7 +29,8 @@ class AllRequestTable(Table):
     fraction_processed = Col('fraction processed**',column_html_attrs=column_html_attrs)
 
     url_kwargs = {'username':'username','request_name':'request_name'}
-    anchor_attrs = {'target':"_blank",}
+    # anchor_attrs = {'target':"_blank",}
+    anchor_attrs = {}
     
     samples_link = LinkCol('View request status', 'requests.request_overview',url_kwargs=url_kwargs,
         anchor_attrs=anchor_attrs,allow_sort=False)
@@ -178,7 +179,8 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     'sample_name':'sample_name',}
     processing_url_kwargs = {'username':'username','request_name':'request_name',
     'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
-    anchor_attrs = {'target':"_blank",}
+    # anchor_attrs = {'target':"_blank",}
+    anchor_attrs = {}
     table_class.add_column('view_clearing_link',
          LinkCol('View clearing log', 
         'clearing.clearing_table',url_kwargs=clearing_url_kwargs,

@@ -61,7 +61,8 @@ def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
         'sample_name':'sample_name','imaging_request_number':'imaging_request_number',
         'processing_request_number':'processing_request_number'}
 
-    anchor_attrs = {'target':"_blank",}
+    # anchor_attrs = {'target':"_blank",}
+    anchor_attrs = {}
     if table_id == 'horizontal_ready_to_process_table':
         table_class.add_column('start_processing_link',LinkCol('Start processing',
          'processing.processing_entry',url_kwargs=processing_url_kwargs,

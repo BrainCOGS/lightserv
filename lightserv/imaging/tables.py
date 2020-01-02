@@ -58,7 +58,8 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     imaging_url_kwargs = {'username':'username','request_name':'request_name',
         'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
 
-    anchor_attrs = {'target':"_blank",}
+    # anchor_attrs = {'target':"_blank",}
+    anchor_attrs = {}
     if table_id == 'horizontal_ready_to_image_table':
 
         table_class.add_column('start_imaging_link',LinkCol('Start imaging',

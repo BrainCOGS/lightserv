@@ -20,7 +20,8 @@ class MicroscopeCalibrationTable(Table):
     calibration = Col('calibration',column_html_attrs=column_html_attrs)
     notes = Col('notes',column_html_attrs=column_html_attrs)
     kwargs = {'entrynum':'entrynum',}
-    anchor_attrs = {'target':"_blank",}
+    # anchor_attrs = {'target':"_blank",}
+    anchor_attrs = {}
 
     delete_link = LinkCol('Update entry', 'microscope.update_entry',url_kwargs=kwargs,anchor_attrs=anchor_attrs,allow_sort=False)
 
