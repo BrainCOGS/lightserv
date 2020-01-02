@@ -263,7 +263,7 @@
 				                    <th class="infolink" data-toggle="tooltip" title="Injection detection: Select channel(s) in which you want to recover an injection site. The channel could be the one closest in wavelength to the peak emission wavelength of a dye used to tag the injection site. Requires a registration channel to be selected.">Injection detection</th>
 				                    <th class="infolink" data-toggle="tooltip" title="Probe detection: Select channel(s) in which you want to recover a probe site. The channel could be the one closest in wavelength to the peak emission wavelength of a dye used to tag the probe site. Requires a registration channel to be selected.">Probe detection</th>
 				                    <th class="infolink" data-toggle="tooltip" title="Cell detection: Select channel(s) in which you want to recover cells.">Cell detection</th>
-				                    <th class="infolink" data-toggle="tooltip" title="General Imaging: Select channel(s) in this column if you want the channel imaged but not for purposes in the other columns (or you are not sure). Does not require a registration channel to be selected, but if one is this channel will be automatically registered to the atlas selected. ">General Imaging</th>
+				                    <th class="infolink" data-toggle="tooltip" title="General Imaging: Select channel(s) in this column if you want the channel imaged but not for purposes in the other columns (or you are not sure). Does not require a registration channel to be selected, but if one is this channel will be automatically registered to the atlas selected. ">Generic Imaging</th>
 				                </tr>
 
 				                {% for channel_entry in image_resolution_form.channel_forms %}
@@ -271,7 +271,7 @@
 				                	{{ channel_entry.channel_name() }} 
 					                <tr>   
 					                    <td>{{channel_entry.channel_name.data}}</td>
-					                    <td>{{ image_resolution_form.image_resolution.data }}</td>
+					                    <td>{{image_resolution_form.image_resolution.data }}</td>
 					                    <td>{{channel_entry.registration}}</td>
 					                    <td>{{channel_entry.injection_detection}}</td>
 					                    <td>{{channel_entry.probe_detection}}</td>
