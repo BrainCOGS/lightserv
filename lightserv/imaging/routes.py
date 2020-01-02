@@ -52,7 +52,7 @@ def imaging_manager():
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
 
 	imaging_request_contents = (db_lightsheet.Request.ImagingRequest() \
-		* clearing_batch_contents * request_contents).\
+		* clearing_batch_contents * sample_contents * request_contents).\
 		proj('clearer','clearing_progress',
 		'imaging_request_date_submitted','imaging_request_time_submitted',
 		'imaging_progress','imager','species',
@@ -236,9 +236,9 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				this_resolution_form.channel_forms.append_entry()
 				this_channel_form = this_resolution_form.channel_forms[-1]
 				this_channel_form.channel_name.data = channel_content['channel_name']
+				logger.debug(channel_content)
 				this_channel_form.image_resolution.data = channel_content['image_resolution']
 				this_channel_form.rawdata_subfolder.data = 'test488'
-
 	overview_dict = imaging_request_contents.fetch1()
 	imaging_table = ImagingTable(imaging_request_contents)
 
