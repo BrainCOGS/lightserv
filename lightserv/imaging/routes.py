@@ -183,7 +183,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			          recipients=['ahoag@princeton.edu']) # keep it to me while in DEV phase
 			msg.body = ('Hello!\n    This is an automated email sent from lightserv, '
 						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
-						'The raw data for your experiment:\n'
+						'The raw data for your request:\n'
 						f'request_name: "{request_name}"\n'
 						f'sample_name: "{sample_name}"\n'
 						f'are now available on bucket here: {path_to_data}')
