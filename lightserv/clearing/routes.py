@@ -97,14 +97,19 @@ def clearing_manager():
 	methods=['GET','POST'],defaults={'antibody2':''})
 @clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/<antibody1>/<antibody2>",
 	methods=['GET','POST'])
+@logged_in
 @logged_in_as_clearer
 @log_http_requests
 def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,clearing_batch_number): 
+	current_user = session['user']
+	logger.debug(f'{current_user} accessed clearing entry form')
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
 	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	& \
 	 		f'clearing_batch_number={clearing_batch_number}'				
-	
+	if len(clearing_batch_contents) == 0:
+		flash("No clearing batch exists with those parameters. Please try again.")
+		return redirect(url_for('requests.all_requests'))
 	clearing_table = ClearingTable(clearing_batch_contents)
 	
 	clearing_dbTable = determine_clearing_dbtable(clearing_protocol)
@@ -117,7 +122,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 
 	''' If there are contents and the form is blank, then that means the user is accessing the form 
 	to edit it from a previous session and we should pre-load the current contents of the db '''
-	if clearing_contents and (not request.form):
+	if len(clearing_contents) > 0 and (not request.form):
 		fill_dict = {'exp_notes':'some_notes'}
 		form = determine_clearing_form(clearing_protocol,existing_form=request.form)
 		for key,val in list(clearing_contents.fetch1().items()):
@@ -170,7 +175,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 							''' Update the entries by inserting with replace=True'''
 							clearing_dbTable().insert1(clearing_insert_dict,replace=True)	
 							flash("Clearing form was successfully completed.",'success')
-							return redirect(url_for('requests.request_overview',username=username,request_name=request_name))
+							return redirect(url_for('clearing.clearing_manager'))
 
 					elif re.search("^(?!perfusion).*_date_submit$",key) != None: # one of the calendar date submit buttons
 						column_name = key.split('_submit')[0]
@@ -217,7 +222,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 	else:
 		dj.Table._update(clearing_batch_contents,'clearing_progress','in progress')
 	# form.time_pbs_wash1.data = "2019-16-19T16:54:17"
-	return render_template('clearing/clearing_entry.html',
+	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,
 		form=form,clearing_table=clearing_table,column_name=column_name)
 
 @clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/",

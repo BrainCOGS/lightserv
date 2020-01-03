@@ -1,89 +1,215 @@
 from flask import url_for
-import secrets
 import tempfile
 import webbrowser
-import pickle
-import pandas as pd
-import pkg_resources
+from lightserv import db_lightsheet
+from bs4 import BeautifulSoup 
 from datetime import datetime
-from numpy import random
 
-data_dir = pkg_resources.resource_filename('lightserv','data')
-udisco_test_pkl_file = data_dir + '/udisco_test_data.pkl'
+def test_ahoag_access_clearing_manager(test_client,test_single_request_nonadmin,test_single_sample_request_ahoag):
+	""" Test that ahoag can access the clearing task manager
+	and see the single entry made by ahoag and an entry made by a nonadmin, ms81. """
+	response = test_client.get(url_for('clearing.clearing_manager')
+		, follow_redirects=True)
+	assert b'Clearing management GUI' in response.data
+	assert b'Admin request' in response.data 
+	assert b'Nonadmin request' in response.data 
 
-# def test_bad_clearing_protocol_entry(test_client,test_schema,test_login):
-# 	""" Check that a bad clearing protocol redirects to new experiment form """
-# 	response = test_client.get(url_for('clearing.clearing_entry',
-# 		clearing_protocol='made_up_clearing_protocol',experiment_id=1)
-# 		, follow_redirects=True)
-# 	# with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
-# 	# 	url = 'file://' + f.name 
-# 	# 	f.write(response.data)
-# 	# print(url)
-# 	# webbrowser.open(url)
-# 	assert b'Instructions' in response.data and b'Clearing Setup' in response.data
+def test_nonadmin_access_clearing_manager(test_client,test_single_sample_request_ahoag,test_single_request_nonadmin):
+	""" Test that Manuel (ms81, a nonadmin) can access the clearing task manager
+	but cannot see his entry because he did not designate himself as the clearer
+	and cannot see ahoag's entry because he is a not a clearing admin. """
+	response = test_client.get(url_for('clearing.clearing_manager')
+		, follow_redirects=True)
+	assert b'Clearing management GUI' in response.data
+	assert b'Nonadmin request' not in response.data 
+	assert b'Admin request' not in response.data 
 
-# def test_bad_experiment_entry(test_client,test_schema,test_login):
-# 	""" Check that a bad experiment_id redirects to new experiment form """
-# 	response = test_client.get(url_for('clearing.clearing_entry',
-# 		clearing_protocol='uDISCO',experiment_id=1000)
-# 		, follow_redirects=True)
+def test_ll3_access_clearing_manager(test_client,test_single_request_nonadmin,test_single_sample_request_ahoag,test_login_ll3):
+	""" Test that Laura (ll3, a clearing admin) can access the clearing task manager
+	and see entries made by multiple users """
+	response = test_client.get(url_for('clearing.clearing_manager')
+		, follow_redirects=True)
+	assert b'Clearing management GUI' in response.data
+	assert b'Admin request' in response.data 
+	assert b'Nonadmin request' in response.data 
 
-# 	assert b'Instructions' in response.data and b'Clearing Setup' in response.data
+def test_abbreviated_clearing_entry_form_loads(test_client,test_single_request_nonadmin,test_login_ll3):
+	""" Test that ll3 can access a clearing entry form  """
+	# response = test_client.get(url_for('requests.all_requests'))
+	response = test_client.get(url_for('clearing.clearing_entry',username="ms81",
+			request_name="Nonadmin request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+			follow_redirects=True,
+		)	
+	assert b'Clearing Entry Form' in response.data
+	assert b'Protocol: iDISCO abbreviated clearing' in response.data
+ 
+def test_abbreviated_clearing_entry_form_submits(test_client,test_single_request_nonadmin,test_login_ll3):
+	""" Test that ll3 can submit a clearing entry form 
+	and it redirects her back to the clearing task manager  """
+	# response = test_client.get(url_for('requests.all_requests'))
+	now = datetime.now()
+	print(now)
+	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		dehydr_pbs_wash1_notes='some notes',submit=True)
+	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
+			request_name="Nonadmin request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+	
+	assert b'Clearing management GUI' in response.data
+	
+	""" Make sure clearing_progress is now updated """
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & 'username="ms81"' & \
+	'request_name="Nonadmin request"' & 'clearing_protocol="iDISCO abbreviated clearing"' & \
+			'antibody1=""' & 'antibody2=""'
+	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
+	assert clearing_progress == 'complete'
+	
+	""" Make sure the clearing batch is now in the correct table in the manager """
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag = parsed_html.body.find('table',attrs={'id':'horizontal_already_cleared_table'})
+	table_row_tag = table_tag.find_all('tr')[1] # the 0th row is the headers
+	td_tags = table_row_tag.find_all('td')
+	assert td_tags[1].text == "iDISCO abbreviated clearing" and \
+	td_tags[2].text == "" and td_tags[3].text == "" and td_tags[4].text == 'Nonadmin request'
 
-# def test_get_iDISCOplus_entry_page(test_client,test_schema,test_login):
-# 	""" Check that a good clearing_protocol and experiment_id combo
-# 	 renders to the correct clearing entry form """
-# 	response = test_client.get(url_for('clearing.clearing_entry',
-# 		clearing_protocol='iDISCO+_immuno',experiment_id=2)
-# 		, follow_redirects=True)
-# 	assert b'iDISCO+_immuno' in response.data and b'Entry log for experiment_id=2' in response.data
 
-# def test_get_iDISCOabbreviated_entry_page(test_client,test_schema,test_login):
-# 	""" Check that a good clearing_protocol and experiment_id combo
-# 	 renders to the correct clearing entry form """
-# 	response = test_client.get(url_for('clearing.clearing_entry',
-# 		clearing_protocol='iDISCO abbreviated clearing',experiment_id=3)
-# 		, follow_redirects=True)
-# 	assert b'iDISCO abbreviated clearing' in response.data and b'Entry log for experiment_id=3' in response.data
+def test_mouse_clearing_entry_forms_load(test_client,test_request_all_mouse_clearing_protocols_ahoag,test_login_ll3):
+	""" Test that ll3 can access the clearing entry forms
+	for all mouse clearing protocols  """
 
-# def test_get_iDISCOabbreviatedrat_entry_page(test_client,test_schema,test_login):
-# 	""" Check that a good clearing_protocol and experiment_id combo
-# 	 renders to the correct clearing entry form """
-# 	response = test_client.get(url_for('clearing.clearing_entry',
-# 		clearing_protocol='iDISCO abbreviated clearing (rat)',experiment_id=11)
-# 		, follow_redirects=True)
-# 	assert b'iDISCO abbreviated clearing (rat)' in response.data and b'Entry log for experiment_id=11' in response.data
+	response_abbreviated_clearing = test_client.get(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="All mouse clearing protocol request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+			follow_redirects=True,
+		)	
+	assert b'Clearing Entry Form' in response_abbreviated_clearing.data
+	assert b'Protocol: iDISCO abbreviated clearing' in response_abbreviated_clearing.data
 
-# def test_get_uDISCO_entry_page(test_client,test_schema,test_login):
-# 	""" Check that a good clearing_protocol and experiment_id combo
-# 	 renders to the correct clearing entry form """
-# 	response = test_client.get(url_for('clearing.clearing_entry',
-# 		clearing_protocol='uDISCO',experiment_id=1)
-# 		, follow_redirects=True)
-# 	assert b'uDISCO' in response.data and b'Entry log for experiment_id=1' in response.data
+	response_idiscoplus_immuno_clearing = test_client.get(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="All mouse clearing protocol request",
+			clearing_protocol="iDISCO+_immuno",
+			antibody1="test antibody for immunostaining",antibody2="",
+			clearing_batch_number=2),
+			follow_redirects=True,
+		)	
+	assert b'Clearing Entry Form' in response_idiscoplus_immuno_clearing.data
+	assert b'Protocol: iDISCO+_immuno' in response_idiscoplus_immuno_clearing.data
 
-# def test_post_uDISCO_entry(test_client,test_schema,test_login):
-# 	""" Simulates a few repeated post requests when filling out the uDISCO clearing form """
-# 	with open(udisco_test_pkl_file,'rb') as pkl_file:
-# 		udisco_data = pickle.load(pkl_file) # loads it as an ndarray where the dtype attrib has column names
-# 	columns = udisco_data.dtype.names	
-# 	vals = udisco_data[0]
-# 	post_data_dict = {columns[ii]:vals[ii] for ii in range(len(columns))}
-# 	''' First post request '''
-# 	key1 = 'time_dehydr_butanol_70percent'
-# 	val1 = post_data_dict[key1].strftime('%Y-%m-%dT%H:%M')
-# 	submit_key1 = key1 + '_submit'
-# 	response1 = test_client.post(url_for('clearing.clearing_entry',
-# 		clearing_protocol='uDISCO',experiment_id=1),data={key1:val1,submit_key1:1}
-# 		, follow_redirects=True)
-# 	''' Second post request '''
-# 	key2 = 'exp_notes'
-# 	val2 = post_data_dict[key2]
-# 	submit_key2 = key2 + '_submit'
-# 	response1 = test_client.post(url_for('clearing.clearing_entry',
-# 		clearing_protocol='uDISCO',experiment_id=1),data={key2:val2,submit_key2:1}
-# 		, follow_redirects=True)
-# 	clearing_contents = test_schema.UdiscoClearing() & 'experiment_id=1'
-# 	assert clearing_contents.fetch1(key1).strftime('%Y-%m-%dT%H:%M') == val1
-# 	assert clearing_contents.fetch1(key2) == val2
+	response_udisco_clearing = test_client.get(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="All mouse clearing protocol request",
+			clearing_protocol="uDISCO",
+			antibody1="",antibody2="",
+			clearing_batch_number=3),
+			follow_redirects=True,
+		)	
+	assert b'Clearing Entry Form' in response_udisco_clearing.data
+	assert b'Protocol: uDISCO' in response_udisco_clearing.data
+
+	response_idisco_edu_clearing = test_client.get(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="All mouse clearing protocol request",
+			clearing_protocol="iDISCO_EdU",
+			antibody1="",antibody2="",
+			clearing_batch_number=4),
+			follow_redirects=True,
+		)	
+	assert b'Clearing Entry Form' in response_idisco_edu_clearing.data
+	assert b'Protocol: iDISCO_EdU' in response_idisco_edu_clearing.data
+
+def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_clearing_protocols_ahoag,test_login_ll3):
+	""" Test that ll3 can hit the update buttons in the clearing entry forms
+	for all mouse clearing protocols and the database is actually updated and the 
+	form is re-loaded with the updated field auto-filled """
+	now = datetime.now()
+	now_proper_format = now.strftime('%Y-%m-%dT%H:%M')
+	data_abbreviated_clearing = dict(time_pbs_wash1=now_proper_format,time_pbs_wash1_submit=True)
+	
+	response_abbreviated_clearing = test_client.post(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="All mouse clearing protocol request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+			follow_redirects=True,
+		data=data_abbreviated_clearing
+		)	
+	assert b'Clearing Entry Form' in response_abbreviated_clearing.data
+	assert b'Protocol: iDISCO abbreviated clearing' in response_abbreviated_clearing.data
+	assert now_proper_format.encode('utf-8') in response_abbreviated_clearing.data
+
+	data_idiscoplus_immuno_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,time_dehydr_pbs_wash1_submit=True)
+	response_idiscoplus_immuno_clearing = test_client.post(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="All mouse clearing protocol request",
+			clearing_protocol="iDISCO+_immuno",
+			antibody1="test antibody for immunostaining",antibody2="",
+			clearing_batch_number=2),
+			follow_redirects=True,
+		data=data_idiscoplus_immuno_clearing
+		)	
+	assert b'Clearing Entry Form' in response_idiscoplus_immuno_clearing.data
+	assert b'Protocol: iDISCO+_immuno' in response_idiscoplus_immuno_clearing.data
+	assert now_proper_format.encode('utf-8') in response_idiscoplus_immuno_clearing.data
+
+	data_udisco_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,time_dehydr_pbs_wash1_submit=True)
+	response_udisco_clearing = test_client.post(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="All mouse clearing protocol request",
+			clearing_protocol="uDISCO",
+			antibody1="",antibody2="",
+			clearing_batch_number=3),
+			follow_redirects=True,
+		data=data_udisco_clearing
+		)	
+	assert b'Clearing Entry Form' in response_udisco_clearing.data
+	assert b'Protocol: uDISCO' in response_udisco_clearing.data
+	assert now_proper_format.encode('utf-8') in response_udisco_clearing.data
+
+	data_idisco_edu_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,time_dehydr_pbs_wash1_submit=True)
+	response_idisco_edu_clearing = test_client.post(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="All mouse clearing protocol request",
+			clearing_protocol="iDISCO_EdU",
+			antibody1="",antibody2="",
+			clearing_batch_number=4),
+			follow_redirects=True,
+		data=data_idisco_edu_clearing
+		)	
+	assert b'Clearing Entry Form' in response_idisco_edu_clearing.data
+	assert b'Protocol: iDISCO_EdU' in response_idisco_edu_clearing.data
+	assert now_proper_format.encode('utf-8') in response_idisco_edu_clearing.data
+
+	# response_udisco_clearing = test_client.get(url_for('clearing.clearing_entry',
+	# 		username="ahoag",
+	# 		request_name="All mouse clearing protocol request",
+	# 		clearing_protocol="uDISCO",
+	# 		antibody1="",antibody2="",
+	# 		clearing_batch_number=3),
+	# 		follow_redirects=True,
+	# 	)	
+	# assert b'Clearing Entry Form' in response_udisco_clearing.data
+	# assert b'Protocol: uDISCO' in response_udisco_clearing.data
+
+	# response_idisco_edu_clearing = test_client.get(url_for('clearing.clearing_entry',
+	# 		username="ahoag",
+	# 		request_name="All mouse clearing protocol request",
+	# 		clearing_protocol="iDISCO_EdU",
+	# 		antibody1="",antibody2="",
+	# 		clearing_batch_number=4),
+	# 		follow_redirects=True,
+	# 	)	
+	# assert b'Clearing Entry Form' in response_idisco_edu_clearing.data
+	# assert b'Protocol: iDISCO_EdU' in response_idisco_edu_clearing.data

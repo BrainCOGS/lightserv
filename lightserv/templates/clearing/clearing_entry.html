@@ -1,7 +1,13 @@
 {% extends "layout.html" %}
 {% block content %}
-	<h3> Overview of clearing batch: </h3>
-	{{ clearing_table }}
+	<h1 align="center"> Clearing Entry Form </h1>
+	<hr class='class-2'>
+	<h3 align="center"> Protocol: {{clearing_protocol}}  </h3>
+	<hr class='class-1'>
+	<h3 align="center"> Overview of clearing batch: </h3>
+	<div align="center">
+		{{ clearing_table }}
+	</div>
 	 <div class="content-section mt-4">
 		<form method="POST" action="">
 			{{ form.hidden_tag() }}

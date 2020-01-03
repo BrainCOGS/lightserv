@@ -73,16 +73,18 @@ def logged_in_as_clearer(f):
 			clearing_batch_number = kwargs['clearing_batch_number']
 
 			clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & \
-			f'request_name="{request_name}"' & f'username="{username}"' & \
-			f'clearing_protocol="{clearing_protocol}"' & \
-	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"' & \
-	 		f'clearing_batch_number={clearing_batch_number}'
+				f'request_name="{request_name}"' & f'username="{username}"' & \
+				f'clearing_protocol="{clearing_protocol}"' & \
+				f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"' & \
+				f'clearing_batch_number={clearing_batch_number}'
+
 			clearer = clearing_batch_contents.fetch1('clearer')
 			''' check to see if user assigned themself as clearer '''
 			if clearer == None:
 				logger.info("Clearing entry form accessed with clearer not yet assigned. ")
 				''' now check to see if user is a designated clearer ''' 
 				if current_user in current_app.config['CLEARING_ADMINS']: # 
+					# logger.info(f"Current user: {current_user} is a designated clearer and is now assigned as the clearer")
 					dj.Table._update(clearing_batch_contents,'clearer',current_user)
 					logger.info(f"Current user: {current_user} is a designated clearer and is now assigned as the clearer")
 					return f(*args, **kwargs)

@@ -60,7 +60,6 @@ def test_login(test_client):
 		email = username + '@princeton.edu'
 		user_dict = {'username':username,'princeton_email':email}
 		db_lightsheet.User().insert1(user_dict)
-		print(db_lightsheet.User())
 	yield sess
 	print('----------Teardown login as ahoag response----------')
 	pass
@@ -77,7 +76,6 @@ def test_login_ll3(test_client):
 		email = username + '@princeton.edu'
 		user_dict = {'username':username,'princeton_email':email}
 		db_lightsheet.User().insert1(user_dict)
-		print(db_lightsheet.User())
 	yield sess
 	print('----------Teardown login_ll3 response----------')
 	pass
@@ -94,7 +92,6 @@ def test_login_zmd(test_client):
 		email = username + '@princeton.edu'
 		user_dict = {'username':username,'princeton_email':email}
 		db_lightsheet.User().insert1(user_dict)
-		print(db_lightsheet.User())
 	yield sess
 	print('----------Teardown login_zmd response----------')
 	pass
@@ -111,7 +108,6 @@ def test_login_nonadmin(test_client):
 		email = username + '@princeton.edu'
 		user_dict = {'username':username,'princeton_email':email}
 		db_lightsheet.User().insert1(user_dict)
-		print(db_lightsheet.User())
 	yield sess
 	print('----------Teardown login_nonadmin response----------')
 	pass	
@@ -131,8 +127,8 @@ def test_delete_request_db_contents(test_client):
 	db_lightsheet.Request().delete()	
 
 @pytest.fixture(scope='function') 
-def test_single_request_ahoag(test_client,test_login,test_delete_request_db_contents):
-	""" Submits a new request as 'ahoag' that can be used for various tests.
+def test_single_sample_request_ahoag(test_client,test_login,test_delete_request_db_contents):
+	""" Submits a new request as 'ahoag' with a single sample that can be used for various tests.
 
 	It uses the test_delete_request_db_contents fixture, which means that 
 	the entry is deleted as soon as the test has been run
@@ -211,6 +207,58 @@ def test_two_requests_ahoag(test_client,test_login,test_delete_request_db_conten
 
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_two_requests_ahoag fixture --------')
+
+@pytest.fixture(scope='function') 
+def test_request_all_mouse_clearing_protocols_ahoag(test_client,test_login,test_delete_request_db_contents):
+	""" Submits a new request as 'ahoag' with a sample for each of the 4 
+	clearing protocols that can be used for mice.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_single_request_ahoag fixture ----------')
+	from lightserv import db_lightsheet
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"ahoag@princeton.edu",
+			'request_name':"All mouse clearing protocol request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':4,
+			'username':current_user,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'clearing_samples-1-clearing_protocol':'iDISCO+_immuno',
+			'clearing_samples-1-antibody1':'test antibody for immunostaining',
+			'clearing_samples-1-sample_name':'sample-002',
+			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-1-image_resolution_forsetup':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
+			'clearing_samples-2-clearing_protocol':'uDISCO',
+			'clearing_samples-2-sample_name':'sample-003',
+			'imaging_samples-2-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-2-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-2-image_resolution_forsetup':'1.3x',
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-registration':True,
+			'clearing_samples-3-clearing_protocol':'iDISCO_EdU',
+			'clearing_samples-3-sample_name':'sample-004',
+			'imaging_samples-3-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-3-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-3-image_resolution_forsetup':'1.3x',
+			'imaging_samples-3-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_single_request_ahoag fixture --------')
 
 @pytest.fixture(scope='function') 
 def test_single_request_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
