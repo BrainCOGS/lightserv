@@ -178,7 +178,7 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     """ Now add in the link columns """
     clearing_url_kwargs = {'username':'username','request_name':'request_name',
     'clearing_protocol':'clearing_protocol',
-    'antibody1':'antibody1','antibody2':'antibody2'}
+    'antibody1':'antibody1','antibody2':'antibody2','clearing_batch_number':'clearing_batch_number'}
     imaging_url_kwargs = {'username':'username','request_name':'request_name',
     'sample_name':'sample_name',}
     processing_url_kwargs = {'username':'username','request_name':'request_name',

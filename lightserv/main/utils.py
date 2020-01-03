@@ -70,11 +70,13 @@ def logged_in_as_clearer(f):
 			clearing_protocol = kwargs['clearing_protocol']
 			antibody1 = kwargs['antibody1']
 			antibody2 = kwargs['antibody2']
-			print(clearing_protocol,antibody1,antibody2)
+			clearing_batch_number = kwargs['clearing_batch_number']
+
 			clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & \
 			f'request_name="{request_name}"' & f'username="{username}"' & \
 			f'clearing_protocol="{clearing_protocol}"' & \
-	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'
+	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"' & \
+	 		f'clearing_batch_number={clearing_batch_number}'
 			clearer = clearing_batch_contents.fetch1('clearer')
 			''' check to see if user assigned themself as clearer '''
 			if clearer == None:

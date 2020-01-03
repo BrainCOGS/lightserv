@@ -481,6 +481,22 @@ def new_request():
 					for ii in range(len(clearing_batch_insert_list)):
 						insert_dict = clearing_batch_insert_list[ii]
 						insert_dict['number_in_batch'] = counts[ii]
+						insert_dict['clearing_batch_number'] = ii+1
+					
+					""" Now loop through all sample insert dicts and assign clearing batch number """
+					for sample_insert_dict in sample_insert_list:
+						sample_clearing_protocol,sample_antibody1,sample_antibody2 = \
+							list(map(sample_insert_dict.get,['clearing_protocol','antibody1','antibody2']))
+						""" Figure out which clearing batch this corresponds to """
+						for clearing_batch_insert_dict in clearing_batch_insert_list:
+							clearing_batch_clearing_protocol,clearing_batch_antibody1,clearing_batch_antibody2 = \
+							list(map(clearing_batch_insert_dict.get,['clearing_protocol','antibody1','antibody2']))
+							if (clearing_batch_clearing_protocol == sample_clearing_protocol and \
+									clearing_batch_antibody1 == sample_antibody1 and \
+									clearing_batch_antibody2 == sample_antibody2):
+								clearing_batch_number = clearing_batch_insert_dict.get('clearing_batch_number')
+								sample_insert_dict['clearing_batch_number'] = clearing_batch_number
+
 					logger.info("ClearingBatch() insert ")
 					logger.info(clearing_batch_insert_list)
 					db_lightsheet.Request.ClearingBatch().insert(clearing_batch_insert_list,)

@@ -50,6 +50,7 @@ class Request(dj.Manual):
         clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
         antibody1 = ''               :   varchar(100)
         antibody2 = ''               :   varchar(100)
+        clearing_batch_number        :   tinyint
         ----
         clearing_progress            :   enum("incomplete","in progress","complete")
         number_in_batch              :   tinyint

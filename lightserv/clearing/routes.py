@@ -91,18 +91,19 @@ def clearing_manager():
 		table_ready_to_clear=table_ready_to_clear,
 		table_already_cleared=table_already_cleared)
 
-@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/",
+@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/",
 	methods=['GET','POST'],defaults={'antibody1':'','antibody2':''})
-@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<antibody1>/",
+@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/<antibody1>/",
 	methods=['GET','POST'],defaults={'antibody2':''})
-@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<antibody1>/<antibody2>",
+@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/<antibody1>/<antibody2>",
 	methods=['GET','POST'])
 @logged_in_as_clearer
 @log_http_requests
-def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2): 
+def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,clearing_batch_number): 
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
-	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'						
+	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	& \
+	 		f'clearing_batch_number={clearing_batch_number}'				
 	
 	clearing_table = ClearingTable(clearing_batch_contents)
 	
@@ -111,7 +112,8 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2):
 	They will get updated as the user fills out the form '''
 	clearing_contents = clearing_dbTable() & f'request_name="{request_name}"' & \
 	 	f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
-	 	f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	
+	 	f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	& \
+	 	f'clearing_batch_number={clearing_batch_number}'	
 
 	''' If there are contents and the form is blank, then that means the user is accessing the form 
 	to edit it from a previous session and we should pre-load the current contents of the db '''
@@ -128,7 +130,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2):
 
 		insert_dict = {'username':username,'request_name':request_name,
 					   'clearing_protocol':clearing_protocol,'antibody1':antibody1,
-					   'antibody2':antibody2}
+					   'antibody2':antibody2,'clearing_batch_number':clearing_batch_number}
 		clearing_dbTable().insert1(insert_dict)
 		logger.info("Created clearing database entry")
 	
@@ -140,7 +142,8 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2):
 			clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
 			if clearing_progress == 'complete':
 				return redirect(url_for('clearing.clearing_entry',username=username,
-			request_name=request_name,sample_name=sample_name,clearing_protocol=clearing_protocol))
+			request_name=request_name,clearing_protocol=clearing_protocol,
+			antibody1=antibody1,antibody2=antibody2,clearing_batch_number=clearing_batch_number))
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x]
 			for key in submit_keys:
 				if form[key].data:
@@ -154,7 +157,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2):
 							clearing_contents_dict = clearing_contents.fetch1()
 							base_insert_dict = {'username':username,'request_name':request_name,
 							   'clearing_protocol':clearing_protocol,'antibody1':antibody1,
-							   'antibody2':antibody2} # the columns not in the form
+							   'antibody2':antibody2,'clearing_batch_number':clearing_batch_number} # the columns not in the form
 							clearing_insert_dict = {key:form_data_dict[key] for key in form_data_dict.keys() \
 									if key in clearing_contents_dict.keys()} # the columns from the form
 
@@ -209,7 +212,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2):
 
 	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
 	if clearing_progress == 'complete':
-		flash("clearing is already complete for this sample. "
+		flash("Clearing is already complete for this sample. "
 			"This page is read only and hitting any of the buttons will not update the clearing log",'warning')
 	else:
 		dj.Table._update(clearing_batch_contents,'clearing_progress','in progress')
@@ -217,26 +220,28 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2):
 	return render_template('clearing/clearing_entry.html',
 		form=form,clearing_table=clearing_table,column_name=column_name)
 
-@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/",
-	methods=['GET'],defaults={'antibody1':'','antibody2':''})
-@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<antibody1>/",
+@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/",
+	methods=['GET','POST'],defaults={'antibody1':'','antibody2':''})
+@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/<antibody1>/",
 	methods=['GET','POST'],defaults={'antibody2':''})
-@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<antibody1>/<antibody2>",
-	methods=['GET'])
+@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/<antibody1>/<antibody2>",
+	methods=['GET','POST'])
 @logged_in_as_clearer
 @log_http_requests
-def clearing_table(username,request_name,clearing_protocol,antibody1,antibody2):
+def clearing_table(username,request_name,clearing_protocol,antibody1,antibody2,clearing_batch_number):
 	""" Show the clearing contents for a clearing batch """ 
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
-	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	
+	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	& \
+	 		f'clearing_batch_number={clearing_batch_number}'
 
 	overview_table = ClearingTable(clearing_batch_contents)
 	clearing_table.table_id = 'horizontal'
 	dbTable = determine_clearing_dbtable(clearing_protocol)
 	db_contents = dbTable() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
-	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	
+	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	& \
+	 		f'clearing_batch_number={clearing_batch_number}'
 	table = determine_clearing_table(clearing_protocol)(db_contents)
 	table.table_id = 'vertical'
 
