@@ -10,7 +10,7 @@ import os, sys
 if os.environ.get('FLASK_MODE') != 'TEST':
 	raise KeyError("Must set environmental variable FLASK_MODE=TEST")
 from flask import url_for,request
-from lightserv import create_app, config
+from lightserv import create_app, config, db_lightsheet
 import secrets
 import pytest
 from flask import url_for
@@ -49,11 +49,18 @@ def test_client():
 
 @pytest.fixture(scope='function')
 def test_login(test_client):
+
 	""" Log the user in. Requires a test_client fixture to do this. """
 	print('----------Setup login as ahoag response----------')
+	username = 'ahoag'
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'ahoag'
-
+		sess['user'] = username
+	all_usernames = db_lightsheet.User().fetch('username') 
+	if username not in all_usernames:
+		email = username + '@princeton.edu'
+		user_dict = {'username':username,'princeton_email':email}
+		db_lightsheet.User().insert1(user_dict)
+		print(db_lightsheet.User())
 	yield sess
 	print('----------Teardown login as ahoag response----------')
 	pass
@@ -62,9 +69,15 @@ def test_login(test_client):
 def test_login_ll3(test_client):
 	""" Log Laura in. Requires a test_client fixture to do this. """
 	print('----------Setup login_ll3 response----------')
+	username = 'll3'
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'll3'
-
+		sess['user'] = username
+	all_usernames = db_lightsheet.User().fetch('username') 
+	if username not in all_usernames:
+		email = username + '@princeton.edu'
+		user_dict = {'username':username,'princeton_email':email}
+		db_lightsheet.User().insert1(user_dict)
+		print(db_lightsheet.User())
 	yield sess
 	print('----------Teardown login_ll3 response----------')
 	pass
@@ -73,9 +86,15 @@ def test_login_ll3(test_client):
 def test_login_zmd(test_client):
 	""" Log Zahra in. Requires a test_client fixture to do this. """
 	print('----------Setup login_zmd response----------')
+	username = 'zmd'
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'zmd'
-
+		sess['user'] = username
+	all_usernames = db_lightsheet.User().fetch('username') 
+	if username not in all_usernames:
+		email = username + '@princeton.edu'
+		user_dict = {'username':username,'princeton_email':email}
+		db_lightsheet.User().insert1(user_dict)
+		print(db_lightsheet.User())
 	yield sess
 	print('----------Teardown login_zmd response----------')
 	pass
@@ -84,9 +103,15 @@ def test_login_zmd(test_client):
 def test_login_nonadmin(test_client):
 	""" Log the user in. Requires a test_client fixture to do this. """
 	print('----------Setup login_nonadmin response----------')
+	username = 'ms81'
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'ms81'
-
+		sess['user'] = username
+	all_usernames = db_lightsheet.User().fetch('username') 
+	if username not in all_usernames:
+		email = username + '@princeton.edu'
+		user_dict = {'username':username,'princeton_email':email}
+		db_lightsheet.User().insert1(user_dict)
+		print(db_lightsheet.User())
 	yield sess
 	print('----------Teardown login_nonadmin response----------')
 	pass	
