@@ -92,7 +92,7 @@ def test_login_nonadmin(test_client):
 	pass	
 
 @pytest.fixture(scope='function') 
-def test_delete_request_db_contents(test_client,test_login):
+def test_delete_request_db_contents(test_client):
 	""" A fixture to simply delete the db contents 
 	(starting at Request() as the root - does not delete User() contents)
 	after each test runs
