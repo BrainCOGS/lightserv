@@ -40,6 +40,8 @@ imaging = Blueprint('imaging',__name__)
 @logged_in
 @log_http_requests
 def imaging_manager(): 
+	current_user = session['user']
+	logger.info(f"{current_user} accessed imaging manager")
 	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	current_user = session['user']

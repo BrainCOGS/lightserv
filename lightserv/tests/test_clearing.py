@@ -5,7 +5,7 @@ from lightserv import db_lightsheet
 from bs4 import BeautifulSoup 
 from datetime import datetime
 
-def test_ahoag_access_clearing_manager(test_client,test_single_request_nonadmin,test_single_sample_request_ahoag):
+def test_ahoag_access_clearing_manager(test_client,test_single_sample_request_nonadmin,test_single_sample_request_ahoag):
 	""" Test that ahoag can access the clearing task manager
 	and see the single entry made by ahoag and an entry made by a nonadmin, ms81. """
 	response = test_client.get(url_for('clearing.clearing_manager')
@@ -14,7 +14,7 @@ def test_ahoag_access_clearing_manager(test_client,test_single_request_nonadmin,
 	assert b'Admin request' in response.data 
 	assert b'Nonadmin request' in response.data 
 
-def test_nonadmin_access_clearing_manager(test_client,test_single_sample_request_ahoag,test_single_request_nonadmin):
+def test_nonadmin_access_clearing_manager(test_client,test_single_sample_request_ahoag,test_single_sample_request_nonadmin):
 	""" Test that Manuel (ms81, a nonadmin) can access the clearing task manager
 	but cannot see his entry because he did not designate himself as the clearer
 	and cannot see ahoag's entry because he is a not a clearing admin. """
@@ -24,7 +24,7 @@ def test_nonadmin_access_clearing_manager(test_client,test_single_sample_request
 	assert b'Nonadmin request' not in response.data 
 	assert b'Admin request' not in response.data 
 
-def test_ll3_access_clearing_manager(test_client,test_single_request_nonadmin,test_single_sample_request_ahoag,test_login_ll3):
+def test_ll3_access_clearing_manager(test_client,test_single_sample_request_nonadmin,test_single_sample_request_ahoag,test_login_ll3):
 	""" Test that Laura (ll3, a clearing admin) can access the clearing task manager
 	and see entries made by multiple users """
 	response = test_client.get(url_for('clearing.clearing_manager')
@@ -33,7 +33,7 @@ def test_ll3_access_clearing_manager(test_client,test_single_request_nonadmin,te
 	assert b'Admin request' in response.data 
 	assert b'Nonadmin request' in response.data 
 
-def test_abbreviated_clearing_entry_form_loads(test_client,test_single_request_nonadmin,test_login_ll3):
+def test_abbreviated_clearing_entry_form_loads(test_client,test_single_sample_request_nonadmin,test_login_ll3):
 	""" Test that ll3 can access a clearing entry form  """
 	# response = test_client.get(url_for('requests.all_requests'))
 	response = test_client.get(url_for('clearing.clearing_entry',username="ms81",
@@ -46,7 +46,7 @@ def test_abbreviated_clearing_entry_form_loads(test_client,test_single_request_n
 	assert b'Clearing Entry Form' in response.data
 	assert b'Protocol: iDISCO abbreviated clearing' in response.data
  
-def test_abbreviated_clearing_entry_form_submits(test_client,test_single_request_nonadmin,test_login_ll3):
+def test_abbreviated_clearing_entry_form_submits(test_client,test_single_sample_request_nonadmin,test_login_ll3):
 	""" Test that ll3 can submit a clearing entry form 
 	and it redirects her back to the clearing task manager  """
 	# response = test_client.get(url_for('requests.all_requests'))
