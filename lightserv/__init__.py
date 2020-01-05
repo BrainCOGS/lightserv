@@ -1,5 +1,5 @@
 import os,sys
-from flask import Flask, session
+from flask import Flask, session, flash, request, redirect
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_wtf.csrf import CSRFProtect
@@ -8,7 +8,7 @@ import datajoint as dj
 from datajoint.table import Log
 import socket
 from celery import Celery
-
+from flask_wtf.csrf import CSRFError
 
 cel = Celery(__name__,broker='amqp://localhost//',
 	backend='db+mysql+pymysql://ahoag:p@sswd@localhost:3306/ahoag_celery')
@@ -79,4 +79,14 @@ def create_app(config_class=Config):
 
 	app.register_blueprint(microscope)
 	app.register_blueprint(errors)
+
+	@app.errorhandler(CSRFError)
+	def handle_csrf_error(e):
+		csrf_time_limit_seconds = app.config['WTF_CSRF_TIME_LIMIT']
+		csrf_time_limit_hours = csrf_time_limit_seconds/3600.
+		flash(f"The form expired after {csrf_time_limit_hours} hours. "
+		       "Please continue completing the form within the next {csrf_time_limit_hours} hours .","warning")
+		next_url = os.path.join('/',*request.url.split('?')[0].split('/')[3:])
+		return redirect(next_url)
+
 	return app
