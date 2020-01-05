@@ -93,7 +93,7 @@ def imaging_manager():
 		table_ready_to_image=table_ready_to_image,table_on_deck=table_on_deck,
 		table_already_imaged=table_already_imaged)
 
-@imaging.route("/imaging/imaging_entry/<username>/<request_name>/<imaging_request_number>/<sample_name>",methods=['GET','POST'])
+@imaging.route("/imaging/imaging_entry/<username>/<request_name>/<sample_name>/<imaging_request_number>",methods=['GET','POST'])
 @logged_in
 @logged_in_as_imager
 @check_clearing_completed

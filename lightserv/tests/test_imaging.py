@@ -33,6 +33,18 @@ def test_zmd_access_imaging_manager(test_client,test_cleared_request_ahoag,
 	assert b'Admin request' in response.data 
 	assert b'Nonadmin request' in response.data 
 
+def test_imaging_entry_form_loads(test_client,test_cleared_request_ahoag,
+	test_login_zmd):
+	""" Test that Zahra (zmd, an imaging admin) can access the imaging entry form
+	for a test sample """
+	response = test_client.get(url_for('imaging.imaging_entry',
+		username='ahoag',request_name='Admin request',sample_name='sample-001',
+		imaging_request_number=1)
+		, follow_redirects=True)
+	assert b'Imaging Entry Form' in response.data
+	assert b'Admin request' in response.data 
+	# assert b'Nonadmin request' in response.data 
+
 # def test_abbreviated_clearing_entry_form_loads(test_client,test_single_request_nonadmin,test_login_ll3):
 # 	""" Test that ll3 can access a clearing entry form  """
 # 	# response = test_client.get(url_for('requests.all_requests'))
