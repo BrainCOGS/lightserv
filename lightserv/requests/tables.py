@@ -66,6 +66,7 @@ class ProcessingRequestsSubTable(Table):
     border=True
     processing_request_number = Col('processing request number')
     processor = Col('processor')
+    processing_progress = Col('processing progress')
 
 class ImagingRequestsSubTable(Table):
     border=True
@@ -90,10 +91,11 @@ class AllSamplesTable(Table):
     species = Col('species',column_html_attrs=column_html_attrs)
     clearing_protocol = Col('clearing protocol')
     clearing_progress = Col('clearing progress')
-    imaging_requests = NestedTableCol('Imaging Requests',ImagingRequestsSubTable)
+    datetime_submitted = DateTimeCol('datetime submitted')
+
+    imaging_requests = NestedTableCol('Imaging Requests',ImagingRequestsSubTable,allow_sort=False)
     # n_imaging_requests = Col('number of imaging requests')
     # n_processing_requests = Col('number of processing requests')
-    datetime_submitted = DateTimeCol('datetime submitted')
 
     # fraction_cleared = Col('fraction cleared',column_html_attrs=column_html_attrs)
     # fraction_imaged = Col('fraction imaged*',column_html_attrs=column_html_attrs)

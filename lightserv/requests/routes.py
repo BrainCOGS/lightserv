@@ -602,8 +602,8 @@ def new_request():
 		form=form,legend='New Request',column_name=column_name)	
 
 @requests.route("/requests/all_samples")
-@log_http_requests
 @logged_in
+@log_http_requests
 def all_samples(): 
 	current_user = session['user']
 	logger.info(f"{current_user} accessed all_samples page")
@@ -652,12 +652,14 @@ def all_samples():
 	for d in all_contents_dict_list:
 	    imaging_request_number = d.get('imaging_request_number')
 	    imager = d.get('imager')
+	    imaging_progress = d.get('imaging_progress')
 	    imaging_request_dict = {'imaging_request_number':imaging_request_number,
-	                           'imager':imager}
+	                           'imager':imager,'imaging_progress':imaging_progress}
 	    processing_request_number = d.get('processing_request_number')
 	    processor = d.get('processor')
+	    processing_progress = d.get('processing_progress')
 	    processing_request_dict = {'processing_request_number':processing_request_number,
-	                                  'processor':processor}
+	                                  'processor':processor,'processing_progress':processing_progress}
 	    existing_sample_names = [x.get('sample_name') for x in final_dict_list]
 	    current_sample_name = d.get('sample_name')
 	    if current_sample_name not in existing_sample_names: # Then new sample, new imaging request, new processing request
