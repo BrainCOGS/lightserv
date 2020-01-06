@@ -1,6 +1,6 @@
 from flask import url_for,flash,redirect, request
-from flask_table import Table, Col, LinkCol, ButtonCol, create_table
-from lightserv.main.tables import HeadingCol, ConditionalLinkCol
+from flask_table import Table, Col, LinkCol, ButtonCol, create_table, NestedTableCol
+from lightserv.main.tables import HeadingCol, ConditionalLinkCol 
 from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import DateTimeCol
@@ -62,6 +62,17 @@ class AllRequestTable(Table):
         next_url += f'?sort={col_key}&direction={direction}&table_id={self.table_id}'
         return next_url
 
+class ProcessingRequestsSubTable(Table):
+    border=True
+    processing_request_number = Col('processing request number')
+    processor = Col('processor')
+
+class ImagingRequestsSubTable(Table):
+    border=True
+    imaging_request_number = Col('imaging request number')
+    imager = Col('imager')
+    imaging_progress = Col('imaging progress')
+    processing_requests = NestedTableCol('Processing Requests',ProcessingRequestsSubTable)
 
 class AllSamplesTable(Table):
     border = True
@@ -79,8 +90,9 @@ class AllSamplesTable(Table):
     species = Col('species',column_html_attrs=column_html_attrs)
     clearing_protocol = Col('clearing protocol')
     clearing_progress = Col('clearing progress')
-    n_imaging_requests = Col('number of imaging requests')
-    n_processing_requests = Col('number of processing requests')
+    imaging_requests = NestedTableCol('Imaging Requests',ImagingRequestsSubTable)
+    # n_imaging_requests = Col('number of imaging requests')
+    # n_processing_requests = Col('number of processing requests')
     datetime_submitted = DateTimeCol('datetime submitted')
 
     # fraction_cleared = Col('fraction cleared',column_html_attrs=column_html_attrs)

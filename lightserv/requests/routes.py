@@ -629,27 +629,67 @@ def all_samples():
 		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
 	''' Now figure out what fraction of imaging requests have been fulfilled '''	
 	replicated_args = dict(species='species',clearing_protocol='clearing_protocol',
+	imaging_request_number='imaging_request_number',imager='imager',
+	imaging_progress='imaging_progress',
     clearing_progress='clearing_progress',
     datetime_submitted='datetime_submitted')
 
 	imaging_joined_contents = dj.U('username','request_name','sample_name').aggr(
 	    clearing_joined_contents*imaging_request_contents,
-	    **replicated_args,n_imaging_requests="COUNT(*)")
+	    **replicated_args)
 
 	processing_joined_contents = dj.U('username','request_name','sample_name').aggr(
 	    imaging_joined_contents*processing_request_contents,
-	    **replicated_args,n_imaging_requests="n_imaging_requests",
-	    n_processing_requests="COUNT(*)")
+	    **replicated_args,processing_request_number='processing_request_number',
+    processor='processor',processing_progress='processing_progress')
 
+	all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
+	keep_keys = ['username','request_name','sample_name','species',
+				 'clearing_protocol','clearing_progress','n_imaging_requests',
+				 'n_processing_requests','datetime_submitted']
+	final_dict_list = []
+
+	for d in all_contents_dict_list:
+	    imaging_request_number = d.get('imaging_request_number')
+	    imager = d.get('imager')
+	    imaging_request_dict = {'imaging_request_number':imaging_request_number,
+	                           'imager':imager}
+	    processing_request_number = d.get('processing_request_number')
+	    processor = d.get('processor')
+	    processing_request_dict = {'processing_request_number':processing_request_number,
+	                                  'processor':processor}
+	    existing_sample_names = [x.get('sample_name') for x in final_dict_list]
+	    current_sample_name = d.get('sample_name')
+	    if current_sample_name not in existing_sample_names: # Then new sample, new imaging request, new processing request
+	        new_dict_values = list(map(d.get,keep_keys))
+	        new_dict = {keep_keys[ii]:new_dict_values[ii] for ii in range(len(keep_keys))}
+	        new_dict['imaging_requests'] = []
+	        imaging_request_dict['processing_requests'] = [processing_request_dict]
+	        new_dict['imaging_requests'].append(imaging_request_dict)
+	        final_dict_list.append(new_dict)
+	    else:
+	        # A repeated sample name could either be
+	        # a new imaging request or a new processing request at the same imaging request
+	        existing_index = existing_sample_names.index(current_sample_name)
+	        existing_dict = final_dict_list[existing_index]
+	        existing_imaging_request_dicts = existing_dict['imaging_requests']
+	        existing_imaging_request_numbers = [x.get('imaging_request_number') for x in existing_imaging_request_dicts]
+	        if imaging_request_number not in existing_imaging_request_numbers: # Then its a new imaging request and processing request
+	            imaging_request_dict['processing_requests'] = [processing_request_dict]
+	            existing_dict['imaging_requests'].append(imaging_request_dict)
+	        else: # Then it's an old imaging request and new processing request
+	            existing_imaging_request_index = existing_imaging_request_numbers.index(imaging_request_number)
+	            existing_imaging_request_dict = existing_imaging_request_dicts[existing_imaging_request_index]
+	            existing_imaging_request_dict['processing_requests'].append(processing_request_dict)
 
 	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
-	sorted_results = sorted(processing_joined_contents.fetch(as_dict=True),
+	sorted_results = sorted(final_dict_list,
 		key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
-
+	
 	table = AllSamplesTable(sorted_results,sort_by=sort,
 					  sort_reverse=reverse)
 	table.table_id = 'horizontal'
 	return render_template('requests/all_samples.html',samples_table=table,
-		combined_contents=processing_joined_contents,legend=legend)
+		combined_contents=final_dict_list,legend=legend)
 
