@@ -64,15 +64,28 @@ class AllRequestTable(Table):
 
 class ProcessingRequestsSubTable(Table):
     border=True
+    allow_sort=False
     processing_request_number = Col('processing request number')
     processor = Col('processor')
     processing_progress = Col('processing progress')
-
+    processing_url_kwargs = {'username':'username','request_name':'request_name',
+    'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
+    # anchor_attrs = {'target':"_blank",}
+    # anchor_attrs = {}
+    new_processing_request = LinkCol('New processing request', 
+        'processing.new_processing_request',url_kwargs=processing_url_kwargs,
+        allow_sort=False)
+   
 class ImagingRequestsSubTable(Table):
     border=True
+    allow_sort=False
     imaging_request_number = Col('imaging request number')
     imager = Col('imager')
     imaging_progress = Col('imaging progress')
+    imaging_url_kwargs = {'username':'username','request_name':'request_name',
+    'sample_name':'sample_name',}
+    new_imaging_request = LinkCol('New imaging request', 
+        'imaging.new_imaging_request',url_kwargs=imaging_url_kwargs)
     processing_requests = NestedTableCol('Processing Requests',ProcessingRequestsSubTable)
 
 class AllSamplesTable(Table):
@@ -92,7 +105,6 @@ class AllSamplesTable(Table):
     clearing_protocol = Col('clearing protocol')
     clearing_progress = Col('clearing progress')
     datetime_submitted = DateTimeCol('datetime submitted')
-
     imaging_requests = NestedTableCol('Imaging Requests',ImagingRequestsSubTable,allow_sort=False)
     # n_imaging_requests = Col('number of imaging requests')
     # n_processing_requests = Col('number of processing requests')
@@ -172,49 +184,32 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
     """ Now loop through all columns and add them to the table,
     only adding the imaging modes if they are used in at least one
     sample """
-    colnames = contents.heading.names
+    # colnames = contents.heading.names
+    colnames = contents[0].keys()
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
     table_class.add_column('sample_name',Col('sample name'))    
     table_class.add_column('request_name',Col('request name'))
     table_class.add_column('username',Col('username'))
-    table_class.add_column('imaging_request_number',Col('imaging request number'))
-    # table_class.add_column('perfusion_date',Col('perfusion date'))
-    # table_class.add_column('expected_handoff_date',Col('expected handoff date'))
-    # table_class.add_column('clearer',Col('clearer'))
+    
     table_class.add_column('clearing_protocol',Col('clearing protocol'))
-    # table_class.add_column('clearing_progress',Col('clearing progress'))
     table_class.add_column('antibody1',Col('antibody 1'))
     table_class.add_column('antibody2',Col('antibody 2'))
-    table_class.add_column('imaging_progress',Col('imaging progress'))
+    table_class.add_column('imaging_requests',NestedTableCol('Imaging Requests',ImagingRequestsSubTable,allow_sort=False))
 
     """ Now add in the link columns """
     clearing_url_kwargs = {'username':'username','request_name':'request_name',
     'clearing_protocol':'clearing_protocol',
     'antibody1':'antibody1','antibody2':'antibody2','clearing_batch_number':'clearing_batch_number'}
-    imaging_url_kwargs = {'username':'username','request_name':'request_name',
-    'sample_name':'sample_name',}
-    processing_url_kwargs = {'username':'username','request_name':'request_name',
-    'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
-    # anchor_attrs = {'target':"_blank",}
+    
     anchor_attrs = {}
     table_class.add_column('view_clearing_link',
          LinkCol('View clearing log', 
         'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
        anchor_attrs=anchor_attrs,allow_sort=False))
     
-    table_class.add_column('new imaging request',
-        LinkCol('New imaging request', 
-        'imaging.new_imaging_request',url_kwargs=imaging_url_kwargs,
-        anchor_attrs=anchor_attrs,allow_sort=False))
-   
-    table_class.add_column('new processing request',
-        LinkCol('New processing request', 
-        'processing.new_processing_request',url_kwargs=processing_url_kwargs,
-        anchor_attrs=anchor_attrs,allow_sort=False))
-   
-    sorted_contents = sorted(contents.fetch(as_dict=True),
+    sorted_contents = sorted(contents,
             key=partial(table_sorter,sort_key=sort),reverse=reverse)
     table = table_class(sorted_contents)
     table.sort_by = sort

@@ -2,7 +2,7 @@
 	{% block content %}
 	<a class="text-muted">Logged in as: {{ session['user'] }}</a></br></br>
 	<legend class="border-bottom mb-4 mt-4">{{ legend }}:</legend>
-		<div style="max-height: 400px; overflow: auto;">
+		<div style="max-height: 450px; overflow: auto;">
 			{{ samples_table }}
 		</div>
 		{% if combined_contents %}

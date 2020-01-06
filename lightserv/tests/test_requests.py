@@ -542,8 +542,8 @@ def test_sort_request_samples_table_all_columns(test_client,test_single_sample_r
 	to insert a request into the database as ahoag. 
 
 	"""
-	for column_name in ['sample_name','request_name','username','imaging_request_number','clearing_protocol',
-	'antibody1','antibody2','imaging_progress']:
+	for column_name in ['sample_name','request_name','username','clearing_protocol',
+	'antibody1','antibody2']:
 		response = test_client.get(
 			url_for('requests.request_overview',username='ahoag',request_name='Admin request',
 				table_id='horizontal_samples_table',sort=column_name,direction='desc'),

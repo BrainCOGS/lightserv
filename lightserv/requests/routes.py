@@ -130,19 +130,70 @@ def request_overview(username,request_name):
 		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
 	samples_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & f'username="{username}"' 
 	''' Get rid of the rows where none of the channels are used '''
-	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & f'username="{username}"' 
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & \
+	 f'request_name="{request_name}"' & f'username="{username}"' 
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
+	 f'request_name="{request_name}"' & f'username="{username}"' 
+
 	# The first time page is loaded, sort, reverse, table_id are all not set so they become their default
 	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	table_id = request.args.get('table_id', '')
 
-	combined_contents = (dj.U('request_name','sample_name').aggr(
-	imaging_request_contents,imaging_request_number='imaging_request_number',
-	imaging_progress='imaging_progress') * samples_contents)
+	combined_contents = (samples_contents * imaging_request_contents * processing_request_contents)
 
 	request_table_id = 'horizontal_request_table'
-	# samples_table_id = 'vertical_samples_table'
 	samples_table_id = 'horizontal_samples_table'
+
+	all_contents_dict_list = combined_contents.fetch(as_dict=True)
+	keep_keys = ['username','request_name','sample_name','species',
+				 'clearing_protocol','antibody1','antibody2','clearing_progress',
+				 'clearing_batch_number','datetime_submitted']
+	final_dict_list = []
+
+	for d in all_contents_dict_list:
+		username = d.get('username')
+		request_name = d.get('request_name')
+		current_sample_name = d.get('sample_name')
+		imaging_request_number = d.get('imaging_request_number')
+
+		imager = d.get('imager')
+		imaging_progress = d.get('imaging_progress')
+		imaging_request_dict = {'username':username,'request_name':request_name,
+							    'sample_name':current_sample_name,
+								'imaging_request_number':imaging_request_number,
+							   'imager':imager,'imaging_progress':imaging_progress}
+		processing_request_number = d.get('processing_request_number')
+		processor = d.get('processor')
+		processing_progress = d.get('processing_progress')
+		processing_request_dict = {'username':username,'request_name':request_name,
+								   'sample_name':current_sample_name,
+								   'imaging_request_number':imaging_request_number,
+								   'processing_request_number':processing_request_number,
+								   'processor':processor,'processing_progress':processing_progress}
+		existing_sample_names = [x.get('sample_name') for x in final_dict_list]
+		if current_sample_name not in existing_sample_names: # Then new sample, new imaging request, new processing request
+			new_dict_values = list(map(d.get,keep_keys))
+			new_dict = {keep_keys[ii]:new_dict_values[ii] for ii in range(len(keep_keys))}
+			new_dict['imaging_requests'] = []
+			imaging_request_dict['processing_requests'] = [processing_request_dict]
+			new_dict['imaging_requests'].append(imaging_request_dict)
+			final_dict_list.append(new_dict)
+		else:
+			# A repeated sample name could either be
+			# a new imaging request or a new processing request at the same imaging request
+			existing_index = existing_sample_names.index(current_sample_name)
+			existing_dict = final_dict_list[existing_index]
+			existing_imaging_request_dicts = existing_dict['imaging_requests']
+			existing_imaging_request_numbers = [x.get('imaging_request_number') for x in existing_imaging_request_dicts]
+			if imaging_request_number not in existing_imaging_request_numbers: # Then its a new imaging request and processing request
+				imaging_request_dict['processing_requests'] = [processing_request_dict]
+				existing_dict['imaging_requests'].append(imaging_request_dict)
+			else: # Then it's an old imaging request and new processing request
+				existing_imaging_request_index = existing_imaging_request_numbers.index(imaging_request_number)
+				existing_imaging_request_dict = existing_imaging_request_dicts[existing_imaging_request_index]
+				existing_imaging_request_dict['processing_requests'].append(processing_request_dict)
+
 
 	if table_id == request_table_id: # the click to sort a column was in the experiment table
 		sorted_results = sorted(request_contents.fetch(as_dict=True),
@@ -150,13 +201,13 @@ def request_overview(username,request_name):
 
 		request_table = RequestOverviewTable(sorted_results,sort_by=sort,
 						  sort_reverse=reverse)
-		samples_table = create_dynamic_samples_table(combined_contents,table_id=samples_table_id,ignore_columns=['notes_for_clearer',])
+		samples_table = create_dynamic_samples_table(final_dict_list,table_id=samples_table_id,ignore_columns=['notes_for_clearer',])
 	elif table_id == samples_table_id: # the click was in the samples table
-		samples_table = create_dynamic_samples_table(combined_contents,
+		samples_table = create_dynamic_samples_table(final_dict_list,
 			sort_by=sort,sort_reverse=reverse,table_id=samples_table_id,ignore_columns=['notes_for_clearer'])
 		request_table = RequestOverviewTable(request_contents)
 	else:
-		samples_table = create_dynamic_samples_table(combined_contents,
+		samples_table = create_dynamic_samples_table(final_dict_list,
 			table_id=samples_table_id,ignore_columns=['notes_for_clearer'])
 		request_table = RequestOverviewTable(request_contents)
 
@@ -631,17 +682,17 @@ def all_samples():
 	replicated_args = dict(species='species',clearing_protocol='clearing_protocol',
 	imaging_request_number='imaging_request_number',imager='imager',
 	imaging_progress='imaging_progress',
-    clearing_progress='clearing_progress',
-    datetime_submitted='datetime_submitted')
+	clearing_progress='clearing_progress',
+	datetime_submitted='datetime_submitted')
 
 	imaging_joined_contents = dj.U('username','request_name','sample_name').aggr(
-	    clearing_joined_contents*imaging_request_contents,
-	    **replicated_args)
+		clearing_joined_contents*imaging_request_contents,
+		**replicated_args)
 
 	processing_joined_contents = dj.U('username','request_name','sample_name').aggr(
-	    imaging_joined_contents*processing_request_contents,
-	    **replicated_args,processing_request_number='processing_request_number',
-    processor='processor',processing_progress='processing_progress')
+		imaging_joined_contents*processing_request_contents,
+		**replicated_args,processing_request_number='processing_request_number',
+	processor='processor',processing_progress='processing_progress')
 
 	all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
 	keep_keys = ['username','request_name','sample_name','species',
@@ -650,39 +701,46 @@ def all_samples():
 	final_dict_list = []
 
 	for d in all_contents_dict_list:
-	    imaging_request_number = d.get('imaging_request_number')
-	    imager = d.get('imager')
-	    imaging_progress = d.get('imaging_progress')
-	    imaging_request_dict = {'imaging_request_number':imaging_request_number,
-	                           'imager':imager,'imaging_progress':imaging_progress}
-	    processing_request_number = d.get('processing_request_number')
-	    processor = d.get('processor')
-	    processing_progress = d.get('processing_progress')
-	    processing_request_dict = {'processing_request_number':processing_request_number,
-	                                  'processor':processor,'processing_progress':processing_progress}
-	    existing_sample_names = [x.get('sample_name') for x in final_dict_list]
-	    current_sample_name = d.get('sample_name')
-	    if current_sample_name not in existing_sample_names: # Then new sample, new imaging request, new processing request
-	        new_dict_values = list(map(d.get,keep_keys))
-	        new_dict = {keep_keys[ii]:new_dict_values[ii] for ii in range(len(keep_keys))}
-	        new_dict['imaging_requests'] = []
-	        imaging_request_dict['processing_requests'] = [processing_request_dict]
-	        new_dict['imaging_requests'].append(imaging_request_dict)
-	        final_dict_list.append(new_dict)
-	    else:
-	        # A repeated sample name could either be
-	        # a new imaging request or a new processing request at the same imaging request
-	        existing_index = existing_sample_names.index(current_sample_name)
-	        existing_dict = final_dict_list[existing_index]
-	        existing_imaging_request_dicts = existing_dict['imaging_requests']
-	        existing_imaging_request_numbers = [x.get('imaging_request_number') for x in existing_imaging_request_dicts]
-	        if imaging_request_number not in existing_imaging_request_numbers: # Then its a new imaging request and processing request
-	            imaging_request_dict['processing_requests'] = [processing_request_dict]
-	            existing_dict['imaging_requests'].append(imaging_request_dict)
-	        else: # Then it's an old imaging request and new processing request
-	            existing_imaging_request_index = existing_imaging_request_numbers.index(imaging_request_number)
-	            existing_imaging_request_dict = existing_imaging_request_dicts[existing_imaging_request_index]
-	            existing_imaging_request_dict['processing_requests'].append(processing_request_dict)
+		username = d.get('username')
+		request_name = d.get('request_name')
+		current_sample_name = d.get('sample_name')
+		imaging_request_number = d.get('imaging_request_number')
+		imager = d.get('imager')
+		imaging_progress = d.get('imaging_progress')
+		imaging_request_dict = {'username':username,'request_name':request_name,
+							    'sample_name':current_sample_name,
+							    'imaging_request_number':imaging_request_number,
+							   'imager':imager,'imaging_progress':imaging_progress}
+		processing_request_number = d.get('processing_request_number')
+		processor = d.get('processor')
+		processing_progress = d.get('processing_progress')
+		processing_request_dict = {'username':username,'request_name':request_name,
+							       'sample_name':current_sample_name,
+								   'imaging_request_number':imaging_request_number,
+								   'processing_request_number':processing_request_number,
+									  'processor':processor,'processing_progress':processing_progress}
+		existing_sample_names = [x.get('sample_name') for x in final_dict_list]
+		if current_sample_name not in existing_sample_names: # Then new sample, new imaging request, new processing request
+			new_dict_values = list(map(d.get,keep_keys))
+			new_dict = {keep_keys[ii]:new_dict_values[ii] for ii in range(len(keep_keys))}
+			new_dict['imaging_requests'] = []
+			imaging_request_dict['processing_requests'] = [processing_request_dict]
+			new_dict['imaging_requests'].append(imaging_request_dict)
+			final_dict_list.append(new_dict)
+		else:
+			# A repeated sample name could either be
+			# a new imaging request or a new processing request at the same imaging request
+			existing_index = existing_sample_names.index(current_sample_name)
+			existing_dict = final_dict_list[existing_index]
+			existing_imaging_request_dicts = existing_dict['imaging_requests']
+			existing_imaging_request_numbers = [x.get('imaging_request_number') for x in existing_imaging_request_dicts]
+			if imaging_request_number not in existing_imaging_request_numbers: # Then its a new imaging request and processing request
+				imaging_request_dict['processing_requests'] = [processing_request_dict]
+				existing_dict['imaging_requests'].append(imaging_request_dict)
+			else: # Then it's an old imaging request and new processing request
+				existing_imaging_request_index = existing_imaging_request_numbers.index(imaging_request_number)
+				existing_imaging_request_dict = existing_imaging_request_dicts[existing_imaging_request_index]
+				existing_imaging_request_dict['processing_requests'].append(processing_request_dict)
 
 	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
