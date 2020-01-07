@@ -107,9 +107,6 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
 	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	& \
 	 		f'clearing_batch_number={clearing_batch_number}'				
-	if len(clearing_batch_contents) == 0:
-		flash("No clearing batch exists with those parameters. Please try again.")
-		return redirect(url_for('requests.all_requests'))
 	clearing_table = ClearingTable(clearing_batch_contents)
 	
 	clearing_dbTable = determine_clearing_dbtable(clearing_protocol)

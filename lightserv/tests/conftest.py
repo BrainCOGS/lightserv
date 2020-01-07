@@ -309,7 +309,7 @@ def test_cleared_request_ahoag(test_client,
 	from lightserv import db_lightsheet
 	now = datetime.now()
 	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
-		dehydr_pbs_wash1_notes='some notes',submit=True)
+		pbs_wash1_notes='some notes',submit=True)
 
 	response = test_client.post(url_for('clearing.clearing_entry',username="ahoag",
 			request_name="Admin request",

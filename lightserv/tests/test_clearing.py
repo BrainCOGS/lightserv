@@ -80,7 +80,6 @@ def test_abbreviated_clearing_entry_form_submits(test_client,test_single_sample_
 	assert td_tags[1].text == "iDISCO abbreviated clearing" and \
 	td_tags[2].text == "" and td_tags[3].text == "" and td_tags[4].text == 'Nonadmin request'
 
-
 def test_mouse_clearing_entry_forms_load(test_client,test_request_all_mouse_clearing_protocols_ahoag,test_login_ll3):
 	""" Test that ll3 can access the clearing entry forms
 	for all mouse clearing protocols  """
@@ -192,24 +191,136 @@ def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_cl
 	assert b'Protocol: iDISCO_EdU' in response_idisco_edu_clearing.data
 	assert now_proper_format.encode('utf-8') in response_idisco_edu_clearing.data
 
-	# response_udisco_clearing = test_client.get(url_for('clearing.clearing_entry',
-	# 		username="ahoag",
-	# 		request_name="All mouse clearing protocol request",
-	# 		clearing_protocol="uDISCO",
-	# 		antibody1="",antibody2="",
-	# 		clearing_batch_number=3),
-	# 		follow_redirects=True,
-	# 	)	
-	# assert b'Clearing Entry Form' in response_udisco_clearing.data
-	# assert b'Protocol: uDISCO' in response_udisco_clearing.data
+def test_invalid_clearing_entry_params_redirect(test_client,test_single_sample_request_nonadmin,test_login_ll3):
+	""" Test that providing invalid parameters to the clearing entry route 
+	will result in a redirect to the requests.all_requests() route """
 
-	# response_idisco_edu_clearing = test_client.get(url_for('clearing.clearing_entry',
-	# 		username="ahoag",
-	# 		request_name="All mouse clearing protocol request",
-	# 		clearing_protocol="iDISCO_EdU",
-	# 		antibody1="",antibody2="",
-	# 		clearing_batch_number=4),
-	# 		follow_redirects=True,
-	# 	)	
-	# assert b'Clearing Entry Form' in response_idisco_edu_clearing.data
-	# assert b'Protocol: iDISCO_EdU' in response_idisco_edu_clearing.data
+	response = test_client.get(url_for('clearing.clearing_entry',username="ms81",
+			request_name="aihuouwelkwel",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+			follow_redirects=True,
+		)	
+	assert b'Clearing Entry Form' not in response.data
+	assert b'core facility requests' in response.data
+ 
+def test_previous_updates_to_clearing_form_appear(test_client,test_request_all_mouse_clearing_protocols_ahoag,test_login_ll3):
+	""" Test that hitting the "update" buttton in a previous 
+	clearing form entry saved the data and that data are pre-filled 
+	in a new session. """
+	
+	""" First issue a POST request to update the form """
+	now = datetime.now()
+	now_proper_format = now.strftime('%Y-%m-%dT%H:%M')
+	data_abbreviated_clearing = dict(time_pbs_wash1=now_proper_format,time_pbs_wash1_submit=True)
+	response_post = test_client.post(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="All mouse clearing protocol request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+			follow_redirects=True,
+		data=data_abbreviated_clearing
+		)	
+
+	""" Now a GET request to check that the field is auto-filled """
+	response_get = test_client.get(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="All mouse clearing protocol request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1)
+		)	
+	assert now_proper_format.encode('utf-8') in response_get.data
+ 
+def test_completed_clearing_form_is_readonly(test_client,test_cleared_request_ahoag):
+	""" Test that a GET request to a previously
+	completed clearing entry form produces a flash message saying read only """
+	
+	""" First issue a POST request to submit the form """
+	response = test_client.get(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="Admin request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+			follow_redirects=True,
+		)	
+	assert b'This page is read only' in response.data
+	
+def test_completed_clearing_form_is_readonly_noupdate(test_client,test_cleared_request_ahoag):
+	""" Test that a POST request via an "update" button to a previously
+	completed clearing entry form produces a flash message saying read only 
+	and does not update the db """
+	
+	""" First issue a POST request to submit the form """
+	data_abbreviated_clearing = dict(dehydr_methanol_20percent_wash1_notes='notes for 20 percent methanol',
+		dehydr_methanol_20percent_wash1_notes_submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="Admin request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+			follow_redirects=True,
+			data=data_abbreviated_clearing
+		)	
+	assert b'This page is read only' in response.data
+	assert b'notes for 20 percent methanol' not in response.data
+
+def test_completed_clearing_form_is_readonly_nosubmit(test_client,test_cleared_request_ahoag):
+	""" Test that a POST request via an "update" button to a previously
+	completed clearing entry form produces a flash message saying read only 
+	and does not update the db """
+	
+	""" First issue a POST request to submit the form """
+	data_abbreviated_clearing = dict(dehydr_methanol_20percent_wash1_notes='notes for 20 percent methanol',
+		submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="Admin request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+			follow_redirects=True,
+			data=data_abbreviated_clearing
+		)
+			
+	assert b'This page is read only' in response.data
+	assert b'notes for 20 percent methanol' not in response.data
+
+def test_clearing_table_has_db_content(test_client,test_cleared_request_ahoag):
+	""" Test that ahoag can access the clearing table
+	and see the contents of a single clearing entry 
+
+	Uses the test_cleared_request_ahoag fixture to insert and clear 
+	a request with username='ahoag' and clearer='ahoag'  """
+	response = test_client.get(url_for('clearing.clearing_table',username="ahoag",
+			request_name="Admin request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1)
+	)
+	assert b'Clearing Log' in response.data
+	assert b'some notes' in response.data
+	assert datetime.now().strftime('%Y-%m-%d %H').encode('utf-8') in response.data 
+
+def test_clearing_table_no_access_nonadmin(test_client,test_cleared_request_ahoag,test_login_nonadmin):
+	""" Test that Manuel (ms81, a nonadmin) cannot access the clearing table 
+	for contents for which he is not the clearer. Instead he should get 
+	redirected to the welcome page.
+
+	Uses the test_cleared_request_ahoag fixture to insert and clear 
+	a request with username='ahoag' and clearer='ahoag'  """
+	response = test_client.get(url_for('clearing.clearing_table',username="ahoag",
+			request_name="Admin request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		follow_redirects=True
+	)
+	assert b'Welcome to the Brain Registration and Histology Core Facility' in response.data
+	assert b'Clearing Log' not in response.data

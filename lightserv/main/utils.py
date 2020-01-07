@@ -77,7 +77,9 @@ def logged_in_as_clearer(f):
 				f'clearing_protocol="{clearing_protocol}"' & \
 				f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"' & \
 				f'clearing_batch_number={clearing_batch_number}'
-
+			if len(clearing_batch_contents) == 0:
+				flash("No clearing batch exists with those parameters. Please try again.","danger")
+				return redirect(url_for('requests.all_requests'))
 			clearer = clearing_batch_contents.fetch1('clearer')
 			''' check to see if user assigned themself as clearer '''
 			if clearer == None:
