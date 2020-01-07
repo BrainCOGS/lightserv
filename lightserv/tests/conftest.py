@@ -295,6 +295,39 @@ def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_del
 	print('-------Teardown test_single_request_nonadmin fixture --------')
 	
 @pytest.fixture(scope='function') 
+def test_rat_request_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits a new request as Manuel ('ms81', a nonadmin) for species='rat' that can be used for various tests.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_single_request_nonadmin fixture ----------')
+	from lightserv import db_lightsheet
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+		print(f"Current user is {current_user}")
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Tank/Brody",'correspondence_email':"ms81@princeton.edu",
+			'request_name':"Nonadmin rat request",
+			'description':"This is a request for a rat by ms81, a non admin",
+			'species':"rat",'number_of_samples':1,
+			'username':current_user,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing (rat)',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_single_request_nonadmin fixture --------')
+	
+@pytest.fixture(scope='function') 
 def test_cleared_request_ahoag(test_client,
 	test_single_sample_request_ahoag,test_delete_request_db_contents):
 	""" Clears the single request by 'ahoag' (with clearer='ahoag') 
@@ -345,6 +378,97 @@ def test_cleared_request_nonadmin(test_client,test_single_sample_request_nonadmi
 	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
 			request_name="Nonadmin request",
 			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_cleared_request_ahoag fixture --------')
+	
+@pytest.fixture(scope='function') 
+def test_cleared_all_mouse_clearing_protocols_ahoag(test_client,
+	test_request_all_mouse_clearing_protocols_ahoag,test_delete_request_db_contents):
+	""" Clears all mouse requests by 'ahoag' (with clearer='ahoag') 
+
+	Uses test_request_all_mouse_clearing_protocols_ahoag so that all
+	requests are in the db
+	when it comes time to do the clearing
+
+	Uses the test_delete_request_db_contents fixture, which means that 
+	all db entries are deleted upon teardown of this fixture
+	"""
+	print('----------Setup test_cleared_request_ahoag fixture ----------')
+	from lightserv import db_lightsheet
+	now = datetime.now()
+	data_abbreviated_clearing = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		pbs_wash1_notes='some notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="ahoag",
+			request_name="All mouse clearing protocol request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data_abbreviated_clearing,
+		follow_redirects=True,
+		)	
+
+	data_idiscoplus_clearing = dict(time_dehydr_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		dehydr_pbs_wash1_notes='some notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="All mouse clearing protocol request",
+			clearing_protocol="iDISCO+_immuno",
+			antibody1="test antibody for immunostaining",antibody2="",
+			clearing_batch_number=2),
+		data=data_idiscoplus_clearing,
+		follow_redirects=True,
+		)	
+
+	data_udisco_clearing = dict(time_dehydr_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		dehydr_pbs_wash1_notes='some notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="ahoag",
+			request_name="All mouse clearing protocol request",
+			clearing_protocol="uDISCO",
+			antibody1="",antibody2="",
+			clearing_batch_number=3),
+		data = data_udisco_clearing,
+		follow_redirects=True,
+		)	
+
+	data_idisco_edu_clearing = dict(time_dehydr_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		dehydr_pbs_wash1_notes='some notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="ahoag",
+			request_name="All mouse clearing protocol request",
+			clearing_protocol="iDISCO_EdU",
+			antibody1="",antibody2="",
+			clearing_batch_number=4),
+		data = data_idisco_edu_clearing,
+		follow_redirects=True,
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_cleared_request_ahoag fixture --------')
+
+@pytest.fixture(scope='function') 
+def test_cleared_rat_request(test_client,
+	test_rat_request_nonadmin,test_login_ll3,test_delete_request_db_contents):
+	""" Clears the single rat request by Manuel (ms81, a nonadmin) (with clearer='ll3') 
+
+	"""
+	print('----------Setup test_cleared_request_ahoag fixture ----------')
+	from lightserv import db_lightsheet
+	now = datetime.now()
+	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		pbs_wash1_notes='some rat notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
+			request_name="Nonadmin rat request",
+			clearing_protocol="iDISCO abbreviated clearing (rat)",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
 		data = data,

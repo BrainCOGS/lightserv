@@ -27,7 +27,9 @@ class BaseConfig(object):
 	'princeton_mouse_atlas:':'/jukebox/LightSheetTransfer/atlas/annotation_sagittal_atlas_20um_iso_16bit.tif'
 	}
 	PROCESSING_CODE_DIR = '/jukebox/wang/ahoag/lightsheet_py3'
-	dj.config['safemode'] = True
+	# CLEARING_CALENDAR_ID = '8kvbhcbo0smdg394f79eh45gfc@group.calendar.google.com' # the real clearing calendar
+	CLEARING_CALENDAR_ID = 'skq68osl830f13tfgv6i0kq750@group.calendar.google.com' # the test calendar for the time being
+	dj.config['safemode'] = True 
 
 
 # The default config
@@ -43,3 +45,4 @@ class TestConfig(BaseConfig):
 	TESTING = True
 	WTF_CSRF_ENABLED = False # disables the csrf token validation in forms
 	dj.config['safemode'] = False
+	CLEARING_CALENDAR_ID = 'skq68osl830f13tfgv6i0kq750@group.calendar.google.com' # the test calendar for the time being

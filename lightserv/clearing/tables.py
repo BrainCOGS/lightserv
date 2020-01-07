@@ -27,8 +27,6 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
             return {'bgcolor':'#B5B9D4'} # gray-blue
         elif item['clearing_protocol'] == 'iDISCO_EdU':
             return {'bgcolor':'#F4F96A'}
-        else:
-            return {}
         
     options = dict(
         border = True,

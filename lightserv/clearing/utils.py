@@ -10,6 +10,7 @@ import pickle
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from datetime import datetime,timedelta
 	
 
 def determine_clearing_form(clearing_protocol,existing_form):
@@ -53,7 +54,7 @@ def determine_clearing_table(clearing_protocol):
 		table = IdiscoEdUTable
 	return table	
 
-def add_clearing_calendar_entry(date,summary):
+def add_clearing_calendar_entry(date,summary,calendar_id):
 	SCOPES = ['https://www.googleapis.com/auth/calendar.events']
 	date = str(date)
 	all_day_event = {
@@ -78,31 +79,56 @@ def add_clearing_calendar_entry(date,summary):
 		],
 	  },
 	}
-	creds = None
-	# The file token.pickle stores the user's access and refresh tokens, and is
-	# created automatically when the authorization flow completes for the first
-	# time.
-	if os.path.exists('token.pickle'):
-		with open('token.pickle', 'rb') as token:
-			creds = pickle.load(token)
-	# If there are no (valid) credentials available, let the user log in.
-	if not creds or not creds.valid:
-		if creds and creds.expired and creds.refresh_token:
-			creds.refresh(Request())
-		else:
-			flow = InstalledAppFlow.from_client_secrets_file(
-				'credentials.json', SCOPES)
-			creds = flow.run_local_server(port=0)
-		# Save the credentials for the next run
-		with open('token.pickle', 'wb') as token:
-			pickle.dump(creds, token)
+	
+	with open('token.pickle', 'rb') as token:
+		creds = pickle.load(token)
 
 	service = build('calendar', 'v3', credentials=creds)
 
 	# Call the Calendar API
-	# The real clearing calendar: 
-	# events_result = service.events().insert(calendarId='8kvbhcbo0smdg394f79eh45gfc@group.calendar.google.com', 
-	# 									  body=all_day_event).execute()
-	# A test calendar: 
-	events_result = service.events().insert(calendarId='', 
-										  body=all_day_event).execute()
+	events_result = service.events().insert(calendarId=calendar_id, 
+											  body=all_day_event).execute()
+	return
+
+def retrieve_clearing_calendar_entry(calendar_id):
+	""" Retrieves the first clearing calendar event.
+	Used for testing only """
+	SCOPES = ['https://www.googleapis.com/auth/calendar.events']
+	
+	creds = None
+	# The file token.pickle stores the user's access and refresh tokens, and is
+	# created automatically when the authorization flow completes for the first
+	# time.
+	with open('token.pickle', 'rb') as token:
+		creds = pickle.load(token)
+	
+	service = build('calendar', 'v3', credentials=creds)
+
+	# Call the Calendar API
+	now = datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
+	events_result = service.events().list(calendarId=calendar_id,
+										maxResults=1, singleEvents=True,
+										orderBy='startTime').execute()
+	events = events_result.get('items', [])
+	event = events[0]
+	return event
+
+def delete_clearing_calendar_entry(calendar_id,event_id):
+	""" Deletes a clearing calendar event given a calendar id and event id
+	Used for testing only """
+	SCOPES = ['https://www.googleapis.com/auth/calendar.events']
+	
+	creds = None
+	# The file token.pickle stores the user's access and refresh tokens, and is
+	# created automatically when the authorization flow completes for the first
+	# time.
+	with open('token.pickle', 'rb') as token:
+		creds = pickle.load(token)
+
+
+	service = build('calendar', 'v3', credentials=creds)
+
+	# Call the Calendar API
+	service.events().delete(calendarId=calendar_id, eventId=event_id).execute()
+
+	return

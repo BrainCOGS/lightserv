@@ -6,7 +6,7 @@ import datajoint as dj
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
 
@@ -79,6 +79,7 @@ def logged_in_as_clearer(f):
 				f'clearing_batch_number={clearing_batch_number}'
 			if len(clearing_batch_contents) == 0:
 				flash("No clearing batch exists with those parameters. Please try again.","danger")
+				logger.debug("No clearing batch exists with those parameters. Redirecting to all requests page")
 				return redirect(url_for('requests.all_requests'))
 			clearer = clearing_batch_contents.fetch1('clearer')
 			''' check to see if user assigned themself as clearer '''
@@ -101,8 +102,9 @@ def logged_in_as_clearer(f):
 					logger.info(f"{current_user} is the rightful clearer and accessed the clearing entry form")
 					return f(*args, **kwargs)
 				else:
-					logger.info(f"""Current user: {current_user} is not the clearer and not a clearing manager. Denying them access""")
-					flash('''The clearer has already been assigned for this entry and you are not them.  
+					logger.info(f"Current user: {current_user} is not the clearer, who has already been assigned."
+					             "Denying them access")
+					flash(f'''The clearer has already been assigned for this entry and you, {current_user}, are not them.  
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
 					return redirect(url_for('main.welcome'))
 		else:

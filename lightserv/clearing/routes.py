@@ -147,6 +147,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 			request_name=request_name,clearing_protocol=clearing_protocol,
 			antibody1=antibody1,antibody2=antibody2,clearing_batch_number=clearing_batch_number))
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x]
+
 			for key in submit_keys:
 				if form[key].data:
 					if key == 'submit': # The final submit button
@@ -178,6 +179,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 						column_name = key.split('_submit')[0]
 						date = form[column_name].data
 						if date == None:
+							logger.debug("Invalid date")
 							flash("Please enter a valid date to push to the Clearing Calendar",'danger')
 							break
 						else:
@@ -185,7 +187,8 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 							clearing_step = key.split('_')[0]
 							summary = f'{username} {clearing_protocol} {clearing_step}'
 							add_clearing_calendar_entry(date=date,
-							summary=summary)
+							summary=summary,calendar_id=current_app.config['CLEARING_CALENDAR_ID'])
+							logger.debug("Added event to clearing calendar")
 							flash("Event added to Clearing Calendar. Check the calendar.",'success')
 						break
 					else: # an update button was pressed
@@ -201,13 +204,11 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 						column_name = submit_keys[next_index].split('_submit')[0]
 						break
 			else: # if none of the submit keys were found
-				column_name=None
+				abort(500)
 		else: # form not validated
 			''' Find the first form field where there was an error and set the column_name to it 
 			so the focus is set there upon reload of page '''
 			logger.debug(form.errors)
-			for error in form['time_pbs_wash1'].errors:
-				logger.debug(error)
 			column_name = list(form.errors.keys())[0]
 	else: # not a post request
 		column_name = None
