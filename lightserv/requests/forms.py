@@ -12,12 +12,6 @@ from lightserv import db_lightsheet
 from wtforms import DateField
 
 
-def OptionalDateField(description='',validators=[]):
-	""" A custom field that makes the DateField optional """
-	validators.append(Optional())
-	field = DateField(description,validators)
-	return field
-
 class ClearingForm(FlaskForm):
 	""" A form that is used in ExpForm() via a FormField FieldList
 	so I dont have to write the clearing parameters out for each sample 
@@ -118,7 +112,7 @@ class NewRequestForm(FlaskForm):
 		""" Make sure that user has filled out sample setup section """ 
 		if submit.data == True:
 			if len(self.clearing_samples.data) == 0 or  len(self.imaging_samples.data) == 0:
-				raise ValidationError("You must fill out and submit the 'Samples setup' section first.")
+				raise ValidationError("You must fill out and submit the Samples setup section first.")
 
 	def validate_number_of_samples(self,number_of_samples):
 		""" Make sure number_of_samples is > 0 and < max_number_of_samples """
@@ -196,7 +190,7 @@ class NewRequestForm(FlaskForm):
 					  'registration' not in selected_imaging_modes:
 					  raise ValidationError(f"Sample name: {sample_name}, image resolution table: {image_resolution}"
 					  						f" You must select a registration channel"
-					  						 " when requesting any of the 'detection' channels")
+					  						 " when requesting any of the detection channels")
 
 			if imaging_sample_dict['new_image_resolution_form_submit'] == True:
 				image_resolution = imaging_sample_dict['image_resolution_forsetup']
@@ -204,34 +198,14 @@ class NewRequestForm(FlaskForm):
 					raise ValidationError(f"You tried to make a table for image_resolution {image_resolution}"
 										  f". But that resolution was already picked for this sample: {sample_name}.")
 
-	# def validate_imaging_samples(self,imaging_samples):
-	# 	""" Make sure that at least one imaging channel was selected for each sample
-	# 	and that if a box is checked for an imaging mode, then a resolution must also
-	# 	be picked
-	# 	"""
-	# 	for sample_dict in imaging_samples.data:
-	# 		for channel_dict in sample_dict['channels']:
-	# 			image_resolution_requested = channel_dict['image_resolution_requested']
-	# 			if image_resolution_requested == 'None' or image_resolution_requested == None:
-	# 				if any(channel_dict[key] for key in current_app.config['IMAGING_MODES']):
-	# 					sample_name = sample_dict['sample_name']
-	# 					channel_name = channel_dict['channel_name']
-	# 					raise ValidationError(f" You did not specify an image resolution for sample = {sample_name},"
-	# 											f" channel = {channel_name}, but you checked one of the imaging boxes")
-	# 		''' collect the 0s and 1s from all channel modes '''
-
-	# 		all_mode_values = [sample_dict[key] for key in sample_dict.keys() if 'channel' in key ]
-	# 		if not any(all_mode_values): # if all are 0				
-	# 			raise ValidationError("Each sample must have at least one imaging channel selected.")
-
-def Directory_validator(form,field):
-	''' Makes sure that the raw data directories exist on jukebox  '''
-	if not os.path.isdir(field.data):
-		raise ValidationError('This is not a valid directory. Please try again')
-	elif field.data[0:8] != '/jukebox':
-		raise ValidationError('Path must start with "/jukebox" ')
-	elif len(glob.glob(field.data + '/*RawDataStack*ome.tif')) == 0:
-		raise ValidationError('No raw data files found in that directory. Try again')	
+# def Directory_validator(form,field):
+# 	''' Makes sure that the raw data directories exist on jukebox  '''
+# 	if not os.path.isdir(field.data):
+# 		raise ValidationError('This is not a valid directory. Please try again')
+# 	elif field.data[0:8] != '/jukebox':
+# 		raise ValidationError('Path must start with "/jukebox" ')
+# 	elif len(glob.glob(field.data + '/*RawDataStack*ome.tif')) == 0:
+# 		raise ValidationError('No raw data files found in that directory. Try again')	
 
 class UpdateNotesForm(FlaskForm):
 	""" The form for updating notes field"""

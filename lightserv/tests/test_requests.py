@@ -19,7 +19,6 @@ def test_home_login_redirects(test_client):
 		follow_redirects=True)
 
 	assert response.status_code == 200, 'Status code is {0}, but should be 200'.format(response.status_code)
-	assert b'Logged in as' in response.data
 
 def test_home_page(test_client,test_login):
 	""" Check that the home page loads properly """
@@ -270,6 +269,144 @@ def test_submit_good_request(test_client,test_login,test_delete_request_db_conte
 	assert b"This is a demo request" in response.data
 	assert b"New Request Form" not in response.data
 
+def test_idiscoplus_request_validates_antibody(test_client,test_login,test_delete_request_db_contents):
+	""" Ensure that trying to submit a request where
+	iDISCO+_immuno clearing protocol is used but 
+	antibody1 is not specified results in a validation error
+
+	DOES not enter data into the db, unless it fails, so keep the 
+	test_delete_request_db_contents fixture just in case
+	""" 
+	from lightserv import db_lightsheet
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Admin request with immunostaining",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'username':test_login['user'],
+			'clearing_samples-0-clearing_protocol':'iDISCO+_immuno',
+			'clearing_samples-0-antibody1':'',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"New Request Form" in response.data
+	assert b"Antibody must be specified because you selected an immunostaining clearing protocol"
+
+def test_submit_empty_samples(test_client,test_login,test_delete_request_db_contents):
+	""" Ensure that sample sections have content upon final submission of new request form
+	
+	Uses test_delete_request_db_contents just in case test fails and actually 
+	enters something into the db
+	""" 
+	from lightserv import db_lightsheet
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Admin request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'username':test_login['user'],
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"New Request Form" in response.data
+	assert b"You must fill out and submit the Samples setup section first." in response.data
+
+def test_submit_no_samples(test_client,test_login):
+	""" Ensure that sample setup button gives validation error
+	if number_of_samples = 0
+
+	""" 
+	from lightserv import db_lightsheet
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Admin request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':0,
+			'username':test_login['user'],
+			'sample_submit_button':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	# with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
+	# 	url = 'file://' + f.name 
+	# 	f.write(response.data)
+	# # print(url)
+	# webbrowser.open(url)
+	assert b"New Request Form" in response.data
+	assert b"You must have at least one sample to submit a request" in response.data
+
+def test_submit_bad_mouse_clearing_protocol(test_client,test_login,test_delete_request_db_contents):
+	""" Ensure that a validation error is raised if
+	one tries to use a rat clearing protocol when species='mouse'
+
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	from lightserv import db_lightsheet
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Admin request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'username':test_login['user'],
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing (rat)',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b"New Request Form" in response.data
+	assert b"One of the clearing protocols selected can only be used with rats" in response.data
+
+def test_submit_bad_rat_clearing_protocol(test_client,test_login,test_delete_request_db_contents):
+	""" Ensure that a validation error is raised if
+	one tries to use a mouse clearing protocol when species='rat'
+
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	from lightserv import db_lightsheet
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Admin request",
+			'description':"This is a demo request",
+			'species':"rat",'number_of_samples':1,
+			'username':test_login['user'],
+			'clearing_samples-0-clearing_protocol':'iDISCO+_immuno',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b"New Request Form" in response.data
+	assert b"At least one of the clearing protocols you chose is not applicable for rats." in response.data
+
 def test_rat_request_generic_imaging_only(test_client,test_login,test_delete_request_db_contents):
 	""" Ensure that only generic imaging is allowed (other options disabled)
 	for rat imaging (we cannot register for them because they don't have an atlas yet)
@@ -281,7 +418,7 @@ def test_rat_request_generic_imaging_only(test_client,test_login,test_delete_req
 	so that other tests see blank contents 
 	""" 
 	from lightserv import db_lightsheet
-	response = test_client.post(
+	response1 = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
 			'request_name':"Admin request",
@@ -298,13 +435,72 @@ def test_rat_request_generic_imaging_only(test_client,test_login,test_delete_req
 			},content_type='multipart/form-data',
 			follow_redirects=True
 		)	
-	# with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
-	# 	url = 'file://' + f.name 
-	# 	f.write(response.data)
-	# # print(url)
-	# webbrowser.open(url)
-	assert b"Only generic imaging is currently available" in response.data
-	assert b"New Request Form" in response.data
+
+	assert b"Only generic imaging is currently available" in response1.data
+	assert b"New Request Form" in response1.data
+
+	response2 = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Admin request",
+			'description':"This is a demo request",
+			'species':"rat",'number_of_samples':1,
+			'username':test_login['user'],
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing (rat)',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-injection_detection':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"Only generic imaging is currently available" in response2.data
+	assert b"New Request Form" in response2.data
+
+	response3 = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Admin request",
+			'description':"This is a demo request",
+			'species':"rat",'number_of_samples':1,
+			'username':test_login['user'],
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing (rat)',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-probe_detection':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"Only generic imaging is currently available" in response3.data
+	assert b"New Request Form" in response3.data
+
+	response4 = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Admin request",
+			'description':"This is a demo request",
+			'species':"rat",'number_of_samples':1,
+			'username':test_login['user'],
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing (rat)',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-cell_detection':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"Only generic imaging is currently available" in response4.data
+	assert b"New Request Form" in response4.data
 	
 def test_setup_samples_duplicate(test_client,test_login,test_single_sample_request_ahoag):
 	""" Ensure that hitting the "setup samples" button 
@@ -334,6 +530,66 @@ def test_setup_samples_duplicate(test_client,test_login,test_single_sample_reque
 
 	assert b'Clearing setup' not in response.data  
 	assert b'There already exists a request named' in response.data
+
+def test_no_image_resolution_forms(test_client,test_login):
+	""" Ensure that a validation error is raised is user tries
+	to submit a request without setting up any image resolution forms 
+	
+	Uses test_delete_request_db_contents in case test fails
+	and it actually enters data into the db
+	"""
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	# Simulate pressing the "Set up imaging parameters" button
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Admin request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'username':current_user,
+			'uniform_clearing':True,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'submit':True
+			},
+			content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b'New Request Form' in response.data  
+	assert b'you must set up the imaging parameters for at least one image resolution' in response.data 
+
+def test_empty_image_resolution_form(test_client,test_login):
+	""" Ensure that a validation error is raised is user tries
+	to submit a request without setting up any image resolution forms 
+	
+	Uses test_delete_request_db_contents in case test fails
+	and it actually enters data into the db
+	"""
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	# Simulate pressing the "Set up imaging parameters" button
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Admin request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'username':current_user,
+			'uniform_clearing':True,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'submit':True
+			},
+			content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b'New Request Form' in response.data  
+	assert b'The image resolution table: 1.3x for sample name: sample-001 is empty. Please select at least one option.' in response.data 
 
 def test_duplicate_image_resolution_form(test_client,test_login):
 	""" Ensure that hitting the "Set up imaging parameters" button
@@ -365,11 +621,11 @@ def test_duplicate_image_resolution_form(test_client,test_login):
 			content_type='multipart/form-data',
 			follow_redirects=True
 		)	
-	with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
-		url = 'file://' + f.name 
-		f.write(response.data)
-	# print(url)
-	webbrowser.open(url)
+	# with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
+	# 	url = 'file://' + f.name 
+	# 	f.write(response.data)
+	# # print(url)
+	# webbrowser.open(url)
 	assert b'Imaging/Processing setup' in response.data  
 	assert b'You tried to make a table for image_resolution 1.3x. But that resolution was already picked for this sample:' in response.data
 
@@ -402,13 +658,45 @@ def test_duplicate_sample_names(test_client,test_login):
 			},content_type='multipart/form-data',
 			follow_redirects=True
 		)	
-	with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
-		url = 'file://' + f.name 
-		f.write(response.data)
-	# print(url)
-	webbrowser.open(url)
+	# with tempfile.NamedTemporaryFile('wb', delete=False,suffix='.html') as f:
+	# 	url = 'file://' + f.name 
+	# 	f.write(response.data)
+	# # print(url)
+	# webbrowser.open(url)
 	assert b"New Request Form" in response.data
 	assert b"Sample name: sample-001 is duplicated." in response.data
+
+def test_detection_modes_require_registration(test_client,test_login,test_delete_request_db_contents):
+	""" Ensure that entire new request form submits when good
+	data are used.
+
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	from lightserv import db_lightsheet
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Admin request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'username':test_login['user'],
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-injection_detection':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"New Request Form"  in response.data
+	assert b"You must select a registration channel when requesting any of the detection channels" in response.data
+
 
 def test_admin_sees_all_requests(test_client,test_single_sample_request_ahoag,test_login_zmd):
 	""" Check that Zahra (zmd, an admin) can see the request made by ahoag
@@ -422,7 +710,6 @@ def test_admin_sees_all_requests(test_client,test_single_sample_request_ahoag,te
 	
 	response = test_client.get(url_for('requests.all_requests'),
 		follow_redirects=True)
-	assert b'Logged in as: zmd' in response.data 	
 	assert b'This is a demo request' in response.data 	
 
 def test_nonadmin_only_sees_their_requests(test_client,test_single_sample_request_ahoag,test_single_sample_request_nonadmin):
@@ -439,7 +726,6 @@ def test_nonadmin_only_sees_their_requests(test_client,test_single_sample_reques
 	
 	response = test_client.get(url_for('requests.all_requests'),
 		follow_redirects=True)
-	assert b'Logged in as: ms81' in response.data 	
 	assert b'This is a demo request' not in response.data 	
 	assert b'This is a request by ms81' in response.data 	
 
@@ -455,7 +741,6 @@ def test_admin_sees_all_samples(test_client,test_single_sample_request_ahoag,tes
 	
 	response = test_client.get(url_for('requests.all_samples'),
 		follow_redirects=True)
-	assert b'Logged in as: zmd' in response.data 	
 	assert b'Admin request' in response.data 	
 	assert b'sample-001' in response.data 	
 
@@ -473,7 +758,6 @@ def test_nonadmin_only_sees_their_samples(test_client,test_single_sample_request
 	
 	response = test_client.get(url_for('requests.all_samples'),
 		follow_redirects=True)
-	assert b'Logged in as: ms81' in response.data 	
 	assert b'Admin request' not in response.data 	
 	assert b'Nonadmin request' in response.data 	
 

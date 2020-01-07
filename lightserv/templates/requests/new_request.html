@@ -250,7 +250,8 @@
 						{% set imaging_entry = form.imaging_samples[ii] %}
 						
 						<!-- Loop through all image resolution forms and make a table for each -->
-						{% for image_resolution_form in imaging_entry.image_resolution_forms %}
+						{% for jj in range(imaging_entry.image_resolution_forms|length) %}
+							{% set image_resolution_form = imaging_entry.image_resolution_forms[jj] %}
 							<!-- render the hidden field -->
 							{{ image_resolution_form.image_resolution() }}
 							<h4 > Setup for image resolution: {{ image_resolution_form.image_resolution.data }} </h4>
