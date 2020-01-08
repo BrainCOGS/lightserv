@@ -45,6 +45,28 @@ def test_imaging_entry_form_loads(test_client,test_cleared_request_ahoag,
 	assert b'Admin request' in response.data 
 	# assert b'Nonadmin request' in response.data 
 
+def test_new_imaging_request(test_client,test_single_sample_request_ahoag):
+	""" Check that a new imaging request submits successfully
+
+	Uses the test_single_sample_request_ahoag fixture
+	to insert a request into the database as ahoag. 
+
+	"""
+	response = test_client.post(
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='Admin request',
+					sample_name='sample-001'),
+				data={
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'image_resolution_forms-0-atlas_name':'allen_2017',
+			'image_resolution_forsetup':'1.3x',
+			'image_resolution_forms-0-channels-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b'core facility requests' in response.data	
+	assert b'New Imaging Request' not in response.data
+
 # def test_abbreviated_clearing_entry_form_loads(test_client,test_single_request_nonadmin,test_login_ll3):
 # 	""" Test that ll3 can access a clearing entry form  """
 # 	# response = test_client.get(url_for('requests.all_requests'))

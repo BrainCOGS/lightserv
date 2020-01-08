@@ -16,6 +16,7 @@ import pytest
 from flask import url_for
 import datajoint as dj
 from datetime import datetime
+
 user_agent_str = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'
 
 @pytest.fixture(scope='session') 
@@ -477,3 +478,52 @@ def test_cleared_rat_request(test_client,
 
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_cleared_request_ahoag fixture --------')
+
+@pytest.fixture(scope='function') 
+def test_new_imaging_request_ahoag(test_client,test_single_sample_request_ahoag):
+	""" A fixture to make a request with two imaging requests 
+	for a single sample. 
+
+	Uses test_single_sample_request_ahoag to make a single request with a single 
+	sample for setup
+
+	"""
+	print('-------Setup test_new_imaging_request fixture --------')
+	response = test_client.post(url_for('imaging.new_imaging_request',
+			username='ahoag',request_name='Admin request',
+			sample_name='sample-001'),
+		data={
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'image_resolution_forms-0-atlas_name':'allen_2017',
+			'image_resolution_forsetup':'1.3x',
+			'image_resolution_forms-0-channels-0-registration':True,
+			'submit':True
+		},content_type='multipart/form-data',
+		follow_redirects=True
+		)
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_new_imaging_request fixture --------')
+
+
+@pytest.fixture(scope='function') 
+def test_new_processing_request_ahoag(test_client,test_single_sample_request_ahoag):
+	""" A fixture to make a request with two processing requests 
+	for a single sample with a single imaging request. 
+
+	Uses test_single_sample_request_ahoag to make a single request with a single 
+	sample for setup
+
+	"""
+	print('-------Setup test_new_processing_request fixture --------')
+	response = test_client.post(url_for('processing.new_processing_request',
+			username='ahoag',request_name='Admin request',
+			sample_name='sample-001',imaging_request_number=1),
+		data={
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'image_resolution_forms-0-atlas_name':'princeton_mouse_atlas',
+			'submit':True
+		},content_type='multipart/form-data',
+		follow_redirects=True
+		)
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_new_processing_request fixture --------')

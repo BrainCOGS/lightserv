@@ -2,7 +2,7 @@ from flask import url_for, session, request
 import json
 import tempfile,webbrowser
 from bs4 import BeautifulSoup 
-from datetime import datetime
+from datetime import datetime, date
 
 def test_requests_redirects(test_client):
 	""" Tests that the requests page returns a 302 code (i.e. a redirect signal) for a not logged in user """
@@ -27,6 +27,8 @@ def test_home_page(test_client,test_login):
 
 	assert b'All core facility requests:' in response.data 
 
+""" Testing new_request() """
+
 def test_new_request_form_renders(test_client,test_login):
 	""" Ensure that the new request form renders properly (only the top part of the form)"""
 
@@ -35,7 +37,7 @@ def test_new_request_form_renders(test_client,test_login):
 
 	assert b'Background Info' in response.data and b"Clearing setup" not in response.data
 
-def test_setup_samples(test_client,test_login):
+def test_setup_samples_mouse(test_client,test_login):
 	""" Ensure that hitting the "setup samples" button in the new request form
 	renders the rest of the form (clearing and imaging/processing sections) 
 
@@ -60,7 +62,32 @@ def test_setup_samples(test_client,test_login):
 	assert b'Sample 1' in response.data
 	assert b'Sample 2' in response.data 
 
-def test_setup_image_resolution_form(test_client,test_login,):
+def test_setup_samples_rat(test_client,test_login):
+	""" Ensure that hitting the "setup samples" button in the new request form
+	renders the rest of the form (clearing and imaging/processing sections) 
+
+	Does not actually enter any data into the db 
+	 """
+
+	# Simulate pressing the "Setup samples" button
+	data = dict(
+			labname="Tank",correspondence_email="test@demo.com",
+			request_name="Admin rat request",
+			description="This is a demo request",
+			species="rat",number_of_samples=2,
+			sample_submit_button=True
+			)
+
+	response = test_client.post(url_for('requests.new_request'),
+		data=data,
+			follow_redirects=True,
+		)	
+
+	assert b'Clearing setup' in response.data  
+	assert b'Sample 1' in response.data
+	assert b'Sample 2' in response.data 
+
+def test_setup_image_resolution_form_mouse(test_client,test_login,):
 	""" Ensure that hitting the "Set up imaging parameters" button
 	in the samples section (assuming samples are already set up)
 	renders the imaging table for the user to fill out 
@@ -87,6 +114,34 @@ def test_setup_image_resolution_form(test_client,test_login,):
 	
 	assert b'Clearing setup' in response.data  
 	assert b'Setup for image resolution: 1.3x' in response.data  
+
+def test_setup_image_resolution_form_rat(test_client,test_login,):
+	""" Ensure that hitting the "Set up imaging parameters" button
+	in the samples section (assuming samples are already set up)
+	renders the imaging table for the user to fill out 
+	
+	Does not actually enter any data into the db
+	"""
+
+	# Simulate pressing the "Set up imaging parameters" button
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Tank/Brody",'correspondence_email':"test@demo.com",
+			'request_name':"Admin rat request",
+			'description':"This is a demo request",
+			'species':"rat",'number_of_samples':1,
+			'username':test_login['user'],
+			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing (rat)',
+			'imaging_samples-0-image_resolution_forsetup':"1.3x",
+			'imaging_samples-0-new_image_resolution_form_submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b'Clearing setup' in response.data  
+	assert b'Setup for image resolution: 1.3x' in response.data  
+
 
 def test_uniform_clearing_button_works(test_client,test_login,):
 	""" Ensure that hitting the "Apply these clearing parameters to all samples"
@@ -237,7 +292,7 @@ def test_setup_samples_too_many_samples(test_client,test_login):
 	assert b'Clearing setup' not in response.data  
 	assert b'Please limit your requested number of samples' in response.data
 
-def test_submit_good_request(test_client,test_login,test_delete_request_db_contents):
+def test_submit_good_mouse_request(test_client,test_login,test_delete_request_db_contents):
 	""" Ensure that entire new request form submits when good
 	data are used.
 
@@ -246,7 +301,8 @@ def test_submit_good_request(test_client,test_login,test_delete_request_db_conte
 	the Request() contents (and all dependent tables) after the test is run
 	so that other tests see blank contents 
 	""" 
-	from lightserv import db_lightsheet
+	today = date.today()
+	today_proper_format = today.strftime('%Y-%m-%d')
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -254,6 +310,8 @@ def test_submit_good_request(test_client,test_login,test_delete_request_db_conte
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':test_login['user'],
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'sample-001',
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
@@ -267,6 +325,115 @@ def test_submit_good_request(test_client,test_login,test_delete_request_db_conte
 
 	assert b"core facility requests" in response.data
 	assert b"This is a demo request" in response.data
+	assert b"New Request Form" not in response.data
+
+def test_submit_good_rat_request(test_client,test_login,test_delete_request_db_contents):
+	""" Ensure that entire new request form submits when good
+	data are used.
+
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	today = date.today()
+	today_proper_format = today.strftime('%Y-%m-%d')
+	
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Admin rat request",
+			'description':"This is a demo request",
+			'species':"rat",'number_of_samples':1,
+			'username':test_login['user'],
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing (rat)',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"core facility requests" in response.data
+	assert b"Admin rat request" in response.data
+	assert b"New Request Form" not in response.data
+
+def test_submit_mouse_self_clearing_request(test_client,test_login,test_delete_request_db_contents):
+	""" Ensure that entire new request form submits when good
+	data are used.
+
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	from lightserv import db_lightsheet
+
+	request_name = "Admin self clearing request"
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':request_name,
+			'description':"This is a demo request where the clearer is self-assigned",
+			'species':"mouse",'number_of_samples':1,
+			'username':test_login['user'],
+			'self_clearing':True,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	clearer = (db_lightsheet.Request.ClearingBatch() & 'username="ahoag"' & \
+		f'request_name="{request_name}"' & 'clearing_batch_number=1').fetch1('clearer')
+	assert clearer == 'ahoag'
+	assert b"core facility requests" in response.data
+	assert b"This is a demo request where the clearer is self-assigned" in response.data
+	assert b"New Request Form" not in response.data
+
+def test_submit_mouse_self_imaging_request(test_client,test_login,test_delete_request_db_contents):
+	""" Ensure that entire new request form submits when good
+	data are used.
+
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	from lightserv import db_lightsheet
+
+	request_name = "Admin self clearing request"
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':request_name,
+			'description':"This is a demo request where the imager is self-assigned",
+			'species':"mouse",'number_of_samples':1,
+			'username':test_login['user'],
+			'self_imaging':True,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	imager = (db_lightsheet.Request.ImagingRequest() & 'username="ahoag"' & \
+		f'request_name="{request_name}"' & 'sample_name="sample-001"' & 
+		'imaging_request_number=1').fetch1('imager')
+	assert imager == 'ahoag'
+	assert b"core facility requests" in response.data
+	assert b"This is a demo request where the imager is self-assigned" in response.data
 	assert b"New Request Form" not in response.data
 
 def test_idiscoplus_request_validates_antibody(test_client,test_login,test_delete_request_db_contents):
@@ -407,7 +574,7 @@ def test_submit_bad_rat_clearing_protocol(test_client,test_login,test_delete_req
 	assert b"New Request Form" in response.data
 	assert b"At least one of the clearing protocols you chose is not applicable for rats." in response.data
 
-def test_rat_request_generic_imaging_only(test_client,test_login,test_delete_request_db_contents):
+def test_rat_request_only_generic_imaging_allowed(test_client,test_login,test_delete_request_db_contents):
 	""" Ensure that only generic imaging is allowed (other options disabled)
 	for rat imaging (we cannot register for them because they don't have an atlas yet)
 
@@ -697,6 +864,51 @@ def test_detection_modes_require_registration(test_client,test_login,test_delete
 	assert b"New Request Form"  in response.data
 	assert b"You must select a registration channel when requesting any of the detection channels" in response.data
 
+def test_multiple_samples_same_clearing_batch(test_client,test_login,test_delete_request_db_contents):
+	""" Test that submitting multiple samples with the same 
+	clearing protocol, antibody1, antibody2 combination 
+	results in samples being put into the same clearing batch
+
+	Enters data into the db so uses the 
+	test_delete_request_db_contents fixture to remove it 
+	after the test
+	""" 
+	from lightserv import db_lightsheet
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Multiple sample admin request",
+			'description':"This is a multiple sample test request",
+			'species':"mouse",'number_of_samples':2,
+			'username':test_login['user'],
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'clearing_samples-1-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-1-sample_name':'sample-002',
+			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-1-image_resolution_forsetup':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"New Request Form" not in response.data # redirected away from new request form
+	# print(db_lightsheet.Request.ClearingBatch())
+	number_in_batch = (db_lightsheet.Request.ClearingBatch() & \
+		'request_name="Multiple sample admin request"' & \
+		'username = "ahoag"' & 'clearing_protocol="iDISCO abbreviated clearing"' & \
+		'clearing_batch_number=1').fetch1('number_in_batch')
+	assert number_in_batch == 2
+
+
+
+""" Testing all_requests() """
 
 def test_admin_sees_all_requests(test_client,test_single_sample_request_ahoag,test_login_zmd):
 	""" Check that Zahra (zmd, an admin) can see the request made by ahoag
@@ -728,38 +940,6 @@ def test_nonadmin_only_sees_their_requests(test_client,test_single_sample_reques
 		follow_redirects=True)
 	assert b'This is a demo request' not in response.data 	
 	assert b'This is a request by ms81' in response.data 	
-
-def test_admin_sees_all_samples(test_client,test_single_sample_request_ahoag,test_login_zmd):
-	""" Check that Zahra (zmd, an admin) can see the samples from the request made by ahoag
-	on the all samples page. 
-
-	Uses the test_single_sample_request_ahoag fixture
-	to insert a request into the database as ahoag. Note that the test_login_zmd
-	fixture must be after the test_single_sample_request_ahoag fixture in the parameter list 
-	in order for Zahra to be logged in after the post request is issued in test_single_sample_request_ahoag
-	"""
-	
-	response = test_client.get(url_for('requests.all_samples'),
-		follow_redirects=True)
-	assert b'Admin request' in response.data 	
-	assert b'sample-001' in response.data 	
-
-def test_nonadmin_only_sees_their_samples(test_client,test_single_sample_request_ahoag,test_single_sample_request_nonadmin):
-	""" Check that Manuel (ms81, a nonadmin) can only see the samples from their request 
-	but not the one made by ahoag on the all samples page. 
-
-	Uses the test_single_sample_request_ahoag fixture
-	to insert a request into the database as ahoag.
-
-	Uses the test_single_sample_request_nonadmin fixture to insert a request 
-	into the database as ms81, a nonadmin. With this fixture being
-	the last parameter, this leaves ms81 logged in.
-	"""
-	
-	response = test_client.get(url_for('requests.all_samples'),
-		follow_redirects=True)
-	assert b'Admin request' not in response.data 	
-	assert b'Nonadmin request' in response.data 	
 
 def test_sort_requests_table_asc_desc(test_client,test_two_requests_ahoag):
 	""" Check that sorting the all requests table works 
@@ -806,6 +986,40 @@ def test_sort_requests_table_all_columns(test_client,test_two_requests_ahoag):
 			follow_redirects=True)
 		assert b'All core facility requests' in response.data
 
+""" Testing all_samples() """
+
+def test_admin_sees_all_samples(test_client,test_single_sample_request_ahoag,test_login_zmd):
+	""" Check that Zahra (zmd, an admin) can see the samples from the request made by ahoag
+	on the all samples page. 
+
+	Uses the test_single_sample_request_ahoag fixture
+	to insert a request into the database as ahoag. Note that the test_login_zmd
+	fixture must be after the test_single_sample_request_ahoag fixture in the parameter list 
+	in order for Zahra to be logged in after the post request is issued in test_single_sample_request_ahoag
+	"""
+	
+	response = test_client.get(url_for('requests.all_samples'),
+		follow_redirects=True)
+	assert b'Admin request' in response.data 	
+	assert b'sample-001' in response.data 	
+
+def test_nonadmin_only_sees_their_samples(test_client,test_single_sample_request_ahoag,test_single_sample_request_nonadmin):
+	""" Check that Manuel (ms81, a nonadmin) can only see the samples from their request 
+	but not the one made by ahoag on the all samples page. 
+
+	Uses the test_single_sample_request_ahoag fixture
+	to insert a request into the database as ahoag.
+
+	Uses the test_single_sample_request_nonadmin fixture to insert a request 
+	into the database as ms81, a nonadmin. With this fixture being
+	the last parameter, this leaves ms81 logged in.
+	"""
+	
+	response = test_client.get(url_for('requests.all_samples'),
+		follow_redirects=True)
+	assert b'Admin request' not in response.data 	
+	assert b'Nonadmin request' in response.data 	
+
 def test_sort_samples_table_all_columns(test_client,test_two_requests_ahoag):
 	""" Check that sorting all columns of all samples table works 
 
@@ -818,19 +1032,125 @@ def test_sort_samples_table_all_columns(test_client,test_two_requests_ahoag):
 			follow_redirects=True)
 		assert b'All core facility samples' in response.data	
 
-def test_sort_request_samples_table_all_columns(test_client,test_single_sample_request_ahoag):
-	""" Check that sorting all columns of samples table
-	for a given request works 
+def test_all_samples_multiple_imaging_requests(test_client,test_new_imaging_request_ahoag):
+	""" Check that both imaging requests are displayed 
+	in the all samples table in the all_samples route
+	when multiple imaging requests are present in the 
+	same request.
 
-	Uses the test_single_sample_request_ahoag fixture
-	to insert a request into the database as ahoag. 
-
+	Uses the test_new_imaging_request_ahoag fixture
+	to insert a request and then a new imaging request
+	into the database as ahoag. 
 	"""
-	for column_name in ['sample_name','request_name','username','clearing_protocol',
-	'antibody1','antibody2']:
+	response = test_client.get(
+				url_for('requests.all_samples'),
+			follow_redirects=True
+		)	
+	assert b'core facility samples (from all requests):' in response.data	
+
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	
+	table_tag = parsed_html.body.find('table',attrs={'id':'all_samples_table'})
+	# print(table_tag)
+	first_sample_imaging_requests_table_tag = table_tag.find('table',attrs={'id':'imaging_requests'})
+	rows = first_sample_imaging_requests_table_tag.find_all('tr')
+	assert len(rows) == 7 # 1 for main sample, 3 for first imaging request (the nested processing request adds an extra row), 3 for second imaging request
+
+def test_all_samples_multiple_processing_requests(test_client,test_new_processing_request_ahoag):
+	""" Check that both processing requests are displayed 
+	in the all samples table in the all_samples route
+	when a single imaging request but two processing requests
+	are present in the same request.
+
+	Uses the test_new_processing_request_ahoag fixture
+	to insert a request and then a new processing request
+	into the database as ahoag. 
+	"""
+	response = test_client.get(
+				url_for('requests.all_samples'),
+			follow_redirects=True
+		)	
+	assert b'core facility samples (from all requests):' in response.data	
+
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	
+	table_tag = parsed_html.body.find('table',attrs={'id':'all_samples_table'})
+	# print(table_tag)
+	first_sample_processing_requests_table_tag = table_tag.find('table',attrs={'id':'processing_requests'})
+	print(first_sample_processing_requests_table_tag)
+	rows = first_sample_processing_requests_table_tag.find_all('tr')
+	assert len(rows) == 3 # 1 for header, 1 for first processing request, 1 for second processing request
+
+""" Testing request_overview() """
+	
+def test_request_samples_multiple_imaging_requests(test_client,test_new_imaging_request_ahoag):
+	""" Check that both imaging requests are displayed 
+	in the samples table in the request_overview() route
+	when multiple imaging requests are present in the 
+	same request.
+
+	Uses the test_new_imaging_request_ahoag fixture
+	to insert a request and then a new imaging request
+	into the database as ahoag. 
+	"""
+	response = test_client.get(
+				url_for('requests.request_overview',request_name='Admin request',
+					username='ahoag',sample_name='sample-001'),
+			follow_redirects=True
+		)	
+	assert b'Samples in this request:' in response.data	
+
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	
+	table_tag = parsed_html.body.find('table',attrs={'id':'horizontal_samples_table'})
+	# print(table_tag)
+	first_sample_imaging_requests_table_tag = table_tag.find('table',attrs={'id':'imaging_requests'})
+	rows = first_sample_imaging_requests_table_tag.find_all('tr')
+	assert len(rows) == 7 # 1 for main sample, 3 for first imaging request (the nested processing request adds an extra row), 3 for second imaging request
+
+def test_request_samples_multiple_processing_requests(test_client,test_new_processing_request_ahoag):
+	""" Check that both imaging requests are displayed 
+	in the samples table in the request_overview() route
+	when multiple imaging requests are present in the 
+	same request.
+
+	Uses the test_new_imaging_request_ahoag fixture
+	to insert a request and then a new imaging request
+	into the database as ahoag. 
+	"""
+	response = test_client.get(
+				url_for('requests.request_overview',request_name='Admin request',
+					username='ahoag',sample_name='sample-001'),
+			follow_redirects=True
+		)	
+	assert b'Samples in this request:' in response.data	
+
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	
+	table_tag = parsed_html.body.find('table',attrs={'id':'horizontal_samples_table'})
+	# print(table_tag)
+	first_sample_imaging_requests_table_tag = table_tag.find('table',attrs={'id':'processing_requests'})
+	rows = first_sample_imaging_requests_table_tag.find_all('tr')
+	assert len(rows) == 3 # 1 for main sample, 3 for first imaging request (the nested processing request adds an extra row), 3 for second imaging request
+
+def test_sort_request_overview_table(test_client,test_single_sample_request_nonadmin):
+	""" Check that both imaging requests are displayed 
+	in the samples table in the request_overview() route
+	when multiple imaging requests are present in the 
+	same request.
+
+	Uses the test_new_imaging_request_ahoag fixture
+	to insert a request and then a new imaging request
+	into the database as ahoag. 
+	"""
+
+
+	for column_name in ['sample_name','request_name','username','clearing_protocol']:
 		response = test_client.get(
-			url_for('requests.request_overview',username='ahoag',request_name='Admin request',
-				table_id='horizontal_samples_table',sort=column_name,direction='desc'),
-			follow_redirects=True)
-		assert b'Samples in this request' in response.data	
+					url_for('requests.request_overview',request_name='Admin request',
+						username='ahoag',sample_name='sample-001',sort=column_name,direction='desc'),
+				follow_redirects=True
+			)	
+		assert b'Samples in this request:' in response.data	
+
 

@@ -135,15 +135,7 @@ def request_overview(username,request_name):
 	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
 	 f'request_name="{request_name}"' & f'username="{username}"' 
 
-	# The first time page is loaded, sort, reverse, table_id are all not set so they become their default
-	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
-	reverse = (request.args.get('direction', 'asc') == 'desc')
-	table_id = request.args.get('table_id', '')
-
 	combined_contents = (samples_contents * imaging_request_contents * processing_request_contents)
-
-	request_table_id = 'horizontal_request_table'
-	samples_table_id = 'horizontal_samples_table'
 
 	all_contents_dict_list = combined_contents.fetch(as_dict=True)
 	keep_keys = ['username','request_name','sample_name','species',
@@ -194,26 +186,16 @@ def request_overview(username,request_name):
 				existing_imaging_request_dict = existing_imaging_request_dicts[existing_imaging_request_index]
 				existing_imaging_request_dict['processing_requests'].append(processing_request_dict)
 
-
-	if table_id == request_table_id: # the click to sort a column was in the experiment table
-		sorted_results = sorted(request_contents.fetch(as_dict=True),
-			key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
-
-		request_table = RequestOverviewTable(sorted_results,sort_by=sort,
-						  sort_reverse=reverse)
-		samples_table = create_dynamic_samples_table(final_dict_list,table_id=samples_table_id,ignore_columns=['notes_for_clearer',])
-	elif table_id == samples_table_id: # the click was in the samples table
-		samples_table = create_dynamic_samples_table(final_dict_list,
-			sort_by=sort,sort_reverse=reverse,table_id=samples_table_id,ignore_columns=['notes_for_clearer'])
-		request_table = RequestOverviewTable(request_contents)
-	else:
-		samples_table = create_dynamic_samples_table(final_dict_list,
-			table_id=samples_table_id,ignore_columns=['notes_for_clearer'])
-		request_table = RequestOverviewTable(request_contents)
+	# The first time page is loaded, sort, reverse, table_id are all not set so they become their default
+	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
+	reverse = (request.args.get('direction', 'asc') == 'desc')
+	samples_table_id = 'horizontal_samples_table'
+	samples_table = create_dynamic_samples_table(final_dict_list,
+		sort_by=sort,sort_reverse=reverse,table_id=samples_table_id,ignore_columns=['notes_for_clearer'])
+	request_table = RequestOverviewTable(request_contents)
 
 	samples_table.table_id = samples_table_id
-	request_table.table_id = request_table_id
-	return render_template('requests/request.html',request_contents=request_contents,
+	return render_template('requests/request_overview.html',request_contents=request_contents,
 		request_table=request_table,samples_table=samples_table)
 
 @requests.route("/request/new",methods=['GET','POST'])
@@ -279,10 +261,6 @@ def new_request():
 				nsamples = form.number_of_samples.data
 
 				""" Render all of the clearing and imaging fields """
-				while len(form.clearing_samples.data) > 0:
-					form.clearing_samples.pop_entry()
-				while len(form.imaging_samples.data) > 0:
-					form.imaging_samples.pop_entry()
 				# make nsamples sets of sample fields
 				for ii in range(nsamples):
 					form.clearing_samples.append_entry()
@@ -505,10 +483,7 @@ def new_request():
 									channel_insert_dict['username'] = username
 									channel_insert_dict['sample_name'] = sample_name
 									for key,val in imaging_channel_dict.items(): 
-										if key == 'csrf_token':
-											continue
 										channel_insert_dict[key] = val
-
 									channel_insert_list.append(channel_insert_dict)
 							# logger.info(channel_insert_list)
 					
@@ -630,12 +605,7 @@ def new_request():
 						flash(obj,'danger')
 			elif 'imaging_samples' in form.errors:
 				for obj in form.errors['imaging_samples']:
-					if isinstance(obj,dict):
-						for key,val in list(obj.items()):
-							for error_str in val:
-								flash(error_str,'danger')
-					elif isinstance(obj,str):
-						flash(obj,'danger')
+					flash(obj,'danger')
 			if 'number_of_samples' in form.errors:
 				for error_str in form.errors['number_of_samples']:
 					flash(error_str,'danger')
@@ -683,6 +653,8 @@ def all_samples():
 	imaging_request_number='imaging_request_number',imager='imager',
 	imaging_progress='imaging_progress',
 	clearing_progress='clearing_progress',
+	antibody1='antibody1',antibody2='antibody2',
+	clearing_batch_number='clearing_batch_number',
 	datetime_submitted='datetime_submitted')
 
 	imaging_joined_contents = dj.U('username','request_name','sample_name').aggr(
@@ -696,7 +668,8 @@ def all_samples():
 
 	all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
 	keep_keys = ['username','request_name','sample_name','species',
-				 'clearing_protocol','clearing_progress','n_imaging_requests',
+				 'clearing_protocol','clearing_progress','antibody1','antibody2',
+				 'clearing_batch_number','n_imaging_requests',
 				 'n_processing_requests','datetime_submitted']
 	final_dict_list = []
 
@@ -749,7 +722,7 @@ def all_samples():
 	
 	table = AllSamplesTable(sorted_results,sort_by=sort,
 					  sort_reverse=reverse)
-	table.table_id = 'horizontal'
+	table.table_id = 'all_samples_table'
 	return render_template('requests/all_samples.html',samples_table=table,
 		combined_contents=final_dict_list,legend=legend)
 

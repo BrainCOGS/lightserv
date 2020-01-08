@@ -1,11 +1,13 @@
 {% extends "layout.html" %}
 	{% block content %}
 		
-		<h3>Request overview: </h3>
+		<h3 align="center">Request overview: </h3>
+		<div align="center">
 			{{ request_table }}
+		</div>
 		
 		<hr class='class-4'>
-		<h3>Samples in this request: </h3>
+		<h3 align="center">Samples in this request: </h3>
 		<!-- Samples Section -->
 		<div style="max-height: 450px; overflow: auto;">
 			{{ samples_table }}
