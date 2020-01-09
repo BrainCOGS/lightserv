@@ -2,7 +2,7 @@ from flask import request
 from flask_table import Table, Col, LinkCol, ButtonCol, create_table
 from functools import partial
 from lightserv.main.utils import table_sorter
-from lightserv.main.tables import DateTimeCol, BoldTextCol,DesignatedRoleCol, BooltoStringCol
+from lightserv.main.tables import DateTimeCol,DesignatedRoleCol, BooltoStringCol
 import os
 
 def dynamic_processing_management_table(contents,table_id,ignore_columns=[],

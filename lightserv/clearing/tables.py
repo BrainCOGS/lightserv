@@ -2,7 +2,7 @@ from flask import request
 from flask_table import create_table,Table, Col, LinkCol, ButtonCol
 from functools import partial
 from lightserv.main.utils import table_sorter
-from lightserv.main.tables import BoldTextCol, DateTimeCol, DesignatedRoleCol
+from lightserv.main.tables import DateTimeCol, DesignatedRoleCol
 
 def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     name='Dynamic Imaging Management Table', **sort_kwargs):
