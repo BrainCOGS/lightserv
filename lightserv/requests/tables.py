@@ -1,6 +1,5 @@
 from flask import url_for,flash,redirect, request
 from flask_table import Table, Col, LinkCol, ButtonCol, create_table, NestedTableCol
-from lightserv.main.tables import ConditionalLinkCol 
 from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import DateTimeCol

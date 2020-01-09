@@ -2,26 +2,9 @@ from flask import current_app
 from flask_wtf import FlaskForm
 from wtforms import (SubmitField, TextAreaField, SelectField, FieldList, FormField,
 	StringField, DecimalField, IntegerField, HiddenField, BooleanField)
-from wtforms.fields.html5 import DateField, DateTimeLocalField
 from wtforms.validators import (DataRequired, Length, InputRequired, ValidationError, 
 	Optional)
 from wtforms.widgets import html5
-
-
-datetimeformat='%Y-%m-%dT%H:%M' # To get form.field.data to work. Does not work with the default (bug)
-
-def OptionalDateField(description='',validators=[]):
-	""" A custom field that makes the DateField optional """
-	validators.append(Optional())
-	field = DateField(description,validators)
-	return field
-
-def OptionalDateTimeLocalField(description='',validators=[],format=datetimeformat):
-	""" A custom field that makes the DateTimeLocalField optional
-	and applies a specific formatting to fix a bug in the default formatting """
-	validators.append(Optional())
-	field = DateTimeLocalField(description,validators,format=format)
-	return field
 
 class ChannelForm(FlaskForm):
 	""" A form that is used in ImagingForm() via a FormField Fieldlist
@@ -40,9 +23,10 @@ class ChannelForm(FlaskForm):
 
 	def validate_tiling_overlap(self,tiling_overlap):
 		try:
-			if tiling_overlap.data < 0 or tiling_overlap.data >= 1:
-				raise ValidationError("Tiling overlap must be between 0.0 and 1.0")
+			fl_val = float(tiling_overlap.data)
 		except:
+			raise ValidationError("Tiling overlap must be a number between 0.0 and 1.0")
+		if tiling_overlap.data < 0.0 or tiling_overlap.data >= 1.0:
 			raise ValidationError("Tiling overlap must be a number between 0.0 and 1.0")
 
 	def validate_tiling_scheme(self,tiling_scheme):
@@ -66,13 +50,13 @@ class ChannelForm(FlaskForm):
 		if z_resolution.data < 2:
 			raise ValidationError("z_resolution must be a positive number larger than 2 microns")
 		elif z_resolution.data > 1000:
-			raise ValidationError("Are you sure your z_resolution is >1000 microns?")
+			raise ValidationError("z resolution greater than 1000 microns is not supported by the microscope.")
 
 	def validate_number_of_z_planes(self,number_of_z_planes):
-		if number_of_z_planes.data < 0:
+		if number_of_z_planes.data <= 0:
 			raise ValidationError("The number of z planes must be a positive number")
 		elif number_of_z_planes.data > 5500:
-			raise ValidationError("Are you sure you have >5500 z planes?")
+			raise ValidationError("More than 5500 z planes is not supported by the microscope.")
 
 class ImageResolutionForm(FlaskForm):
 	""" A form for each image resolution that a user picks """
@@ -149,10 +133,10 @@ class NewImagingRequestForm(FlaskForm):
 				  'registration' not in selected_imaging_modes:
 				  raise ValidationError(f"Image resolution table: {image_resolution}."
 				  						f" You must select a registration channel"
-				  						 " when requesting any of the 'detection' channels")
+				  						 " when requesting any of the detection channels")
 
 		if self.new_image_resolution_form_submit.data == True:
 			
 			if self.image_resolution_forsetup.data in current_image_resolutions_rendered:
-				raise ValidationError(f"You tried to make a table for image_resolution {image_resolution}"
+				raise ValidationError(f"You tried to make a table for image_resolution: {image_resolution}"
 									  f", but that resolution has already been picked")

@@ -5,6 +5,7 @@ from lightserv import db_lightsheet
 from bs4 import BeautifulSoup 
 from datetime import datetime
 
+""" Tests for Imaging Manager """
 def test_ahoag_access_imaging_manager(test_client,test_cleared_request_ahoag):
 	""" Test that ahoag can access the imaging task manager
 	and see the single entry made and cleared by ahoag  """
@@ -14,12 +15,12 @@ def test_ahoag_access_imaging_manager(test_client,test_cleared_request_ahoag):
 	assert b'Admin request' in response.data 
 
 def test_nonadmin_access_imaging_manager(test_client,test_cleared_request_ahoag,test_login_nonadmin):
-	""" Test that Manuel (ms81, a nonadmin) can access the clearing task manager
-	but cannot see his entry because he did not designate himself as the clearer
-	and cannot see ahoag's entry because he is a not a clearing admin. """
-	response = test_client.get(url_for('clearing.clearing_manager')
+	""" Test that Manuel (ms81, a nonadmin) can access the imaging task manager
+	but cannot see his entry because he did not designate himself as the imager
+	and cannot see ahoag's entry because he is a not an imaging admin. """
+	response = test_client.get(url_for('imaging.imaging_manager')
 		, follow_redirects=True)
-	assert b'Clearing management GUI' in response.data
+	assert b'Imaging management GUI' in response.data
 	assert b'Nonadmin request' not in response.data 
 	# assert b'Admin request' not in response.data 
 
@@ -33,6 +34,8 @@ def test_zmd_access_imaging_manager(test_client,test_cleared_request_ahoag,
 	assert b'Admin request' in response.data 
 	assert b'Nonadmin request' in response.data 
 
+""" Tests for imaging entry form """
+
 def test_imaging_entry_form_loads(test_client,test_cleared_request_ahoag,
 	test_login_zmd):
 	""" Test that Zahra (zmd, an imaging admin) can access the imaging entry form
@@ -44,6 +47,282 @@ def test_imaging_entry_form_loads(test_client,test_cleared_request_ahoag,
 	assert b'Imaging Entry Form' in response.data
 	assert b'Admin request' in response.data 
 	# assert b'Nonadmin request' in response.data 
+
+def test_imaging_entry_form_submits(test_client,test_cleared_request_ahoag,
+	test_login_zmd):
+	""" Test that Zahra (zmd, an imaging admin) can submit the imaging entry form
+	for a test sample """
+	from lightserv import db_lightsheet
+	# print(db_lightsheet.Request.ImagingRequest())
+	print(db_lightsheet.Request.ImagingChannel())
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Request overview:' in response.data
+	assert b'Samples in this request:' in response.data 
+
+	imaging_progress = (db_lightsheet.Request.ImagingRequest() & 'request_name="Admin request"' & \
+		'username="ahoag"' & 'sample_name="sample-001"' & 'imaging_request_number=1').fetch1('imaging_progress')
+	assert imaging_progress == 'complete'
+
+def test_tiling_scheme_validation(test_client,test_cleared_request_ahoag,
+	test_login_zmd):
+	""" Test that an incorrect tiling scheme format raises 
+	the intended validation error """
+
+	data1 = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x11',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response1 = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data1,
+		follow_redirects=True)
+	assert b'Tiling scheme is not in correct format. Make sure it is like: 1x1 with no spaces.' in response1.data
+
+
+	data2= {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'gx2',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response2 = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data2,
+		follow_redirects=True)
+	assert b'Tiling scheme is not in correct format. Make sure it is like: 1x1 with no spaces.' in response2.data
+
+	data3= {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'4x4',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response3 = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data3,
+		follow_redirects=True)
+	assert b'Tiling scheme must not exceed 2x2 for this resolution' in response3.data
+
+def test_tiling_scheme_validation_4x(test_client,test_cleared_request_4x_ahoag,
+	test_login_zmd):
+	""" Test that an incorrect tiling scheme format raises 
+	the intended validation error """
+
+	data1 = {
+		'image_resolution_forms-0-image_resolution':'4x',
+		'image_resolution_forms-0-channel_forms-0-image_resolution':'4x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x11',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response1 = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin 4x request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data1,
+		follow_redirects=True)
+	assert b'Tiling scheme is not in correct format. Make sure it is like: 1x1 with no spaces.' in response1.data
+
+
+	data2= {
+		'image_resolution_forms-0-image_resolution':'4x',
+		'image_resolution_forms-0-channel_forms-0-image_resolution':'4x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'gx2',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response2 = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin 4x request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data2,
+		follow_redirects=True)
+	assert b'Tiling scheme is not in correct format. Make sure it is like: 1x1 with no spaces.' in response2.data
+
+	data3= {
+		'image_resolution_forms-0-image_resolution':'4x',
+		'image_resolution_forms-0-channel_forms-0-image_resolution':'4x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'4x6',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response3 = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin 4x request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data3,
+		follow_redirects=True)
+	assert b'Tiling scheme must not exceed 4x4 for this resolution' in response3.data
+
+def test_tiling_overlap_validation(test_client,test_cleared_request_ahoag,
+	test_login_zmd):
+	""" Test that an incorrect tiling overlap raises 
+	the intended validation error """
+
+	data1 = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':-0.4,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response1 = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data1,
+		follow_redirects=True)
+	assert b'Tiling overlap must be a number between 0.0 and 1.0' in response1.data
+
+	data2 = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':'gg',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response2 = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data2,
+		follow_redirects=True)
+	assert b'Tiling overlap must be a number between 0.0 and 1.0' in response2.data
+
+def test_z_resolution_validation(test_client,test_cleared_request_ahoag,
+	test_login_zmd):
+	""" Test that an incorrect z resolution gives
+	the intended validation error """
+
+	data1 = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':1,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response1 = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data1,
+		follow_redirects=True)
+	assert b'z_resolution must be a positive number larger than 2 microns' in response1.data
+
+	data2 = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':1001,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response2 = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data2,
+		follow_redirects=True)
+	assert b'z resolution greater than 1000 microns is not supported by the microscope.' in response2.data
+	
+def test_number_of_z_planes_validation(test_client,test_cleared_request_ahoag,
+	test_login_zmd):
+	""" Test that an incorrect number of z planes gives
+	the intended validation error """
+
+	data1 = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':0,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response1 = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data1,
+		follow_redirects=True)
+	assert b'The number of z planes must be a positive number' in response1.data
+
+	data2 = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':5501,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response2 = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data2,
+		follow_redirects=True)
+	assert b'More than 5500 z planes is not supported by the microscope.' in response2.data
+	
+def test_bad_imaging_request_redirects(test_client,test_cleared_request_ahoag,
+	test_login_zmd):
+	""" Test that trying to access the imaging entry form for an
+	imaging request that does not exist
+	redirects the user to the all requests form and puts up a flash message.
+	"""
+
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			imaging_request_number=8),
+		follow_redirects=True)
+	assert b'No imaging request exists with those parameters. Please try again.' in response.data
+	assert b'core facility requests:' in response.data
+
+""" Tests for New imaging request """	
 
 def test_new_imaging_request(test_client,test_single_sample_request_ahoag):
 	""" Check that a new imaging request submits successfully
@@ -66,183 +345,73 @@ def test_new_imaging_request(test_client,test_single_sample_request_ahoag):
 		)	
 	assert b'core facility requests' in response.data	
 	assert b'New Imaging Request' not in response.data
-
-# def test_abbreviated_clearing_entry_form_loads(test_client,test_single_request_nonadmin,test_login_ll3):
-# 	""" Test that ll3 can access a clearing entry form  """
-# 	# response = test_client.get(url_for('requests.all_requests'))
-# 	response = test_client.get(url_for('clearing.clearing_entry',username="ms81",
-# 			request_name="Nonadmin request",
-# 			clearing_protocol="iDISCO abbreviated clearing",
-# 			antibody1="",antibody2="",
-# 			clearing_batch_number=1),
-# 			follow_redirects=True,
-# 		)	
-# 	assert b'Clearing Entry Form' in response.data
-# 	assert b'Protocol: iDISCO abbreviated clearing' in response.data
- 
-# def test_abbreviated_clearing_entry_form_submits(test_client,test_single_request_nonadmin,test_login_ll3):
-# 	""" Test that ll3 can submit a clearing entry form 
-# 	and it redirects her back to the clearing task manager  """
-# 	# response = test_client.get(url_for('requests.all_requests'))
-# 	now = datetime.now()
-# 	print(now)
-# 	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
-# 		dehydr_pbs_wash1_notes='some notes',submit=True)
-# 	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
-# 			request_name="Nonadmin request",
-# 			clearing_protocol="iDISCO abbreviated clearing",
-# 			antibody1="",antibody2="",
-# 			clearing_batch_number=1),
-# 		data = data,
-# 		follow_redirects=True,
-# 		)	
 	
-# 	assert b'Clearing management GUI' in response.data
-	
-# 	""" Make sure clearing_progress is now updated """
-# 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & 'username="ms81"' & \
-# 	'request_name="Nonadmin request"' & 'clearing_protocol="iDISCO abbreviated clearing"' & \
-# 			'antibody1=""' & 'antibody2=""'
-# 	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
-# 	assert clearing_progress == 'complete'
-	
-# 	""" Make sure the clearing batch is now in the correct table in the manager """
-# 	parsed_html = BeautifulSoup(response.data,features="html.parser")
-# 	table_tag = parsed_html.body.find('table',attrs={'id':'horizontal_already_cleared_table'})
-# 	table_row_tag = table_tag.find_all('tr')[1] # the 0th row is the headers
-# 	td_tags = table_row_tag.find_all('td')
-# 	assert td_tags[1].text == "iDISCO abbreviated clearing" and \
-# 	td_tags[2].text == "" and td_tags[3].text == "" and td_tags[4].text == 'Nonadmin request'
+def test_new_imaging_request_image_resolution_forms_validation(test_client,test_single_sample_request_ahoag):
+	""" Test that the validation errors that need to be raised 
+	in the image resolution form are raised 
 
-# def test_mouse_clearing_entry_forms_load(test_client,test_request_all_mouse_clearing_protocols_ahoag,test_login_ll3):
-# 	""" Test that ll3 can access the clearing entry forms
-# 	for all mouse clearing protocols  """
+	Uses the test_single_sample_request_ahoag fixture
+	to insert a request into the database as ahoag. 
 
-# 	response_abbreviated_clearing = test_client.get(url_for('clearing.clearing_entry',
-# 			username="ahoag",
-# 			request_name="All mouse clearing protocol request",
-# 			clearing_protocol="iDISCO abbreviated clearing",
-# 			antibody1="",antibody2="",
-# 			clearing_batch_number=1),
-# 			follow_redirects=True,
-# 		)	
-# 	assert b'Clearing Entry Form' in response_abbreviated_clearing.data
-# 	assert b'Protocol: iDISCO abbreviated clearing' in response_abbreviated_clearing.data
+	"""
+	response1 = test_client.post(
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='Admin request',
+					sample_name='sample-001'),
+				data={
+					'image_resolution_forms-0-image_resolution':'1.3x',
+					'image_resolution_forms-0-atlas_name':'allen_2017',
+					'image_resolution_forsetup':'1.3x',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b'New Imaging Request' in response1.data
+	assert b'The image resolution table: 1.3x is empty. Please select at least one option.' in response1.data
 
-# 	response_idiscoplus_immuno_clearing = test_client.get(url_for('clearing.clearing_entry',
-# 			username="ahoag",
-# 			request_name="All mouse clearing protocol request",
-# 			clearing_protocol="iDISCO+_immuno",
-# 			antibody1="test antibody for immunostaining",antibody2="",
-# 			clearing_batch_number=2),
-# 			follow_redirects=True,
-# 		)	
-# 	assert b'Clearing Entry Form' in response_idiscoplus_immuno_clearing.data
-# 	assert b'Protocol: iDISCO+_immuno' in response_idiscoplus_immuno_clearing.data
+	response2 = test_client.post(
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='Admin request',
+					sample_name='sample-001'),
+				data={
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b'New Imaging Request' in response2.data
+	assert b'You must set up the imaging parameters for at least one image resolution' in response2.data
 
-# 	response_udisco_clearing = test_client.get(url_for('clearing.clearing_entry',
-# 			username="ahoag",
-# 			request_name="All mouse clearing protocol request",
-# 			clearing_protocol="uDISCO",
-# 			antibody1="",antibody2="",
-# 			clearing_batch_number=3),
-# 			follow_redirects=True,
-# 		)	
-# 	assert b'Clearing Entry Form' in response_udisco_clearing.data
-# 	assert b'Protocol: uDISCO' in response_udisco_clearing.data
+	response3 = test_client.post(
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='Admin request',
+					sample_name='sample-001'),
+				data={
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'image_resolution_forms-0-atlas_name':'allen_2017',
+			'image_resolution_forsetup':'1.3x',
+			'image_resolution_forms-0-channels-0-injection_detection':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b'New Imaging Request' in response3.data
+	test_str3 = ("Image resolution table: 1.3x. "
+			"You must select a registration channel " 
+			"when requesting any of the detection channels")
+	assert test_str3.encode('utf-8') in response3.data
 
-# 	response_idisco_edu_clearing = test_client.get(url_for('clearing.clearing_entry',
-# 			username="ahoag",
-# 			request_name="All mouse clearing protocol request",
-# 			clearing_protocol="iDISCO_EdU",
-# 			antibody1="",antibody2="",
-# 			clearing_batch_number=4),
-# 			follow_redirects=True,
-# 		)	
-# 	assert b'Clearing Entry Form' in response_idisco_edu_clearing.data
-# 	assert b'Protocol: iDISCO_EdU' in response_idisco_edu_clearing.data
 
-# def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_clearing_protocols_ahoag,test_login_ll3):
-# 	""" Test that ll3 can hit the update buttons in the clearing entry forms
-# 	for all mouse clearing protocols and the database is actually updated and the 
-# 	form is re-loaded with the updated field auto-filled """
-# 	now = datetime.now()
-# 	now_proper_format = now.strftime('%Y-%m-%dT%H:%M')
-# 	data_abbreviated_clearing = dict(time_pbs_wash1=now_proper_format,time_pbs_wash1_submit=True)
-	
-# 	response_abbreviated_clearing = test_client.post(url_for('clearing.clearing_entry',
-# 			username="ahoag",
-# 			request_name="All mouse clearing protocol request",
-# 			clearing_protocol="iDISCO abbreviated clearing",
-# 			antibody1="",antibody2="",
-# 			clearing_batch_number=1),
-# 			follow_redirects=True,
-# 		data=data_abbreviated_clearing
-# 		)	
-# 	assert b'Clearing Entry Form' in response_abbreviated_clearing.data
-# 	assert b'Protocol: iDISCO abbreviated clearing' in response_abbreviated_clearing.data
-# 	assert now_proper_format.encode('utf-8') in response_abbreviated_clearing.data
-
-# 	data_idiscoplus_immuno_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,time_dehydr_pbs_wash1_submit=True)
-# 	response_idiscoplus_immuno_clearing = test_client.post(url_for('clearing.clearing_entry',
-# 			username="ahoag",
-# 			request_name="All mouse clearing protocol request",
-# 			clearing_protocol="iDISCO+_immuno",
-# 			antibody1="test antibody for immunostaining",antibody2="",
-# 			clearing_batch_number=2),
-# 			follow_redirects=True,
-# 		data=data_idiscoplus_immuno_clearing
-# 		)	
-# 	assert b'Clearing Entry Form' in response_idiscoplus_immuno_clearing.data
-# 	assert b'Protocol: iDISCO+_immuno' in response_idiscoplus_immuno_clearing.data
-# 	assert now_proper_format.encode('utf-8') in response_idiscoplus_immuno_clearing.data
-
-# 	data_udisco_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,time_dehydr_pbs_wash1_submit=True)
-# 	response_udisco_clearing = test_client.post(url_for('clearing.clearing_entry',
-# 			username="ahoag",
-# 			request_name="All mouse clearing protocol request",
-# 			clearing_protocol="uDISCO",
-# 			antibody1="",antibody2="",
-# 			clearing_batch_number=3),
-# 			follow_redirects=True,
-# 		data=data_udisco_clearing
-# 		)	
-# 	assert b'Clearing Entry Form' in response_udisco_clearing.data
-# 	assert b'Protocol: uDISCO' in response_udisco_clearing.data
-# 	assert now_proper_format.encode('utf-8') in response_udisco_clearing.data
-
-# 	data_idisco_edu_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,time_dehydr_pbs_wash1_submit=True)
-# 	response_idisco_edu_clearing = test_client.post(url_for('clearing.clearing_entry',
-# 			username="ahoag",
-# 			request_name="All mouse clearing protocol request",
-# 			clearing_protocol="iDISCO_EdU",
-# 			antibody1="",antibody2="",
-# 			clearing_batch_number=4),
-# 			follow_redirects=True,
-# 		data=data_idisco_edu_clearing
-# 		)	
-# 	assert b'Clearing Entry Form' in response_idisco_edu_clearing.data
-# 	assert b'Protocol: iDISCO_EdU' in response_idisco_edu_clearing.data
-# 	assert now_proper_format.encode('utf-8') in response_idisco_edu_clearing.data
-
-# 	# response_udisco_clearing = test_client.get(url_for('clearing.clearing_entry',
-# 	# 		username="ahoag",
-# 	# 		request_name="All mouse clearing protocol request",
-# 	# 		clearing_protocol="uDISCO",
-# 	# 		antibody1="",antibody2="",
-# 	# 		clearing_batch_number=3),
-# 	# 		follow_redirects=True,
-# 	# 	)	
-# 	# assert b'Clearing Entry Form' in response_udisco_clearing.data
-# 	# assert b'Protocol: uDISCO' in response_udisco_clearing.data
-
-# 	# response_idisco_edu_clearing = test_client.get(url_for('clearing.clearing_entry',
-# 	# 		username="ahoag",
-# 	# 		request_name="All mouse clearing protocol request",
-# 	# 		clearing_protocol="iDISCO_EdU",
-# 	# 		antibody1="",antibody2="",
-# 	# 		clearing_batch_number=4),
-# 	# 		follow_redirects=True,
-# 	# 	)	
-# 	# assert b'Clearing Entry Form' in response_idisco_edu_clearing.data
-# 	# assert b'Protocol: iDISCO_EdU' in response_idisco_edu_clearing.data
+	response4 = test_client.post(
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='Admin request',
+					sample_name='sample-001'),
+				data={
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'image_resolution_forms-0-atlas_name':'allen_2017',
+			'image_resolution_forsetup':'1.3x',
+			'image_resolution_forms-0-channels-0-registration':True,
+			'image_resolution_forsetup':'1.3x',
+			'new_image_resolution_form_submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b'New Imaging Request' in response4.data
+	test_str4 = ("You tried to make a table for image_resolution: 1.3x"
+				", but that resolution has already been picked")
+	assert test_str4.encode('utf-8') in response4.data

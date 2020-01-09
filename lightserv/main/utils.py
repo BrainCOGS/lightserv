@@ -177,6 +177,10 @@ def logged_in_as_imager(f):
 			imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
 			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			 	f'imaging_request_number="{imaging_request_number}"'
+			if len(imaging_request_contents) == 0:
+				flash("No imaging request exists with those parameters. Please try again.","danger")
+				logger.debug("No imaging request exists with those parameters. Redirecting to all requests page")
+				return redirect(url_for('requests.all_requests'))
 			imager = imaging_request_contents.fetch1('imager')
 			''' check to see if user assigned themself as imager '''
 			if imager == None: # not yet assigned

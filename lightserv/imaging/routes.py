@@ -44,8 +44,6 @@ def imaging_manager():
 	logger.info(f"{current_user} accessed imaging manager")
 	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
-	current_user = session['user']
-	logger.info(f"{current_user} accessed imaging manager")
 
 	imaging_admins = current_app.config['IMAGING_ADMINS']
 
@@ -60,6 +58,8 @@ def imaging_manager():
 		'imaging_progress','imager','species',
 		datetime_submitted='TIMESTAMP(imaging_request_date_submitted,imaging_request_time_submitted)')
 	if current_user not in imaging_admins:
+		logger.info(f"{current_user} is not an imaging admin."
+					 " They can see only entries where they designated themselves as the imager")
 		imaging_request_contents = imaging_request_contents & f'imager="{current_user}"'
 	
 	# ''' First get all entities that are currently being imaged '''
@@ -106,15 +106,31 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
 	 		f'imaging_request_number="{imaging_request_number}"' 
-	if len(imaging_request_contents) == 0:
-		flash("Imaging request does not exist. Submit the request first, then try again.",'danger')
-		return redirect(url_for('requests.all_requests'))
 	''' If imaging is already complete (from before), then dont change imaging_progress '''
 	imaging_progress = imaging_request_contents.fetch1('imaging_progress')
 	
 	channel_contents = (db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"')
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
+
+	channel_contents_lists = []
+	unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
+	for ii in range(len(unique_image_resolutions)):
+		this_image_resolution = unique_image_resolutions[ii]
+		image_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
+		f'username="{username}" ' & f'request_name="{request_name}" ' & \
+		f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}' & \
+		f'image_resolution="{this_image_resolution}" '
+		channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
+		channel_contents_lists.append([])
+
+		''' Now add the channel subforms to the image resolution form '''
+		for jj in range(len(channel_contents_list_this_resolution)):
+			channel_content = channel_contents_list_this_resolution[jj]
+			channel_contents_lists[ii].append(channel_content)
+	overview_dict = imaging_request_contents.fetch1()
+	imaging_table = ImagingTable(imaging_request_contents)
+
 	if request.method == 'POST':
 		logger.info("Post request")
 		if form.validate_on_submit():
@@ -158,6 +174,10 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					# 		request_name=request_name,sample_name=sample_name))
 					channel_content = channel_contents & f'channel_name="{channel_name}"' & \
 					f'image_resolution="{image_resolution}"' & f'imaging_request_number={imaging_request_number}'
+					# logger.debug(channel_contents)
+					# logger.debug(channel_name)
+					# logger.debug(image_resolution)
+					# logger.debug(imaging_request_number)
 					channel_content_dict = channel_content.fetch1()
 					''' Make a copy of the current row in a new dictionary which we will insert '''
 					channel_insert_dict = {}
@@ -203,8 +223,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 		else:
 			logger.info("Not validated")
 			logger.info(form.errors)
-			for channel in form.channels:
-				print(channel.tiling_scheme.errors)
+
 	elif request.method == 'GET': # get request
 		if imaging_progress == 'complete':
 			logger.info("Imaging already complete but accessing the imaging entry page anyway.")
@@ -212,9 +231,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				"This page is read only and hitting submit will do nothing",'warning')
 		else:
 			dj.Table._update(imaging_request_contents,'imaging_progress','in progress')
-		channel_contents_lists = []
-
-		unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
+		
 		for ii in range(len(unique_image_resolutions)):
 			this_image_resolution = unique_image_resolutions[ii]
 			image_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
@@ -223,7 +240,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			f'image_resolution="{this_image_resolution}" '
 			notes_for_imager = image_resolution_request_contents.fetch1('notes_for_imager')
 			channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
-			channel_contents_lists.append([])
+			while len(form.image_resolution_forms) > 0:
+				form.image_resolution_forms.pop_entry()
 			form.image_resolution_forms.append_entry()
 			this_resolution_form = form.image_resolution_forms[-1]
 			this_resolution_form.image_resolution.data = this_image_resolution
@@ -234,15 +252,12 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			''' Now add the channel subforms to the image resolution form '''
 			for jj in range(len(channel_contents_list_this_resolution)):
 				channel_content = channel_contents_list_this_resolution[jj]
-				channel_contents_lists[ii].append(channel_content)
 				this_resolution_form.channel_forms.append_entry()
 				this_channel_form = this_resolution_form.channel_forms[-1]
 				this_channel_form.channel_name.data = channel_content['channel_name']
 				logger.debug(channel_content)
 				this_channel_form.image_resolution.data = channel_content['image_resolution']
 				this_channel_form.rawdata_subfolder.data = 'test488'
-	overview_dict = imaging_request_contents.fetch1()
-	imaging_table = ImagingTable(imaging_request_contents)
 
 	return render_template('imaging/imaging_entry.html',form=form,
 		channel_contents_lists=channel_contents_lists,

@@ -482,6 +482,7 @@ def new_request():
 									channel_insert_dict['request_name'] = form.request_name.data	
 									channel_insert_dict['username'] = username
 									channel_insert_dict['sample_name'] = sample_name
+									channel_insert_dict['image_resolution'] = resolution_dict['image_resolution']
 									for key,val in imaging_channel_dict.items(): 
 										channel_insert_dict[key] = val
 									channel_insert_list.append(channel_insert_dict)
@@ -523,25 +524,27 @@ def new_request():
 								clearing_batch_number = clearing_batch_insert_dict.get('clearing_batch_number')
 								sample_insert_dict['clearing_batch_number'] = clearing_batch_number
 
-					logger.info("ClearingBatch() insert ")
-					logger.info(clearing_batch_insert_list)
+					# logger.info("ClearingBatch() insert ")
+					# logger.info(clearing_batch_insert_list)
 					db_lightsheet.Request.ClearingBatch().insert(clearing_batch_insert_list,)
-					logger.info("Sample() insert:")
+					# logger.info("Sample() insert:")
+					# logger.debug(sample_insert_list)
 					db_lightsheet.Request.Sample().insert(sample_insert_list)
-					logger.info("ImagingRequest() insert:")
+					# logger.info("ImagingRequest() insert:")
 					# logger.info(imaging_request_insert_list)
 					db_lightsheet.Request.ImagingRequest().insert(imaging_request_insert_list)
-					logger.info("ProcessingRequest() insert:")
-					logger.info(processing_request_insert_list)
+					# logger.info("ProcessingRequest() insert:")
+					# logger.info(processing_request_insert_list)
 					db_lightsheet.Request.ProcessingRequest().insert(processing_request_insert_list)
-					logger.info("ImagingResolutionRequest() insert:")
-					logger.info(imaging_resolution_insert_list)
+					# logger.info("ImagingResolutionRequest() insert:")
+					# logger.info(imaging_resolution_insert_list)
 					db_lightsheet.Request.ImagingResolutionRequest().insert(imaging_resolution_insert_list)
-					logger.info("ProcessingResolutionRequest() insert:")
-					logger.info(processing_resolution_insert_list)
+					# logger.info("ProcessingResolutionRequest() insert:")
+					# logger.info(processing_resolution_insert_list)
 					db_lightsheet.Request.ProcessingResolutionRequest().insert(processing_resolution_insert_list)
-					logger.info('channel insert:')
-					logger.info(channel_insert_list)
+					# logger.info('channel insert:')
+					# logger.info(channel_insert_list)
+					
 					db_lightsheet.Request.ImagingChannel().insert(channel_insert_list)
 					
 					flash("Request submitted successfully. You will receive an email at "

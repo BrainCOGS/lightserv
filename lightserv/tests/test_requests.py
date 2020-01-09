@@ -142,7 +142,6 @@ def test_setup_image_resolution_form_rat(test_client,test_login,):
 	assert b'Clearing setup' in response.data  
 	assert b'Setup for image resolution: 1.3x' in response.data  
 
-
 def test_uniform_clearing_button_works(test_client,test_login,):
 	""" Ensure that hitting the "Apply these clearing parameters to all samples"
 	button in the samples section copies the data from sample 1 clearing section 
@@ -318,6 +317,7 @@ def test_submit_good_mouse_request(test_client,test_login,test_delete_request_db
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 			'submit':True
 			},content_type='multipart/form-data',
 			follow_redirects=True
@@ -326,6 +326,44 @@ def test_submit_good_mouse_request(test_client,test_login,test_delete_request_db
 	assert b"core facility requests" in response.data
 	assert b"This is a demo request" in response.data
 	assert b"New Request Form" not in response.data
+
+def test_submit_good_mouse_request_4x(test_client,test_login,test_delete_request_db_contents):
+	""" Ensure that entire new request form submits when good
+	data are used.
+
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	today = date.today()
+	today_proper_format = today.strftime('%Y-%m-%d')
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Admin request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'username':test_login['user'],
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'4x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"core facility requests" in response.data
+	assert b"This is a demo request" in response.data
+	assert b"New Request Form" not in response.data
+
+
 
 def test_submit_good_rat_request(test_client,test_login,test_delete_request_db_contents):
 	""" Ensure that entire new request form submits when good

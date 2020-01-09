@@ -78,8 +78,34 @@
 							{% endif %}
 						</div>
 				    </td>
-				    <td>{{channel_form.z_resolution(class='form-control form-control-sm')}}</td>
-				    <td>{{channel_form.number_of_z_planes(class='form-control form-control-sm')}}</td>
+				    <td>
+					    <div class="form-group">
+							{% if channel_form.z_resolution.errors %}
+								{{ channel_form.z_resolution(class="form-control form-control-sm is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in channel_form.z_resolution.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ channel_form.z_resolution(class="form-control form-control-sm") }}
+							{% endif %}
+						</div>
+					</td>
+				    <td>
+					    <div class="form-group">
+							{% if channel_form.number_of_z_planes.errors %}
+								{{ channel_form.number_of_z_planes(class="form-control form-control-sm is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in channel_form.number_of_z_planes.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ channel_form.number_of_z_planes(class="form-control form-control-sm") }}
+							{% endif %}
+						</div>
+					</td>
 				</tr>
 		{% endfor %} <!-- loop over channel forms -->
 	    </table>
