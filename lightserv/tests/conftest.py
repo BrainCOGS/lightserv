@@ -588,6 +588,7 @@ def test_cleared_rat_request(test_client,
 
 """ Fixtures for imaging  """
 
+@pytest.fixture(scope='function') 
 def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
 	test_login_zmd,test_delete_request_db_contents):
 	""" Images the cleared request by 'ahoag' (clearer='ahoag')

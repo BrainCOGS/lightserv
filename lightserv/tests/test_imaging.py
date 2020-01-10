@@ -322,6 +322,48 @@ def test_bad_imaging_request_redirects(test_client,test_cleared_request_ahoag,
 	assert b'No imaging request exists with those parameters. Please try again.' in response.data
 	assert b'core facility requests:' in response.data
 
+def test_access_already_imaged_request_ahoag(test_client,test_imaged_request_ahoag):
+	""" Test that accessing the imaging entry form 
+	that has already been completed results in a flash message
+	saying so  """
+
+	
+	response = test_client.get(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			imaging_request_number=1),
+		follow_redirects=True)
+
+	test_str = ("Imaging is already complete for this sample. " 
+			    "This page is read only and hitting submit will do nothing")
+	assert test_str.encode('utf-8') in response.data
+
+def test_post_request_already_imaged_request_ahoag(test_client,test_imaged_request_ahoag):
+	""" Test that trying to hit buttons in the imaging entry form 
+	that has already been completed results in a flash message
+	saying so and does not submit the form """
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+
+	test_str = ("Imaging is already complete for this sample. " 
+			    "This page is read only and hitting submit will do nothing")
+	assert test_str.encode('utf-8') in response.data
+	assert b"Imaging Entry Form" in response.data
+
+
+
 """ Tests for New imaging request """	
 
 def test_new_imaging_request(test_client,test_single_sample_request_ahoag):
@@ -345,6 +387,25 @@ def test_new_imaging_request(test_client,test_single_sample_request_ahoag):
 		)	
 	assert b'core facility requests' in response.data	
 	assert b'New Imaging Request' not in response.data
+
+def test_new_imaging_request_image_resolution_form_submit(test_client,test_single_sample_request_ahoag):
+	""" Test that hitting the new image resolution button works
+
+	Uses the test_single_sample_request_ahoag fixture
+	to insert a request into the database as ahoag. 
+
+	"""
+	response1 = test_client.post(
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='Admin request',
+					sample_name='sample-001'),
+				data={
+					'image_resolution_forsetup':'1.3x',
+					'new_image_resolution_form_submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b'New Imaging Request' in response1.data
+	assert b'Setup for image resolution: 1.3x' in response1.data
 	
 def test_new_imaging_request_image_resolution_forms_validation(test_client,test_single_sample_request_ahoag):
 	""" Test that the validation errors that need to be raised 
@@ -415,3 +476,31 @@ def test_new_imaging_request_image_resolution_forms_validation(test_client,test_
 	test_str4 = ("You tried to make a table for image_resolution: 1.3x"
 				", but that resolution has already been picked")
 	assert test_str4.encode('utf-8') in response4.data
+
+def test_new_imaging_request_self_imaging(test_client,test_single_sample_request_ahoag):
+	""" Test that hitting the new image resolution button works
+	Uses the test_single_sample_request_ahoag fixture
+	to insert a request into the database as ahoag. 
+	"""
+	from lightserv import db_lightsheet
+	response = test_client.post(
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='Admin request',
+					sample_name='sample-001'),
+				data={
+			'self_imaging':True,
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'image_resolution_forms-0-atlas_name':'allen_2017',
+			'image_resolution_forsetup':'1.3x',
+			'image_resolution_forms-0-channels-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	imager_request2 = (db_lightsheet.Request.ImagingRequest() & 'username="ahoag"' & \
+		f'request_name="Admin request"' & 'sample_name="sample-001"' & 
+		'imaging_request_number=2').fetch1('imager')
+	assert imager_request2 == 'ahoag'
+	assert b'core facility requests' in response.data	
+	assert b'New Imaging Request' not in response.data
+	
+	

@@ -15,7 +15,6 @@ from lightserv import cel,mail
 from flask_mail import Message
 import datajoint as dj
 
-
 from functools import partial
 # from lightsheet_py3
 import glob

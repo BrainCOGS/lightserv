@@ -404,8 +404,8 @@ def new_imaging_request(username,request_name,sample_name):
 								channel_insert_dict['username'] = username
 								channel_insert_dict['sample_name'] = sample_name
 								for key,val in imaging_channel_dict.items(): 
-									if key == 'csrf_token':
-										continue
+									if key == 'csrf_token': 
+										continue # pragma: no cover - used to exclude this line from testing
 									channel_insert_dict[key] = val
 
 								channel_insert_list.append(channel_insert_dict)
@@ -424,10 +424,6 @@ def new_imaging_request(username,request_name,sample_name):
 					flash("Your new imaging request was submitted successfully.", "success")
 					return redirect(url_for('requests.all_requests'))
 		else:
-			if 'submit' in form.errors:
-				for error_str in form.errors['submit']:
-					flash(error_str,'danger')
-			
 			logger.debug("Not validated! See error dict below:")
 			logger.debug(form.errors)
 			logger.debug("")
@@ -436,12 +432,7 @@ def new_imaging_request(username,request_name,sample_name):
 			""" deal with errors in the image resolution subforms - those
 			do not show up in the rendered tables like normal form errors """
 			for obj in form.errors['image_resolution_forms']:
-				if isinstance(obj,dict):
-					for key,val in list(obj.items()):
-						for error_str in val:
-							flash(error_str,'danger')
-				elif isinstance(obj,str):
-					flash(obj,'danger')
+				flash(obj,'danger')
 	
 	existing_imaging_table = ExistingImagingTable(channel_contents)
 
