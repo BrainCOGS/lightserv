@@ -12,6 +12,8 @@ class ChannelForm(FlaskForm):
 	"""
 	channel_name = HiddenField('Channel name')
 	image_resolution = HiddenField('Image resolution')
+	left_lightsheet_used = BooleanField('Left',default=False)
+	right_lightsheet_used = BooleanField('Right',default=False)
 	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',default='1x1')
 	tiling_overlap = DecimalField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
 		places=2,validators=[Optional()],default=0.1) 
@@ -72,6 +74,7 @@ class ImagingForm(FlaskForm):
 									   " that you would like recorded")
 	image_resolution_forms = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=max_number_of_image_resolutions)
 	submit = SubmitField('Click when imaging is complete and data are on bucket')
+
 
 class ChannelRequestForm(FlaskForm):
 	""" Used by other forms in a FieldList """

@@ -362,7 +362,47 @@ def test_post_request_already_imaged_request_ahoag(test_client,test_imaged_reque
 	assert test_str.encode('utf-8') in response.data
 	assert b"Imaging Entry Form" in response.data
 
+def test_no_right_lightsheet_submits(test_client,test_cleared_request_ahoag,
+	test_login_zmd):
+	""" Test that Zahra (zmd, an imaging admin) can submit the imaging entry form
+	for a test sample with only the left lightsheet and the right light sheet
+	is set to false in the db """
+	from lightserv import db_lightsheet
+	# print(db_lightsheet.Request.ImagingRequest())
+	print(db_lightsheet.Request.ImagingChannel())
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	# assert b'Request overview:' in response.data
+	# assert b'Samples in this request:' in response.data 
 
+	# imaging_progress = \
+	# (db_lightsheet.Request.ImagingRequest() & 'request_name="Admin request"' & \
+	# 	'username="ahoag"' & 'sample_name="sample-001"' & \
+	# 	'imaging_request_number=1').fetch1(
+	# 		'imaging_progress')
+
+	# assert imaging_progress == 'complete'
+	left_lightsheet_used,right_lightsheet_used =\
+	(db_lightsheet.Request.ImagingChannel() & 'request_name="Admin request"' & \
+		'username="ahoag"' & 'sample_name="sample-001"' & \
+		'imaging_request_number=1' & 'channel_name="488"').fetch1(
+			'left_lightsheet_used','right_lightsheet_used')
+	assert left_lightsheet_used == True
+	assert right_lightsheet_used == False
 
 """ Tests for New imaging request """	
 

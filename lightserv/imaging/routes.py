@@ -155,14 +155,21 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					channel_name = form_channel_dict['channel_name']
 					number_of_z_planes = form_channel_dict['number_of_z_planes']
 					rawdata_subfolder = form_channel_dict['rawdata_subfolder']
+					left_lightsheet_used = form_channel_dict['left_lightsheet_used']
+					right_lightsheet_used = form_channel_dict['right_lightsheet_used']
+					logger.debug(left_lightsheet_used)
+					logger.debug(right_lightsheet_used)
 					if rawdata_subfolder in subfolder_dict.keys():
 						subfolder_dict[rawdata_subfolder].append(channel_name)
 					else:
 						subfolder_dict[rawdata_subfolder] = [channel_name]
 					channel_index = subfolder_dict[rawdata_subfolder].index(channel_name)
-					logger.info(f" channel {channel_name} with image_resolution {image_resolution} has channel_index = {channel_index}")
+					logger.info(f" channel {channel_name} with image_resolution \
+						 {image_resolution} has channel_index = {channel_index}")
+
 					""" Now look for the number of z planes in the raw data subfolder on bucket
-					 and validate that it is the same as the user specified """
+						and validate that it is the same as the user specified 
+					"""
 					# rawdata_fullpath = os.path.join(current_app.config['RAWDATA_ROOTPATH'],username,
 					# 	request_name,sample_name,rawdata_subfolder) 
 					# number_of_z_planes_found = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*Filter000{channel_index}*'))
@@ -190,6 +197,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					for key,val in form_channel_dict.items():
 						if key in channel_content_dict.keys() and key not in ['channel_name','image_resolution','imaging_request_number']:
 							channel_insert_dict[key] = val
+							print(key,val)
 					channel_insert_dict['imspector_channel_index'] = channel_index
 					logger.info("Updating db entry with channel contents:")
 					logger.info(channel_insert_dict)

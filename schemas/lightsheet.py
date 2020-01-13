@@ -96,6 +96,8 @@ class Request(dj.Manual):
         channel_name                              :   varchar(64)                
         ----
         imaging_date = NULL                       :   date 
+        left_lightsheet_used = 1                  :   boolean
+        right_lightsheet_used = 1                 :   boolean
         registration = 0                          :   boolean
         injection_detection = 0                   :   boolean
         probe_detection = 0                       :   boolean
