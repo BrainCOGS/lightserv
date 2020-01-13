@@ -5,6 +5,7 @@ from wtforms import (SubmitField, TextAreaField, SelectField, FieldList, FormFie
 from wtforms.validators import (DataRequired, Length, InputRequired, ValidationError, 
 	Optional)
 from wtforms.widgets import html5
+import os, glob
 
 class ChannelForm(FlaskForm):
 	""" A form that is used in ImagingForm() via a FormField Fieldlist
@@ -22,7 +23,6 @@ class ChannelForm(FlaskForm):
 	number_of_z_planes = IntegerField('Number of z planes',
 		widget=html5.NumberInput(),validators=[InputRequired()],default=1000)
 	rawdata_subfolder = TextAreaField('channel subfolder',validators=[InputRequired()])
-
 
 	def validate_tiling_overlap(self,tiling_overlap):
 		try:
@@ -70,6 +70,11 @@ class ImageResolutionForm(FlaskForm):
 	
 class ImagingForm(FlaskForm):
 	""" The form for entering imaging information """
+	username = HiddenField('username')
+	request_name = HiddenField('request_name')
+	sample_name = HiddenField('sample_name')
+	imaging_request_number = HiddenField('imaging_request_number')
+
 	max_number_of_image_resolutions = 4 
 	notes_from_imaging = TextAreaField("Note down anything additional about the imaging"
 									   " that you would like recorded")
@@ -79,18 +84,45 @@ class ImagingForm(FlaskForm):
 	def validate_image_resolution_forms(self,image_resolution_forms):
 		""" Make sure that for each channel within 
 		an image resolution form, there is at least 
-		one light sheet selected """
+		one light sheet selected. 
+
+		Also make sure that each rawdata folder has the correct number 
+		of files that the imager reported there was.
+		"""
+
 		for image_resolution_dict in self.image_resolution_forms.data:
+			subfolder_dict = {}
 			this_image_resolution = image_resolution_dict['image_resolution']
 			for channel_dict in image_resolution_dict['channel_forms']:
-				this_channel = channel_dict['channel_name']
+				channel_name = channel_dict['channel_name']
 				left_lightsheet_used = channel_dict['left_lightsheet_used']
 				right_lightsheet_used = channel_dict['right_lightsheet_used']
+				number_of_z_planes = channel_dict['number_of_z_planes']
+				rawdata_subfolder = channel_dict['rawdata_subfolder']
+				""" First check that at least one of the 
+				light sheets (left or right) was selected """
 				if not (left_lightsheet_used or right_lightsheet_used):
-					raise ValidationError(f"Image resolution: {this_image_resolution}, Channel: {this_channel}: "
+					raise ValidationError(f"Image resolution: {this_image_resolution}, Channel: {channel_name}: "
 										   "At least one light sheet needs to be selected")
+				""" Now handle the number of raw data files for this channel """
+				if rawdata_subfolder in subfolder_dict.keys():
+					subfolder_dict[rawdata_subfolder].append(channel_name)
+				else:
+					subfolder_dict[rawdata_subfolder] = [channel_name]
+				channel_index = subfolder_dict[rawdata_subfolder].index(channel_name)
 
+				rawdata_fullpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+						self.username.data,self.request_name.data,self.sample_name.data,
+						f'imaging_request_{self.imaging_request_number.data}',
+						'rawdata',rawdata_subfolder) 
 
+				number_of_rawfiles_expected = number_of_z_planes*(left_lightsheet_used+right_lightsheet_used)
+				number_of_rawfiles_found = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*Filter000{channel_index}*'))				
+				if number_of_rawfiles_found != number_of_rawfiles_expected:
+					error_str = (f"You entered that for channel: {channel_name} there should be {number_of_rawfiles_expected} files, "
+						  f"but found {number_of_rawfiles_found} in raw data folder: "
+						  f"{rawdata_fullpath}","danger")
+					raise ValidationError(error_str)
 
 class ChannelRequestForm(FlaskForm):
 	""" Used by other forms in a FieldList """
@@ -151,8 +183,8 @@ class NewImagingRequestForm(FlaskForm):
 				  'cell_detection' in selected_imaging_modes) and \
 				  'registration' not in selected_imaging_modes:
 				  raise ValidationError(f"Image resolution table: {image_resolution}."
-				  						f" You must select a registration channel"
-				  						 " when requesting any of the detection channels")
+										f" You must select a registration channel"
+										 " when requesting any of the detection channels")
 
 		if self.new_image_resolution_form_submit.data == True:
 			

@@ -100,7 +100,10 @@ def imaging_manager():
 @log_http_requests
 def imaging_entry(username,request_name,sample_name,imaging_request_number): 
 	form = ImagingForm(request.form)
-
+	form.username.data = username
+	form.request_name.data = request_name
+	form.sample_name.data = sample_name
+	form.imaging_request_number.data = imaging_request_number
 	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'sample_name="{sample_name}"' 
 	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
@@ -157,8 +160,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					rawdata_subfolder = form_channel_dict['rawdata_subfolder']
 					left_lightsheet_used = form_channel_dict['left_lightsheet_used']
 					right_lightsheet_used = form_channel_dict['right_lightsheet_used']
-					logger.debug(left_lightsheet_used)
-					logger.debug(right_lightsheet_used)
+					# logger.debug(left_lightsheet_used)
+					# logger.debug(right_lightsheet_used)
 					if rawdata_subfolder in subfolder_dict.keys():
 						subfolder_dict[rawdata_subfolder].append(channel_name)
 					else:
@@ -170,15 +173,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					""" Now look for the number of z planes in the raw data subfolder on bucket
 						and validate that it is the same as the user specified 
 					"""
-					# rawdata_fullpath = os.path.join(current_app.config['RAWDATA_ROOTPATH'],username,
-					# 	request_name,sample_name,rawdata_subfolder) 
-					# number_of_z_planes_found = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*Filter000{channel_index}*'))
-					# if number_of_z_planes_found != number_of_z_planes:
-					# 	flash(f"You entered that for channel: {channel_name} there should be {number_of_z_planes} z planes, "
-					# 		  f"but found {number_of_z_planes_found} in raw data folder: "
-					# 		  f"{rawdata_fullpath}","danger")
-					# 	return redirect(url_for('imaging.imaging_entry',username=username,
-					# 		request_name=request_name,sample_name=sample_name))
+					
 					channel_content = channel_contents & f'channel_name="{channel_name}"' & \
 					f'image_resolution="{image_resolution}"' & f'imaging_request_number={imaging_request_number}'
 					# logger.debug(channel_contents)
