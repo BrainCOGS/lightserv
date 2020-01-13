@@ -75,11 +75,14 @@ class ImagingForm(FlaskForm):
 class NewRequestForm(FlaskForm):
 	""" The form for a new request """
 	max_number_of_samples = 50
+	enter_for_otheruser = BooleanField('Check if this request is for someone other than you',default=False)
+	username = StringField('Netid of the researcher',
+		validators=[Length(max=20)])
 	request_name = StringField('Request_name - a unique identifier for this request -- max 64 characters --',
 		validators=[InputRequired(),Length(max=64)],default="test")
 	description = TextAreaField('What is the goal of this request? -- max 250 characters --',validators=[InputRequired(),Length(max=250)],default="test")
 	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)],default="Braincogs")
-	correspondence_email = StringField('Correspondence email (default is princeton email)',
+	correspondence_email = StringField('Correspondence email (default is your princeton email)',
 		validators=[DataRequired(),Length(max=100),Email()])
 
 	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],
@@ -124,11 +127,14 @@ class NewRequestForm(FlaskForm):
 
 	def validate_request_name(self,request_name):
 		""" Make sure request name is unique """
-		current_user = session['user']
-		current_request_names = (db_lightsheet.Request() & f'username="{current_user}"').fetch('request_name')
+		if self.username.data:
+			username = self.username.data
+		else:
+			username = session['user']
+		current_request_names = (db_lightsheet.Request() & f'username="{username}"').fetch('request_name')
 		if request_name.data in current_request_names:
-			raise ValidationError(f'There already exists a request named "{request_name.data}" \
-				for your account. Please rename your request')
+			raise ValidationError(f'There already exists a request named "{request_name.data}" '
+								  f'under the account of {username}. Please rename the request')
 
 	def validate_clearing_samples(self,clearing_samples):
 		""" Make sure that there are no samples where the clearing protocol is impossible

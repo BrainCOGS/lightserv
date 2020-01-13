@@ -7,8 +7,28 @@
 			{{ form.hidden_tag() }}
 			<fieldset class="form-group">
 				<legend class="border-bottom mb-2 mt-4">Background Info</legend>
-
-				<div class="form-group">
+				<div class="checkbox mb-2">
+					{% if form.clearing_samples|length > 0 %}
+						{{ form.enter_for_otheruser(disabled=true, class="form-check-input", onclick="return false;") }}
+					{% else %}
+						{{ form.enter_for_otheruser(class="form-check-input", onchange="togglefield(this)" ) }}
+					{% endif %}
+					{{ form.enter_for_otheruser.label(class="form-check-label") }}
+				</div>
+				<!-- <input type="checkbox" name="checkfield" id="g01-01"  onchange="togglefield(this)"/> -->
+				{% if form.clearing_samples|length > 0 and form.username.data %}
+					<div class="form-group" id="username_field" style="display: block">
+						{{ form.username.label }}
+						{{ form.username(readonly=true, class="form-control form-control-lg") }}
+					</div>
+				{% else %}
+					<div class="form-group" id="username_field" style="display: none">
+						{{ form.username.label }}
+						{{ form.username(class="form-control form-control-lg") }}
+					</div>
+				{% endif %}
+				
+					<div class="form-group">
 					{% if form.labname.flags.required %}*{% endif %}
 					{{ form.labname.label(class="form-control-label") }}
 					{% if form.labname.errors %}
@@ -47,7 +67,11 @@
 							{% endfor %}
 						</div>
 					{% else %}
-						{{ form.request_name(class="form-control form-control-lg") }}
+						{% if form.clearing_samples|length > 0 %}
+							{{ form.request_name(readonly=true, class="form-control form-control-lg") }}
+						{% else %}
+							{{ form.request_name(class="form-control form-control-lg") }}
+						{% endif %}
 					{% endif %}
 				</div>
 				<div class="form-group">
@@ -67,7 +91,12 @@
 				<div class="form-group">
 					{% if form.species.flags.required %}*{% endif %}
 					{{ form.species.label(class="form-control-label mr-2") }}
-					{{ form.species(class="form-control form-control-lg") }}
+					{% if form.clearing_samples|length > 0 %}
+						{{ form.species(readonly=true,class="form-control form-control-lg") }}
+					{% else %}
+						{{ form.species(class="form-control form-control-lg") }}
+					{% endif %}
+					
 				</div>
 
 				<div class="form-group">
@@ -386,6 +415,16 @@
 		</form>
 	</div>
 
+<script>
+function togglefield(checkboxElem) {
+	var x = document.getElementById("username_field");
+	if (checkboxElem.checked) {
+		x.style.display = "block";
+	} else {
+		x.style.display = "none";
+		}
+	}
+</script>
 <!-- For focusing to a given tag -->
 {% if column_name %}
 	<script>

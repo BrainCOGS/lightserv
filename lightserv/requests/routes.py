@@ -197,6 +197,110 @@ def request_overview(username,request_name):
 	return render_template('requests/request_overview.html',request_contents=request_contents,
 		request_table=request_table,samples_table=samples_table)
 
+@requests.route("/requests/all_samples")
+@logged_in
+@log_http_requests
+def all_samples(): 
+	current_user = session['user']
+	logger.info(f"{current_user} accessed all_samples page")
+	request_contents = db_lightsheet.Request()
+	sample_contents = db_lightsheet.Request.Sample()
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest()
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest()
+	if current_user in ['ahoag','zmd','ll3','kellyms','jduva']:
+		legend = 'All core facility samples (from all requests)'
+	else:
+		legend = 'Your core facility samples (from all of your requests)'
+		sample_contents = sample_contents & f'username="{current_user}"'
+		request_contents = request_contents & f'username="{current_user}"'
+		clearing_batch_contents = clearing_batch_contents & f'username="{current_user}"'
+		imaging_request_contents = imaging_request_contents & f'username="{current_user}"'
+		processing_request_contents = processing_request_contents & f'username="{current_user}"'
+	
+	clearing_joined_contents = (sample_contents * request_contents * clearing_batch_contents).proj(
+		request_name='request_name',sample_name='sample_name',
+		species='species',clearing_protocol='clearing_protocol',
+		clearing_progress='clearing_progress',
+		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
+	''' Now figure out what fraction of imaging requests have been fulfilled '''	
+	replicated_args = dict(species='species',clearing_protocol='clearing_protocol',
+	imaging_request_number='imaging_request_number',imager='imager',
+	imaging_progress='imaging_progress',
+	clearing_progress='clearing_progress',
+	antibody1='antibody1',antibody2='antibody2',
+	clearing_batch_number='clearing_batch_number',
+	datetime_submitted='datetime_submitted')
+
+	imaging_joined_contents = dj.U('username','request_name','sample_name').aggr(
+		clearing_joined_contents*imaging_request_contents,
+		**replicated_args)
+
+	processing_joined_contents = dj.U('username','request_name','sample_name').aggr(
+		imaging_joined_contents*processing_request_contents,
+		**replicated_args,processing_request_number='processing_request_number',
+	processor='processor',processing_progress='processing_progress')
+
+	all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
+	keep_keys = ['username','request_name','sample_name','species',
+				 'clearing_protocol','clearing_progress','antibody1','antibody2',
+				 'clearing_batch_number','n_imaging_requests',
+				 'n_processing_requests','datetime_submitted']
+	final_dict_list = []
+
+	for d in all_contents_dict_list:
+		username = d.get('username')
+		request_name = d.get('request_name')
+		current_sample_name = d.get('sample_name')
+		imaging_request_number = d.get('imaging_request_number')
+		imager = d.get('imager')
+		imaging_progress = d.get('imaging_progress')
+		imaging_request_dict = {'username':username,'request_name':request_name,
+							    'sample_name':current_sample_name,
+							    'imaging_request_number':imaging_request_number,
+							   'imager':imager,'imaging_progress':imaging_progress}
+		processing_request_number = d.get('processing_request_number')
+		processor = d.get('processor')
+		processing_progress = d.get('processing_progress')
+		processing_request_dict = {'username':username,'request_name':request_name,
+							       'sample_name':current_sample_name,
+								   'imaging_request_number':imaging_request_number,
+								   'processing_request_number':processing_request_number,
+									  'processor':processor,'processing_progress':processing_progress}
+		existing_sample_names = [x.get('sample_name') for x in final_dict_list]
+		if current_sample_name not in existing_sample_names: # Then new sample, new imaging request, new processing request
+			new_dict_values = list(map(d.get,keep_keys))
+			new_dict = {keep_keys[ii]:new_dict_values[ii] for ii in range(len(keep_keys))}
+			new_dict['imaging_requests'] = []
+			imaging_request_dict['processing_requests'] = [processing_request_dict]
+			new_dict['imaging_requests'].append(imaging_request_dict)
+			final_dict_list.append(new_dict)
+		else:
+			# A repeated sample name could either be
+			# a new imaging request or a new processing request at the same imaging request
+			existing_index = existing_sample_names.index(current_sample_name)
+			existing_dict = final_dict_list[existing_index]
+			existing_imaging_request_dicts = existing_dict['imaging_requests']
+			existing_imaging_request_numbers = [x.get('imaging_request_number') for x in existing_imaging_request_dicts]
+			if imaging_request_number not in existing_imaging_request_numbers: # Then its a new imaging request and processing request
+				imaging_request_dict['processing_requests'] = [processing_request_dict]
+				existing_dict['imaging_requests'].append(imaging_request_dict)
+			else: # Then it's an old imaging request and new processing request
+				existing_imaging_request_index = existing_imaging_request_numbers.index(imaging_request_number)
+				existing_imaging_request_dict = existing_imaging_request_dicts[existing_imaging_request_index]
+				existing_imaging_request_dict['processing_requests'].append(processing_request_dict)
+
+	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
+	reverse = (request.args.get('direction', 'asc') == 'desc')
+	sorted_results = sorted(final_dict_list,
+		key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
+	
+	table = AllSamplesTable(sorted_results,sort_by=sort,
+					  sort_reverse=reverse)
+	table.table_id = 'all_samples_table'
+	return render_template('requests/all_samples.html',samples_table=table,
+		combined_contents=final_dict_list,legend=legend)
+
 @requests.route("/request/new",methods=['GET','POST'])
 @logged_in
 @log_http_requests
@@ -206,7 +310,6 @@ def new_request():
 
 	current_user = session['user']
 	logger.info(f"{current_user} accessed new request form")
-	username = current_user
 
 	form = NewRequestForm(request.form)
 
@@ -345,11 +448,24 @@ def new_request():
 					at any point during any of the inserts"""
 				connection = db_lightsheet.Request.connection
 				with connection.transaction:
-					princeton_email = username + '@princeton.edu'
-					user_insert_dict = dict(username=username,princeton_email=princeton_email)
-					db_lightsheet.User().insert1(user_insert_dict,skip_duplicates=True)
+					if form.username.data:
+						username = form.username.data
+						princeton_email = username + '@princeton.edu'
+						""" insert into User() db table 
+						with skip_duplicates=True in case username 
+						is not already in there. """
+						user_insert_dict = dict(username=username,princeton_email=princeton_email)
+						db_lightsheet.User().insert1(user_insert_dict,skip_duplicates=True)
+					else:
+						username = current_user
+					princeton_email_current_user = current_user + '@princeton.edu'
+					
+					current_user_insert_dict = dict(username=current_user,
+						princeton_email=princeton_email_current_user)
+					db_lightsheet.User().insert1(current_user_insert_dict,skip_duplicates=True)
 					request_insert_dict = dict(request_name=form.request_name.data,
-						username=username,labname=form.labname.data.lower(),
+						username=username,requested_by=current_user,
+						labname=form.labname.data.lower(),
 						correspondence_email=form.correspondence_email.data.lower(),
 						description=form.description.data,species=form.species.data,
 						number_of_samples=form.number_of_samples.data,
@@ -382,6 +498,7 @@ def new_request():
 						""" Set up sample insert dict """
 						''' Add primary keys that are not in the form '''
 						sample_insert_dict['request_name'] = form.request_name.data
+
 						sample_insert_dict['username'] = username 
 						sample_insert_dict['sample_name'] = sample_name
 						
@@ -483,6 +600,8 @@ def new_request():
 									channel_insert_dict['sample_name'] = sample_name
 									channel_insert_dict['image_resolution'] = resolution_dict['image_resolution']
 									for key,val in imaging_channel_dict.items(): 
+										if key == 'csrf_token': 
+											continue # pragma: no cover - used to exclude this line from testing
 										channel_insert_dict[key] = val
 									channel_insert_list.append(channel_insert_dict)
 							# logger.info(channel_insert_list)
@@ -616,115 +735,11 @@ def new_request():
 		logger.info("GET request")
 
 		if not form.correspondence_email.data:	
-			form.correspondence_email.data = username + '@princeton.edu' 
+			form.correspondence_email.data = current_user + '@princeton.edu' 
 	if 'column_name' not in locals():
 		column_name = ''
 	
 
 	return render_template('requests/new_request.html', title='new_request',
 		form=form,legend='New Request',column_name=column_name)	
-
-@requests.route("/requests/all_samples")
-@logged_in
-@log_http_requests
-def all_samples(): 
-	current_user = session['user']
-	logger.info(f"{current_user} accessed all_samples page")
-	request_contents = db_lightsheet.Request()
-	sample_contents = db_lightsheet.Request.Sample()
-	clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
-	imaging_request_contents = db_lightsheet.Request.ImagingRequest()
-	processing_request_contents = db_lightsheet.Request.ProcessingRequest()
-	if current_user in ['ahoag','zmd','ll3','kellyms','jduva']:
-		legend = 'All core facility samples (from all requests)'
-	else:
-		legend = 'Your core facility samples (from all of your requests)'
-		sample_contents = sample_contents & f'username="{current_user}"'
-		request_contents = request_contents & f'username="{current_user}"'
-		clearing_batch_contents = clearing_batch_contents & f'username="{current_user}"'
-		imaging_request_contents = imaging_request_contents & f'username="{current_user}"'
-		processing_request_contents = processing_request_contents & f'username="{current_user}"'
-	
-	clearing_joined_contents = (sample_contents * request_contents * clearing_batch_contents).proj(
-		request_name='request_name',sample_name='sample_name',
-		species='species',clearing_protocol='clearing_protocol',
-		clearing_progress='clearing_progress',
-		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
-	''' Now figure out what fraction of imaging requests have been fulfilled '''	
-	replicated_args = dict(species='species',clearing_protocol='clearing_protocol',
-	imaging_request_number='imaging_request_number',imager='imager',
-	imaging_progress='imaging_progress',
-	clearing_progress='clearing_progress',
-	antibody1='antibody1',antibody2='antibody2',
-	clearing_batch_number='clearing_batch_number',
-	datetime_submitted='datetime_submitted')
-
-	imaging_joined_contents = dj.U('username','request_name','sample_name').aggr(
-		clearing_joined_contents*imaging_request_contents,
-		**replicated_args)
-
-	processing_joined_contents = dj.U('username','request_name','sample_name').aggr(
-		imaging_joined_contents*processing_request_contents,
-		**replicated_args,processing_request_number='processing_request_number',
-	processor='processor',processing_progress='processing_progress')
-
-	all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
-	keep_keys = ['username','request_name','sample_name','species',
-				 'clearing_protocol','clearing_progress','antibody1','antibody2',
-				 'clearing_batch_number','n_imaging_requests',
-				 'n_processing_requests','datetime_submitted']
-	final_dict_list = []
-
-	for d in all_contents_dict_list:
-		username = d.get('username')
-		request_name = d.get('request_name')
-		current_sample_name = d.get('sample_name')
-		imaging_request_number = d.get('imaging_request_number')
-		imager = d.get('imager')
-		imaging_progress = d.get('imaging_progress')
-		imaging_request_dict = {'username':username,'request_name':request_name,
-							    'sample_name':current_sample_name,
-							    'imaging_request_number':imaging_request_number,
-							   'imager':imager,'imaging_progress':imaging_progress}
-		processing_request_number = d.get('processing_request_number')
-		processor = d.get('processor')
-		processing_progress = d.get('processing_progress')
-		processing_request_dict = {'username':username,'request_name':request_name,
-							       'sample_name':current_sample_name,
-								   'imaging_request_number':imaging_request_number,
-								   'processing_request_number':processing_request_number,
-									  'processor':processor,'processing_progress':processing_progress}
-		existing_sample_names = [x.get('sample_name') for x in final_dict_list]
-		if current_sample_name not in existing_sample_names: # Then new sample, new imaging request, new processing request
-			new_dict_values = list(map(d.get,keep_keys))
-			new_dict = {keep_keys[ii]:new_dict_values[ii] for ii in range(len(keep_keys))}
-			new_dict['imaging_requests'] = []
-			imaging_request_dict['processing_requests'] = [processing_request_dict]
-			new_dict['imaging_requests'].append(imaging_request_dict)
-			final_dict_list.append(new_dict)
-		else:
-			# A repeated sample name could either be
-			# a new imaging request or a new processing request at the same imaging request
-			existing_index = existing_sample_names.index(current_sample_name)
-			existing_dict = final_dict_list[existing_index]
-			existing_imaging_request_dicts = existing_dict['imaging_requests']
-			existing_imaging_request_numbers = [x.get('imaging_request_number') for x in existing_imaging_request_dicts]
-			if imaging_request_number not in existing_imaging_request_numbers: # Then its a new imaging request and processing request
-				imaging_request_dict['processing_requests'] = [processing_request_dict]
-				existing_dict['imaging_requests'].append(imaging_request_dict)
-			else: # Then it's an old imaging request and new processing request
-				existing_imaging_request_index = existing_imaging_request_numbers.index(imaging_request_number)
-				existing_imaging_request_dict = existing_imaging_request_dicts[existing_imaging_request_index]
-				existing_imaging_request_dict['processing_requests'].append(processing_request_dict)
-
-	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
-	reverse = (request.args.get('direction', 'asc') == 'desc')
-	sorted_results = sorted(final_dict_list,
-		key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
-	
-	table = AllSamplesTable(sorted_results,sort_by=sort,
-					  sort_reverse=reverse)
-	table.table_id = 'all_samples_table'
-	return render_template('requests/all_samples.html',samples_table=table,
-		combined_contents=final_dict_list,legend=legend)
 
