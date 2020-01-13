@@ -32,8 +32,9 @@ class User(dj.Lookup):
 class Request(dj.Manual):
     definition = """ # The highest level table for handling user requests to the Core Facility 
     -> User  
-    request_name                        :   varchar(64)
+    request_name                 :   varchar(64)
     ----
+    -> User.proj(requested_by='username') # defines a new column here called "requested_by" whose value must be one of the "username" entries in the User() table    
     date_submitted               :   date     # The date it was submitted as a request
     time_submitted               :   time     # The time it was submitted as a request
     labname                      :   varchar(50)
