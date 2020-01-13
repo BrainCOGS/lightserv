@@ -23,6 +23,7 @@ class ChannelForm(FlaskForm):
 		widget=html5.NumberInput(),validators=[InputRequired()],default=1000)
 	rawdata_subfolder = TextAreaField('channel subfolder',validators=[InputRequired()])
 
+
 	def validate_tiling_overlap(self,tiling_overlap):
 		try:
 			fl_val = float(tiling_overlap.data)
@@ -74,6 +75,21 @@ class ImagingForm(FlaskForm):
 									   " that you would like recorded")
 	image_resolution_forms = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=max_number_of_image_resolutions)
 	submit = SubmitField('Click when imaging is complete and data are on bucket')
+
+	def validate_image_resolution_forms(self,image_resolution_forms):
+		""" Make sure that for each channel within 
+		an image resolution form, there is at least 
+		one light sheet selected """
+		for image_resolution_dict in self.image_resolution_forms.data:
+			this_image_resolution = image_resolution_dict['image_resolution']
+			for channel_dict in image_resolution_dict['channel_forms']:
+				this_channel = channel_dict['channel_name']
+				left_lightsheet_used = channel_dict['left_lightsheet_used']
+				right_lightsheet_used = channel_dict['right_lightsheet_used']
+				if not (left_lightsheet_used or right_lightsheet_used):
+					raise ValidationError(f"Image resolution: {this_image_resolution}, Channel: {this_channel}: "
+										   "At least one light sheet needs to be selected")
+
 
 
 class ChannelRequestForm(FlaskForm):
