@@ -7,14 +7,16 @@
 			{{ form.hidden_tag() }}
 			<fieldset class="form-group">
 				<legend class="border-bottom mb-2 mt-4">Background Info</legend>
-				<div class="checkbox mb-2">
-					{% if form.clearing_samples|length > 0 %}
-						{{ form.enter_for_otheruser(disabled=true, class="form-check-input", onclick="return false;") }}
-					{% else %}
-						{{ form.enter_for_otheruser(class="form-check-input", onchange="togglefield(this)" ) }}
-					{% endif %}
-					{{ form.enter_for_otheruser.label(class="form-check-label") }}
-				</div>
+				{% if session['user'] == 'ahoag' or session['user'] == 'zmd' or session['user'] == 'jduva' or session['user'] == 'kellyms' %}
+					<div class="checkbox mb-2">
+						{% if form.clearing_samples|length > 0 %}
+							{{ form.enter_for_otheruser(disabled=true, class="form-check-input", onclick="return false;") }}
+						{% else %}
+							{{ form.enter_for_otheruser(class="form-check-input", onchange="togglefield(this)" ) }}
+						{% endif %}
+						{{ form.enter_for_otheruser.label(class="form-check-label") }}
+					</div>
+				{% endif %}
 				<!-- <input type="checkbox" name="checkfield" id="g01-01"  onchange="togglefield(this)"/> -->
 				{% if form.clearing_samples|length > 0 and form.username.data %}
 					<div class="form-group" id="username_field" style="display: block">

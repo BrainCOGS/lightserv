@@ -75,8 +75,8 @@ class ImagingForm(FlaskForm):
 class NewRequestForm(FlaskForm):
 	""" The form for a new request """
 	max_number_of_samples = 50
-	enter_for_otheruser = BooleanField('Check if this request is for someone other than you',default=False)
-	username = StringField('Netid of the researcher',
+	enter_for_otheruser = BooleanField('Check if you are filling out this form for someone else',default=False)
+	username = StringField('Netid of that person',
 		validators=[Length(max=20)])
 	request_name = StringField('Request_name - a unique identifier for this request -- max 64 characters --',
 		validators=[InputRequired(),Length(max=64)],default="test")
