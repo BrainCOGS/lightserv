@@ -942,6 +942,41 @@ def test_multiple_samples_same_clearing_batch(test_client,test_login,test_delete
 		'clearing_batch_number=1').fetch1('number_in_batch')
 	assert number_in_batch == 2
 
+def test_nonadmin_cannot_see_checkbox_to_submit_as_someone_else(test_client,
+		test_login_nonadmin):
+	""" Ensure that a nonadmin, e.g. Manuel (ms81) 
+	cannot see the checkbox to submit the request
+	as another user
+
+	Does not enter data into the db  
+	""" 
+	response = test_client.get(
+		url_for('requests.new_request'),
+			content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"New Request Form" in response.data
+	assert b"Check if you are filling out this form for someone else" not in response.data
+
+def test_admin_can_see_checkbox_to_submit_as_someone_else(test_client,
+		test_login_zmd):
+	""" Ensure that a Zahra (zmd, an admin) 
+	can see the checkbox to submit the request
+	as another user
+
+	Does not enter data into the db  
+	""" 
+
+	response = test_client.get(
+		url_for('requests.new_request'),
+			content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"New Request Form" in response.data
+	assert b"Check if you are filling out this form for someone else" in response.data
+
 def test_submit_good_mouse_request_for_someone_else(test_client,
 		test_login,test_delete_request_db_contents):
 	""" Ensure that entire new request form submits when good
