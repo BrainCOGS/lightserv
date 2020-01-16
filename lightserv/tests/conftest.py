@@ -159,11 +159,13 @@ def test_delete_request_db_contents(test_client):
 	"""
 	print('----------Setup test_delete_request_db_contents fixture ----------')
 
-	from lightserv import db_lightsheet
+	from lightserv import db_lightsheet, db_admin
 
 	yield # this is where the test is run
 	print('-------Teardown test_delete_request_db_contents fixture --------')
-	db_lightsheet.Request().delete()	
+	db_lightsheet.Request().delete()
+	db_admin.UserActionLog().delete()	
+	db_admin.SpockJobManager().delete()	
 
 """ Fixtures for inserting requests as different users or using different species """
 
@@ -181,7 +183,7 @@ def test_single_sample_request_ahoag(test_client,test_login,test_delete_request_
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':current_user,
@@ -215,7 +217,7 @@ def test_single_sample_request_4x_ahoag(test_client,test_login,test_delete_reque
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin 4x request",
+			'request_name':"admin_4x_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':current_user,
@@ -248,7 +250,7 @@ def test_two_requests_ahoag(test_client,test_login,test_delete_request_db_conten
 	response1 = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request 1",
+			'request_name':"admin_request 1",
 			'description':"This is a first demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':current_user,
@@ -257,6 +259,7 @@ def test_two_requests_ahoag(test_client,test_login,test_delete_request_db_conten
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',
@@ -266,7 +269,7 @@ def test_two_requests_ahoag(test_client,test_login,test_delete_request_db_conten
 	response2 = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request 2",
+			'request_name':"admin_request 2",
 			'description':"This is a second demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':current_user,
@@ -275,6 +278,7 @@ def test_two_requests_ahoag(test_client,test_login,test_delete_request_db_conten
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',
@@ -351,7 +355,7 @@ def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_del
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Tank/Brody",'correspondence_email':"ms81@princeton.edu",
-			'request_name':"Nonadmin request",
+			'request_name':"nonadmin_request",
 			'description':"This is a request by ms81, a non admin",
 			'species':"mouse",'number_of_samples':1,
 			'username':current_user,
@@ -360,6 +364,7 @@ def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_del
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',
@@ -384,7 +389,7 @@ def test_rat_request_nonadmin(test_client,test_login_nonadmin,test_delete_reques
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Tank/Brody",'correspondence_email':"ms81@princeton.edu",
-			'request_name':"Nonadmin rat request",
+			'request_name':"Nonadmin_rat_request",
 			'description':"This is a request for a rat by ms81, a non admin",
 			'species':"rat",'number_of_samples':1,
 			'username':current_user,
@@ -393,6 +398,7 @@ def test_rat_request_nonadmin(test_client,test_login_nonadmin,test_delete_reques
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
 			'submit':True
 			},content_type='multipart/form-data',
@@ -422,7 +428,7 @@ def test_cleared_request_ahoag(test_client,
 		pbs_wash1_notes='some notes',submit=True)
 
 	response = test_client.post(url_for('clearing.clearing_entry',username="ahoag",
-			request_name="Admin request",
+			request_name="admin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -452,7 +458,7 @@ def test_cleared_request_4x_ahoag(test_client,
 		pbs_wash1_notes='some notes',submit=True)
 
 	response = test_client.post(url_for('clearing.clearing_entry',username="ahoag",
-			request_name="Admin 4x request",
+			request_name="Admin_4x_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -462,7 +468,6 @@ def test_cleared_request_4x_ahoag(test_client,
 
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_cleared_request_ahoag fixture --------')
-
 
 @pytest.fixture(scope='function') 
 def test_cleared_request_nonadmin(test_client,test_single_sample_request_nonadmin,
@@ -484,7 +489,7 @@ def test_cleared_request_nonadmin(test_client,test_single_sample_request_nonadmi
 		dehydr_pbs_wash1_notes='some notes',submit=True)
 
 	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
-			request_name="Nonadmin request",
+			request_name="nonadmin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -575,7 +580,7 @@ def test_cleared_rat_request(test_client,
 		pbs_wash1_notes='some rat notes',submit=True)
 
 	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
-			request_name="Nonadmin rat request",
+			request_name="Nonadmin_rat_request",
 			clearing_protocol="iDISCO abbreviated clearing (rat)",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -599,20 +604,52 @@ def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
 		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data,
 		follow_redirects=True)
+
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 
+@pytest.fixture(scope='function') 
+def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
+	test_delete_request_db_contents,test_login_zmd):
+	""" Images the cleared request by 'ms81' (clearer='ll3')
+	with imager='zmd' """
+
+	print('----------Setup test_imaged_request_nonadmin fixture ----------')
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'zmd'
+	# print(db_lightsheet.Request.Sample())
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='ms81',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'ms81'
+	yield test_client
+	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 
 """ Fixtures for follow-up imaging and processing requests """
 
@@ -628,7 +665,7 @@ def test_new_imaging_request_ahoag(test_client,test_single_sample_request_ahoag)
 	"""
 	print('-------Setup test_new_imaging_request fixture --------')
 	response = test_client.post(url_for('imaging.new_imaging_request',
-			username='ahoag',request_name='Admin request',
+			username='ahoag',request_name='admin_request',
 			sample_name='sample-001'),
 		data={
 			'image_resolution_forms-0-image_resolution':'1.3x',
@@ -654,7 +691,7 @@ def test_new_processing_request_ahoag(test_client,test_single_sample_request_aho
 	"""
 	print('-------Setup test_new_processing_request fixture --------')
 	response = test_client.post(url_for('processing.new_processing_request',
-			username='ahoag',request_name='Admin request',
+			username='ahoag',request_name='admin_request',
 			sample_name='sample-001',imaging_request_number=1),
 		data={
 			'image_resolution_forms-0-image_resolution':'1.3x',

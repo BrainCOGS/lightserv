@@ -141,7 +141,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			imaging_progress = imaging_request_contents.fetch1('imaging_progress')
 			
 			if imaging_progress == 'complete':
-				logger.info("Imaging is already complete so hitting the done button again did nothing")
+				logger.info("Imaging is already complete so hitting the submit button again did nothing")
 				return redirect(url_for('imaging.imaging_entry',username=username,
 				request_name=request_name,sample_name=sample_name,imaging_request_number=imaging_request_number))
 			
@@ -177,8 +177,9 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					channel_content = channel_contents & f'channel_name="{channel_name}"' & \
 					f'image_resolution="{image_resolution}"' & f'imaging_request_number={imaging_request_number}'
 					# logger.debug(channel_contents)
-					# logger.debug(channel_name)
+					# logger.debug(channel_contents)
 					# logger.debug(image_resolution)
+					# logger.debug(channel_name)
 					# logger.debug(imaging_request_number)
 					channel_content_dict = channel_content.fetch1()
 					''' Make a copy of the current row in a new dictionary which we will insert '''
@@ -199,7 +200,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			
 					db_lightsheet.Request.ImagingChannel().insert1(channel_insert_dict,replace=True)
 				
-			correspondence_email = (db_lightsheet.Request() &\
+			correspondence_email = (db_lightsheet.Request() & f'username="{username}"' & \
 			 f'request_name="{request_name}"').fetch1('correspondence_email')
 			path_to_data = f'/jukebox/LightSheetData/lightserv_testing/{username}/{request_name}/\
 				{sample_name}/rawdata/imaging_request_number_{imaging_request_number}'

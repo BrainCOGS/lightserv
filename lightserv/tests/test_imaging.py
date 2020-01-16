@@ -12,7 +12,7 @@ def test_ahoag_access_imaging_manager(test_client,test_cleared_request_ahoag):
 	response = test_client.get(url_for('imaging.imaging_manager')
 		, follow_redirects=True)
 	assert b'Imaging management GUI' in response.data
-	assert b'Admin request' in response.data 
+	assert b'admin_request' in response.data 
 
 def test_nonadmin_access_imaging_manager(test_client,test_cleared_request_ahoag,test_login_nonadmin):
 	""" Test that Manuel (ms81, a nonadmin) can access the imaging task manager
@@ -21,8 +21,8 @@ def test_nonadmin_access_imaging_manager(test_client,test_cleared_request_ahoag,
 	response = test_client.get(url_for('imaging.imaging_manager')
 		, follow_redirects=True)
 	assert b'Imaging management GUI' in response.data
-	assert b'Nonadmin request' not in response.data 
-	# assert b'Admin request' not in response.data 
+	assert b'nonadmin_request' not in response.data 
+	# assert b'admin_request' not in response.data 
 
 def test_zmd_access_imaging_manager(test_client,test_cleared_request_ahoag,
 	test_cleared_request_nonadmin,test_login_zmd):
@@ -31,8 +31,8 @@ def test_zmd_access_imaging_manager(test_client,test_cleared_request_ahoag,
 	response = test_client.get(url_for('imaging.imaging_manager')
 		, follow_redirects=True)
 	assert b'Imaging management GUI' in response.data
-	assert b'Admin request' in response.data 
-	assert b'Nonadmin request' in response.data 
+	assert b'admin_request' in response.data 
+	assert b'nonadmin_request' in response.data 
 
 """ Tests for imaging entry form """
 
@@ -41,12 +41,12 @@ def test_imaging_entry_form_loads(test_client,test_cleared_request_ahoag,
 	""" Test that Zahra (zmd, an imaging admin) can access the imaging entry form
 	for a test sample """
 	response = test_client.get(url_for('imaging.imaging_entry',
-		username='ahoag',request_name='Admin request',sample_name='sample-001',
+		username='ahoag',request_name='admin_request',sample_name='sample-001',
 		imaging_request_number=1)
 		, follow_redirects=True)
 	assert b'Imaging Entry Form' in response.data
-	assert b'Admin request' in response.data 
-	# assert b'Nonadmin request' in response.data 
+	assert b'admin_request' in response.data 
+	# assert b'nonadmin_request' in response.data 
 
 def test_imaging_entry_form_submits(test_client,test_cleared_request_ahoag,
 	test_login_zmd):
@@ -59,21 +59,22 @@ def test_imaging_entry_form_submits(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
 		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data,
 		follow_redirects=True)
 	assert b'Request overview:' in response.data
 	assert b'Samples in this request:' in response.data 
 
-	imaging_progress = (db_lightsheet.Request.ImagingRequest() & 'request_name="Admin request"' & \
+	imaging_progress = (db_lightsheet.Request.ImagingRequest() & 'request_name="admin_request"' & \
 		'username="ahoag"' & 'sample_name="sample-001"' & 'imaging_request_number=1').fetch1('imaging_progress')
 	assert imaging_progress == 'complete'
 
@@ -93,7 +94,7 @@ def test_tiling_scheme_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response1 = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data1,
 		follow_redirects=True)
@@ -111,7 +112,7 @@ def test_tiling_scheme_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response2 = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data2,
 		follow_redirects=True)
@@ -128,7 +129,7 @@ def test_tiling_scheme_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response3 = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data3,
 		follow_redirects=True)
@@ -150,7 +151,7 @@ def test_tiling_scheme_validation_4x(test_client,test_cleared_request_4x_ahoag,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response1 = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin 4x request',sample_name='sample-001',
+			username='ahoag',request_name='Admin_4x_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data1,
 		follow_redirects=True)
@@ -168,7 +169,7 @@ def test_tiling_scheme_validation_4x(test_client,test_cleared_request_4x_ahoag,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response2 = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin 4x request',sample_name='sample-001',
+			username='ahoag',request_name='Admin_4x_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data2,
 		follow_redirects=True)
@@ -185,7 +186,7 @@ def test_tiling_scheme_validation_4x(test_client,test_cleared_request_4x_ahoag,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response3 = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin 4x request',sample_name='sample-001',
+			username='ahoag',request_name='Admin_4x_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data3,
 		follow_redirects=True)
@@ -207,7 +208,7 @@ def test_tiling_overlap_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response1 = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data1,
 		follow_redirects=True)
@@ -224,7 +225,7 @@ def test_tiling_overlap_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response2 = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data2,
 		follow_redirects=True)
@@ -246,7 +247,7 @@ def test_z_resolution_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response1 = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data1,
 		follow_redirects=True)
@@ -263,7 +264,7 @@ def test_z_resolution_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response2 = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data2,
 		follow_redirects=True)
@@ -285,7 +286,7 @@ def test_number_of_z_planes_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response1 = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data1,
 		follow_redirects=True)
@@ -302,7 +303,7 @@ def test_number_of_z_planes_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response2 = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data2,
 		follow_redirects=True)
@@ -316,7 +317,7 @@ def test_bad_imaging_request_redirects(test_client,test_cleared_request_ahoag,
 	"""
 
 	response = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=8),
 		follow_redirects=True)
 	assert b'No imaging request exists with those parameters. Please try again.' in response.data
@@ -329,7 +330,7 @@ def test_access_already_imaged_request_ahoag(test_client,test_imaged_request_aho
 
 	
 	response = test_client.get(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		follow_redirects=True)
 
@@ -345,14 +346,16 @@ def test_post_request_already_imaged_request_ahoag(test_client,test_imaged_reque
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
 		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'submit':True
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data,
 		follow_redirects=True)
@@ -378,11 +381,11 @@ def test_no_right_lightsheet_submits(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
 		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data,
 		follow_redirects=True)
@@ -390,14 +393,14 @@ def test_no_right_lightsheet_submits(test_client,test_cleared_request_ahoag,
 	assert b'Samples in this request:' in response.data 
 
 	imaging_progress = \
-	(db_lightsheet.Request.ImagingRequest() & 'request_name="Admin request"' & \
+	(db_lightsheet.Request.ImagingRequest() & 'request_name="admin_request"' & \
 		'username="ahoag"' & 'sample_name="sample-001"' & \
 		'imaging_request_number=1').fetch1(
 			'imaging_progress')
 
 	assert imaging_progress == 'complete'
 	left_lightsheet_used,right_lightsheet_used =\
-	(db_lightsheet.Request.ImagingChannel() & 'request_name="Admin request"' & \
+	(db_lightsheet.Request.ImagingChannel() & 'request_name="admin_request"' & \
 		'username="ahoag"' & 'sample_name="sample-001"' & \
 		'imaging_request_number=1' & 'channel_name="488"').fetch1(
 			'left_lightsheet_used','right_lightsheet_used')
@@ -424,7 +427,7 @@ def test_no_lightsheets_validation_error(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='Admin request',sample_name='sample-001',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data,
 		follow_redirects=True)
@@ -444,7 +447,7 @@ def test_new_imaging_request(test_client,test_single_sample_request_ahoag):
 
 	"""
 	response = test_client.post(
-				url_for('imaging.new_imaging_request',username='ahoag',request_name='Admin request',
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='admin_request',
 					sample_name='sample-001'),
 				data={
 			'image_resolution_forms-0-image_resolution':'1.3x',
@@ -466,7 +469,7 @@ def test_new_imaging_request_image_resolution_form_submit(test_client,test_singl
 
 	"""
 	response1 = test_client.post(
-				url_for('imaging.new_imaging_request',username='ahoag',request_name='Admin request',
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='admin_request',
 					sample_name='sample-001'),
 				data={
 					'image_resolution_forsetup':'1.3x',
@@ -486,7 +489,7 @@ def test_new_imaging_request_image_resolution_forms_validation(test_client,test_
 
 	"""
 	response1 = test_client.post(
-				url_for('imaging.new_imaging_request',username='ahoag',request_name='Admin request',
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='admin_request',
 					sample_name='sample-001'),
 				data={
 					'image_resolution_forms-0-image_resolution':'1.3x',
@@ -500,7 +503,7 @@ def test_new_imaging_request_image_resolution_forms_validation(test_client,test_
 	assert b'The image resolution table: 1.3x is empty. Please select at least one option.' in response1.data
 
 	response2 = test_client.post(
-				url_for('imaging.new_imaging_request',username='ahoag',request_name='Admin request',
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='admin_request',
 					sample_name='sample-001'),
 				data={
 			'submit':True
@@ -511,7 +514,7 @@ def test_new_imaging_request_image_resolution_forms_validation(test_client,test_
 	assert b'You must set up the imaging parameters for at least one image resolution' in response2.data
 
 	response3 = test_client.post(
-				url_for('imaging.new_imaging_request',username='ahoag',request_name='Admin request',
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='admin_request',
 					sample_name='sample-001'),
 				data={
 			'image_resolution_forms-0-image_resolution':'1.3x',
@@ -530,7 +533,7 @@ def test_new_imaging_request_image_resolution_forms_validation(test_client,test_
 
 
 	response4 = test_client.post(
-				url_for('imaging.new_imaging_request',username='ahoag',request_name='Admin request',
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='admin_request',
 					sample_name='sample-001'),
 				data={
 			'image_resolution_forms-0-image_resolution':'1.3x',
@@ -554,7 +557,7 @@ def test_new_imaging_request_self_imaging(test_client,test_single_sample_request
 	"""
 	from lightserv import db_lightsheet
 	response = test_client.post(
-				url_for('imaging.new_imaging_request',username='ahoag',request_name='Admin request',
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='admin_request',
 					sample_name='sample-001'),
 				data={
 			'self_imaging':True,
@@ -567,7 +570,7 @@ def test_new_imaging_request_self_imaging(test_client,test_single_sample_request
 			follow_redirects=True
 		)	
 	imager_request2 = (db_lightsheet.Request.ImagingRequest() & 'username="ahoag"' & \
-		f'request_name="Admin request"' & 'sample_name="sample-001"' & 
+		f'request_name="admin_request"' & 'sample_name="sample-001"' & 
 		'imaging_request_number=2').fetch1('imager')
 	assert imager_request2 == 'ahoag'
 	assert b'core facility requests' in response.data	

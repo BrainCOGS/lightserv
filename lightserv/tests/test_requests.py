@@ -47,7 +47,7 @@ def test_setup_samples_mouse(test_client,test_login):
 	# Simulate pressing the "Setup samples" button
 	data = dict(
 			labname="Wang",correspondence_email="test@demo.com",
-			request_name="Admin request",
+			request_name="admin_request",
 			description="This is a demo request",
 			species="mouse",number_of_samples=2,
 			sample_submit_button=True
@@ -72,7 +72,7 @@ def test_setup_samples_rat(test_client,test_login):
 	# Simulate pressing the "Setup samples" button
 	data = dict(
 			labname="Tank",correspondence_email="test@demo.com",
-			request_name="Admin rat request",
+			request_name="Admin_rat_request",
 			description="This is a demo request",
 			species="rat",number_of_samples=2,
 			sample_submit_button=True
@@ -99,7 +99,7 @@ def test_setup_image_resolution_form_mouse(test_client,test_login,):
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':test_login['user'],
@@ -127,7 +127,7 @@ def test_setup_image_resolution_form_rat(test_client,test_login,):
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Tank/Brody",'correspondence_email':"test@demo.com",
-			'request_name':"Admin rat request",
+			'request_name':"Admin_rat_request",
 			'description':"This is a demo request",
 			'species':"rat",'number_of_samples':1,
 			'username':test_login['user'],
@@ -154,7 +154,7 @@ def test_uniform_clearing_button_works(test_client,test_login,):
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':2,
 			'username':test_login['user'],
@@ -189,7 +189,7 @@ def test_uniform_imaging_button_works(test_client,test_login,):
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':2,
 			'username':test_login['user'],
@@ -229,7 +229,7 @@ def test_uniform_clearing_imaging_buttons_visible_nsamplesgt1(test_client,test_l
 	# Simulate pressing the "Setup samples" button
 	data = dict(
 			labname="Wang",correspondence_email="test@demo.com",
-			request_name="Admin request",
+			request_name="admin_request",
 			description="This is a demo request",
 			species="mouse",number_of_samples=2,
 			sample_submit_button=True
@@ -253,7 +253,7 @@ def test_uniform_clearing_imaging_buttons_invisible_nsamples1(test_client,test_l
 	# Simulate pressing the "Setup samples" button
 	data = dict(
 			labname="Wang",correspondence_email="test@demo.com",
-			request_name="Admin request",
+			request_name="admin_request",
 			description="This is a demo request",
 			species="mouse",number_of_samples=1,
 			sample_submit_button=True
@@ -277,7 +277,7 @@ def test_setup_samples_too_many_samples(test_client,test_login):
 	# Simulate pressing the "Setup samples" button
 	data = dict(
 			labname="Wang",correspondence_email="test@demo.com",
-			request_name="Admin request",
+			request_name="admin_request",
 			description="This is a demo request",
 			species="mouse",number_of_samples=52,
 			sample_prefix='sample',
@@ -305,7 +305,7 @@ def test_submit_good_mouse_request(test_client,test_login,test_delete_request_db
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':test_login['user'],
@@ -341,7 +341,7 @@ def test_submit_good_mouse_request_4x(test_client,test_login,test_delete_request
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':test_login['user'],
@@ -378,7 +378,7 @@ def test_submit_good_rat_request(test_client,test_login,test_delete_request_db_c
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin rat request",
+			'request_name':"Admin_rat_request",
 			'description':"This is a demo request",
 			'species':"rat",'number_of_samples':1,
 			'username':test_login['user'],
@@ -394,7 +394,7 @@ def test_submit_good_rat_request(test_client,test_login,test_delete_request_db_c
 		)	
 
 	assert b"core facility requests" in response.data
-	assert b"Admin rat request" in response.data
+	assert b"Admin_rat_request" in response.data
 	assert b"New Request Form" not in response.data
 
 def test_submit_mouse_self_clearing_request(test_client,test_login,test_delete_request_db_contents):
@@ -408,7 +408,7 @@ def test_submit_mouse_self_clearing_request(test_client,test_login,test_delete_r
 	""" 
 	from lightserv import db_lightsheet
 
-	request_name = "Admin self clearing request"
+	request_name = "Admin_self_clearing_request"
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -445,7 +445,7 @@ def test_submit_mouse_self_imaging_request(test_client,test_login,test_delete_re
 	""" 
 	from lightserv import db_lightsheet
 
-	request_name = "Admin self clearing request"
+	request_name = "Admin_self_clearing_request"
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -484,7 +484,7 @@ def test_idiscoplus_request_validates_antibody(test_client,test_login,test_delet
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request with immunostaining",
+			'request_name':"admin_request with immunostaining",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':test_login['user'],
@@ -513,7 +513,7 @@ def test_submit_empty_samples(test_client,test_login,test_delete_request_db_cont
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':test_login['user'],
@@ -534,7 +534,7 @@ def test_submit_no_samples(test_client,test_login):
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':0,
 			'username':test_login['user'],
@@ -563,7 +563,7 @@ def test_submit_bad_mouse_clearing_protocol(test_client,test_login,test_delete_r
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':test_login['user'],
@@ -593,7 +593,7 @@ def test_submit_bad_rat_clearing_protocol(test_client,test_login,test_delete_req
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"rat",'number_of_samples':1,
 			'username':test_login['user'],
@@ -624,7 +624,7 @@ def test_rat_request_only_generic_imaging_allowed(test_client,test_login,test_de
 	response1 = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"rat",'number_of_samples':1,
 			'username':test_login['user'],
@@ -645,7 +645,7 @@ def test_rat_request_only_generic_imaging_allowed(test_client,test_login,test_de
 	response2 = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"rat",'number_of_samples':1,
 			'username':test_login['user'],
@@ -666,7 +666,7 @@ def test_rat_request_only_generic_imaging_allowed(test_client,test_login,test_de
 	response3 = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"rat",'number_of_samples':1,
 			'username':test_login['user'],
@@ -687,7 +687,7 @@ def test_rat_request_only_generic_imaging_allowed(test_client,test_login,test_de
 	response4 = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"rat",'number_of_samples':1,
 			'username':test_login['user'],
@@ -720,7 +720,7 @@ def test_setup_samples_duplicate(test_client,test_login,test_single_sample_reque
 	# Simulate pressing the "Setup samples" button
 	data = dict(
 			labname="Wang",correspondence_email="test@demo.com",
-			request_name="Admin request",
+			request_name="admin_request",
 			description="This is a demo request",
 			species="mouse",number_of_samples=1,
 			sample_submit_button=True
@@ -747,7 +747,7 @@ def test_no_image_resolution_forms(test_client,test_login):
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':current_user,
@@ -776,7 +776,7 @@ def test_empty_image_resolution_form(test_client,test_login):
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':current_user,
@@ -807,7 +807,7 @@ def test_duplicate_image_resolution_form(test_client,test_login):
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':current_user,
@@ -841,7 +841,7 @@ def test_duplicate_sample_names(test_client,test_login):
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':2,
 			'username':test_login['user'],
@@ -882,7 +882,7 @@ def test_detection_modes_require_registration(test_client,test_login,test_delete
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Admin request",
+			'request_name':"admin_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':test_login['user'],
@@ -913,7 +913,7 @@ def test_multiple_samples_same_clearing_batch(test_client,test_login,test_delete
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Multiple sample admin request",
+			'request_name':"Multiple sample admin_request",
 			'description':"This is a multiple sample test request",
 			'species':"mouse",'number_of_samples':2,
 			'username':test_login['user'],
@@ -937,7 +937,7 @@ def test_multiple_samples_same_clearing_batch(test_client,test_login,test_delete
 	assert b"New Request Form" not in response.data # redirected away from new request form
 	# print(db_lightsheet.Request.ClearingBatch())
 	number_in_batch = (db_lightsheet.Request.ClearingBatch() & \
-		'request_name="Multiple sample admin request"' & \
+		'request_name="Multiple sample admin_request"' & \
 		'username = "ahoag"' & 'clearing_protocol="iDISCO abbreviated clearing"' & \
 		'clearing_batch_number=1').fetch1('number_in_batch')
 	assert number_in_batch == 2
@@ -1046,6 +1046,7 @@ def test_nonadmin_only_sees_their_requests(test_client,test_single_sample_reques
 	
 	response = test_client.get(url_for('requests.all_requests'),
 		follow_redirects=True)
+
 	assert b'This is a demo request' not in response.data 	
 	assert b'This is a request by ms81' in response.data 	
 
@@ -1067,7 +1068,7 @@ def test_sort_requests_table_asc_desc(test_client,test_two_requests_ahoag):
 	
 	assert len(table_row_tags_forward) == 3 # 1 for header, 2 for content
 	request_name1_forward = table_row_tags_forward[1].find_all('td')[2].text 
-	assert request_name1_forward == 'Admin request 2'
+	assert request_name1_forward == 'admin_request 2'
 
 	""" Now GET request with reverse=True """
 	response_reverse = test_client.get(url_for('requests.all_requests',sort='request_name',direction='asc'),
@@ -1079,7 +1080,7 @@ def test_sort_requests_table_asc_desc(test_client,test_two_requests_ahoag):
 	# print(table_row_tags_reverse)
 	assert len(table_row_tags_reverse) == 3 # 1 for header, 2 for content
 	request_name1_reverse = table_row_tags_reverse[1].find_all('td')[2].text 
-	assert request_name1_reverse == 'Admin request 1'
+	assert request_name1_reverse == 'admin_request 1'
 
 def test_sort_requests_table_all_columns(test_client,test_two_requests_ahoag):
 	""" Check that sorting all columns of all requests table works 
@@ -1108,7 +1109,7 @@ def test_admin_sees_all_samples(test_client,test_single_sample_request_ahoag,tes
 	
 	response = test_client.get(url_for('requests.all_samples'),
 		follow_redirects=True)
-	assert b'Admin request' in response.data 	
+	assert b'admin_request' in response.data 	
 	assert b'sample-001' in response.data 	
 
 def test_nonadmin_only_sees_their_samples(test_client,test_single_sample_request_ahoag,test_single_sample_request_nonadmin):
@@ -1125,8 +1126,8 @@ def test_nonadmin_only_sees_their_samples(test_client,test_single_sample_request
 	
 	response = test_client.get(url_for('requests.all_samples'),
 		follow_redirects=True)
-	assert b'Admin request' not in response.data 	
-	assert b'Nonadmin request' in response.data 	
+	assert b'ahoag' not in response.data 	
+	assert b'nonadmin_request' in response.data 	
 
 def test_sort_samples_table_all_columns(test_client,test_two_requests_ahoag):
 	""" Check that sorting all columns of all samples table works 
@@ -1202,7 +1203,7 @@ def test_request_samples_multiple_imaging_requests(test_client,test_new_imaging_
 	into the database as ahoag. 
 	"""
 	response = test_client.get(
-				url_for('requests.request_overview',request_name='Admin request',
+				url_for('requests.request_overview',request_name='admin_request',
 					username='ahoag',sample_name='sample-001'),
 			follow_redirects=True
 		)	
@@ -1227,7 +1228,7 @@ def test_request_samples_multiple_processing_requests(test_client,test_new_proce
 	into the database as ahoag. 
 	"""
 	response = test_client.get(
-				url_for('requests.request_overview',request_name='Admin request',
+				url_for('requests.request_overview',request_name='admin_request',
 					username='ahoag',sample_name='sample-001'),
 			follow_redirects=True
 		)	
@@ -1255,7 +1256,7 @@ def test_sort_request_overview_table(test_client,test_single_sample_request_nona
 
 	for column_name in ['sample_name','request_name','username','clearing_protocol']:
 		response = test_client.get(
-					url_for('requests.request_overview',request_name='Admin request',
+					url_for('requests.request_overview',request_name='admin_request',
 						username='ahoag',sample_name='sample-001',sort=column_name,direction='desc'),
 				follow_redirects=True
 			)	

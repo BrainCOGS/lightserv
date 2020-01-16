@@ -17,7 +17,7 @@ def test_ahoag_access_clearing_manager(test_client,test_rat_request_nonadmin,
 		, follow_redirects=True)
 	assert b'Clearing management GUI' in response.data
 	assert b'All mouse clearing protocol request' in response.data 
-	assert b'Nonadmin rat request' in response.data 
+	assert b'Nonadmin_rat_request' in response.data 
 	assert b'iDISCO abbreviated clearing' in response.data
 	assert b'iDISCO abbreviated clearing (rat)' in response.data
 	assert b'iDISCO+_immuno' in response.data
@@ -31,8 +31,8 @@ def test_nonadmin_access_clearing_manager(test_client,test_single_sample_request
 	response = test_client.get(url_for('clearing.clearing_manager')
 		, follow_redirects=True)
 	assert b'Clearing management GUI' in response.data
-	assert b'Nonadmin request' not in response.data 
-	assert b'Admin request' not in response.data 
+	assert b'nonadmin_request' not in response.data 
+	assert b'admin_request' not in response.data 
 
 def test_ll3_access_clearing_manager(test_client,test_single_sample_request_nonadmin,test_single_sample_request_ahoag,test_login_ll3):
 	""" Test that Laura (ll3, a clearing admin) can access the clearing task manager
@@ -40,14 +40,14 @@ def test_ll3_access_clearing_manager(test_client,test_single_sample_request_nona
 	response = test_client.get(url_for('clearing.clearing_manager')
 		, follow_redirects=True)
 	assert b'Clearing management GUI' in response.data
-	assert b'Admin request' in response.data 
-	assert b'Nonadmin request' in response.data 
+	assert b'admin_request' in response.data 
+	assert b'nonadmin_request' in response.data 
 
 def test_abbreviated_clearing_entry_form_loads(test_client,test_single_sample_request_nonadmin,test_login_ll3):
 	""" Test that ll3 can access a clearing entry form  """
 	# response = test_client.get(url_for('requests.all_requests'))
 	response = test_client.get(url_for('clearing.clearing_entry',username="ms81",
-			request_name="Nonadmin request",
+			request_name="nonadmin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -65,7 +65,7 @@ def test_abbreviated_clearing_entry_form_submits(test_client,test_single_sample_
 	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
 		dehydr_pbs_wash1_notes='some notes',submit=True)
 	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
-			request_name="Nonadmin request",
+			request_name="nonadmin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -77,7 +77,7 @@ def test_abbreviated_clearing_entry_form_submits(test_client,test_single_sample_
 	
 	""" Make sure clearing_progress is now updated """
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & 'username="ms81"' & \
-	'request_name="Nonadmin request"' & 'clearing_protocol="iDISCO abbreviated clearing"' & \
+	'request_name="nonadmin_request"' & 'clearing_protocol="iDISCO abbreviated clearing"' & \
 			'antibody1=""' & 'antibody2=""'
 	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
 	assert clearing_progress == 'complete'
@@ -88,7 +88,7 @@ def test_abbreviated_clearing_entry_form_submits(test_client,test_single_sample_
 	table_row_tag = table_tag.find_all('tr')[1] # the 0th row is the headers
 	td_tags = table_row_tag.find_all('td')
 	assert td_tags[1].text == "iDISCO abbreviated clearing" and \
-	td_tags[2].text == "" and td_tags[3].text == "" and td_tags[4].text == 'Nonadmin request'
+	td_tags[2].text == "" and td_tags[3].text == "" and td_tags[4].text == 'nonadmin_request'
 
 def test_mouse_clearing_entry_forms_load(test_client,test_request_all_mouse_clearing_protocols_ahoag,test_login_ll3):
 	""" Test that ll3 can access the clearing entry forms
@@ -207,7 +207,7 @@ def test_rat_clearing_entry_forms_load(test_client,test_rat_request_nonadmin,tes
 
 	response_abbreviated_clearing = test_client.get(url_for('clearing.clearing_entry',
 			username="ms81",
-			request_name="Nonadmin rat request",
+			request_name="Nonadmin_rat_request",
 			clearing_protocol="iDISCO abbreviated clearing (rat)",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -226,7 +226,7 @@ def test_rat_clearing_entry_forms_update(test_client,test_rat_request_nonadmin,t
 	
 	response_abbreviated_clearing = test_client.post(url_for('clearing.clearing_entry',
 			username="ms81",
-			request_name="Nonadmin rat request",
+			request_name="Nonadmin_rat_request",
 			clearing_protocol="iDISCO abbreviated clearing (rat)",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -287,7 +287,7 @@ def test_completed_clearing_form_is_readonly(test_client,test_cleared_request_ah
 	""" First issue a POST request to submit the form """
 	response = test_client.get(url_for('clearing.clearing_entry',
 			username="ahoag",
-			request_name="Admin request",
+			request_name="admin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -306,7 +306,7 @@ def test_completed_clearing_form_is_readonly_noupdate(test_client,test_cleared_r
 
 	response = test_client.post(url_for('clearing.clearing_entry',
 			username="ahoag",
-			request_name="Admin request",
+			request_name="admin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -327,7 +327,7 @@ def test_completed_clearing_form_is_readonly_nosubmit(test_client,test_cleared_r
 
 	response = test_client.post(url_for('clearing.clearing_entry',
 			username="ahoag",
-			request_name="Admin request",
+			request_name="admin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -398,7 +398,7 @@ def test_clearing_table_no_access_nonadmin(test_client,test_cleared_request_ahoa
 	Uses the test_cleared_request_ahoag fixture to insert and clear 
 	a request with username='ahoag' and clearer='ahoag'  """
 	response = test_client.get(url_for('clearing.clearing_table',username="ahoag",
-			request_name="Admin request",
+			request_name="admin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -414,7 +414,7 @@ def test_rat_clearing_table_has_db_content(test_client,test_cleared_rat_request)
 	Uses the test_cleared_request_ahoag fixture to insert and clear 
 	a request with username='ahoag' and clearer='ahoag'  """
 	response_abbreviated = test_client.get(url_for('clearing.clearing_table',username="ms81",
-			request_name="Nonadmin rat request",
+			request_name="Nonadmin_rat_request",
 			clearing_protocol="iDISCO abbreviated clearing (rat)",
 			antibody1="",antibody2="",
 			clearing_batch_number=1)
@@ -437,7 +437,7 @@ def test_clearing_calendar_date_submit(test_client,test_single_sample_request_no
 	data = dict(pbs_date=today_proper_format,
 		pbs_date_submit=True)
 	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
-			request_name="Nonadmin request",
+			request_name="nonadmin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -462,7 +462,7 @@ def test_clearing_calendar_date_invalid_entry(test_client,test_single_sample_req
 	data = dict(pbs_date='',
 		pbs_date_submit=True)
 	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
-			request_name="Nonadmin request",
+			request_name="nonadmin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -480,7 +480,7 @@ def test_clearing_entry_bad_button(test_client,test_single_sample_request_nonadm
 	a request with username='ahoag' and clearer='ll3'  """
 	data = dict(bad_button_submit=True)
 	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
-			request_name="Nonadmin request",
+			request_name="nonadmin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -498,7 +498,7 @@ def test_clearing_entry_not_validated(test_client,test_single_sample_request_non
 	data = dict(dehydr_methanol_20percent_wash1_notes=lorem.text(),
 		dehydr_methanol_20percent_wash1_notes_submit=True) # the lorem ipsum text is longer than this notes field will accept
 	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
-			request_name="Nonadmin request",
+			request_name="nonadmin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),

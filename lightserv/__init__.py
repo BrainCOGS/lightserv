@@ -10,7 +10,6 @@ import socket
 from celery import Celery
 from flask_wtf.csrf import CSRFError
 
-
 ''' Allow writing python objects to db as blob '''
 dj.config["enable_python_native_blobs"] = True
 cel = Celery(__name__,broker='amqp://localhost//',

@@ -3,7 +3,7 @@ from flask import (render_template, url_for, flash,
 				   Markup, current_app)
 from lightserv.processing.forms import StartProcessingForm, NewProcessingRequestForm
 from lightserv.processing.tables import (dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable)
-from lightserv import db_lightsheet
+from lightserv import db_lightsheet, db_admin
 from lightserv import cel,mail
 import datajoint as dj
 from datetime import datetime
@@ -235,11 +235,12 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 					pickle.dump(param_dict,pkl_file)
 				logger.info(f"wrote pickle file: {pickle_fullpath}")
 
-				""" Now run step 0 in the code via paramiko """
+				""" Now run the spock pipeline via paramiko """
 				hostname = 'spock.pni.princeton.edu'
 
-				command = """cd %s;sbatch --export=output_directory='%s' main.sh """ % \
-				(current_app.config['PROCESSING_CODE_DIR'],output_directory)
+				# command = """cd %s;sbatch --export=output_directory='%s' main.sh """ % \
+				# (current_app.config['PROCESSING_CODE_DIR'],output_directory)
+				command = """sbatch --parsable /usr/people/ahoag/test_slurm_scripts/submit_minimal.sh""" 
 				port = 22
 				try:
 					client = paramiko.SSHClient()
@@ -249,7 +250,11 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 					client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
 
 					stdin, stdout, stderr = client.exec_command(command)
-					print(stdout.read(),stderr.read())
+					jobid = str(stdout.read().decode("utf-8").strip('\n'))
+
+					status = 'SUBMITTED'
+					entry_dict = {'jobid':jobid,'username':username,'status':status}
+					db_admin.SpockJobManager.insert1(entry_dict)    
 
 				finally:
 					client.close()

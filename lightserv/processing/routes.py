@@ -125,7 +125,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 	# 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
 	# 			f'imaging_request_number="{imaging_request_number}"'
 
-	logger.info(f'{username}, {request_name}, {sample_name}, {imaging_request_number}, {processing_request_number}')
+	# logger.debug(f'{username}, {request_name}, {sample_name}, {imaging_request_number}, {processing_request_number}')
 	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			 f'imaging_request_number="{imaging_request_number}"' & \
@@ -178,21 +178,22 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 			# run_step0.delay(username=username,request_name=request_name,sample_name=sample_name)
 			''' Update the processing progress before starting the jobs on spock 
 			to avoid a race condition (the pipeline also updates the processing_progress flag if it fails or succeeds) '''
-			dj.Table._update(processing_request_contents,'processing_progress','running')
-			# try:
-			# run_spock_pipeline(username=username,request_name=request_name,sample_name=sample_name,
-			# 	imaging_request_number=imaging_request_number,
-			# 	processing_request_number=processing_request_number)
-			flash('Your data processing has begun. You will receive an email \
-				when the first steps are completed.','success')
-			# except:
-			# 	logger.info("Pipeline initialization failed. Updating processing progress to 'failed' ")
-			# 	dj.Table._update(processing_request_contents,'processing_progress','failed')
-			# 	return redirect(url_for('errors.error_500'))
-
+			
+			try:
+				run_spock_pipeline(username=username,request_name=request_name,sample_name=sample_name,
+					imaging_request_number=imaging_request_number,
+					processing_request_number=processing_request_number)
+				dj.Table._update(processing_request_contents,'processing_progress','running')
+				flash("Your data processing has begun. You will receive an email "
+					  "when the first steps are completed.","success")
+			except:
+				logger.info("Pipeline initialization failed. Updating processing progress to 'failed' ")
+				dj.Table._update(processing_request_contents,'processing_progress','failed')
+				abort(500)
 			
 			return redirect(url_for('requests.all_requests'))
-
+		else:
+			logger.debug(form.errors)
 	elif request.method == 'GET': # get request
 		channel_contents_lists = []
 		while len(form.image_resolution_forms) > 0:
@@ -406,7 +407,7 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 		channel_contents_lists=channel_contents_lists,sample_dict=sample_dict)
 
 # @cel.task()
-def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,processing_request_number):
+# def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,processing_request_number):
 	""" An asynchronous celery task (runs in a background process) which runs step 0 
 	in the light sheet pipeline -- i.e. makes the parameter dictionary pickle file
 	and grabs a bunch of metadata from the raw files to store in the database.  
