@@ -21,7 +21,6 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
-
 def table_sorter(dic,sort_key):
     if type(dic[sort_key]) == str:
         return dic[sort_key].lower()

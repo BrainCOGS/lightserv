@@ -2,22 +2,27 @@ import datajoint as dj
 import socket
 import os
 
-dj.config['database.host'] = '127.0.0.1'
-dj.config['database.port'] = 3306
 
-dj.config['database.user'] = 'ahoag'
-# if socket.gethostname() == 'braincogs00.pni.princeton.edu':
-dj.config['database.password'] = 'gaoha'
 if os.environ.get('FLASK_MODE') == 'TEST':
+    dj.config['database.host'] = '127.0.0.1'
+    dj.config['database.port'] = 3306
+
+    dj.config['database.user'] = os.environ['DJ_DB_TEST_USER']
+    dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']
     print("setting up test light sheet schema")
     schema = dj.schema('ahoag_lightsheet_test')
     schema.drop()
     schema = dj.schema('ahoag_lightsheet_test')
 else:
+    dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+    dj.config['database.port'] = 3306
+
+    dj.config['database.user'] = os.environ['DJ_DB_USER']
+    dj.config['database.password'] = os.environ['DJ_DB_PASS']
     print("setting up real light sheet schema")
-    schema = dj.schema('ahoag_lightsheet_demo')
+    schema = dj.schema('u19lightserv_lightsheet')
     schema.drop()
-    schema = dj.schema('ahoag_lightsheet_demo')
+    schema = dj.schema('u19lightserv_lightsheet')
 
 @schema
 class User(dj.Lookup):

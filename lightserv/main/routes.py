@@ -5,7 +5,6 @@ from lightserv import db_lightsheet, db_admin
 import pandas as pd
 from lightserv.main.utils import logged_in, table_sorter, log_http_requests
 from functools import partial, wraps
-from lightserv.tasks import reverse
 
 import datajoint as dj
 import socket

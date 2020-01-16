@@ -2,22 +2,28 @@ import datajoint as dj
 import socket
 import os
 
-dj.config['database.host'] = '127.0.0.1'
-dj.config['database.port'] = 3306
 
-dj.config['database.user'] = 'ahoag'
-dj.config['database.password'] = 'gaoha'
 
 if os.environ.get('FLASK_MODE') == 'TEST':
+    dj.config['database.host'] = '127.0.0.1'
+    dj.config['database.port'] = 3306
+    dj.config['database.user'] = os.environ['DJ_DB_TEST_USER']
+    dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']
     print("setting up test admin schema")
+
     schema = dj.schema('ahoag_admin_test')
     schema.drop()
     schema = dj.schema('ahoag_admin_test')
 else:
+    dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+    dj.config['database.port'] = 3306
+    dj.config['database.user'] = os.environ['DJ_DB_USER']
+    dj.config['database.password'] = os.environ['DJ_DB_PASS']
     print("setting up real admin schema")
-    schema = dj.schema('ahoag_admin_demo')
+
+    schema = dj.schema('u19lightserv_appcore')
     schema.drop()
-    schema = dj.schema('ahoag_admin_demo')
+    schema = dj.schema('u19lightserv_appcore')
 
 @schema 
 class UserActionLog(dj.Manual):
@@ -30,3 +36,13 @@ class UserActionLog(dj.Manual):
     platform        : varchar(255)
     event=""  : varchar(255)  # custom message
     """
+
+@schema 
+class SpockJobManager(dj.Manual):
+    definition = """    # Spock job management table 
+    jobid  : varchar(16) # the jobid on spock
+    ---
+    username : varchar(32)
+    status : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING")
+    """
+

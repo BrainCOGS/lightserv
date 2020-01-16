@@ -4,6 +4,7 @@ for both testing and deployment """
 
 import os
 import datajoint as dj
+from datetime import timedelta
 
 # Base class which I will inherit for use with DEV and TEST configs
 class BaseConfig(object):
@@ -30,6 +31,15 @@ class BaseConfig(object):
 	# CLEARING_CALENDAR_ID = '8kvbhcbo0smdg394f79eh45gfc@group.calendar.google.com' # the real clearing calendar
 	CLEARING_CALENDAR_ID = 'skq68osl830f13tfgv6i0kq750@group.calendar.google.com' # the test calendar for the time being
 	dj.config['safemode'] = True 
+	# CELERY_BROKER_URL='amqp://localhost//',
+	# CELERY_RESULT_BACKEND=f'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test'
+	# BROKER_USE_SSL = True
+	CELERYBEAT_SCHEDULE = {
+    'job_status_checker': {
+        'task': 'lightserv.taskmanager.routes.status_checker',
+        'schedule': timedelta(seconds=15)
+    },
+}
 
 
 # The default config
