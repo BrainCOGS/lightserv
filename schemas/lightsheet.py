@@ -131,13 +131,15 @@ class Request(dj.Manual):
         """
 
     class ProcessingResolutionRequest(dj.Part):
-        definition = """ # Processing parameters at the image resolution level
+        definition = """ # Processing parameters at the image resolution level for a given ProcessingRequest(). These represent spock jobs
         -> master.ProcessingRequest
         image_resolution                          :   enum("1.3x","4x","1.1x","2x")
         ----        
         atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
         notes_for_processor = ""                  :   varchar(1024)
         notes_from_processing = ""                :   varchar(1024) 
+        spock_jobid = NULL                        :   varchar(32)
+        spock_job_progress = NULL                       :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING")
         """
 
     class ProcessingChannel(dj.Part):

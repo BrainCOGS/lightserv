@@ -58,8 +58,12 @@ def submit_job():
 def status_checker():
     """ Checks all outstanding job statuses on spock
     and updates their status in the db """
-    query = db_admin.SpockJobManager() & 'status!="COMPLETED"' & 'status!="FAILED"'
-    jobids = list(query.fetch('jobid'))
+
+    """ First get all rows with latest timestamps """
+    job_contents = db_admin.SpockJobManager()
+    unique_contents = dj.U('jobid','username',).aggr(job_contents,timestamp='max(timestamp)')*job_contents
+    incomplete_contents = unique_contents & 'status!="COMPLETED"' & 'status!="FAILED"'
+    jobids = list(incomplete_contents.fetch('jobid'))
     if jobids == []:
         return "No jobs to check"
     jobids_str = ','.join(str(jobid) for jobid in jobids)
@@ -97,8 +101,11 @@ def status_checker():
 
 @taskmanager.route("/check_all_statuses") 
 def check_all_statuses():
-    query = db_admin.SpockJobManager() & 'status!="COMPLETED"' & 'status!="FAILED"'
-    jobids = list(query.fetch('jobid'))
+    # query = db_admin.SpockJobManager() & 'status!="COMPLETED"' & 'status!="FAILED"'
+    job_contents = db_admin.SpockJobManager()
+    unique_contents = dj.U('jobid','username',).aggr(job_contents,timestamp='max(timestamp)')*job_contents
+    incomplete_contents = unique_contents & 'status!="COMPLETED"' & 'status!="FAILED"'
+    jobids = list(incomplete_contents.fetch('jobid'))
     if jobids == []:
         return "No jobs to check"
     jobids_str = ','.join(str(jobid) for jobid in jobids)
@@ -127,7 +134,7 @@ def check_all_statuses():
             insert_dict = {'jobid':jobid,'username':username,'status':status_code}
             insert_list.append(insert_dict)
        
-        db_admin.SpockJobManager.insert(insert_list,replace=True)
+        db_admin.SpockJobManager.insert(insert_list)
     finally:
         client.close()
     time_end = time.time()

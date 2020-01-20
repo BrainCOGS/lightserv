@@ -8,6 +8,8 @@ from lightserv.clearing.utils import (retrieve_clearing_calendar_entry,
 	delete_clearing_calendar_entry)
 import lorem # lorem ipsum generator
 
+""" Testing clearing_manager() """
+
 def test_ahoag_access_clearing_manager(test_client,test_rat_request_nonadmin,
 	test_request_all_mouse_clearing_protocols_ahoag):
 	""" Test that ahoag can access the clearing task manager
@@ -42,6 +44,26 @@ def test_ll3_access_clearing_manager(test_client,test_single_sample_request_nona
 	assert b'Clearing management GUI' in response.data
 	assert b'admin_request' in response.data 
 	assert b'nonadmin_request' in response.data 
+
+def test_multichannel_clearing_worked(test_client,test_cleared_multichannel_request_ahoag):
+	""" Test that the multi-channel request was cleared in the fixture:
+	test_cleared_multichannel_request_ahoag
+	"""
+	response = test_client.get(url_for('clearing.clearing_manager'),
+		follow_redirects=True
+	)
+	assert b'Clearing management GUI' in response.data
+	assert b'admin_multichannel_request' in response.data
+	
+	""" Make sure clearing_progress is now updated """
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & 'username="ahoag"' & \
+	'request_name="admin_multichannel_request"' & 'clearing_protocol="iDISCO abbreviated clearing"' & \
+			'antibody1=""' & 'antibody2=""'
+	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
+	assert clearing_progress == 'complete'
+
+
+""" Testing clearing_entry() """
 
 def test_abbreviated_clearing_entry_form_loads(test_client,test_single_sample_request_nonadmin,test_login_ll3):
 	""" Test that ll3 can access a clearing entry form  """
@@ -338,6 +360,92 @@ def test_completed_clearing_form_is_readonly_nosubmit(test_client,test_cleared_r
 	assert b'This page is read only' in response.data
 	assert b'notes for 20 percent methanol' not in response.data
 
+def test_clearing_calendar_date_submit(test_client,test_single_sample_request_nonadmin,test_login_ll3):
+	""" Test that the "Push date to calendar" buttons on the clearing entry form
+	actually push to a test calendar.
+
+	Uses the test_cleared_request_nonadmin fixture to insert and clear 
+	a request with username='ahoag' and clearer='ll3'  """
+	today = date.today()
+	yesterday = today-timedelta(days=1)
+	tomorrow = today+timedelta(days=1)
+	today_proper_format = today.strftime('%Y-%m-%d')
+	data = dict(pbs_date=today_proper_format,
+		pbs_date_submit=True)
+	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
+			request_name="nonadmin_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data=data,
+		follow_redirects=True
+	)
+	assert b'Event added to Clearing Calendar. Check the calendar.' in response.data
+	''' Now check that the event was really added to the calendar '''
+	event = retrieve_clearing_calendar_entry(calendar_id=current_app.config['CLEARING_CALENDAR_ID'])
+	event_summary = event['summary']
+	assert event_summary == 'ms81 iDISCO abbreviated clearing pbs'
+	event_id = event['id']
+	delete_clearing_calendar_entry(calendar_id=current_app.config['CLEARING_CALENDAR_ID'],
+		event_id=event_id)
+
+def test_clearing_calendar_date_invalid_entry(test_client,test_single_sample_request_nonadmin,test_login_ll3):
+	""" Test that hitting the "Push date to calendar" without putting anything in 
+	results in a flash message and a redirect to the same page
+
+	Uses the test_cleared_request_nonadmin fixture to insert and clear 
+	a request with username='ahoag' and clearer='ll3'  """
+	data = dict(pbs_date='',
+		pbs_date_submit=True)
+	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
+			request_name="nonadmin_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data=data,
+		follow_redirects=True
+	)
+	assert b'Please enter a valid date to push to the Clearing Calendar' in response.data
+	assert b'Clearing Entry Form' in response.data
+
+def test_clearing_entry_bad_button(test_client,test_single_sample_request_nonadmin,test_login_ll3):
+	""" Test that if one of the buttons in the form has a bad name (or a bad or malicious post request happens),
+	the form does not submit and a redirect to the 500 error page occurs.
+
+	Uses the test_cleared_request_nonadmin fixture to insert and clear 
+	a request with username='ahoag' and clearer='ll3'  """
+	data = dict(bad_button_submit=True)
+	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
+			request_name="nonadmin_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data=data,
+		follow_redirects=True
+	)
+	assert b'Something went wrong (500)' in response.data
+
+def test_clearing_entry_not_validated(test_client,test_single_sample_request_nonadmin,test_login_ll3):
+	""" Test that if user enters too much text for one of the notes fields
+	they get a validation error
+
+	Uses the test_cleared_request_nonadmin fixture to insert and clear 
+	a request with username='ahoag' and clearer='ll3'  """
+	data = dict(dehydr_methanol_20percent_wash1_notes=lorem.text(),
+		dehydr_methanol_20percent_wash1_notes_submit=True) # the lorem ipsum text is longer than this notes field will accept
+	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
+			request_name="nonadmin_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data=data,
+		follow_redirects=True
+	)
+	assert b'Field cannot be longer than 250 characters.' in response.data
+
+
+""" Test clearing_table() """
+
 def test_mouse_clearing_tables_have_db_content(test_client,test_cleared_all_mouse_clearing_protocols_ahoag):
 	""" Test that ahoag can access the clearing table
 	and see the contents of a single clearing entry 
@@ -423,86 +531,3 @@ def test_rat_clearing_table_has_db_content(test_client,test_cleared_rat_request)
 	assert b'Clearing Log' in response_abbreviated.data
 	assert b'some rat notes' in response_abbreviated.data
 	assert datetime.now().strftime('%Y-%m-%d %H').encode('utf-8') in response_abbreviated.data 
-
-def test_clearing_calendar_date_submit(test_client,test_single_sample_request_nonadmin,test_login_ll3):
-	""" Test that the "Push date to calendar" buttons on the clearing entry form
-	actually push to a test calendar.
-
-	Uses the test_cleared_request_nonadmin fixture to insert and clear 
-	a request with username='ahoag' and clearer='ll3'  """
-	today = date.today()
-	yesterday = today-timedelta(days=1)
-	tomorrow = today+timedelta(days=1)
-	today_proper_format = today.strftime('%Y-%m-%d')
-	data = dict(pbs_date=today_proper_format,
-		pbs_date_submit=True)
-	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
-			request_name="nonadmin_request",
-			clearing_protocol="iDISCO abbreviated clearing",
-			antibody1="",antibody2="",
-			clearing_batch_number=1),
-		data=data,
-		follow_redirects=True
-	)
-	assert b'Event added to Clearing Calendar. Check the calendar.' in response.data
-	''' Now check that the event was really added to the calendar '''
-	event = retrieve_clearing_calendar_entry(calendar_id=current_app.config['CLEARING_CALENDAR_ID'])
-	event_summary = event['summary']
-	assert event_summary == 'ms81 iDISCO abbreviated clearing pbs'
-	event_id = event['id']
-	delete_clearing_calendar_entry(calendar_id=current_app.config['CLEARING_CALENDAR_ID'],
-		event_id=event_id)
-
-def test_clearing_calendar_date_invalid_entry(test_client,test_single_sample_request_nonadmin,test_login_ll3):
-	""" Test that hitting the "Push date to calendar" without putting anything in 
-	results in a flash message and a redirect to the same page
-
-	Uses the test_cleared_request_nonadmin fixture to insert and clear 
-	a request with username='ahoag' and clearer='ll3'  """
-	data = dict(pbs_date='',
-		pbs_date_submit=True)
-	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
-			request_name="nonadmin_request",
-			clearing_protocol="iDISCO abbreviated clearing",
-			antibody1="",antibody2="",
-			clearing_batch_number=1),
-		data=data,
-		follow_redirects=True
-	)
-	assert b'Please enter a valid date to push to the Clearing Calendar' in response.data
-	assert b'Clearing Entry Form' in response.data
-
-def test_clearing_entry_bad_button(test_client,test_single_sample_request_nonadmin,test_login_ll3):
-	""" Test that if one of the buttons in the form has a bad name (or a bad or malicious post request happens),
-	the form does not submit and a redirect to the 500 error page occurs.
-
-	Uses the test_cleared_request_nonadmin fixture to insert and clear 
-	a request with username='ahoag' and clearer='ll3'  """
-	data = dict(bad_button_submit=True)
-	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
-			request_name="nonadmin_request",
-			clearing_protocol="iDISCO abbreviated clearing",
-			antibody1="",antibody2="",
-			clearing_batch_number=1),
-		data=data,
-		follow_redirects=True
-	)
-	assert b'Something went wrong (500)' in response.data
-
-def test_clearing_entry_not_validated(test_client,test_single_sample_request_nonadmin,test_login_ll3):
-	""" Test that if user enters too much text for one of the notes fields
-	they get a validation error
-
-	Uses the test_cleared_request_nonadmin fixture to insert and clear 
-	a request with username='ahoag' and clearer='ll3'  """
-	data = dict(dehydr_methanol_20percent_wash1_notes=lorem.text(),
-		dehydr_methanol_20percent_wash1_notes_submit=True) # the lorem ipsum text is longer than this notes field will accept
-	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
-			request_name="nonadmin_request",
-			clearing_protocol="iDISCO abbreviated clearing",
-			antibody1="",antibody2="",
-			clearing_batch_number=1),
-		data=data,
-		follow_redirects=True
-	)
-	assert b'Field cannot be longer than 250 characters.' in response.data

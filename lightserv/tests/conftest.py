@@ -237,6 +237,43 @@ def test_single_sample_request_4x_ahoag(test_client,test_login,test_delete_reque
 	print('-------Teardown test_single_request_ahoag fixture --------')
 
 @pytest.fixture(scope='function') 
+def test_multichannel_request_ahoag(test_client,test_login,test_delete_request_db_contents):
+	""" Submits a new request as 'ahoag' with a single sample 
+	requesting two different imaging channels
+	that can be used for various tests.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_multichannel_request_ahoag fixture ----------')
+	from lightserv import db_lightsheet
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"admin_multichannel_request",
+			'description':"This is a multichannel request",
+			'species':"mouse",'number_of_samples':1,
+			'username':current_user,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_multichannel_request_ahoag fixture --------')
+
+@pytest.fixture(scope='function') 
 def test_two_requests_ahoag(test_client,test_login,test_delete_request_db_contents):
 	""" Submits two new requests as 'ahoag' that can be used for various tests.
 
@@ -470,6 +507,35 @@ def test_cleared_request_4x_ahoag(test_client,
 	print('-------Teardown test_cleared_request_ahoag fixture --------')
 
 @pytest.fixture(scope='function') 
+def test_cleared_multichannel_request_ahoag(test_client,
+	test_multichannel_request_ahoag,test_delete_request_db_contents):
+	""" Clears the multichannel request by 'ahoag' (with clearer='ahoag') 
+
+	Uses test_single_sample_request_ahoag request so that a request is in the db
+	when it comes time to do the clearing
+
+	Uses the test_delete_request_db_contents fixture, which means that 
+	all db entries are deleted upon teardown of this fixture
+	"""
+	print('----------Setup test_cleared_multichannel_request_ahoag fixture ----------')
+	from lightserv import db_lightsheet
+	now = datetime.now()
+	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		pbs_wash1_notes='some notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="ahoag",
+			request_name="admin_multichannel_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_cleared_multichannel_request_ahoag fixture --------')
+
+@pytest.fixture(scope='function') 
 def test_cleared_request_nonadmin(test_client,test_single_sample_request_nonadmin,
 	test_login_ll3,test_delete_request_db_contents):
 	""" Clears the single request by 'ms81' (with clearer='ll3') 
@@ -607,7 +673,7 @@ def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -637,7 +703,7 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -651,8 +717,44 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 
-""" Fixtures for follow-up imaging and processing requests """
+@pytest.fixture(scope='function') 
+def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel_request_ahoag,
+	test_login_zmd,test_delete_request_db_contents):
+	""" Images the multi-channel cleared request by 'ahoag' (clearer='ahoag')
+	with imager='zmd' """
 
+	print('----------Setup test_imaged_request_ahoag fixture ----------')
+
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':5,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		
+		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'2x2',
+		'image_resolution_forms-0-channel_forms-1-z_step':15,
+		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='admin_multichannel_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+
+	yield test_client
+	print('----------Teardown test_imaged_request_ahoag fixture ----------')
+
+
+
+""" Fixtures for follow-up imaging and processing requests """
 
 @pytest.fixture(scope='function') 
 def test_new_imaging_request_ahoag(test_client,test_single_sample_request_ahoag):
@@ -679,7 +781,6 @@ def test_new_imaging_request_ahoag(test_client,test_single_sample_request_ahoag)
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_new_imaging_request fixture --------')
 
-
 @pytest.fixture(scope='function') 
 def test_new_processing_request_ahoag(test_client,test_single_sample_request_ahoag):
 	""" A fixture to make a request with two processing requests 
@@ -702,3 +803,4 @@ def test_new_processing_request_ahoag(test_client,test_single_sample_request_aho
 		)
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_new_processing_request fixture --------')
+

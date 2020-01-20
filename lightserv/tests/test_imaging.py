@@ -34,6 +34,15 @@ def test_zmd_access_imaging_manager(test_client,test_cleared_request_ahoag,
 	assert b'admin_request' in response.data 
 	assert b'nonadmin_request' in response.data 
 
+def test_multichannel_imaging_worked(test_client,test_imaged_multichannel_request_ahoag):
+	""" Test that the multi channel imaging fixture worked: 
+	test_imaged_multichannel_request_ahoag """
+	# print(db_lightsheet.Request.Sample())
+	response = test_client.get(url_for('imaging.imaging_manager')
+		, follow_redirects=True)
+	assert b'Imaging management GUI' in response.data
+	assert b'admin_multichannel_request' in response.data 
+
 """ Tests for imaging entry form """
 
 def test_imaging_entry_form_loads(test_client,test_cleared_request_ahoag,
@@ -62,7 +71,7 @@ def test_imaging_entry_form_submits(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -89,7 +98,7 @@ def test_tiling_scheme_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x11',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -107,7 +116,7 @@ def test_tiling_scheme_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'gx2',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -124,7 +133,7 @@ def test_tiling_scheme_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'4x4',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -146,7 +155,7 @@ def test_tiling_scheme_validation_4x(test_client,test_cleared_request_4x_ahoag,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x11',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -164,7 +173,7 @@ def test_tiling_scheme_validation_4x(test_client,test_cleared_request_4x_ahoag,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'gx2',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -181,7 +190,7 @@ def test_tiling_scheme_validation_4x(test_client,test_cleared_request_4x_ahoag,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'4x6',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -203,7 +212,7 @@ def test_tiling_overlap_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':-0.4,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -220,7 +229,7 @@ def test_tiling_overlap_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':'gg',
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -231,7 +240,7 @@ def test_tiling_overlap_validation(test_client,test_cleared_request_ahoag,
 		follow_redirects=True)
 	assert b'Tiling overlap must be a number between 0.0 and 1.0' in response2.data
 
-def test_z_resolution_validation(test_client,test_cleared_request_ahoag,
+def test_z_step_validation(test_client,test_cleared_request_ahoag,
 	test_login_zmd):
 	""" Test that an incorrect z resolution gives
 	the intended validation error """
@@ -242,7 +251,7 @@ def test_z_resolution_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':1,
+		'image_resolution_forms-0-channel_forms-0-z_step':1,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -251,7 +260,7 @@ def test_z_resolution_validation(test_client,test_cleared_request_ahoag,
 			imaging_request_number=1),
 		data=data1,
 		follow_redirects=True)
-	assert b'z_resolution must be a positive number larger than 2 microns' in response1.data
+	assert b'z_step must be a positive number larger than 2 microns' in response1.data
 
 	data2 = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
@@ -259,7 +268,7 @@ def test_z_resolution_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':1001,
+		'image_resolution_forms-0-channel_forms-0-z_step':1001,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -268,7 +277,7 @@ def test_z_resolution_validation(test_client,test_cleared_request_ahoag,
 			imaging_request_number=1),
 		data=data2,
 		follow_redirects=True)
-	assert b'z resolution greater than 1000 microns is not supported by the microscope.' in response2.data
+	assert b'z_step greater than 1000 microns is not supported by the microscope.' in response2.data
 	
 def test_number_of_z_planes_validation(test_client,test_cleared_request_ahoag,
 	test_login_zmd):
@@ -281,7 +290,7 @@ def test_number_of_z_planes_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':0,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -298,7 +307,7 @@ def test_number_of_z_planes_validation(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':5501,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -349,7 +358,7 @@ def test_post_request_already_imaged_request_ahoag(test_client,test_imaged_reque
 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		'submit':True
@@ -380,7 +389,7 @@ def test_no_right_lightsheet_submits(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
@@ -422,7 +431,7 @@ def test_no_lightsheets_validation_error(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_resolution':10,
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':500,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}

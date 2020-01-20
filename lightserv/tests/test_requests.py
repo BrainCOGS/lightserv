@@ -1095,6 +1095,19 @@ def test_sort_requests_table_all_columns(test_client,test_two_requests_ahoag):
 			follow_redirects=True)
 		assert b'All core facility requests' in response.data
 
+def test_multichannel_request_works(test_client,test_multichannel_request_ahoag):
+	""" Testing that my fixture: test_multichannel_request_ahoag
+	works
+	""" 
+	response = test_client.get(
+		url_for('requests.all_requests'),
+			follow_redirects=True
+		)	
+
+	assert b"core facility requests" in response.data
+	assert b"admin_multichannel_request" in response.data
+
+
 """ Testing all_samples() """
 
 def test_admin_sees_all_samples(test_client,test_single_sample_request_ahoag,test_login_zmd):

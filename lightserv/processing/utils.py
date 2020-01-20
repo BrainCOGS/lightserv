@@ -41,7 +41,7 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 	atlas_dict = current_app.config['ATLAS_NAME_FILE_DICTIONARY']
 	atlas_annotation_dict = current_app.config['ATLAS_ANNOTATION_FILE_DICTIONARY']
 	now = datetime.now()
-	logger.info("In step 0")
+	
 	import tifffile
 	from xml.etree import ElementTree as ET 
 	
@@ -58,19 +58,21 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 		request_name,sample_name,f'imaging_request_{imaging_request_number}')
 	raw_basepath = os.path.join(sample_basepath,'rawdata')
 
-	""" Can now go in and find the z=0 plane 
-	which contains the metadata for each channel """
 
-	""" Loop through the channels in sorted order of channel_name
-	and figure out which z=0 plane is which within a directory
-	because there can be more than one if multi-channel imaging 
-	was performed """
+	""" Loop through the image resolutions requested since 
+	a different image resolution necessary means a different spock job.
+	"""
 
 	all_imaging_modes = current_app.config['IMAGING_MODES']
 	connection = db_lightsheet.Request.Sample.connection
 	with connection.transaction:
 		unique_image_resolutions = sorted(list(set(all_channel_contents.fetch('image_resolution'))))
 		for image_resolution in unique_image_resolutions:
+			logger.debug("Setting up param dicts for Image resolution: {}".format(image_resolution))
+			"""figure out how many different spock jobs we will need to launch.
+			This is equivalent to how many parameter dictionaries we have 
+			to construct. If all imaging used the same tiling and same 
+			z_step then we only need one job """
 			this_image_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & \
 			 f'request_name="{request_name}"' & f'username="{username}"' & \
 			 f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & \
@@ -79,40 +81,50 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 			atlas_name = this_image_resolution_content.fetch1('atlas_name')
 			atlas_file = atlas_dict[atlas_name]
 			atlas_annotation_file = atlas_annotation_dict[atlas_name]
+			""" set up the base parameter dictionary that is common to this image resolution
+			no matter what the imaging parameters were 
+			"""
+			param_dict = {}
+			param_dict['systemdirectory'] = '/jukebox'
+			param_dict['blendtype'] = 'sigmoidal' # no exceptions
+			param_dict['intensitycorrection'] = True # no exceptions
+			param_dict['rawdata'] = True # no exceptions
+			param_dict['AtlasFile'] = atlas_file
+			param_dict['annotationfile'] = atlas_annotation_file
+			output_directory = os.path.join(sample_basepath,'output',
+				f'processing_request_{processing_request_number}',
+				f'resolution_{image_resolution}')
+			param_dict['outputdirectory'] = output_directory
 
+			""" figure out the resize factor based on resolution """
+			if image_resolution == '1.3x':
+				resizefactor = 3
+				x_scale, y_scale = 5.0,5.0
+			elif image_resolution == '4x':
+				resizefactor = 5
+				x_scale, y_scale = 1.63,1.63
+			else:
+				sys.exit("There was a problem finding the resizefactor")
+			param_dict['resizefactor'] = resizefactor
+			param_dict['finalorientation'] = ("2","1","0") # hardcoded for now but will need to be captured from the form 
+			param_dict['slurmjobfactor'] = 50
+			
+			""" Now the inputdictionary """
+			inputdictionary = {}
+
+			""" Need to find the channels belonging to the same rawdata_subfolder so I can  
+			fill out the inputdictionary properly """
 			channel_contents_this_resolution = \
 				(all_channel_contents & f'image_resolution="{image_resolution}"')
 			channel_contents_list_this_resolution = channel_contents_this_resolution.fetch(as_dict=True)
 
-			""" Now find the channels belonging to the same rawdata_subfolder so I can  
-			run the multi-imaging channels together in the code """
 			unique_rawdata_subfolders = list(set(channel_contents_this_resolution.fetch('rawdata_subfolder')))
-			for rawdata_subfolder in unique_rawdata_subfolders:
+			logger.debug(f"Have the following rawdata folders: {unique_rawdata_subfolders}")
+			for ii in range(len(unique_rawdata_subfolders)):
+				rawdata_subfolder = unique_rawdata_subfolders[ii]
+				# this_rawdata_dict['rawdata_subfolder']=rawdata_subfolder
 				rawdata_fullpath = os.path.join(raw_basepath,rawdata_subfolder)
-
-				""" set up the parameter dictionary """
-				param_dict = {}
-				param_dict['systemdirectory'] = '/jukebox'
-				output_directory = os.path.join(sample_basepath,'output',
-					f'processing_request_{processing_request_number}',rawdata_subfolder)
-				param_dict['outputdirectory'] = output_directory
-				param_dict['blendtype'] = 'sigmoidal' # no exceptions
-				param_dict['intensitycorrection'] = True # no exceptions
-				param_dict['rawdata'] = True # no exceptions
-				param_dict['AtlasFile'] = atlas_file
-				param_dict['annotationfile'] = atlas_annotation_file
-
-				""" figure out the resize factor based on resolution """
-				if image_resolution == '1.3x':
-					resizefactor = 3
-					x_scale, y_scale = 5.0,5.0
-				elif image_resolution == '4x':
-					resizefactor = 5
-					x_scale, y_scale = 1.63,1.63
-				else:
-					sys.exit("There was a problem finding the resizefactor")
-				param_dict['resizefactor'] = resizefactor
-				param_dict['finalorientation'] = ("2","1","0") # hardcoded for now but will need to be captured from the user 
+				inputdictionary[rawdata_fullpath] = []
 				""" grab the metadata """
 				# logger.info(f"finding metadata for channel {channel_name}")
 					
@@ -165,16 +177,16 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 				# ''' Store all of the metadata as an xml string for later access if needed '''
 				# processing_insert_dict['metadata_xml_string'] = xml_description			
 
-				""" Loop through the channels themselves to make the input dictionary """
-				inputdictionary = {}
-				inputdictionary[rawdata_fullpath] = []
+				""" Loop through the channels themselves to make the input dictionary
+				and grab the rest of the parameter dictionary keys """
+				
 				channel_contents_this_subfolder = channel_contents_this_resolution & \
 				 f'rawdata_subfolder="{rawdata_subfolder}"'
 				channel_contents_dict_list_this_subfolder = channel_contents_this_subfolder.fetch(as_dict=True)
 				for channel_dict in channel_contents_dict_list_this_subfolder:		
 					channel_name = channel_dict['channel_name']
 					channel_index = channel_dict['imspector_channel_index'] 
-					processing_insert_dict = {'username':username,'request_name':request_name,
+					processing_channel_insert_dict = {'username':username,'request_name':request_name,
 					'sample_name':sample_name,'imaging_request_number':imaging_request_number,
 					'processing_request_number':processing_request_number,
 					'image_resolution':image_resolution,'channel_name':channel_name,
@@ -182,11 +194,13 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 
 					channel_imaging_modes = [key for key in all_imaging_modes if channel_dict[key] == True]
 					this_channel_content = all_channel_contents & f'channel_name="{channel_name}"'
-					logger.info("This channel content")
-					logger.info(this_channel_content)
-					""" grab the tiling, number of z planes info from the first entry since it has to be the same for all 
-					channels in the same rawdata_subfolder"""
-					if channel_index == 0:
+		
+					""" grab the tiling, number of z planes info from the first entry
+					since the parameter dictionary only needs one value for 
+					xyz_scale, tiling_overlap, etc...
+					and it must be the same for each channel in each rawdata folder
+					for the code to run (currently) """
+					if ii == 0 and channel_index == 0: 
 						tiling_scheme,tiling_overlap,z_step = this_channel_content.fetch1('tiling_scheme','tiling_overlap','z_step')
 						param_dict['tiling_overlap'] = tiling_overlap
 						if tiling_scheme != '1x1':
@@ -194,9 +208,10 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 						else:
 							stitching_method = 'blending'
 						param_dict['stitchingmethod'] = stitching_method
-						
-					""" Fill inputdictionary """
+						xyz_scale = (x_scale,y_scale,z_step)
+						param_dict['xyz_scale'] = xyz_scale
 
+					""" Fill inputdictionary """
 					if 'registration' in channel_imaging_modes:
 						lightsheet_channel_str = 'regch'
 					elif 'injection_detection' in channel_imaging_modes:
@@ -208,54 +223,59 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 					else:
 						lightsheet_channel_str = 'gench'
 					inputdictionary[rawdata_fullpath].append([lightsheet_channel_str,str(channel_index).zfill(2)])
-
-					processing_insert_dict['lightsheet_channel_str'] = lightsheet_channel_str
-					now = datetime.now()
-					processing_insert_dict['datetime_processing_started'] = now
-					logger.info("Inserting into ProcessingChannel()")
-					logger.info(processing_insert_dict)
-					db_lightsheet.Request.ProcessingChannel().insert1(processing_insert_dict,replace=True)
-
-				param_dict['inputdictionary'] = inputdictionary
-				xyz_scale = (x_scale,y_scale,z_step)
-				param_dict['xyz_scale'] = xyz_scale
-				param_dict['slurmjobfactor'] = 50
-				logger.info(param_dict)
-				""" Prepare insert to processing db table """
-				
-				""" Now write the pickle file with the parameter dictionary """	
-				try:
-				    os.makedirs(output_directory)
-				except OSError as exc: 
-				    if exc.errno == errno.EEXIST and os.path.isdir(output_directory):
-				        pass
-				logger.info(f"Made directory: {output_directory}")
-				pickle_fullpath = output_directory + '/param_dict.p'
-				with open(pickle_fullpath,'wb') as pkl_file:
-					pickle.dump(param_dict,pkl_file)
-				logger.info(f"wrote pickle file: {pickle_fullpath}")
-
-				""" Now run the spock pipeline via paramiko """
-				hostname = 'spock.pni.princeton.edu'
-
-				# command = """cd %s;sbatch --export=output_directory='%s' main.sh """ % \
-				# (current_app.config['PROCESSING_CODE_DIR'],output_directory)
-				command = """sbatch --parsable /usr/people/ahoag/test_slurm_scripts/submit_minimal.sh""" 
-				port = 22
-				try:
-					client = paramiko.SSHClient()
-					client.load_system_host_keys()
-					client.set_missing_host_key_policy(paramiko.WarningPolicy)
 					
-					client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+					# processing_channel_insert_dict['lightsheet_channel_str'] = lightsheet_channel_str
+					# now = datetime.now()
+					# processing_channel_insert_dict['datetime_processing_started'] = now
+					# logger.info("Inserting into ProcessingChannel()")
+					# logger.info(processing_channel_insert_dict)
+					# db_lightsheet.Request.ProcessingChannel().insert1(processing_insert_dict,replace=True)
 
-					stdin, stdout, stderr = client.exec_command(command)
-					jobid = str(stdout.read().decode("utf-8").strip('\n'))
+			logger.debug("inputdictionary:")
+			logger.debug(inputdictionary)
+			logger.debug("")
+			logger.debug("Param dictionary")
+			logger.debug(param_dict)
+			# asdf
+			""" Prepare insert to processing db table """
+			
+			""" Now write the pickle file with the parameter dictionary """	
+			try:
+			    os.makedirs(output_directory)
+			except OSError as exc: 
+			    if exc.errno == errno.EEXIST and os.path.isdir(output_directory):
+			        pass
+			logger.info(f"Made directory: {output_directory}")
+			pickle_fullpath = output_directory + '/param_dict.p'
+			with open(pickle_fullpath,'wb') as pkl_file:
+				pickle.dump(param_dict,pkl_file)
+			logger.info(f"wrote pickle file: {pickle_fullpath}")
 
-					status = 'SUBMITTED'
-					entry_dict = {'jobid':jobid,'username':username,'status':status}
-					db_admin.SpockJobManager.insert1(entry_dict)    
+			""" Now run the spock pipeline via paramiko """
+			hostname = 'spock.pni.princeton.edu'
 
-				finally:
-					client.close()
-	return "success"
+			# command = """cd %s;sbatch --export=output_directory='%s' main.sh """ % \
+			# (current_app.config['PROCESSING_CODE_DIR'],output_directory)
+			command = """sbatch --parsable /usr/people/ahoag/test_slurm_scripts/submit_minimal.sh""" 
+			port = 22
+			try:
+				client = paramiko.SSHClient()
+				client.load_system_host_keys()
+				client.set_missing_host_key_policy(paramiko.WarningPolicy)
+				
+				client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+
+				stdin, stdout, stderr = client.exec_command(command)
+				jobid = str(stdout.read().decode("utf-8").strip('\n'))
+
+				status = 'SUBMITTED'
+				entry_dict = {'jobid':jobid,'username':username,'status':status}
+				db_admin.SpockJobManager.insert1(entry_dict)    
+				logger.info(f"ProcessingResolutionRequest() request was successfully submitted to spock, jobid: {jobid}")
+				dj.Table._update(this_image_resolution_content,'spock_job_progress','SUBMITTED')
+			except:
+				logger.info(f"ProcessingResolutionRequest() failed to start. ")
+				dj.Table._update(this_image_resolution_content,'spock_job_progress','NOT_SUBMITTED')
+			finally:
+				client.close()
+	return 

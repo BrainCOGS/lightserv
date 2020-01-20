@@ -135,7 +135,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 				f'username="{username}"' & f'sample_name="{sample_name}"' & \
 				f'imaging_request_number="{imaging_request_number}"' & \
 				f'processing_request_number="{processing_request_number}"'
-	logger.debug(processing_request_contents)
+	# logger.debug(processing_request_contents)
 	channel_contents = db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			f'imaging_request_number="{imaging_request_number}"' # all of the channels for this sample
@@ -165,10 +165,10 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 			""" loop through and update the atlas to be used based on what the user supplied """
 			for form_resolution_dict in form.image_resolution_forms.data:
 				this_image_resolution = form_resolution_dict['image_resolution']
-				logger.info(this_image_resolution)
+				# logger.info(this_image_resolution)
 				this_image_resolution_content = processing_resolution_request_contents & \
 				f'image_resolution="{this_image_resolution}"'
-				logger.debug(this_image_resolution_content)
+				# logger.debug(this_image_resolution_content)
 				atlas_name = form_resolution_dict['atlas_name']
 				logger.info("updating atlas and notes_from_processing in ProcessingResolutionRequest() with user's form data")
 				dj.Table._update(this_image_resolution_content,'atlas_name',atlas_name)
@@ -179,21 +179,23 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 			''' Update the processing progress before starting the jobs on spock 
 			to avoid a race condition (the pipeline also updates the processing_progress flag if it fails or succeeds) '''
 			
-			try:
-				run_spock_pipeline(username=username,request_name=request_name,sample_name=sample_name,
-					imaging_request_number=imaging_request_number,
-					processing_request_number=processing_request_number)
-				dj.Table._update(processing_request_contents,'processing_progress','running')
-				flash("Your data processing has begun. You will receive an email "
-					  "when the first steps are completed.","success")
-			except:
-				logger.info("Pipeline initialization failed. Updating processing progress to 'failed' ")
-				dj.Table._update(processing_request_contents,'processing_progress','failed')
-				abort(500)
+			# try:
+			run_spock_pipeline(username=username,request_name=request_name,sample_name=sample_name,
+				imaging_request_number=imaging_request_number,
+				processing_request_number=processing_request_number)
+			dj.Table._update(processing_request_contents,'processing_progress','running')
+
+			flash("Your data processing has begun. You will receive an email "
+				  "when the first steps are completed.","success")
+			# except:
+			# 	logger.info("Pipeline initialization failed. Updating processing progress to 'failed' ")
+			# 	dj.Table._update(processing_request_contents,'processing_progress','failed')
+			# 	abort(500)
 			
 			return redirect(url_for('requests.all_requests'))
 		else:
 			logger.debug(form.errors)
+	
 	elif request.method == 'GET': # get request
 		channel_contents_lists = []
 		while len(form.image_resolution_forms) > 0:

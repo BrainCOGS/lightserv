@@ -18,7 +18,7 @@ class ChannelForm(FlaskForm):
 	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',default='1x1')
 	tiling_overlap = DecimalField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
 		places=2,validators=[Optional()],default=0.1) 
-	z_resolution = IntegerField('Z resolution (microns)',
+	z_step = IntegerField('Z resolution (microns)',
 		widget=html5.NumberInput(),validators=[InputRequired()],default=10)
 	number_of_z_planes = IntegerField('Number of z planes',
 		widget=html5.NumberInput(),validators=[InputRequired()],default=1000)
@@ -49,11 +49,11 @@ class ChannelForm(FlaskForm):
 			if n_rows > 4 or n_columns > 4:
 				raise ValidationError("Tiling scheme must not exceed 4x4 for this resolution")
 
-	def validate_z_resolution(self,z_resolution):
-		if z_resolution.data < 2:
-			raise ValidationError("z_resolution must be a positive number larger than 2 microns")
-		elif z_resolution.data > 1000:
-			raise ValidationError("z resolution greater than 1000 microns is not supported by the microscope.")
+	def validate_z_step(self,z_step):
+		if z_step.data < 2:
+			raise ValidationError("z_step must be a positive number larger than 2 microns")
+		elif z_step.data > 1000:
+			raise ValidationError("z_step greater than 1000 microns is not supported by the microscope.")
 
 	def validate_number_of_z_planes(self,number_of_z_planes):
 		if number_of_z_planes.data <= 0:

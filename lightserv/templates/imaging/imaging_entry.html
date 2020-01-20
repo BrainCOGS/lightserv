@@ -92,15 +92,15 @@
 				    </td>
 				    <td>
 					    <div class="form-group">
-							{% if channel_form.z_resolution.errors %}
-								{{ channel_form.z_resolution(class="form-control form-control-sm is-invalid") }}
+							{% if channel_form.z_step.errors %}
+								{{ channel_form.z_step(class="form-control form-control-sm is-invalid") }}
 								<div class="invalid-feedback">
-									{% for error in channel_form.z_resolution.errors %}
+									{% for error in channel_form.z_step.errors %}
 										<span>{{ error }}</span>
 									{% endfor %}
 								</div>
 							{% else %}
-								{{ channel_form.z_resolution(class="form-control form-control-sm") }}
+								{{ channel_form.z_step(class="form-control form-control-sm") }}
 							{% endif %}
 						</div>
 					</td>

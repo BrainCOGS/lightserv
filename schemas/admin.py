@@ -41,6 +41,7 @@ class UserActionLog(dj.Manual):
 class SpockJobManager(dj.Manual):
     definition = """    # Spock job management table 
     jobid  : varchar(16) # the jobid on spock
+    timestamp = CURRENT_TIMESTAMP : timestamp
     ---
     username : varchar(32)
     status : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING")
