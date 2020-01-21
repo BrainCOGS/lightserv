@@ -2,7 +2,6 @@ import datajoint as dj
 import socket
 import os
 
-
 if os.environ.get('FLASK_MODE') == 'TEST':
     dj.config['database.host'] = '127.0.0.1'
     dj.config['database.port'] = 3306
@@ -129,7 +128,7 @@ class Request(dj.Manual):
         processing_request_date_submitted            :   date # date that the user submitted the request for processing
         processing_request_time_submitted            :   time # time that the user submitted the request for processing
         processing_performed_date = NULL             :   date # date that the processing form was submitted by the processor
-        processing_progress                          :   enum("incomplete","running","failed","complete")
+        processing_progress                          :   enum("incomplete","running","failed", "complete")
         """
 
     class ProcessingResolutionRequest(dj.Part):

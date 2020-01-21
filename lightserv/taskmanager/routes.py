@@ -151,6 +151,7 @@ def status_checker():
     running_processing_requests_modified_contents = (processing_request_contents & \
         'processing_progress="running"').aggr(processing_resolution_contents,
                    number_of_jobs="count(*)",
+                   number_of_pending_jobs='SUM(spock_job_progress="PENDING")',
                    number_of_completed_jobs='SUM(spock_job_progress="COMPLETED")',
                    number_of_failed_jobs='SUM(spock_job_progress="FAILED")',
                    spock_jobid ='spock_jobid') 
@@ -180,12 +181,11 @@ def status_checker():
             f'processing_request_number={processing_request_number}',
             'processing_progress','complete')
     
-    """ For processing requests where all jobids have status=FAILED,
-    then the processing_progress='failed' for the whole processing request """
+    """ For processing requests where even just one jobid has status=FAILED,
+    then update the processing_progress='failed' for the whole processing request.
+    Can provide more details in an email """
     failed_processing_requests_modified_contents = (running_processing_requests_modified_contents & \
-        'number_of_failed_jobs = number_of_jobs')
-    logger.debug("Failed processing request contents:")
-    logger.debug(failed_processing_requests_modified_contents)
+        'number_of_failed_jobs > 0')
     failed_procesing_primary_keys_dict_list = failed_processing_requests_modified_contents.fetch(
         'username',
         'request_name',
@@ -207,15 +207,7 @@ def status_checker():
             f'processing_request_number={processing_request_number}',
             'processing_progress','failed')
 
-
-    # logger.debug(completed_processing_requests)
-    # for d in completed_processing_requests_dict_list:
-    #     d['processing_progress'] = 'complete'
-    # db_lightsheet.Request.ProcessingRequest().insert(completed_processing_requests_dict_list,replace=True)
-    # dj.Table._update(completed_processing_requests_contents,'processing_progress','complete')
-    # completed_processing_requests_contents = running_processing_requests_contents & \
-    #     'number_of_failed_jobs = number_of_jobs'
-    # dj.Table._update(completed_processing_requests_contents,'processing_progress','failed')
+    
 
     # for each running process, find all jobids in the processing resolution request tables
     return jsonify(jobids=jobids,status_codes=status_codes)
