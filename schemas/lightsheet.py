@@ -139,7 +139,7 @@ class Request(dj.Manual):
         notes_for_processor = ""                  :   varchar(1024)
         notes_from_processing = ""                :   varchar(1024) 
         spock_jobid = NULL                        :   varchar(32)
-        spock_job_progress = NULL                       :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING")
+        spock_job_progress = NULL                 :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING")
         """
 
     class ProcessingChannel(dj.Part):

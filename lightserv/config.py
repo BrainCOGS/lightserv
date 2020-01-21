@@ -37,7 +37,7 @@ class BaseConfig(object):
 	CELERYBEAT_SCHEDULE = {
     'job_status_checker': {
         'task': 'lightserv.taskmanager.routes.status_checker',
-        'schedule': timedelta(seconds=15)
+        'schedule': timedelta(seconds=5)
     },
 }
 

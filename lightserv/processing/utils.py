@@ -236,7 +236,6 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 			logger.debug("")
 			logger.debug("Param dictionary")
 			logger.debug(param_dict)
-			# asdf
 			""" Prepare insert to processing db table """
 			
 			""" Now write the pickle file with the parameter dictionary """	
@@ -272,6 +271,7 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 				entry_dict = {'jobid':jobid,'username':username,'status':status}
 				db_admin.SpockJobManager.insert1(entry_dict)    
 				logger.info(f"ProcessingResolutionRequest() request was successfully submitted to spock, jobid: {jobid}")
+				dj.Table._update(this_image_resolution_content,'spock_jobid',jobid)
 				dj.Table._update(this_image_resolution_content,'spock_job_progress','SUBMITTED')
 			except:
 				logger.info(f"ProcessingResolutionRequest() failed to start. ")
