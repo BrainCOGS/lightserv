@@ -484,7 +484,7 @@ def test_idiscoplus_request_validates_antibody(test_client,test_login,test_delet
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"admin_request with immunostaining",
+			'request_name':"admin_request_with_immunostaining",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':test_login['user'],
@@ -913,7 +913,7 @@ def test_multiple_samples_same_clearing_batch(test_client,test_login,test_delete
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Multiple sample admin_request",
+			'request_name':"Multiple_sample_admin_request",
 			'description':"This is a multiple sample test request",
 			'species':"mouse",'number_of_samples':2,
 			'username':test_login['user'],
@@ -937,7 +937,7 @@ def test_multiple_samples_same_clearing_batch(test_client,test_login,test_delete
 	assert b"New Request Form" not in response.data # redirected away from new request form
 	# print(db_lightsheet.Request.ClearingBatch())
 	number_in_batch = (db_lightsheet.Request.ClearingBatch() & \
-		'request_name="Multiple sample admin_request"' & \
+		'request_name="Multiple_sample_admin_request"' & \
 		'username = "ahoag"' & 'clearing_protocol="iDISCO abbreviated clearing"' & \
 		'clearing_batch_number=1').fetch1('number_in_batch')
 	assert number_in_batch == 2
@@ -992,7 +992,7 @@ def test_submit_good_mouse_request_for_someone_else(test_client,
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Tank/Brody",'correspondence_email':"test@demo.com",
-			'request_name':"Request for someone else",
+			'request_name':"Request_for_someone_else",
 			'requested_by':test_login['user'],
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
@@ -1012,8 +1012,46 @@ def test_submit_good_mouse_request_for_someone_else(test_client,
 		)	
 
 	assert b"core facility requests" in response.data
-	assert b"Request for someone else" in response.data
+	assert b"Request_for_someone_else" in response.data
 	assert b"New Request Form" not in response.data
+
+def test_request_name_no_spaces(test_client,
+		test_login,test_delete_request_db_contents):
+	""" Ensure that entire new request form raises a 
+	ValidationError when user tries to submit a request name 
+	that has spaces in it
+
+	If test fails, it could possibly write data to the db
+	so use the fixture test_delete_request_db_contents
+	to remove any contents just in case
+	""" 
+	today = date.today()
+	today_proper_format = today.strftime('%Y-%m-%d')
+	
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"Request with spaces",
+			'requested_by':test_login['user'],
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"New Request Form" in response.data
+	assert b"core facility requests" not in response.data
+	assert b"Request_name must not contain any blank spaces" in response.data
 
 
 """ Testing all_requests() """
@@ -1068,7 +1106,7 @@ def test_sort_requests_table_asc_desc(test_client,test_two_requests_ahoag):
 	
 	assert len(table_row_tags_forward) == 3 # 1 for header, 2 for content
 	request_name1_forward = table_row_tags_forward[1].find_all('td')[2].text 
-	assert request_name1_forward == 'admin_request 2'
+	assert request_name1_forward == 'admin_request_2'
 
 	""" Now GET request with reverse=True """
 	response_reverse = test_client.get(url_for('requests.all_requests',sort='request_name',direction='asc'),
@@ -1080,7 +1118,7 @@ def test_sort_requests_table_asc_desc(test_client,test_two_requests_ahoag):
 	# print(table_row_tags_reverse)
 	assert len(table_row_tags_reverse) == 3 # 1 for header, 2 for content
 	request_name1_reverse = table_row_tags_reverse[1].find_all('td')[2].text 
-	assert request_name1_reverse == 'admin_request 1'
+	assert request_name1_reverse == 'admin_request_1'
 
 def test_sort_requests_table_all_columns(test_client,test_two_requests_ahoag):
 	""" Check that sorting all columns of all requests table works 

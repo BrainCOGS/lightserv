@@ -58,9 +58,9 @@
 						{{ form.correspondence_email(class="form-control form-control-lg") }}
 					{% endif %}
 				</div>
-				<div class="form-group">
+				<div class="form-group" data-toggle="tooltip" title="Must not contain spaces. Use '_' instead of spaces">
 					{% if form.request_name.flags.required %}*{% endif %}
-					{{ form.request_name.label(class="form-control-label") }}
+					{{ form.request_name.label(class="form-control-label infolink") }}
 					{% if form.request_name.errors %}
 						{{ form.request_name(class="form-control form-control-lg is-invalid") }}
 						<div class="invalid-feedback">

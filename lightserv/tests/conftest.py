@@ -287,7 +287,7 @@ def test_two_requests_ahoag(test_client,test_login,test_delete_request_db_conten
 	response1 = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"admin_request 1",
+			'request_name':"admin_request_1",
 			'description':"This is a first demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':current_user,
@@ -306,7 +306,7 @@ def test_two_requests_ahoag(test_client,test_login,test_delete_request_db_conten
 	response2 = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"admin_request 2",
+			'request_name':"admin_request_2",
 			'description':"This is a second demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':current_user,
