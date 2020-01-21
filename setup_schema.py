@@ -8,5 +8,5 @@ import os
 os.environ['FLASK_MODE'] = 'DEV'
 from schemas import lightsheet
 from schemas import admin
-# from schemas import microscope
+from schemas import microscope
 

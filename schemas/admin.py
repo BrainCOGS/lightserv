@@ -3,7 +3,6 @@ import socket
 import os
 
 
-
 if os.environ.get('FLASK_MODE') == 'TEST':
     dj.config['database.host'] = '127.0.0.1'
     dj.config['database.port'] = 3306
@@ -21,9 +20,10 @@ else:
     dj.config['database.password'] = os.environ['DJ_DB_PASS']
     print("setting up real admin schema")
 
-    schema = dj.schema('u19lightserv_appcore')
+    # schema = dj.schema('u19lightserv_appcore')
+    schema = dj.schema('ahoag_admin_demo')
     schema.drop()
-    schema = dj.schema('u19lightserv_appcore')
+    schema = dj.schema('ahoag_admin_demo')
 
 @schema 
 class UserActionLog(dj.Manual):

@@ -1,5 +1,6 @@
 import datajoint as dj
 import socket
+import os
 
 if os.environ.get('FLASK_MODE') == 'TEST':
     dj.config['database.host'] = '127.0.0.1'
@@ -12,11 +13,11 @@ if os.environ.get('FLASK_MODE') == 'TEST':
     schema.drop()
     schema = dj.schema('ahoag_microscope_test')
 else: # Still don't have a real db on datajoint00 for microscope yet
-    dj.config['database.host'] = '127.0.0.1'
+    dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
     dj.config['database.port'] = 3306
 
-    dj.config['database.user'] = os.environ['DJ_DB_TEST_USER']
-    dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']
+    dj.config['database.user'] = os.environ['DJ_DB_USER']
+    dj.config['database.password'] = os.environ['DJ_DB_PASS']
     print("setting up real light sheet schema")
     schema = dj.schema('ahoag_microscope_demo')
     schema.drop()

@@ -29,10 +29,12 @@ def set_schema():
 			dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
 			dj.config['database.user'] = os.environ['DJ_DB_USER']
 			dj.config['database.password'] = os.environ['DJ_DB_PASS']
-			db_lightsheet = dj.create_virtual_module('lightsheet','u19lightserv_lightsheet',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
-			# db_microscope = dj.create_virtual_module('microscope_demo','ahoag_microscope_demo',create_schema=True)
-			db_microscope = None
-			db_admin = dj.create_virtual_module('admin','u19lightserv_appcore',create_schema=True)
+			# db_lightsheet = dj.create_virtual_module('lightsheet','u19lightserv_lightsheet',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
+			db_lightsheet = dj.create_virtual_module('lightsheet','ahoag_lightsheet_demo',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
+			db_admin = dj.create_virtual_module('admin','ahoag_admin_demo',create_schema=True)
+			db_microscope = dj.create_virtual_module('microscope_demo','ahoag_microscope_demo',create_schema=True)
+			# db_microscope = None
+			# db_admin = dj.create_virtual_module('admin','u19lightserv_appcore',create_schema=True)
 			# db_logger = Log(dj.conn(), database='ahoag_lightsheet_demo') # Initialize logger
 		elif os.environ['FLASK_MODE'] == 'TEST':
 			print("Setting up schemas in TEST mode")

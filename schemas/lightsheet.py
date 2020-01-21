@@ -20,9 +20,11 @@ else:
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']
     print("setting up real light sheet schema")
-    schema = dj.schema('u19lightserv_lightsheet')
+    # schema = dj.schema('u19lightserv_lightsheet')
+    schema = dj.schema('ahoag_lightsheet_demo')
     schema.drop()
-    schema = dj.schema('u19lightserv_lightsheet')
+    # schema = dj.schema('u19lightserv_lightsheet')
+    schema = dj.schema('ahoag_lightsheet_demo')
 
 @schema
 class User(dj.Lookup):

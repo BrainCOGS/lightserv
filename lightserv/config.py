@@ -10,7 +10,7 @@ from datetime import timedelta
 class BaseConfig(object):
 	DEBUG = True
 	SECRET_KEY = os.environ.get('SECRET_KEY')
-	SQLALCHEMY_DATABASE_URI = 'db+mysql+pymysql://ahoag:gaoha@localhost:3306/ahoag_lightsheet_admin'
+	# SQLALCHEMY_DATABASE_URI = 'db+mysql+pymysql://ahoag:gaoha@localhost:3306/ahoag_lightsheet_admin'
 	IMAGING_ADMINS = ['ahoag','jduva','zmd']
 	PROCESSING_ADMINS = ['ahoag','jduva','zmd']
 	CLEARING_ADMINS = ['ahoag','ll3','jduva','zmd']
@@ -40,7 +40,6 @@ class BaseConfig(object):
         'schedule': timedelta(seconds=5)
     },
 }
-
 
 # The default config
 class Config(BaseConfig):
