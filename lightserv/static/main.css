@@ -175,17 +175,13 @@ height: 1.25rem;
 .infolink:before
 {
     content: '?';
-    display: inline-block;
     font-family: sans-serif;
     font-weight: bold;
     text-align: center;
-    width: 2.2ex;
-    height: 2.2ex;
-    font-size: 1.4ex;
-    line-height: 1.8ex;
-    border-radius: 1.2ex;
+    font-size: 2ex;
+    border-radius: 1.5ex;
     margin-right: 4px;
-    padding: 1px;
+    padding: 2px;
     color: black;
     background: white;
     border: 1px solid black;

@@ -117,8 +117,7 @@ def test_multichannel_processing_entry_form_submits(test_client,test_imaged_mult
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_forms-0-atlas_name':'allen_2017',
-		'image_resolution_forms-0-channel_forms-0-channel_name':'555',
-		'image_resolution_forms-0-atlas_name':'allen_2017',
+		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'submit':True
 		}
 	username = "ahoag"

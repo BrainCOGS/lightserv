@@ -78,7 +78,7 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 			 f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & \
 			 f'processing_request_number="{processing_request_number}"' & \
 			 f'image_resolution="{image_resolution}"'  
-			atlas_name = this_image_resolution_content.fetch1('atlas_name')
+			atlas_name,final_orientation = this_image_resolution_content.fetch1('atlas_name','final_orientation')
 			atlas_file = atlas_dict[atlas_name]
 			atlas_annotation_file = atlas_annotation_dict[atlas_name]
 			""" set up the base parameter dictionary that is common to this image resolution
@@ -91,6 +91,7 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 			param_dict['rawdata'] = True # no exceptions
 			param_dict['AtlasFile'] = atlas_file
 			param_dict['annotationfile'] = atlas_annotation_file
+
 			output_directory = os.path.join(sample_basepath,'output',
 				f'processing_request_{processing_request_number}',
 				f'resolution_{image_resolution}')
@@ -106,7 +107,7 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 			else:
 				sys.exit("There was a problem finding the resizefactor")
 			param_dict['resizefactor'] = resizefactor
-			param_dict['finalorientation'] = ("2","1","0") # hardcoded for now but will need to be captured from the form 
+
 			param_dict['slurmjobfactor'] = 50
 			
 			""" Now the inputdictionary """
@@ -201,7 +202,9 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 					and it must be the same for each channel in each rawdata folder
 					for the code to run (currently) """
 					if ii == 0 and channel_index == 0: 
-						tiling_scheme,tiling_overlap,z_step = this_channel_content.fetch1('tiling_scheme','tiling_overlap','z_step')
+						tiling_scheme,tiling_overlap,z_step,image_orientation = \
+							this_channel_content.fetch1(
+								'tiling_scheme','tiling_overlap','z_step','image_orientation')
 						param_dict['tiling_overlap'] = tiling_overlap
 						if tiling_scheme != '1x1':
 							stitching_method = 'terastitcher'
@@ -210,6 +213,20 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 						param_dict['stitchingmethod'] = stitching_method
 						xyz_scale = (x_scale,y_scale,z_step)
 						param_dict['xyz_scale'] = xyz_scale
+						""" Now figure out the final orientation tuple given the 
+							orientation that this was imaged at and the requested
+							final_orientation string """
+						if image_orientation == 'horizontal':
+							if final_orientation == 'sagittal':
+								final_orientation_tuple = ("2","1","0")
+							elif final_orientation == 'horizontal':
+								final_orientation_tuple = ("0","1","2")
+							elif final_orientation == 'coronal':
+								final_orientation_tuple = ("2","0","1")
+						else:
+							logger.debug("WARNING. non-horizontal image orientation not yet supported")
+							final_orientation_tuple = ("2","1","0") # hardcoded for now but will need to be captured from the form 
+						param_dict['finalorientation'] = final_orientation_tuple 
 
 					""" Fill inputdictionary """
 					if 'registration' in channel_imaging_modes:

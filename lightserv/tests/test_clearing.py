@@ -18,7 +18,7 @@ def test_ahoag_access_clearing_manager(test_client,test_rat_request_nonadmin,
 	response = test_client.get(url_for('clearing.clearing_manager')
 		, follow_redirects=True)
 	assert b'Clearing management GUI' in response.data
-	assert b'All mouse clearing protocol request' in response.data 
+	assert b"All_mouse_clearing_protocol_request" in response.data 
 	assert b'Nonadmin_rat_request' in response.data 
 	assert b'iDISCO abbreviated clearing' in response.data
 	assert b'iDISCO abbreviated clearing (rat)' in response.data
@@ -118,7 +118,7 @@ def test_mouse_clearing_entry_forms_load(test_client,test_request_all_mouse_clea
 
 	response_abbreviated_clearing = test_client.get(url_for('clearing.clearing_entry',
 			username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -129,7 +129,7 @@ def test_mouse_clearing_entry_forms_load(test_client,test_request_all_mouse_clea
 
 	response_idiscoplus_immuno_clearing = test_client.get(url_for('clearing.clearing_entry',
 			username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO+_immuno",
 			antibody1="test antibody for immunostaining",antibody2="",
 			clearing_batch_number=2),
@@ -140,7 +140,7 @@ def test_mouse_clearing_entry_forms_load(test_client,test_request_all_mouse_clea
 
 	response_udisco_clearing = test_client.get(url_for('clearing.clearing_entry',
 			username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="uDISCO",
 			antibody1="",antibody2="",
 			clearing_batch_number=3),
@@ -151,7 +151,7 @@ def test_mouse_clearing_entry_forms_load(test_client,test_request_all_mouse_clea
 
 	response_idisco_edu_clearing = test_client.get(url_for('clearing.clearing_entry',
 			username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO_EdU",
 			antibody1="",antibody2="",
 			clearing_batch_number=4),
@@ -170,7 +170,7 @@ def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_cl
 	
 	response_abbreviated_clearing = test_client.post(url_for('clearing.clearing_entry',
 			username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -184,7 +184,7 @@ def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_cl
 	data_idiscoplus_immuno_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,time_dehydr_pbs_wash1_submit=True)
 	response_idiscoplus_immuno_clearing = test_client.post(url_for('clearing.clearing_entry',
 			username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO+_immuno",
 			antibody1="test antibody for immunostaining",antibody2="",
 			clearing_batch_number=2),
@@ -198,7 +198,7 @@ def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_cl
 	data_udisco_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,time_dehydr_pbs_wash1_submit=True)
 	response_udisco_clearing = test_client.post(url_for('clearing.clearing_entry',
 			username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="uDISCO",
 			antibody1="",antibody2="",
 			clearing_batch_number=3),
@@ -212,7 +212,7 @@ def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_cl
 	data_idisco_edu_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,time_dehydr_pbs_wash1_submit=True)
 	response_idisco_edu_clearing = test_client.post(url_for('clearing.clearing_entry',
 			username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO_EdU",
 			antibody1="",antibody2="",
 			clearing_batch_number=4),
@@ -284,7 +284,7 @@ def test_previous_updates_to_clearing_form_appear(test_client,test_request_all_m
 	data_abbreviated_clearing = dict(time_pbs_wash1=now_proper_format,time_pbs_wash1_submit=True)
 	response_post = test_client.post(url_for('clearing.clearing_entry',
 			username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -295,7 +295,7 @@ def test_previous_updates_to_clearing_form_appear(test_client,test_request_all_m
 	""" Now a GET request to check that the field is auto-filled """
 	response_get = test_client.get(url_for('clearing.clearing_entry',
 			username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1)
@@ -453,7 +453,7 @@ def test_mouse_clearing_tables_have_db_content(test_client,test_cleared_all_mous
 	Uses the test_cleared_request_ahoag fixture to insert and clear 
 	a request with username='ahoag' and clearer='ahoag'  """
 	response_abbreviated = test_client.get(url_for('clearing.clearing_table',username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1)
@@ -465,7 +465,7 @@ def test_mouse_clearing_tables_have_db_content(test_client,test_cleared_all_mous
 
 	response_idiscoplus = test_client.get(url_for('clearing.clearing_table',
 			username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO+_immuno",
 			antibody1="test antibody for immunostaining",antibody2="",
 			clearing_batch_number=2),
@@ -477,7 +477,7 @@ def test_mouse_clearing_tables_have_db_content(test_client,test_cleared_all_mous
 	assert datetime.now().strftime('%Y-%m-%d %H').encode('utf-8') in response_idiscoplus.data 
 
 	response_udisco = test_client.get(url_for('clearing.clearing_table',username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="uDISCO",
 			antibody1="",antibody2="",
 			clearing_batch_number=3)
@@ -488,7 +488,7 @@ def test_mouse_clearing_tables_have_db_content(test_client,test_cleared_all_mous
 	assert datetime.now().strftime('%Y-%m-%d %H').encode('utf-8') in response_udisco.data 
 
 	response_idisco_edu = test_client.get(url_for('clearing.clearing_table',username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO_EdU",
 			antibody1="",antibody2="",
 			clearing_batch_number=4)

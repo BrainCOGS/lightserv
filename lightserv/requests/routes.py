@@ -582,6 +582,7 @@ def new_request():
 							processing_resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
 							processing_resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
 							processing_resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
+							processing_resolution_insert_dict['final_orientation'] = resolution_dict['final_orientation']
 							processing_resolution_insert_list.append(processing_resolution_insert_dict)
 							""" now loop through the imaging channels and fill out the ImagingChannel entries """
 							for imaging_channel_dict in resolution_dict['channel_forms']:

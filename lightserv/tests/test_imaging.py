@@ -67,6 +67,7 @@ def test_imaging_entry_form_submits(test_client,test_cleared_request_ahoag,
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
@@ -354,6 +355,7 @@ def test_post_request_already_imaged_request_ahoag(test_client,test_imaged_reque
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
@@ -385,6 +387,7 @@ def test_no_right_lightsheet_submits(test_client,test_cleared_request_ahoag,
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
@@ -461,6 +464,7 @@ def test_new_imaging_request(test_client,test_single_sample_request_ahoag):
 				data={
 			'image_resolution_forms-0-image_resolution':'1.3x',
 			'image_resolution_forms-0-atlas_name':'allen_2017',
+			'image_resolution_forms-0-final_orientation':'sagittal',
 			'image_resolution_forsetup':'1.3x',
 			'image_resolution_forms-0-channels-0-registration':True,
 			'submit':True
@@ -503,6 +507,7 @@ def test_new_imaging_request_image_resolution_forms_validation(test_client,test_
 				data={
 					'image_resolution_forms-0-image_resolution':'1.3x',
 					'image_resolution_forms-0-atlas_name':'allen_2017',
+					'image_resolution_forms-0-final_orientation':'sagittal',
 					'image_resolution_forsetup':'1.3x',
 			'submit':True
 			},content_type='multipart/form-data',
@@ -528,6 +533,7 @@ def test_new_imaging_request_image_resolution_forms_validation(test_client,test_
 				data={
 			'image_resolution_forms-0-image_resolution':'1.3x',
 			'image_resolution_forms-0-atlas_name':'allen_2017',
+			'image_resolution_forms-0-final_orientation':'sagittal',
 			'image_resolution_forsetup':'1.3x',
 			'image_resolution_forms-0-channels-0-injection_detection':True,
 			'submit':True
@@ -547,6 +553,7 @@ def test_new_imaging_request_image_resolution_forms_validation(test_client,test_
 				data={
 			'image_resolution_forms-0-image_resolution':'1.3x',
 			'image_resolution_forms-0-atlas_name':'allen_2017',
+			'image_resolution_forms-0-final_orientation':'sagittal',
 			'image_resolution_forsetup':'1.3x',
 			'image_resolution_forms-0-channels-0-registration':True,
 			'image_resolution_forsetup':'1.3x',
@@ -572,6 +579,7 @@ def test_new_imaging_request_self_imaging(test_client,test_single_sample_request
 			'self_imaging':True,
 			'image_resolution_forms-0-image_resolution':'1.3x',
 			'image_resolution_forms-0-atlas_name':'allen_2017',
+			'image_resolution_forms-0-final_orientation':'sagittal',
 			'image_resolution_forsetup':'1.3x',
 			'image_resolution_forms-0-channels-0-registration':True,
 			'submit':True

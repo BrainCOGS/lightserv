@@ -7,12 +7,16 @@ from wtforms.validators import (DataRequired, Length, InputRequired, ValidationE
 from wtforms.widgets import html5
 import os, glob
 
+""" For the imaging entry form """
+
 class ChannelForm(FlaskForm):
 	""" A form that is used in ImagingForm() via a FormField Fieldlist
 	so I dont have to write the imaging parameters out for each channel
 	"""
 	channel_name = HiddenField('Channel name')
 	image_resolution = HiddenField('Image resolution')
+	image_orientation = SelectField('Image orientation',choices=[('sagittal','sagittal'),('coronal','coronal'),
+				 ('horizontal','horizontal')],default='sagittal',validators=[InputRequired()])
 	left_lightsheet_used = BooleanField('Left',default=False)
 	right_lightsheet_used = BooleanField('Right',default=False)
 	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',default='1x1')
@@ -124,6 +128,8 @@ class ImagingForm(FlaskForm):
 						  f"{rawdata_fullpath}","danger")
 					raise ValidationError(error_str)
 
+""" For new imaging requests """
+
 class ChannelRequestForm(FlaskForm):
 	""" Used by other forms in a FieldList """
 	channel_name = HiddenField('Channel Name')
@@ -137,6 +143,9 @@ class ImageResolutionRequestForm(FlaskForm):
 	""" A form used in a FieldList for each image resolution that a user picks 
 	in NewImagingRequestForm """
 	image_resolution = HiddenField('image resolution')
+	final_orientation = SelectField('Output orientation',
+		choices=[('sagittal','sagittal'),('coronal','coronal'),
+				 ('horizontal','horizontal')],default='sagittal',validators=[InputRequired()])
 	channels = FieldList(FormField(ChannelRequestForm),min_entries=4,max_entries=4)
 	notes_for_imager = TextAreaField('''Note here why you are requesting additional imaging. Also include any special notes for imaging 
 		(e.g. z step size, exposure time, suggested tiling scheme -- make sure to specify which channel) -- max 1024 characters --''',
@@ -148,7 +157,6 @@ class ImageResolutionRequestForm(FlaskForm):
 	atlas_name = SelectField('Atlas for registration',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
 				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])
-
 
 class NewImagingRequestForm(FlaskForm):
 	""" The form for entering imaging information """

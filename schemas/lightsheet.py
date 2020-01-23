@@ -110,6 +110,7 @@ class Request(dj.Manual):
         cell_detection = 0                        :   boolean
         generic_imaging = 0                       :   boolean
         pixel_type = NULL                         :   varchar(32)
+        image_orientation                         :   enum("sagittal","coronal","horizontal") # how the imager imaged the sample. Most of the time will be horizontal
         numerical_aperture = NULL                 :   float # it is not always recorded in metadata so those times it will be NULL
         tiling_scheme = '1x1'                     :   char(3)
         tiling_overlap = 0.0                      :   float
@@ -137,6 +138,7 @@ class Request(dj.Manual):
         image_resolution                          :   enum("1.3x","4x","1.1x","2x")
         ----        
         atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
+        final_orientation                         :   enum("sagittal","coronal","horizontal")
         notes_for_processor = ""                  :   varchar(1024)
         notes_from_processing = ""                :   varchar(1024) 
         spock_jobid = NULL                        :   varchar(32)

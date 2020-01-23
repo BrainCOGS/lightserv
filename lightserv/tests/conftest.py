@@ -191,6 +191,7 @@ def test_single_sample_request_ahoag(test_client,test_login,test_delete_request_
 			'clearing_samples-0-sample_name':'sample-001',
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
@@ -225,6 +226,7 @@ def test_single_sample_request_4x_ahoag(test_client,test_login,test_delete_reque
 			'clearing_samples-0-sample_name':'sample-001',
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'4x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
@@ -260,6 +262,7 @@ def test_multichannel_request_ahoag(test_client,test_login,test_delete_request_d
 			'clearing_samples-0-sample_name':'sample-001',
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
@@ -295,6 +298,7 @@ def test_two_requests_ahoag(test_client,test_login,test_delete_request_db_conten
 			'clearing_samples-0-sample_name':'sample-001',
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
@@ -314,6 +318,7 @@ def test_two_requests_ahoag(test_client,test_login,test_delete_request_db_conten
 			'clearing_samples-0-sample_name':'sample-001',
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
@@ -340,7 +345,7 @@ def test_request_all_mouse_clearing_protocols_ahoag(test_client,test_login,test_
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"ahoag@princeton.edu",
-			'request_name':"All mouse clearing protocol request",
+			'request_name':"All_mouse_clearing_protocol_request",
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':4,
 			'username':current_user,
@@ -348,6 +353,7 @@ def test_request_all_mouse_clearing_protocols_ahoag(test_client,test_login,test_
 			'clearing_samples-0-sample_name':'sample-001',
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'clearing_samples-1-clearing_protocol':'iDISCO+_immuno',
@@ -355,18 +361,21 @@ def test_request_all_mouse_clearing_protocols_ahoag(test_client,test_login,test_
 			'clearing_samples-1-sample_name':'sample-002',
 			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-1-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-1-image_resolution_forsetup':'1.3x',
 			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
 			'clearing_samples-2-clearing_protocol':'uDISCO',
 			'clearing_samples-2-sample_name':'sample-003',
 			'imaging_samples-2-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-2-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-2-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-2-image_resolution_forsetup':'1.3x',
 			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-registration':True,
 			'clearing_samples-3-clearing_protocol':'iDISCO_EdU',
 			'clearing_samples-3-sample_name':'sample-004',
 			'imaging_samples-3-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-3-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-3-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-3-image_resolution_forsetup':'1.3x',
 			'imaging_samples-3-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
@@ -400,6 +409,7 @@ def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_del
 			'clearing_samples-0-sample_name':'sample-001',
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
@@ -434,6 +444,7 @@ def test_rat_request_nonadmin(test_client,test_login_nonadmin,test_delete_reques
 			'clearing_samples-0-sample_name':'sample-001',
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
@@ -585,7 +596,7 @@ def test_cleared_all_mouse_clearing_protocols_ahoag(test_client,
 		pbs_wash1_notes='some notes',submit=True)
 
 	response = test_client.post(url_for('clearing.clearing_entry',username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -598,7 +609,7 @@ def test_cleared_all_mouse_clearing_protocols_ahoag(test_client,
 
 	response = test_client.post(url_for('clearing.clearing_entry',
 			username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO+_immuno",
 			antibody1="test antibody for immunostaining",antibody2="",
 			clearing_batch_number=2),
@@ -610,7 +621,7 @@ def test_cleared_all_mouse_clearing_protocols_ahoag(test_client,
 		dehydr_pbs_wash1_notes='some notes',submit=True)
 
 	response = test_client.post(url_for('clearing.clearing_entry',username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="uDISCO",
 			antibody1="",antibody2="",
 			clearing_batch_number=3),
@@ -622,7 +633,7 @@ def test_cleared_all_mouse_clearing_protocols_ahoag(test_client,
 		dehydr_pbs_wash1_notes='some notes',submit=True)
 
 	response = test_client.post(url_for('clearing.clearing_entry',username="ahoag",
-			request_name="All mouse clearing protocol request",
+			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO_EdU",
 			antibody1="",antibody2="",
 			clearing_batch_number=4),
@@ -669,6 +680,7 @@ def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
@@ -699,6 +711,7 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
@@ -728,14 +741,15 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
 		'image_resolution_forms-0-channel_forms-0-z_step':5,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
-		
 		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
 		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
 		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'2x2',
@@ -753,13 +767,12 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 
 
-
 """ Fixtures for follow-up imaging and processing requests """
 
 @pytest.fixture(scope='function') 
 def test_new_imaging_request_ahoag(test_client,test_single_sample_request_ahoag):
-	""" A fixture to make a request with two imaging requests 
-	for a single sample. 
+	""" A fixture to make a new imaging request for an existing request.
+	A new imaging request by default creates a new processing request. 
 
 	Uses test_single_sample_request_ahoag to make a single request with a single 
 	sample for setup
@@ -772,6 +785,7 @@ def test_new_imaging_request_ahoag(test_client,test_single_sample_request_ahoag)
 		data={
 			'image_resolution_forms-0-image_resolution':'1.3x',
 			'image_resolution_forms-0-atlas_name':'allen_2017',
+			'image_resolution_forms-0-final_orientation':'horizontal',
 			'image_resolution_forsetup':'1.3x',
 			'image_resolution_forms-0-channels-0-registration':True,
 			'submit':True
