@@ -186,7 +186,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 			dj.Table._update(processing_request_contents,'processing_progress','running')
 
 			flash("Your data processing has begun. You will receive an email "
-				  "when the first steps are completed.","success")
+				  "when it is completed.","success")
 			# except:
 			# 	logger.info("Pipeline initialization failed. Updating processing progress to 'failed' ")
 			# 	dj.Table._update(processing_request_contents,'processing_progress','failed')

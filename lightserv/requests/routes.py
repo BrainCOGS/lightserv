@@ -1,9 +1,7 @@
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup, current_app)
-# from flask_login import current_user, login_required
-# from lightserv import db_lightsheet
-# from lightserv.models import Experiment
+
 from lightserv.requests.forms import NewRequestForm, UpdateNotesForm
 from lightserv.requests.tables import (AllRequestTable,
 	RequestOverviewTable, create_dynamic_samples_table,

@@ -255,6 +255,7 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 
 			# command = """cd %s;sbatch --export=output_directory='%s' main.sh """ % \
 			# (current_app.config['PROCESSING_CODE_DIR'],output_directory)
+			# command = """sbatch --parsable /usr/people/ahoag/test_slurm_scripts/submit_minimal.sh""" 
 			command = """sbatch --parsable /usr/people/ahoag/test_slurm_scripts/submit_failed.sh""" 
 			port = 22
 			try:

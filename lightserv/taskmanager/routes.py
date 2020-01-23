@@ -1,7 +1,8 @@
 from flask import (render_template, request, redirect,
 				   Blueprint, session, url_for, flash,
-				   Markup, Request, Response,jsonify)
-from lightserv import db_lightsheet,db_admin, cel
+				   Markup, Request, Response,jsonify,
+                   current_app)
+from lightserv import db_lightsheet,db_admin, cel, mail
 from lightserv.main.utils import logged_in, table_sorter, log_http_requests
 from functools import partial, wraps
 
@@ -10,6 +11,9 @@ import requests
 
 import logging
 import paramiko,time
+import os
+from flask_mail import Message
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -28,66 +32,6 @@ logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
 taskmanager = Blueprint('taskmanager',__name__)
-
-@taskmanager.route("/submit_job")
-def submit_job(): 
-    """ A useful route for launching a test job on spock 
-    Helpful for debugging the status_checker() route 
-    and the celery scheduler to monitor spock job progress
-    """
-    command = """sbatch --parsable test_slurm_scripts/submit.sh """ 
-    port = 22
-    username = 'ahoag'
-    hostname = 'spock.pni.princeton.edu'
-    try:
-        client = paramiko.SSHClient()
-        client.load_system_host_keys()
-        client.set_missing_host_key_policy(paramiko.WarningPolicy)
-        
-        client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
-
-        stdin, stdout, stderr = client.exec_command(command)
-        jobid = str(stdout.read().decode("utf-8").strip('\n'))
-        # jobid = 16046124
-        status = 'SUBMITTED'
-        entry_dict = {'jobid':jobid,'username':username,'status':status}
-        db_admin.SpockJobManager.insert1(entry_dict)    
-    finally:
-        client.close()
-
-    return "Job submitted"
-    # return redirect(url_for('main.home'))
-
-@taskmanager.route("/submit_failed_job")
-def submit_failed_job(): 
-    """ A useful route for launching a test job on spock 
-    that will intentionally result in a FAILED status code
-    Helpful for debugging the status_checker() route 
-    and the celery scheduler to monitor spock job progress
-    """
-    command = """sbatch --parsable test_slurm_scripts/submit_failed.sh """ 
-    port = 22
-    username = 'ahoag'
-    hostname = 'spock.pni.princeton.edu'
-    try:
-        client = paramiko.SSHClient()
-        client.load_system_host_keys()
-        client.set_missing_host_key_policy(paramiko.WarningPolicy)
-        
-        client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
-
-        stdin, stdout, stderr = client.exec_command(command)
-        jobid = str(stdout.read().decode("utf-8").strip('\n'))
-        # jobid = 16046124
-        status = 'SUBMITTED'
-        entry_dict = {'jobid':jobid,'username':username,'status':status}
-        db_admin.SpockJobManager.insert1(entry_dict)    
-    finally:
-        client.close()
-
-    return "Job submitted"
-    # return redirect(url_for('main.home'))
-
 
 @cel.task()
 def status_checker():
@@ -110,7 +54,6 @@ def status_checker():
     port = 22
     username = 'ahoag'
     hostname = 'spock.pni.princeton.edu'
-    # time_start = time.time()
 
     try:
         client = paramiko.SSHClient()
@@ -180,6 +123,30 @@ def status_checker():
             f'sample_name="{sample_name}"' & f'imaging_request_number={imaging_request_number}' & \
             f'processing_request_number={processing_request_number}',
             'processing_progress','complete')
+        """ Send email to user saying their entire processing request is complete """
+        sample_basepath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+            request_name,sample_name,f'imaging_request_{imaging_request_number}')
+
+        output_directory = os.path.join(sample_basepath,'output',
+                f'processing_request_{processing_request_number}')
+        
+        msg = Message('Lightserv automated email: SUCCESSFUL processing request',
+                        sender='lightservhelper@gmail.com',
+                        recipients=['ahoag@princeton.edu']) # send it to me while in DEV phase
+                    
+        msg.body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+            'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
+            'The processing for your request:\n\n'
+            f'request_name: "{request_name}"\n'
+            f'sample_name: "{sample_name}"\n'
+            f'imaging_request_number: {imaging_request_number}\n'
+            f'processing_request_number: {processing_request_number}\n\n'
+            'was completed successfully.'
+            'You can find your processed data here:'
+            f'\n{output_directory}'
+            '\n\nThanks,\nThe Histology and Brain Registration Core Facility.')
+        mail.send(msg)
+        logger.debug("Sent email that processing was completed")
     
     """ For processing requests where even just one jobid has status=FAILED,
     then update the processing_progress='failed' for the whole processing request.
@@ -206,8 +173,59 @@ def status_checker():
             f'sample_name="{sample_name}"' & f'imaging_request_number={imaging_request_number}' & \
             f'processing_request_number={processing_request_number}',
             'processing_progress','failed')
+        sample_basepath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+            request_name,sample_name,f'imaging_request_{imaging_request_number}')
 
-    
+        output_directory = os.path.join(sample_basepath,'output',
+                f'processing_request_{processing_request_number}')
+        
+        msg_user = Message('Lightserv automated email: FAILED processing request',
+                        sender='lightservhelper@gmail.com',
+                        recipients=['ahoag@princeton.edu']) # send it to me while in DEV phase
+                    
+        msg_user.body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+            'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
+            'The processing for your request:\n\n'
+            f'request_name: "{request_name}"\n'
+            f'sample_name: "{sample_name}"\n'
+            f'imaging_request_number: {imaging_request_number}\n'
+            f'processing_request_number: {processing_request_number}\n\n'
+            'has failed. '
+            '\n\nThank you for your patience while we look into why this happened. We will get back to you shortly. '
+            '\n\nIf you have any questions or comments about this please reply to this message.'
+            '\n\nThanks,\nThe Histology and Brain Registration Core Facility.')
+        mail.send(msg_user)
+
+        """ Now send a message to the admins to alert them that a processing request has failed """
+        resolution_contents_this_request = db_lightsheet.Request.ProcessingResolutionRequest() & \
+            f'username="{username}"' & \
+            f'request_name="{request_name}"' & f'sample_name="{sample_name}"' & \
+            f'imaging_request_number={imaging_request_number}' & \
+            f'processing_request_number={processing_request_number}'
+        job_dict_list = resolution_contents_this_request.fetch(
+            'image_resolution','spock_jobid','spock_job_progress',as_dict=True)
+        job_str_lines = '\n'.join(['{0} {1} {2}'.format(
+            job_dict['image_resolution'],job_dict['spock_jobid'],
+            job_dict['spock_job_progress']) for job_dict in job_dict_list])
+        msg_admin = Message('Lightserv automated email: FAILED processing request',
+                        sender='lightservhelper@gmail.com',
+                        recipients=['lightservhelper@gmail.com']) # send it to 
+                    
+        msg_admin.body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+            'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
+            'The processing for request:\n\n'
+            f'request_name: "{request_name}"\n'
+            f'sample_name: "{sample_name}"\n'
+            f'imaging_request_number: {imaging_request_number}\n'
+            f'processing_request_number: {processing_request_number}\n\n'
+            'has failed.\n\n'
+            'In particular, the statuses of all jobs in this processing request are:\n'
+            '#image_resolution  jobid     status\n'
+            '{}\n'.format(job_str_lines))
+
+        mail.send(msg_admin)
+
+
 
     # for each running process, find all jobids in the processing resolution request tables
     return jsonify(jobids=jobids,status_codes=status_codes)
@@ -216,6 +234,65 @@ def status_checker():
 def check_all_statuses():
     status_checker.delay()
     return "Checked all statuses"
+
+@taskmanager.route("/submit_job")
+def submit_job(): 
+    """ A useful route for launching a test job on spock 
+    Helpful for debugging the status_checker() route 
+    and the celery scheduler to monitor spock job progress
+    """
+    command = """sbatch --parsable test_slurm_scripts/submit.sh """ 
+    port = 22
+    username = 'ahoag'
+    hostname = 'spock.pni.princeton.edu'
+    try:
+        client = paramiko.SSHClient()
+        client.load_system_host_keys()
+        client.set_missing_host_key_policy(paramiko.WarningPolicy)
+        
+        client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+
+        stdin, stdout, stderr = client.exec_command(command)
+        jobid = str(stdout.read().decode("utf-8").strip('\n'))
+        # jobid = 16046124
+        status = 'SUBMITTED'
+        entry_dict = {'jobid':jobid,'username':username,'status':status}
+        db_admin.SpockJobManager.insert1(entry_dict)    
+    finally:
+        client.close()
+
+    return "Job submitted"
+    # return redirect(url_for('main.home'))
+
+@taskmanager.route("/submit_failed_job")
+def submit_failed_job(): 
+    """ A useful route for launching a test job on spock 
+    that will intentionally result in a FAILED status code
+    Helpful for debugging the status_checker() route 
+    and the celery scheduler to monitor spock job progress
+    """
+    command = """sbatch --parsable test_slurm_scripts/submit_failed.sh """ 
+    port = 22
+    username = 'ahoag'
+    hostname = 'spock.pni.princeton.edu'
+    try:
+        client = paramiko.SSHClient()
+        client.load_system_host_keys()
+        client.set_missing_host_key_policy(paramiko.WarningPolicy)
+        
+        client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+
+        stdin, stdout, stderr = client.exec_command(command)
+        jobid = str(stdout.read().decode("utf-8").strip('\n'))
+        # jobid = 16046124
+        status = 'SUBMITTED'
+        entry_dict = {'jobid':jobid,'username':username,'status':status}
+        db_admin.SpockJobManager.insert1(entry_dict)    
+    finally:
+        client.close()
+
+    return "Job submitted"
+    # return redirect(url_for('main.home'))
 
 @taskmanager.route("/say_hello") 
 def say_hello():

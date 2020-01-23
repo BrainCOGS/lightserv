@@ -12,3 +12,4 @@ screenshots
 **/.cache
 **/htmlcov
 .coverage
+*pem
