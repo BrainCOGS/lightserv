@@ -42,6 +42,14 @@ def welcome():
 	logger.info(f"{current_user} accessed welcome page")
 	return render_template('main/welcome.html',)
 
+@main.route("/gallery")
+@logged_in
+@log_http_requests
+def gallery(): 
+	current_user = session['user']
+	logger.info(f"{current_user} accessed gallery page")
+	return render_template('main/gallery.html',)
+
 @main.route('/login', methods=['GET', 'POST'])
 def login():
 	next_url = request.args.get("next")
