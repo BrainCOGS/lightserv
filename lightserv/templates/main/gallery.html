@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1 align="center" class="mb-4">Brain Registration and Histology Core Facility Gallery </h1>
+<hr class='class-1'>
+	<div>
+		<h3 align="center"> Transsynaptic viral tracing </h3>
+		<div align="center" class='mb-2'>
+			<img src="{{ url_for('static',filename='gallery/viral_tracing.gif') }}">
+		</div>
+
+		<p align="left"> The original use case of the Core Facility. Pisano et al. (in prep.) used light sheet imaging to map anatomical pathways between the cerebellum and sensorimotor, associative, and modulatory regions of the forebrain. Shown above is a three dimensional visualization of cell centers (cyan) that were traced using the anterograde transsynaptic tracer herpes simplex virus type 1 (H129) and the retrograde tracer pseudorabies virus (Bartha). Also shown are the cerebellar subregions of the Princeton Mouse Brain Atlas, a modified version of the Allen Brain Atlas extended to include the posterior cerebellum and designed to improve registration accuracy to light sheet images.  
+		</p>
+
+		<h5> Tech specs: </h5>
+		<b>Clearing protocol:</b> iDISCO+ (with immunostaining)</br>
+		<b>Imaging resolution:</b> 4x</br>
+		<b>Imaging modes:</b> Registration (488 nm), Cell detection (647 nm)</br>
+		<b>Cell detection:</b> https://github.com/PrincetonUniversity/3dunet</br>
+		<b>Visualization:</b> <a target="_blank" href="http://www.github.com/google/neuroglancer">neuroglancer</a>
+
+	</div>
+	
+<hr class='class-2'>
+
+	<div>
+		<h3 align="center"> Injection site localization </h3>
+		<div align="center" class='mb-2'>
+			<img src="{{ url_for('static',filename='') }}">
+		</div>
+
+		<p align="left"> Placeholder text
+		</p>
+
+		<h5> Tech specs: </h5>
+		<b>Clearing protocol:</b> </br>
+		<b>Imaging resolution:</b></br>
+		<b>Imaging modes:</b> </br>
+		<b>Visualization:</b> <a target="_blank" href="http://www.github.com/google/neuroglancer">neuroglancer</a>
+
+	</div>
+{% endblock content %}
