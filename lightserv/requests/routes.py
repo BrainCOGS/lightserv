@@ -6,7 +6,7 @@ from lightserv.requests.forms import NewRequestForm, UpdateNotesForm
 from lightserv.requests.tables import (AllRequestTable,
 	RequestOverviewTable, create_dynamic_samples_table,
 	AllSamplesTable)
-from lightserv import db_lightsheet
+from lightserv import db_lightsheet, db_u19subject
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests)
 from lightserv import cel,mail
@@ -369,12 +369,17 @@ def new_request():
 						form.clearing_samples[ii].clearing_protocol.data = 'iDISCO abbreviated clearing (rat)'
 
 					form.imaging_samples.append_entry()
-				
+				# """ Now disable the fields in the top section """
+				# logger.debug(form.species.data)
+				# form.species_display.data = form.species.data
+				# logger.debug(form.species_display.data)
+				# form.species_display.render_kw = {'disabled':'disabled'}
+				# form.hide_species(value=form.species.data)
+				# form.subject_fullname.render_kw = {'disabled':'disabled'}
+
+
 				column_name = 'clearing_samples-0-sample_name'
 
-				""" Now disable the fields in the top section """
-				# form.number_of_samples.render_kw = {'readonly':True}
-				# logger.debug(form.number_of_samples.data)
 
 
 			elif submit_key == 'uniform_clearing_submit_button': # The uniform clearing button
@@ -464,6 +469,7 @@ def new_request():
 					request_insert_dict = dict(request_name=form.request_name.data,
 						username=username,requested_by=current_user,
 						labname=form.labname.data.lower(),
+						subject_fullname=form.subject_fullname.data,
 						correspondence_email=form.correspondence_email.data.lower(),
 						description=form.description.data,species=form.species.data,
 						number_of_samples=form.number_of_samples.data,
@@ -735,6 +741,9 @@ def new_request():
 
 		if not form.correspondence_email.data:	
 			form.correspondence_email.data = current_user + '@princeton.edu' 
+
+		# form.subject_fullname.choices = [('test','test')] 
+
 	if 'column_name' not in locals():
 		column_name = ''
 	

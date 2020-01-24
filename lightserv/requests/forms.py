@@ -8,7 +8,7 @@ from wtforms.validators import DataRequired, Length, InputRequired, ValidationEr
 from wtforms.widgets import html5, HiddenInput
 import os
 import glob
-from lightserv import db_lightsheet
+from lightserv import db_lightsheet,db_u19subject
 from wtforms import DateField
 
 
@@ -81,6 +81,10 @@ class NewRequestForm(FlaskForm):
 	enter_for_otheruser = BooleanField('Check if you are filling out this form for someone else',default=False)
 	username = StringField('Netid of that person',
 		validators=[Length(max=20)])
+	subject_fullname_unique_list = sorted(list(set(db_u19subject.Subject().fetch('subject_fullname'))))
+	subject_fullname_choices = [('','')] + [(x,x) for x in subject_fullname_unique_list]
+	subject_fullname = SelectField('subject_fullname in u19_subject table:',
+		choices=subject_fullname_choices,default='') 
 	request_name = StringField('Request_name - a unique identifier for this request -- max 64 characters --',
 		validators=[InputRequired(),Length(max=64)],default="test")
 	description = TextAreaField('What is the goal of this request? -- max 250 characters --',validators=[InputRequired(),Length(max=250)],default="test")
@@ -90,6 +94,8 @@ class NewRequestForm(FlaskForm):
 
 	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],
 		validators=[InputRequired(),Length(max=50)],default="mouse") # for choices first element of tuple is the value of the option, the second is the displayed text
+	species_display = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],
+		validators=[Length(max=50)],default="mouse") 
 	number_of_samples = IntegerField('Number of samples (a.k.a. tubes)',widget=html5.NumberInput(),validators=[InputRequired()],default=1)
 	# sample_prefix = StringField('Sample prefix (your samples will be named prefix-1, prefix-2, ...)',validators=[InputRequired(),Length(max=32)],default='sample')
 	# subject_fullnames_known = BooleanField("Check if any of your samples have subject_fullname entries in the u19_subject database table")
@@ -113,6 +119,11 @@ class NewRequestForm(FlaskForm):
 	sample_submit_button = SubmitField('Setup samples')
 
 	submit = SubmitField('Submit request')	
+
+	def hide_species(self,value):
+		self.species.widget = HiddenInput()
+		self.species.data = value
+		self.species._value = lambda: value
 
 	def validate_submit(self,submit):
 		""" Make sure that user has filled out sample setup section """ 

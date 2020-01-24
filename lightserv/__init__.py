@@ -33,6 +33,7 @@ def set_schema():
 			db_lightsheet = dj.create_virtual_module('lightsheet','ahoag_lightsheet_demo',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
 			db_admin = dj.create_virtual_module('admin','ahoag_admin_demo',create_schema=True)
 			db_microscope = dj.create_virtual_module('microscope_demo','ahoag_microscope_demo',create_schema=True)
+			db_u19subject = dj.create_virtual_module('subject','u19_subject',create_schema=False)
 			# db_microscope = None
 			# db_admin = dj.create_virtual_module('admin','u19lightserv_appcore',create_schema=True)
 			# db_logger = Log(dj.conn(), database='ahoag_lightsheet_demo') # Initialize logger
@@ -47,11 +48,13 @@ def set_schema():
 			db_lightsheet = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
 			db_microscope = dj.create_virtual_module('ahoag_microscope_test','ahoag_microscope_test',create_schema=True)
 			db_admin = dj.create_virtual_module('ahoag_admin_test','ahoag_admin_test',create_schema=True)
-	except KeyError:
-		return None,None,None
-	return db_lightsheet,db_microscope,db_admin
+			db_u19subject = dj.create_virtual_module('ahoag_subject_test','ahoag_subject_test',create_schema=True)
 
-db_lightsheet,db_microscope,db_admin = set_schema()
+	except KeyError:
+		return None,None,None,None
+	return db_lightsheet,db_microscope,db_admin,db_u19subject
+
+db_lightsheet,db_microscope,db_admin,db_u19subject = set_schema()
 
 mail = Mail()
 
