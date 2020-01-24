@@ -186,6 +186,9 @@ class NewImagingRequestForm(FlaskForm):
 			if selected_imaging_modes == []:
 				raise ValidationError(f"The image resolution table: {image_resolution}"
 									  f" is empty. Please select at least one option. ")
+			if 'registration' in selected_imaging_modes and resolution_form_dict['final_orientation'] != 'sagittal':
+					raise ValidationError(f"Image resolution table: {image_resolution}:"
+					  						f" Output orientation must be sagittal since registration was selected")
 			elif ('injection_detection' in selected_imaging_modes or \
 				  'probe_detection' in selected_imaging_modes  or \
 				  'cell_detection' in selected_imaging_modes) and \

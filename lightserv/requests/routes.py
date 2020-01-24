@@ -6,7 +6,7 @@ from lightserv.requests.forms import NewRequestForm, UpdateNotesForm
 from lightserv.requests.tables import (AllRequestTable,
 	RequestOverviewTable, create_dynamic_samples_table,
 	AllSamplesTable)
-from lightserv import db_lightsheet, db_u19subject
+from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests)
 from lightserv import cel,mail

@@ -8,7 +8,7 @@ from wtforms.validators import DataRequired, Length, InputRequired, ValidationEr
 from wtforms.widgets import html5, HiddenInput
 import os
 import glob
-from lightserv import db_lightsheet,db_u19subject
+from lightserv import db_lightsheet,db_subject
 from wtforms import DateField
 
 
@@ -81,7 +81,7 @@ class NewRequestForm(FlaskForm):
 	enter_for_otheruser = BooleanField('Check if you are filling out this form for someone else',default=False)
 	username = StringField('Netid of that person',
 		validators=[Length(max=20)])
-	subject_fullname_unique_list = sorted(list(set(db_u19subject.Subject().fetch('subject_fullname'))))
+	subject_fullname_unique_list = sorted(list(set(db_subject.Subject().fetch('subject_fullname'))))
 	subject_fullname_choices = [('','')] + [(x,x) for x in subject_fullname_unique_list]
 	subject_fullname = SelectField('subject_fullname in u19_subject table:',
 		choices=subject_fullname_choices,default='') 
@@ -184,6 +184,10 @@ class NewRequestForm(FlaskForm):
 
 			Also make sure that user cannot create multiple 
 			image resolution sub-forms for the same image resolution. 
+
+			Also make sure that if registration is used 
+			in a given image resolution table, the output_orientation
+			must be sagittal
 		"""
 		for ii in range(len(imaging_samples.data)):
 			imaging_sample_dict = imaging_samples[ii].data
@@ -201,6 +205,9 @@ class NewRequestForm(FlaskForm):
 				if selected_imaging_modes == []:
 					raise ValidationError(f"The image resolution table: {image_resolution}"
 										  f" for sample name: {sample_name} is empty. Please select at least one option. ")
+				if 'registration' in selected_imaging_modes and resolution_form_dict['final_orientation'] != 'sagittal':
+					raise ValidationError(f"Sample name: {sample_name}, image resolution table: {image_resolution}:"
+					  						f" Output orientation must be sagittal since registration was selected")
 				elif self.species.data != 'mouse' and \
 					  ('injection_detection' in selected_imaging_modes or \
 					  'probe_detection' in selected_imaging_modes  or \

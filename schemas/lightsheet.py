@@ -1,5 +1,4 @@
 import datajoint as dj
-import socket
 import os
 
 if os.environ.get('FLASK_MODE') == 'TEST':

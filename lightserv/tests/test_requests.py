@@ -842,6 +842,42 @@ def test_duplicate_image_resolution_form(test_client,test_login):
 	assert b'Imaging/Processing setup' in response.data  
 	assert b'You tried to make a table for image_resolution 1.3x. But that resolution was already picked for this sample:' in response.data
 
+def test_sagittal_orientation_required_if_registration(test_client,test_login):
+	""" Ensure that a validation error is raised is user tries
+	to submit a request where output orientation is not sagittal
+	but they requested registration. 
+	
+	"""
+	today = date.today()
+	today_proper_format = today.strftime('%Y-%m-%d')
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	# Simulate pressing the "Set up imaging parameters" button
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"admin_request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'username':current_user,
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'coronal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b'New Request Form' in response.data  
+	assert b'Output orientation must be sagittal since registration was selected' in response.data 
+
+
 def test_duplicate_sample_names(test_client,test_login):
 	""" Ensure that having duplicate sample names raises an error
 

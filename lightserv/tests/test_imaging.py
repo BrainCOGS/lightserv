@@ -594,3 +594,29 @@ def test_new_imaging_request_self_imaging(test_client,test_single_sample_request
 	assert b'New Imaging Request' not in response.data
 	
 	
+
+def test_new_imaging_request_final_orientation_sagittal_if_registration(test_client,test_single_sample_request_ahoag):
+	""" Ensure that a validation error is raised is user tries
+	to submit a request where output orientation is not sagittal
+	but they requested registration. 
+
+	Uses the test_single_sample_request_ahoag fixture
+	to insert a request into the database as ahoag. 
+
+	"""
+	response = test_client.post(
+				url_for('imaging.new_imaging_request',username='ahoag',request_name='admin_request',
+					sample_name='sample-001'),
+				data={
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'image_resolution_forms-0-atlas_name':'allen_2017',
+			'image_resolution_forms-0-final_orientation':'coronal',
+			'image_resolution_forsetup':'1.3x',
+			'image_resolution_forms-0-channels-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b'New Imaging Request' in response.data
+	assert b'core facility requests' not in response.data	
+	assert b'Output orientation must be sagittal since registration was selected' in response.data 
