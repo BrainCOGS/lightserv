@@ -12,8 +12,16 @@ from flask_wtf.csrf import CSRFError
 
 ''' Allow writing python objects to db as blob '''
 dj.config["enable_python_native_blobs"] = True
-cel = Celery(__name__,broker='amqp://localhost//',
-	backend=f'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test')
+
+def set_celery_db():
+	if os.environ['FLASK_MODE'] == 'DEV':
+		cel = Celery(__name__,broker='amqp://localhost//',
+			backend=f'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery')
+	elif os.environ['FLASK_MODE'] == 'TEST':
+		cel = Celery(__name__,broker='amqp://localhost//',
+			backend=f'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test')
+	return cel
+cel = set_celery_db()
 
 ''' Initialize all the extensions outside of our app so 
 we can use them for multiple apps if we want. Don't want to tie 

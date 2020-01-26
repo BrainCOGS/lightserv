@@ -223,9 +223,11 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 								final_orientation_tuple = ("0","1","2")
 							elif final_orientation == 'coronal':
 								final_orientation_tuple = ("2","0","1")
-						else:
-							logger.debug("WARNING. non-horizontal image orientation not yet supported")
-							final_orientation_tuple = ("2","1","0") # hardcoded for now but will need to be captured from the form 
+						elif image_orientation == 'sagittal':
+							if final_orientation == 'sagittal':
+								final_orientation_tuple = ("0","1","2")
+							elif final_orientation == 'horizontal':
+								final_orientation_tuple = ("2","1","0")
 						param_dict['finalorientation'] = final_orientation_tuple 
 
 					""" Fill inputdictionary """

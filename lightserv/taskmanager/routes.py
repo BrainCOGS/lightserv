@@ -302,3 +302,12 @@ def say_hello():
 @cel.task()
 def hello():
     return "hello world"
+
+@taskmanager.route("/say_goodbye") 
+def say_goodbye():
+    goodbye.delay()
+    return "Said goodbye"
+
+@cel.task()
+def goodbye():
+    return "goodbye world"    
