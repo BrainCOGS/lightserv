@@ -15,7 +15,7 @@ def test_ahoag_access_imaging_manager(test_client,test_cleared_request_ahoag):
 	assert b'admin_request' in response.data 
 
 def test_nonadmin_access_imaging_manager(test_client,test_cleared_request_ahoag,test_login_nonadmin):
-	""" Test that Manuel (ms81, a nonadmin) can access the imaging task manager
+	""" Test that Manuel (lightserv-test, a nonadmin) can access the imaging task manager
 	but cannot see his entry because he did not designate himself as the imager
 	and cannot see ahoag's entry because he is a not an imaging admin. """
 	response = test_client.get(url_for('imaging.imaging_manager')

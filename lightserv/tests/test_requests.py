@@ -992,7 +992,7 @@ def test_multiple_samples_same_clearing_batch(test_client,test_login,test_delete
 
 def test_nonadmin_cannot_see_checkbox_to_submit_as_someone_else(test_client,
 		test_login_nonadmin):
-	""" Ensure that a nonadmin, e.g. Manuel (ms81) 
+	""" Ensure that a nonadmin, e.g. Manuel (lightserv-test) 
 	cannot see the checkbox to submit the request
 	as another user
 
@@ -1044,7 +1044,7 @@ def test_submit_good_mouse_request_for_someone_else(test_client,
 			'requested_by':test_login['user'],
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
-			'username':'ms81',
+			'username':'lightserv-test',
 			'clearing_samples-0-expected_handoff_date':today_proper_format,
 			'clearing_samples-0-perfusion_date':today_proper_format,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
@@ -1121,22 +1121,22 @@ def test_admin_sees_all_requests(test_client,test_single_sample_request_ahoag,te
 	assert b'This is a demo request' in response.data 	
 
 def test_nonadmin_only_sees_their_requests(test_client,test_single_sample_request_ahoag,test_single_sample_request_nonadmin):
-	""" Check that Manuel (ms81, a nonadmin) cannot see the request made by ahoag
+	""" Check that Manuel (lightserv-test, a nonadmin) cannot see the request made by ahoag
 	on the all requests page, but they can see their request.
 
 	Uses the test_single_sample_request_ahoag fixture
 	to insert a request into the database as ahoag.
 
 	Uses the test_single_sample_request_nonadmin fixture to insert a request 
-	into the database as ms81, a nonadmin. With this fixture being
-	the last parameter, this leaves ms81 logged in.
+	into the database as lightserv-test, a nonadmin. With this fixture being
+	the last parameter, this leaves lightserv-test logged in.
 	"""
 	
 	response = test_client.get(url_for('requests.all_requests'),
 		follow_redirects=True)
 
 	assert b'This is a demo request' not in response.data 	
-	assert b'This is a request by ms81' in response.data 	
+	assert b'This is a request by lightserv-test' in response.data 	
 
 def test_sort_requests_table_asc_desc(test_client,test_two_requests_ahoag):
 	""" Check that sorting the all requests table works 
@@ -1214,15 +1214,15 @@ def test_admin_sees_all_samples(test_client,test_single_sample_request_ahoag,tes
 	assert b'sample-001' in response.data 	
 
 def test_nonadmin_only_sees_their_samples(test_client,test_single_sample_request_ahoag,test_single_sample_request_nonadmin):
-	""" Check that Manuel (ms81, a nonadmin) can only see the samples from their request 
+	""" Check that Manuel (lightserv-test, a nonadmin) can only see the samples from their request 
 	but not the one made by ahoag on the all samples page. 
 
 	Uses the test_single_sample_request_ahoag fixture
 	to insert a request into the database as ahoag.
 
 	Uses the test_single_sample_request_nonadmin fixture to insert a request 
-	into the database as ms81, a nonadmin. With this fixture being
-	the last parameter, this leaves ms81 logged in.
+	into the database as lightserv-test, a nonadmin. With this fixture being
+	the last parameter, this leaves lightserv-test logged in.
 	"""
 	
 	response = test_client.get(url_for('requests.all_samples'),

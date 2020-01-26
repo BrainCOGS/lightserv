@@ -20,7 +20,7 @@ def test_GET_log_entry_nonadmin_user(test_client,test_login_nonadmin):
 	response = test_client.get(url_for('requests.all_requests'),
 		follow_redirects=True)
 	log_event = db_admin.UserActionLog().fetch()[-1]['event']
-	assert log_event == '''ms81 GET request to route: "all_requests()" in lightserv.requests.routes'''
+	assert log_event == '''lightserv-test GET request to route: "all_requests()" in lightserv.requests.routes'''
 
 def test_POST_log_entry_admin_user(test_client,test_login,):
 	""" Ensure that when the user issues a POST request
@@ -52,7 +52,7 @@ def test_POST_log_entry_nonadmin_user(test_client,test_login_nonadmin):
 
 	# Simulate pressing the "Setup samples" button
 	data = dict(
-			labname="Wang",correspondence_email="ms81@princeton.edu",
+			labname="Wang",correspondence_email="lightserv-test@princeton.edu",
 			request_name="Demo request",
 			description="This is a demo request",
 			species="mouse",number_of_samples=2,
@@ -65,4 +65,4 @@ def test_POST_log_entry_nonadmin_user(test_client,test_login_nonadmin):
 		)	
 
 	log_event = db_admin.UserActionLog().fetch()[-1]['event']
-	assert log_event == '''ms81 POST request to route: "new_request()" in lightserv.requests.routes'''
+	assert log_event == '''lightserv-test POST request to route: "new_request()" in lightserv.requests.routes'''

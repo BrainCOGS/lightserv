@@ -137,7 +137,7 @@ def test_login_zmd(test_client):
 def test_login_nonadmin(test_client):
 	""" Log the user in. Requires a test_client fixture to do this. """
 	print('----------Setup login_nonadmin response----------')
-	username = 'ms81'
+	username = 'lightserv-test'
 	with test_client.session_transaction() as sess:
 		sess['user'] = username
 	all_usernames = db_lightsheet.User().fetch('username') 
@@ -388,7 +388,7 @@ def test_request_all_mouse_clearing_protocols_ahoag(test_client,test_login,test_
 
 @pytest.fixture(scope='function') 
 def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
-	""" Submits a new request as 'ms81' (a nonadmin) that can be used for various tests.
+	""" Submits a new request as 'lightserv-test' (a nonadmin) that can be used for various tests.
 
 	It uses the test_delete_request_db_contents fixture, which means that 
 	the entry is deleted as soon as the test has been run
@@ -400,9 +400,9 @@ def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_del
 		print(f"Current user is {current_user}")
 	response = test_client.post(
 		url_for('requests.new_request'),data={
-			'labname':"Tank/Brody",'correspondence_email':"ms81@princeton.edu",
+			'labname':"Tank/Brody",'correspondence_email':"lightserv-test@princeton.edu",
 			'request_name':"nonadmin_request",
-			'description':"This is a request by ms81, a non admin",
+			'description':"This is a request by lightserv-test, a non admin",
 			'species':"mouse",'number_of_samples':1,
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
@@ -423,7 +423,7 @@ def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_del
 	
 @pytest.fixture(scope='function') 
 def test_rat_request_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
-	""" Submits a new request as Manuel ('ms81', a nonadmin) for species='rat' that can be used for various tests.
+	""" Submits a new request as Manuel ('lightserv-test', a nonadmin) for species='rat' that can be used for various tests.
 
 	It uses the test_delete_request_db_contents fixture, which means that 
 	the entry is deleted as soon as the test has been run
@@ -435,9 +435,9 @@ def test_rat_request_nonadmin(test_client,test_login_nonadmin,test_delete_reques
 		print(f"Current user is {current_user}")
 	response = test_client.post(
 		url_for('requests.new_request'),data={
-			'labname':"Tank/Brody",'correspondence_email':"ms81@princeton.edu",
+			'labname':"Tank/Brody",'correspondence_email':"lightserv-test@princeton.edu",
 			'request_name':"Nonadmin_rat_request",
-			'description':"This is a request for a rat by ms81, a non admin",
+			'description':"This is a request for a rat by lightserv-test, a non admin",
 			'species':"rat",'number_of_samples':1,
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing (rat)',
@@ -549,7 +549,7 @@ def test_cleared_multichannel_request_ahoag(test_client,
 @pytest.fixture(scope='function') 
 def test_cleared_request_nonadmin(test_client,test_single_sample_request_nonadmin,
 	test_login_ll3,test_delete_request_db_contents):
-	""" Clears the single request by 'ms81' (with clearer='ll3') 
+	""" Clears the single request by 'lightserv-test' (with clearer='ll3') 
 
 	Uses test_single_sample_request_nonadmin request so that a request is in the db
 	when it comes time to do the clearing
@@ -565,7 +565,7 @@ def test_cleared_request_nonadmin(test_client,test_single_sample_request_nonadmi
 	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
 		dehydr_pbs_wash1_notes='some notes',submit=True)
 
-	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
+	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
 			request_name="nonadmin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
@@ -647,7 +647,7 @@ def test_cleared_all_mouse_clearing_protocols_ahoag(test_client,
 @pytest.fixture(scope='function') 
 def test_cleared_rat_request(test_client,
 	test_rat_request_nonadmin,test_login_ll3,test_delete_request_db_contents):
-	""" Clears the single rat request by Manuel (ms81, a nonadmin) (with clearer='ll3') 
+	""" Clears the single rat request by Manuel (lightserv-test, a nonadmin) (with clearer='ll3') 
 
 	"""
 	print('----------Setup test_cleared_request_ahoag fixture ----------')
@@ -656,7 +656,7 @@ def test_cleared_rat_request(test_client,
 	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
 		pbs_wash1_notes='some rat notes',submit=True)
 
-	response = test_client.post(url_for('clearing.clearing_entry',username="ms81",
+	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
 			request_name="Nonadmin_rat_request",
 			clearing_protocol="iDISCO abbreviated clearing (rat)",
 			antibody1="",antibody2="",
@@ -701,7 +701,7 @@ def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
 @pytest.fixture(scope='function') 
 def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 	test_delete_request_db_contents,test_login_zmd):
-	""" Images the cleared request by 'ms81' (clearer='ll3')
+	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
 	with imager='zmd' """
 
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
@@ -721,14 +721,48 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
-			username='ms81',request_name='nonadmin_request',sample_name='sample-001',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
 			imaging_request_number=1),
 		data=data,
 		follow_redirects=True)
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'ms81'
+		sess['user'] = 'lightserv-test'
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
+
+
+@pytest.fixture(scope='function') 
+def imaged_request_lightserv_test(test_client,test_cleared_request_nonadmin,
+	test_delete_request_db_contents,test_login_zmd):
+	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
+	with imager='zmd' """
+
+	print('----------Setup test_imaged_request_nonadmin fixture ----------')
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'zmd'
+	# print(db_lightsheet.Request.Sample())
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
+	yield test_client
+	print('----------Teardown test_imaged_request_ahoag fixture ----------')
+
 
 @pytest.fixture(scope='function') 
 def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel_request_ahoag,
@@ -785,7 +819,7 @@ def test_new_imaging_request_ahoag(test_client,test_single_sample_request_ahoag)
 		data={
 			'image_resolution_forms-0-image_resolution':'1.3x',
 			'image_resolution_forms-0-atlas_name':'allen_2017',
-			'image_resolution_forms-0-final_orientation':'horizontal',
+			'image_resolution_forms-0-final_orientation':'sagittal',
 			'image_resolution_forsetup':'1.3x',
 			'image_resolution_forms-0-channels-0-registration':True,
 			'submit':True

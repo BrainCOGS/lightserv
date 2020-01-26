@@ -274,8 +274,8 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 
 			# command = """cd %s;sbatch --export=output_directory='%s' main.sh """ % \
 			# (current_app.config['PROCESSING_CODE_DIR'],output_directory)
-			# command = """sbatch --parsable /usr/people/ahoag/test_slurm_scripts/submit_minimal.sh""" 
-			command = """sbatch --parsable /usr/people/ahoag/test_slurm_scripts/submit_failed.sh""" 
+			command = """sbatch --parsable /usr/people/ahoag/test_slurm_scripts/submit_minimal.sh""" 
+			# command = """sbatch --parsable /usr/people/ahoag/test_slurm_scripts/submit_failed.sh""" 
 			port = 22
 			try:
 				client = paramiko.SSHClient()
@@ -294,7 +294,7 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 				dj.Table._update(this_image_resolution_content,'spock_jobid',jobid)
 				dj.Table._update(this_image_resolution_content,'spock_job_progress','SUBMITTED')
 			except:
-				logger.info(f"ProcessingResolutionRequest() failed to start. ")
+				logger.info(f"Failed to connect to spock to start job. ")
 				dj.Table._update(this_image_resolution_content,'spock_job_progress','NOT_SUBMITTED')
 			finally:
 				client.close()

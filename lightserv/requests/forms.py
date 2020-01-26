@@ -115,7 +115,7 @@ class NewRequestForm(FlaskForm):
 	custom_sample_names = BooleanField("Check if you want to give custom names to each of your samples. "
 		          					   "If unchecked, your sample names will be {request_name}-sample-001, "
 		          					   "{request_name}-sample-002, ...")
-
+	""" Processing """
 	sample_submit_button = SubmitField('Setup samples')
 
 	submit = SubmitField('Submit request')	

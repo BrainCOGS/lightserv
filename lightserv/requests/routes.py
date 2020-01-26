@@ -560,9 +560,9 @@ def new_request():
 						processing_request_insert_dict['processing_request_date_submitted'] = date
 						processing_request_insert_dict['processing_request_time_submitted'] = time
 						processing_request_insert_dict['processing_progress'] = "incomplete"
-						""" The user is always the "processor" - i.e. the person
-						 who double-checks the processing form and hits GO """
-						processing_request_insert_dict['processor'] = username
+						# """ The user is always the "processor" - i.e. the person
+						#  who double-checks the processing form and hits GO """
+						# processing_request_insert_dict['processor'] = username
 						processing_request_insert_list.append(processing_request_insert_dict)
 
 						""" Now insert each image resolution/channel combo """
