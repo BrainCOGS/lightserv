@@ -44,6 +44,6 @@ class SpockJobManager(dj.Manual):
     timestamp = CURRENT_TIMESTAMP : timestamp
     ---
     username : varchar(32)
-    status : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING")
+    status : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
     """
 
