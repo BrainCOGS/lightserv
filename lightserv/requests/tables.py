@@ -61,6 +61,16 @@ class AllRequestTable(Table):
 		next_url += f'?sort={col_key}&direction={direction}&table_id={self.table_id}'
 		return next_url
 
+class ClearingTableLinkCol(LinkCol):
+    
+    def td_contents(self, item, attr_list):
+        if item['clearing_progress'] == 'complete':
+            return '<a href="{url}">{text}</a>'.format(
+                url=self.url(item),
+                text=self.td_format(self.text(item, attr_list)))
+        else:
+            return "N/A"
+
 class AllSamplesTable(Table):
 	border = True
 	allow_sort = True
@@ -83,7 +93,7 @@ class AllSamplesTable(Table):
 	'clearing_protocol':'clearing_protocol',
 	'antibody1':'antibody1','antibody2':'antibody2','clearing_batch_number':'clearing_batch_number'}
 	anchor_attrs = {}
-	clearing_log = LinkCol('Clearing log', 
+	clearing_log = ClearingTableLinkCol('Clearing log', 
 		'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
 	   anchor_attrs=anchor_attrs,allow_sort=False)
 	datetime_submitted = DateTimeCol('datetime submitted')
@@ -193,7 +203,7 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 		'antibody1':'antibody1','antibody2':'antibody2','clearing_batch_number':'clearing_batch_number'}
 	anchor_attrs = {}
 	table_class.add_column('view_clearing_link',
-		 LinkCol('Clearing log', 
+		 ClearingTableLinkCol('Clearing log', 
 		'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
 	   anchor_attrs=anchor_attrs,allow_sort=False))
 	

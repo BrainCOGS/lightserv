@@ -126,15 +126,19 @@ def request_overview(username,request_name):
 	request_contents = request_contents.proj('description','species','number_of_samples',
 		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
 	samples_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & f'username="{username}"' 
-	''' Get rid of the rows where none of the channels are used '''
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & \
+	f'request_name="{request_name}"' & f'username="{username}"' 
 	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & \
 	 f'request_name="{request_name}"' & f'username="{username}"' 
 	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
 	 f'request_name="{request_name}"' & f'username="{username}"' 
 
-	combined_contents = (samples_contents * imaging_request_contents * processing_request_contents)
+	combined_contents = (samples_contents * clearing_batch_contents * \
+		imaging_request_contents * processing_request_contents)
 
 	all_contents_dict_list = combined_contents.fetch(as_dict=True)
+	logger.debug(all_contents_dict_list)
+
 	keep_keys = ['username','request_name','sample_name','species',
 				 'clearing_protocol','antibody1','antibody2','clearing_progress',
 				 'clearing_batch_number','datetime_submitted']
@@ -144,6 +148,17 @@ def request_overview(username,request_name):
 		username = d.get('username')
 		request_name = d.get('request_name')
 		current_sample_name = d.get('sample_name')
+		
+		# clearing_batch_query_dict = dict(
+		# 	username=username,request_name=request_name,
+		# 	clearing_protocol=d.get('clearing_protocol'),
+		# 	antibody1=d.get('antibody1'),
+		# 	antibody2=d.get('antibody2'),
+		# 	clearing_batch_number=d.get('clearing_batch_number')
+		# 	)
+		
+		# clearing_batch_contents = db_lightsheet & clearing_batch_query_dict
+		# clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
 		imaging_request_number = d.get('imaging_request_number')
 
 		imager = d.get('imager')
@@ -161,6 +176,7 @@ def request_overview(username,request_name):
 								   'processing_request_number':processing_request_number,
 								   'processor':processor,'processing_progress':processing_progress}
 		existing_sample_names = [x.get('sample_name') for x in final_dict_list]
+
 		if current_sample_name not in existing_sample_names: # Then new sample, new imaging request, new processing request
 			new_dict_values = list(map(d.get,keep_keys))
 			new_dict = {keep_keys[ii]:new_dict_values[ii] for ii in range(len(keep_keys))}
@@ -182,7 +198,7 @@ def request_overview(username,request_name):
 				existing_imaging_request_index = existing_imaging_request_numbers.index(imaging_request_number)
 				existing_imaging_request_dict = existing_imaging_request_dicts[existing_imaging_request_index]
 				existing_imaging_request_dict['processing_requests'].append(processing_request_dict)
-
+	# logger.debug(final_dict_list)
 	# The first time page is loaded, sort, reverse, table_id are all not set so they become their default
 	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')

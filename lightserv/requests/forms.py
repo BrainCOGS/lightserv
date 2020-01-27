@@ -170,10 +170,10 @@ class NewRequestForm(FlaskForm):
 			clearing_protocol_sample = sample_dict['clearing_protocol']
 			if clearing_protocol_sample == 'iDISCO abbreviated clearing (rat)' and self.species.data != 'rat':
 				raise ValidationError(f"Sample_name: {sample_name}. Clearing protocol: {clearing_protocol_sample} "
-					                  f"can only be used with rats. You specified species={self.species.data}")
+					                  f"can only be used with rat subjects. You specified species={self.species.data}")
 			if clearing_protocol_sample != 'iDISCO abbreviated clearing (rat)' and self.species.data == 'rat':
 				raise ValidationError(f"Sample_name: {sample_name}. The clearing protocol you selected: {clearing_protocol_sample} "
-				                        "is not valid rats. The only clearing protocol currently available for rats is:" 
+				                        "is not valid for species=rat. The only clearing protocol currently available for rat subjects is: " 
 				  						"Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)")
 
 	def validate_imaging_samples(self,imaging_samples):
