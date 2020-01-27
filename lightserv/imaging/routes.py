@@ -284,7 +284,9 @@ def new_imaging_request(username,request_name,sample_name):
 	for the same sample.  """
 	logger.info(f"{session['user']} accessed new imaging request form")
 	form = NewImagingRequestForm(request.form)
-
+	request_contents = db_lightsheet.Request() & {'username':username,'request_name':request_name}
+	species = request_contents.fetch1('species')
+	form.species.data = species
 	all_imaging_modes = current_app.config['IMAGING_MODES']
 
 	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \

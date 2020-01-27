@@ -160,7 +160,8 @@ class ImageResolutionRequestForm(FlaskForm):
 
 class NewImagingRequestForm(FlaskForm):
 	""" The form for entering imaging information """
-	max_number_of_image_resolutions = 4 
+	max_number_of_image_resolutions = 4
+	species = HiddenField('species') 
 	self_imaging = BooleanField('Check if you plan to do the imaging yourself',default=False)
 	image_resolution_forsetup = SelectField('Select an image resolution you want to use:', 
 		choices=[('1.3x','1.3x'),
@@ -187,13 +188,19 @@ class NewImagingRequestForm(FlaskForm):
 				raise ValidationError(f"The image resolution table: {image_resolution}"
 									  f" is empty. Please select at least one option. ")
 			if 'registration' in selected_imaging_modes and resolution_form_dict['final_orientation'] != 'sagittal':
-					raise ValidationError(f"Image resolution table: {image_resolution}:"
+				raise ValidationError(f"Image resolution table: {image_resolution}:"
 					  						f" Output orientation must be sagittal since registration was selected")
+			elif self.species.data != 'mouse' and \
+					  ('injection_detection' in selected_imaging_modes or \
+					  'probe_detection' in selected_imaging_modes  or \
+					  'cell_detection' in selected_imaging_modes or \
+					  'registration' in selected_imaging_modes):
+				raise ValidationError(f"Only generic imaging is currently available for species: {self.species.data}")
 			elif ('injection_detection' in selected_imaging_modes or \
 				  'probe_detection' in selected_imaging_modes  or \
 				  'cell_detection' in selected_imaging_modes) and \
 				  'registration' not in selected_imaging_modes:
-				  raise ValidationError(f"Image resolution table: {image_resolution}."
+				raise ValidationError(f"Image resolution table: {image_resolution}."
 										f" You must select a registration channel"
 										 " when requesting any of the detection channels")
 

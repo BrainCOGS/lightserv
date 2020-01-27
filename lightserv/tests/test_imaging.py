@@ -591,9 +591,7 @@ def test_new_imaging_request_self_imaging(test_client,test_single_sample_request
 		'imaging_request_number=2').fetch1('imager')
 	assert imager_request2 == 'ahoag'
 	assert b'core facility requests' in response.data	
-	assert b'New Imaging Request' not in response.data
-	
-	
+	assert b'New Imaging Request' not in response.data	
 
 def test_new_imaging_request_final_orientation_sagittal_if_registration(test_client,test_single_sample_request_ahoag):
 	""" Ensure that a validation error is raised is user tries
@@ -620,3 +618,31 @@ def test_new_imaging_request_final_orientation_sagittal_if_registration(test_cli
 	assert b'New Imaging Request' in response.data
 	assert b'core facility requests' not in response.data	
 	assert b'Output orientation must be sagittal since registration was selected' in response.data 
+
+def test_new_imaging_rat_request_only_generic_imaging_allowed(test_client,test_login,test_cleared_rat_request):
+	""" Ensure that only generic imaging is allowed (other options disabled)
+	for rat imaging (we cannot register for them because they don't have an atlas yet)
+
+	Does not enter data into the db if it passes, but it might 
+	by accident so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	from lightserv import db_lightsheet
+	response1 = test_client.post(
+		url_for('imaging.new_imaging_request',username="lightserv-test",
+			request_name="Nonadmin_rat_request",
+			sample_name="sample-001"),data={
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'image_resolution_forms-0-atlas_name':'allen_2017',
+			'image_resolution_forms-0-final_orientation':'sagittal',
+			'image_resolution_forsetup':'1.3x',
+			'image_resolution_forms-0-channels-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"Only generic imaging is currently available" in response1.data
+	assert b"New Imaging Request" in response1.data

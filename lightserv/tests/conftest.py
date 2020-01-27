@@ -456,6 +456,41 @@ def test_rat_request_nonadmin(test_client,test_login_nonadmin,test_delete_reques
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_nonadmin fixture --------')
 	
+@pytest.fixture(scope='function') 
+def test_request_generic_imaging_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits a new request as 'lightserv-test' (a nonadmin) that can be used for various tests.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_single_request_nonadmin fixture ----------')
+	from lightserv import db_lightsheet
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+		print(f"Current user is {current_user}")
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Witten",'correspondence_email':"lightserv-test@princeton.edu",
+			'request_name':"nonadmin_request",
+			'description':"This is a request by lightserv-test, a non admin",
+			'species':"mouse",'number_of_samples':1,
+			'username':current_user,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'coronal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'555',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_single_request_nonadmin fixture --------')
+
 """ Fixtures for clearing """
 
 @pytest.fixture(scope='function') 
@@ -576,7 +611,38 @@ def test_cleared_request_nonadmin(test_client,test_single_sample_request_nonadmi
 
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_cleared_request_ahoag fixture --------')
+
+@pytest.fixture(scope='function') 
+def test_cleared_request_generic_imaging_nonadmin(test_client,test_request_generic_imaging_nonadmin,
+	test_login_ll3,test_delete_request_db_contents):
+	""" Clears the single request by 'lightserv-test' (with clearer='ll3') 
+
+	Uses test_single_sample_request_nonadmin request so that a request is in the db
+	when it comes time to do the clearing
 	
+	Runs test_login_ll3 next so that 'll3' gets logged in and can do the clearing
+
+	Uses the test_delete_request_db_contents fixture, which means that 
+	all db entries are deleted upon teardown of this fixture
+	"""
+	print('----------Setup test_cleared_request_ahoag fixture ----------')
+	from lightserv import db_lightsheet
+	now = datetime.now()
+	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		dehydr_pbs_wash1_notes='some notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
+			request_name="nonadmin_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_cleared_request_ahoag fixture --------')	
+
 @pytest.fixture(scope='function') 
 def test_cleared_all_mouse_clearing_protocols_ahoag(test_client,
 	test_request_all_mouse_clearing_protocols_ahoag,test_delete_request_db_contents):
@@ -719,6 +785,39 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
+	yield test_client
+	print('----------Teardown test_imaged_request_ahoag fixture ----------')
+
+
+@pytest.fixture(scope='function') 
+def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_request_generic_imaging_nonadmin,
+	test_delete_request_db_contents,test_login_zmd):
+	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
+	with imager='zmd' """
+
+	print('----------Setup test_imaged_request_nonadmin fixture ----------')
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'zmd'
+	# print(db_lightsheet.Request.Sample())
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'555',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'sagittal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test555',
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
 			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
