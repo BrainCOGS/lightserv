@@ -196,3 +196,38 @@ def test_processing_admin_submit_processing_entry_for_nonadmin(test_client,test_
 			f'processing_request_number="{processing_request_number}"'
 	processing_progress = processing_request_contents.fetch1('processing_progress')
 	assert processing_progress == 'running'
+
+def test_submit_processing_entry_generic_imaging_nonadmin(test_client,test_imaged_request_generic_imaging_nonadmin):
+	""" Test that lightserv-test can access the processing entry form
+	for his request"""
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'zmd'
+
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'555',
+		'image_resolution_forms-0-atlas_name':'allen_2017',
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'submit':True
+		}
+	username='lightserv-test'
+	request_name='nonadmin_request'
+	sample_name='sample-001'
+	imaging_request_number=1
+	processing_request_number=1
+	response = test_client.post(url_for('processing.processing_entry',
+		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+		imaging_request_number=1,processing_request_number=1)
+		,data=data,
+		follow_redirects=True)
+	
+	assert b"core facility requests" in response.data
+	assert b"Processing entry form" not in response.data
+
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
+			f'request_name="{request_name}"' & \
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			f'imaging_request_number="{imaging_request_number}"' & \
+			f'processing_request_number="{processing_request_number}"'
+	processing_progress = processing_request_contents.fetch1('processing_progress')
+	assert processing_progress == 'running'

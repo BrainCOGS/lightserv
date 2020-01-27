@@ -215,7 +215,9 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 						param_dict['xyz_scale'] = xyz_scale
 						""" Now figure out the final orientation tuple given the 
 							orientation that this was imaged at and the requested
-							final_orientation string """
+							final_orientation string.
+							The orientation will have already been forced to be 
+							sagittal if one requested a registration channel. """
 						if image_orientation == 'horizontal':
 							if final_orientation == 'sagittal':
 								final_orientation_tuple = ("2","1","0")
@@ -228,6 +230,15 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 								final_orientation_tuple = ("0","1","2")
 							elif final_orientation == 'horizontal':
 								final_orientation_tuple = ("2","1","0")
+							elif final_orientation == 'coronal':
+								final_orientation_tuple = ("0","2","1")
+						elif image_orientation == 'coronal':
+							if final_orientation == 'sagittal':
+								final_orientation_tuple = ("0","2","1")
+							elif final_orientation == 'horizontal':
+								final_orientation_tuple = ("2","0","1")
+							elif final_orientation == 'coronal':
+								final_orientation_tuple = ("0","1","2")
 						param_dict['finalorientation'] = final_orientation_tuple 
 
 					""" Fill inputdictionary """
