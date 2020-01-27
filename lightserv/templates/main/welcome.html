@@ -2,6 +2,7 @@
 	{% block content %}
 	<h3 align="center" class="mb-4">Welcome to the Brain Registration and Histology Core Facility Portal at the Princeton Neuroscience Institute</h3>
 	<h5> What does this Core Facility do? </h5>
+	<a href="{{ url_for('main.FAQ', _anchor='ssh_key') }}">Try this</a>
 	<p>
 		The Brain Registration and Histology Core Facility is one of the five cores of <a href="https://www.braincogs.org/">BRAIN CoGS</a>. In this core, we perform whole-brain clearing and imaging for a variety of tissue types upon request. See our <a href="{{ url_for('main.gallery') }}">gallery</a> for example tissue types. The Core Facility currently supports the following clearing protocols: <a href="https://docs.google.com/document/d/1SD7Em1Hig9eqgY01sz32iqfu-SBjG9YyEk1p3b87P64/edit"> iDISCO+ (adapted from Renier et al. 2016) </a> | <a href="https://docs.google.com/document/d/1LCdtg3Oo4yUEtXIgyCGAkY0bxOy5aVWlp9KhWynShoA/edit"> iDISCO for nonoxidizable fluorophores </a> | <a href="https://docs.google.com/document/d/1VZ9Gb4zZ2XE8hVll51anp1W9twEeV55qpHd4lH6DJIo/edit"> iDISCO for nonoxidizable fluorophores (for rats) </a> | <a href="https://docs.google.com/document/d/1FNjP-gRaAzC5M_o6v68njg0njyqg2I3DRVzlUveIqm0/edit"> uDISCO (adapted from Pan et al. 2017) </a>. The imaging facility consists of a <a href="https://www.lavisionbiotec.com/products/UltraMicroscope.html">Lavision Biotec UltraMicroscope II</a> light sheet microscope to provide aligned, volumetric images. This optical microscope has four imaging resolutions (1.1x, 1.3x, 2x and 4x) and four wavelength channels (centered at 488, 555, 647 and 790 nm).
 	</p>
@@ -19,7 +20,7 @@
 		At your <a href="{{url_for('requests.all_requests')}}">Requests</a> page, you will see an overview and status updates on all of your requests ongoing and completed requests. The parameters of your clearing and imaging data are automatically stored in a datajoint database upon your completion of the new request form for access external to this site. Contact us for more details.  
 	</p>
 
-	<h5> How to contact us? </h5>
+	<h5 id='contact'> How to contact us? </h5>
 	<p class="mb-4">
 		Please email us at <a href = "#">lightservhelper@gmail.com</a> with any questions about new, ongoing or previous requests, or to simply provide feedback on your experience with this portal or the Core Facility.
 	</p>

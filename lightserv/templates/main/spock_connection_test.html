@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block content %}
+<h3 align="center" class="mb-4">Test your connection to spock.pni.princeton.edu</h3>
+<hr class='class-4'>
+<form method="POST" action="">
+	{{ form.hidden_tag() }}
+	{{ form.submit(class="btn btn-lg btn-info mt-2") }}
+</form>
+<p class='mt-3'> Note: This will not run any jobs on spock. Your spock karma will not be affected by this test.</p>
+
+{% endblock content %}
+

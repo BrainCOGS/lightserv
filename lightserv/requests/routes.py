@@ -686,6 +686,7 @@ def new_request():
 					with open('/home/ahoag/.ssh/id_rsa.pub','r') as keyfile: 
 						keyfile_contents = keyfile.readlines() 
 					ssh_key_text = keyfile_contents[0].strip('\n')
+					spock_link = 'http://braincogs00.pni.princeton.edu' + url_for('main.spock_connection_test')
 					msg.body = ('Hello!\n\nThis is an automated email sent from lightserv, '
 						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 						'Your request:\n'
@@ -694,16 +695,17 @@ def new_request():
 						'you will need to copy the following ssh public key into the following file on spock.pni.princeton.edu: '
 						f'/home/{username}/.ssh/authorized_keys\n\n'
 						'If this file does not already exist, log in to spock and create it using the command: '
-						f'touch /home/{username}/.ssh/authorized_keys\n\n'
-						'If you have never logged in to spock before, os x and linux users may log in from a terminal via: '
-						f'ssh {username}@spock.pni.princeton.edu\n'
-						'Then enter your pni netid password. If you are unable to log in to to spock and make the file, '
+						f'mkdir /home/{username}/.ssh; touch /home/{username}/.ssh/authorized_keys\n\n'
+						'If you have never logged in to spock before, please see the documentation:  '
+						f'https://npcdocs.princeton.edu/index.php/Spock#Accessing_spock\n'
+						'If you are unable to log in to to spock and make the file, '
 						'please contact pnihelp@princeton.edu\n\n'
-						f'The ssh key you need to copy is: \n{ssh_key_text}\n\n'
-						'DISCLAIMER: Note that by copying this key over to your account on spock, you are authorizing the Core Facility to '
+						f'The ssh key you need to copy into the file is: \n{ssh_key_text}\n\n'
+						f'When you have copied over the key, test your connection to spock at: {spock_link}\n\n'
+						'DISCLAIMER: By copying this key over to your account on spock, you are authorizing the Core Facility to '
 						'run spock jobs as you, and as a result your spock karma will be affected as if you ran the job yourself. '
-						'Please respond to this message if you have any questions about this or any other issue regarding your request. '
-						'\n\nThanks,\nThe Histology and Brain Registration Core Facility.')
+						'Please respond to this message if you have any questions about this or any other issue regarding your request.\n\n'
+						'Thanks,\nThe Histology and Brain Registration Core Facility.')
 					mail.send(msg)
 					return redirect(url_for('requests.all_requests'))
 			

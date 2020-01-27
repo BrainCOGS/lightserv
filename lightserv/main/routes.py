@@ -4,6 +4,7 @@ from flask import (render_template, request, redirect,
 from lightserv import db_lightsheet, db_admin
 import pandas as pd
 from lightserv.main.utils import logged_in, table_sorter, log_http_requests
+from lightserv.main.forms import SpockConnectionTesterForm
 from functools import partial, wraps
 
 import datajoint as dj
@@ -13,6 +14,7 @@ import numpy as np
 
 import logging
 from time import sleep
+import paramiko
 
 
 logger = logging.getLogger(__name__)
@@ -49,6 +51,38 @@ def gallery():
 	current_user = session['user']
 	logger.info(f"{current_user} accessed gallery page")
 	return render_template('main/gallery.html',)
+
+
+@main.route("/FAQ")
+@logged_in
+@log_http_requests
+def FAQ(): 
+	current_user = session['user']
+	logger.info(f"{current_user} accessed FAQ")
+	return render_template('main/FAQ.html')
+
+@main.route("/spock_connection_test",methods=['GET','POST'])
+@logged_in
+@log_http_requests
+def spock_connection_test(): 
+	
+	form = SpockConnectionTesterForm()
+	if request.method == 'POST':
+		hostname = 'spock.pni.princeton.edu'
+		current_user = session['user']	
+		port = 22
+		client = paramiko.SSHClient()
+		client.load_system_host_keys()
+		client.set_missing_host_key_policy(paramiko.WarningPolicy)
+		try:
+			client.connect(hostname, port=port, username=current_user, allow_agent=False,look_for_keys=True)
+			flash("Successfully connected to spock.","success")
+		except:
+			flash("Connection unsuccessful. Please refer to the FAQ and try again.","danger")
+		finally:
+			client.close()
+
+	return render_template('main/spock_connection_test.html',form=form)
 
 @main.route('/login', methods=['GET', 'POST'])
 def login():

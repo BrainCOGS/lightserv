@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1 align="center" class="mb-4">FAQ</h1>
+<hr class='class-1'>
+<h4 align="center"> Q: How do I fix the connection to my account on spock?</h4>
+	<p>
+		<b>A:</b> Most likely the ssh key that was emailed to you was either not copied or incorrectly copied to your account on spock. This key allows lightserv to ssh into your account on spock so it can run jobs as you. Check your email for a message from lightservhelper@gmail.com with the contents "ssh key". Follow the instructions at the bottom of the email closely. If you still experience issues connecting, you may need to alter the permissions of the ssh public key file and its directory. To change the permissions log onto your account on spock and issue the following commands: 
+	</p>
+	<p style="color: #080808; background-color: #C0CEDD;font-size: 14px;">
+    chmod 700 ~/.ssh</br>
+    chmod 640 ~/.ssh/authorized_keys
+	</p>
+	<p> You can test your connection to spock: <a href="{{url_for('main.spock_connection_test')}}">here</a>. Note that this will not run any jobs as you and therefore your spock karma will be unaffected.
+<hr class='class-2'>
+
+	{% endblock content %}
+

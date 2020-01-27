@@ -277,25 +277,32 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 			command = """sbatch --parsable /usr/people/ahoag/test_slurm_scripts/submit_minimal.sh""" 
 			# command = """sbatch --parsable /usr/people/ahoag/test_slurm_scripts/submit_failed.sh""" 
 			port = 22
+
+			client = paramiko.SSHClient()
+			client.load_system_host_keys()
+			client.set_missing_host_key_policy(paramiko.WarningPolicy)
 			try:
-				client = paramiko.SSHClient()
-				client.load_system_host_keys()
-				client.set_missing_host_key_policy(paramiko.WarningPolicy)
-				
 				client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
-
-				stdin, stdout, stderr = client.exec_command(command)
-				jobid = str(stdout.read().decode("utf-8").strip('\n'))
-
-				status = 'SUBMITTED'
-				entry_dict = {'jobid':jobid,'username':username,'status':status}
-				db_admin.SpockJobManager.insert1(entry_dict)    
-				logger.info(f"ProcessingResolutionRequest() request was successfully submitted to spock, jobid: {jobid}")
-				dj.Table._update(this_image_resolution_content,'spock_jobid',jobid)
-				dj.Table._update(this_image_resolution_content,'spock_job_progress','SUBMITTED')
-			except:
+			except paramiko.ssh_exception.AuthenticationException:
 				logger.info(f"Failed to connect to spock to start job. ")
-				dj.Table._update(this_image_resolution_content,'spock_job_progress','NOT_SUBMITTED')
-			finally:
-				client.close()
+				dj.Table._update(this_image_resolution_content,'spock_job_progress','NOT_SUBMITTED')	
+				flash("Error submitting your job to spock. "
+					  "Most likely the ssh key was not copied correctly to your account on spock. "
+					  "The key can be found in an email that was sent to you from "
+					  "lightservhelper@gmail.com when you submitted your request. "
+					  "Please check that the permissions of your ~/.ssh folder on spock are set to 700 "
+					  "and the permissions of the .ssh/authorized_keys file is 640:","danger")
+				return redirect(url_for('main.FAQ',_anchor='ssh_key'))
+			stdin, stdout, stderr = client.exec_command(command)
+			jobid = str(stdout.read().decode("utf-8").strip('\n'))
+
+			status = 'SUBMITTED'
+			entry_dict = {'jobid':jobid,'username':username,'status':status}
+			db_admin.SpockJobManager.insert1(entry_dict)    
+			logger.info(f"ProcessingResolutionRequest() request was successfully submitted to spock, jobid: {jobid}")
+			dj.Table._update(this_image_resolution_content,'spock_jobid',jobid)
+			dj.Table._update(this_image_resolution_content,'spock_job_progress','SUBMITTED')
+			
+			# finally:
+			client.close()
 	return 

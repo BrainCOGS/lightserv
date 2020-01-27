@@ -118,6 +118,11 @@ a.article-title:hover {
 font-size: 24px;
 }
 
+code {color: #080808;
+      background-color: #C0CEDD;
+      font-size: 14px;
+      }
+
 .custom-control-label::before, 
 .custom-control-label::after {
 top: .8rem;
