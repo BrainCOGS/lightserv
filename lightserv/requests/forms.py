@@ -131,7 +131,6 @@ class NewRequestForm(FlaskForm):
 			if len(self.clearing_samples.data) == 0 or  len(self.imaging_samples.data) == 0:
 				raise ValidationError("You must fill out and submit the Samples setup section first.")
 
-
 	def validate_number_of_samples(self,number_of_samples):
 		""" Make sure number_of_samples is > 0 and < max_number_of_samples """
 		if number_of_samples.data > self.max_number_of_samples:

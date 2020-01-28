@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+	<h1 align="center"> Imaging Log </h1>
+	<hr class='class-1'>
+	<h2 align="center">Imaging request overview:</h2>
+	<div align="center">
+		{{ imaging_overview_table }}
+	</div>
+
+	<hr class='class-2'>
+
+	<h2 align="center">Acquired Imaging Parameters:</h2>
+	<div align="center">
+		{{ imaging_channel_table }}
+	</div>
+	
+
+
+{% endblock content %}

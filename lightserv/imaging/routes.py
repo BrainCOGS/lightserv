@@ -7,7 +7,7 @@ from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 								  logged_in_as_imager,check_clearing_completed,
 								  image_manager,log_http_requests)
 from lightserv.imaging.tables import (ImagingTable, dynamic_imaging_management_table,
-	SampleTable, ExistingImagingTable)
+	SampleTable, ExistingImagingTable, ImagingChannelTable)
 from .forms import ImagingForm, NewImagingRequestForm
 import numpy as np
 import datajoint as dj
@@ -451,3 +451,23 @@ def new_imaging_request(username,request_name,sample_name):
 	return render_template('imaging/new_imaging_request.html',form=form,
 		sample_table=sample_table,existing_imaging_table=existing_imaging_table)
 
+@imaging.route("/imaging/imaging_table/<username>/<request_name>/<sample_name>/<imaging_request_number>",methods=['GET','POST'])
+@logged_in_as_imager
+@check_clearing_completed
+@log_http_requests
+def imaging_table(username,request_name,sample_name,imaging_request_number): 
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & \
+			f'request_name="{request_name}"' & \
+	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
+	 		f'imaging_request_number="{imaging_request_number}"' 
+
+	imaging_overview_table = ImagingTable(imaging_request_contents)
+
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
+			f'request_name="{request_name}"' & \
+	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
+	 		f'imaging_request_number="{imaging_request_number}"' 
+	imaging_channel_table = ImagingChannelTable(imaging_channel_contents)
+	return render_template('imaging/imaging_log.html',
+		imaging_overview_table=imaging_overview_table,
+		imaging_channel_table=imaging_channel_table)

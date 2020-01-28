@@ -101,6 +101,9 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 			if image_resolution == '1.3x':
 				resizefactor = 3
 				x_scale, y_scale = 5.0,5.0
+			elif image_resolution == '1.1x':
+				resizefactor = 3
+				x_scale, y_scale = 5.909091,5.909091
 			elif image_resolution == '4x':
 				resizefactor = 5
 				x_scale, y_scale = 1.63,1.63

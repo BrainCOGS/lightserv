@@ -61,7 +61,6 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     # anchor_attrs = {'target':"_blank",}
     anchor_attrs = {}
     if table_id == 'horizontal_ready_to_image_table':
-
         table_class.add_column('start_imaging_link',LinkCol('Start imaging',
          'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))
@@ -70,8 +69,8 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
          'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))
     elif table_id == 'horizontal_already_imaged_table':
-        table_class.add_column('view_imaging_link',LinkCol('View imaging log',
-         'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
+        table_class.add_column('view_imaging_link',LinkCol('View Imaging log',
+         'imaging.imaging_table',url_kwargs=imaging_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))
          
     sorted_contents = sorted(contents.fetch(as_dict=True),
@@ -81,7 +80,6 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     table.sort_reverse = reverse
     
     return table 
-
 
 class ImagingTable(Table):
     border = True
@@ -95,7 +93,6 @@ class ImagingTable(Table):
     imager = Col('imager',column_html_attrs=column_html_attrs)
     imaging_request_number = Col('imaging request number',column_html_attrs=column_html_attrs)
     imaging_progress = Col('imaging progress',column_html_attrs=column_html_attrs)
-
 
 class SampleTable(Table):
     border = True
@@ -123,3 +120,20 @@ class ExistingImagingTable(Table):
     injection_detection = BooltoStringCol('injection detection',column_html_attrs=column_html_attrs)
     probe_detection = BooltoStringCol('probe detection',column_html_attrs=column_html_attrs)
     cell_detection = BooltoStringCol('cell detection',column_html_attrs=column_html_attrs)
+
+class ImagingChannelTable(Table):
+    """ A table that shows the ImagingChannel() db contents """
+    border = True
+    no_items = "No Imaging Yet"
+    html_attrs = {"style":'font-size:18px'} # gets assigned to table header
+    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+   
+    image_resolution = Col('image resolution',column_html_attrs=column_html_attrs)
+    channel_name = Col('channel name',column_html_attrs=column_html_attrs)
+    image_orientation = Col('image_orientation',column_html_attrs=column_html_attrs)
+    tiling_scheme = Col('tiling_scheme',column_html_attrs=column_html_attrs)
+    tiling_overlap = Col('tiling_overlap',column_html_attrs=column_html_attrs)
+    z_step = Col('z_step',column_html_attrs=column_html_attrs)
+    number_of_z_planes = Col('number_of_z_planes',column_html_attrs=column_html_attrs)
+    rawdata_subfolder = Col('rawdata_subfolder',column_html_attrs=column_html_attrs)
