@@ -889,6 +889,7 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 		'image_resolution_forms-0-channel_forms-1-z_step':15,
 		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+		'submit':True
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
 			username='ahoag',request_name='admin_multichannel_request',sample_name='sample-001',

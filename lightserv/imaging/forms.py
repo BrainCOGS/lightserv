@@ -92,6 +92,9 @@ class ImagingForm(FlaskForm):
 
 		Also make sure that each rawdata folder has the correct number 
 		of files that the imager reported there was.
+
+		Also make sure that every channel within the same rawdata subfolder 
+		has the same imaging parameters
 		"""
 
 		for image_resolution_dict in self.image_resolution_forms.data:
@@ -109,11 +112,13 @@ class ImagingForm(FlaskForm):
 					raise ValidationError(f"Image resolution: {this_image_resolution}, Channel: {channel_name}: "
 										   "At least one light sheet needs to be selected")
 				""" Now handle the number of raw data files for this channel """
+
 				if rawdata_subfolder in subfolder_dict.keys():
-					subfolder_dict[rawdata_subfolder].append(channel_name)
+					subfolder_dict[rawdata_subfolder].append(channel_dict)
 				else:
-					subfolder_dict[rawdata_subfolder] = [channel_name]
-				channel_index = subfolder_dict[rawdata_subfolder].index(channel_name)
+					subfolder_dict[rawdata_subfolder] = [channel_dict]
+				
+				channel_index = len(subfolder_dict[rawdata_subfolder]) - 1
 
 				rawdata_fullpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 						self.username.data,self.request_name.data,self.sample_name.data,
@@ -127,6 +132,22 @@ class ImagingForm(FlaskForm):
 						  f"but found {number_of_rawfiles_found} in raw data folder: "
 						  f"{rawdata_fullpath}","danger")
 					raise ValidationError(error_str)
+			
+			""" Now make sure imaging parameters are the same for all channels within the same subfolder """
+			common_key_list = ['image_orientation','left_lightsheet_used',
+				'right_lightsheet_used','tiling_scheme','tiling_overlap',
+				'z_step','number_of_z_planes']
+			for subfolder in subfolder_dict.keys():
+				channel_dict_list = subfolder_dict[subfolder]
+				if not all([list(map(d.get,common_key_list)) == \
+					list(map(channel_dict_list[0].get,common_key_list)) \
+						for d in channel_dict_list]):
+					raise ValidationError(f"Subfolder: {subfolder}. "
+										  "Tiling and imaging parameters must be identical"
+										  " for all channels in the same subfolder. Check your entries.")
+				image_resolution = HiddenField('Image resolution')
+
+
 
 """ For new imaging requests """
 

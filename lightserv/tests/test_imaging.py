@@ -449,6 +449,86 @@ def test_no_lightsheets_validation_error(test_client,test_cleared_request_ahoag,
 				 "At least one light sheet needs to be selected")
 	assert error_str.encode('utf-8') in response.data
 
+def test_multichannel_imaging_entry_form_submits(test_client,test_cleared_multichannel_request_ahoag,
+	test_login_zmd):
+	""" Test that the multi-channel imaging entry submits 
+	when all of the imaging parameters are identical for both channels
+	in same rawdata subfolder """
+	from lightserv import db_lightsheet
+	# print(db_lightsheet.Request.ImagingRequest())
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-1-z_step':10,
+		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test488',
+		'submit':True
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='admin_multichannel_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Request overview:' in response.data
+	assert b'Samples in this request:' in response.data 
+
+	imaging_progress = (db_lightsheet.Request.ImagingRequest() & 'request_name="admin_multichannel_request"' & \
+		'username="ahoag"' & 'sample_name="sample-001"' & 'imaging_request_number=1').fetch1('imaging_progress')
+	assert imaging_progress == 'complete'
+
+def test_multichannel_imaging_entry_form_validates(test_client,test_cleared_multichannel_request_ahoag,
+	test_login_zmd):
+	""" Test that a validation error is raised when 
+	two channels in the same rawdata subfolder are 
+	entered as having different imaging parameters"""
+	from lightserv import db_lightsheet
+	# print(db_lightsheet.Request.ImagingRequest())
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x',
+		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.3,
+		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-1-z_step':10,
+		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test488',
+		'submit':True
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='admin_multichannel_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Request overview:' not in response.data
+	assert b'Imaging Entry Form' in response.data 
+	validation_str = 'Subfolder: test488. Tiling and imaging parameters must be identical for all channels in the same subfolder. Check your entries.'
+	assert validation_str.encode('utf-8') in response.data
+
 """ Tests for New imaging request """	
 
 def test_new_imaging_request(test_client,test_single_sample_request_ahoag):
