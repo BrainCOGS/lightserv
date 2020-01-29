@@ -2,7 +2,8 @@ from flask import request
 from flask_table import create_table,Table, Col, LinkCol, ButtonCol
 from functools import partial
 from lightserv.main.utils import table_sorter
-from lightserv.main.tables import BooltoStringCol, DateTimeCol, DesignatedRoleCol
+from lightserv.main.tables import (BooltoStringCol, DateTimeCol,
+    DesignatedRoleCol, ProgressCol)
 import os
 
 def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
@@ -92,7 +93,7 @@ class ImagingTable(Table):
     sample_name = Col('sample name',column_html_attrs=column_html_attrs)
     imager = Col('imager',column_html_attrs=column_html_attrs)
     imaging_request_number = Col('imaging request number',column_html_attrs=column_html_attrs)
-    imaging_progress = Col('imaging progress',column_html_attrs=column_html_attrs)
+    imaging_progress = ProgressCol('imaging progress',column_html_attrs=column_html_attrs)
 
 class SampleTable(Table):
     border = True

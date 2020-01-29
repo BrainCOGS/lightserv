@@ -2,7 +2,7 @@ from flask import url_for,flash,redirect, request
 from flask_table import Table, Col, LinkCol, ButtonCol, create_table, NestedTableCol
 from functools import partial
 from lightserv.main.utils import table_sorter
-from lightserv.main.tables import DateTimeCol
+from lightserv.main.tables import DateTimeCol, ImagingRequestLinkCol, ProcessingRequestLinkCol
 from lightserv import db_lightsheet
 import os
 
@@ -103,25 +103,37 @@ class AllSamplesTable(Table):
 	}
 	imaging_requests_subtable_class = create_table('imaging_request_subtable',
 		options=imaging_request_subtable_options)
-	imaging_requests_subtable_class.add_column('imaging_request_number',Col('imaging request number'))
+	imaging_request_url_kwargs = {'username':'username',
+		'request_name':'request_name','sample_name':'sample_name',
+		'imaging_request_number':'imaging_request_number'}
+	imaging_requests_subtable_class.add_column('imaging_request_number',
+		ImagingRequestLinkCol('imaging request number','imaging.imaging_table',
+			url_kwargs=imaging_request_url_kwargs))
 	imaging_requests_subtable_class.add_column('imager',Col('imager'))
 	imaging_requests_subtable_class.add_column('imaging_progress',Col('imaging progress'))
 	imaging_url_kwargs = {'username':'username','request_name':'request_name','sample_name':'sample_name'}
-	# imaging_requests_subtable_class.add_column('new imaging request',
-	# 	LinkCol('new imaging request','imaging.new_imaging_request',url_kwargs=imaging_url_kwargs))
+	imaging_requests_subtable_class.add_column('new imaging request',
+		ButtonCol('request additional imaging','imaging.new_imaging_request',
+			url_kwargs=imaging_url_kwargs))
 	processing_request_subtable_options = {
 	'table_id':f'processing_requests',
 	'border':True,
 	}
 	processing_requests_subtable_class = create_table('processing_request_subtable',
 		options=processing_request_subtable_options)
-	processing_requests_subtable_class.add_column('processing_request_number',Col('processing request number'))
+	processing_request_url_kwargs = {'username':'username',
+		'request_name':'request_name','sample_name':'sample_name',
+		'imaging_request_number':'imaging_request_number',
+		'processing_request_number':'processing_request_number'}
+	processing_requests_subtable_class.add_column('processing_request_number',
+		ProcessingRequestLinkCol('processing request number','processing.processing_table',
+			url_kwargs=processing_request_url_kwargs))
 	processing_requests_subtable_class.add_column('processor',Col('processor'))
 	processing_requests_subtable_class.add_column('processing_progress',Col('processing progress'))
 	processing_url_kwargs = {'username':'username','request_name':'request_name',
 	'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
-	# processing_requests_subtable_class.add_column('new processing request',
-	# 	LinkCol('new processing request','processing.new_processing_request',url_kwargs=processing_url_kwargs))
+	processing_requests_subtable_class.add_column('new processing request',
+		ButtonCol('request additional processing','processing.new_processing_request',url_kwargs=processing_url_kwargs))
 	imaging_requests_subtable_class.add_column('processing_requests',
 		NestedTableCol('Processing Requests',processing_requests_subtable_class,allow_sort=False))
 
@@ -213,12 +225,17 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 	}
 	imaging_requests_subtable_class = create_table('imaging_request_subtable',
 		options=imaging_request_subtable_options)
-	imaging_requests_subtable_class.add_column('imaging_request_number',Col('imaging request number'))
+	imaging_request_url_kwargs = {'username':'username',
+		'request_name':'request_name','sample_name':'sample_name',
+		'imaging_request_number':'imaging_request_number'}
+	imaging_requests_subtable_class.add_column('imaging_request_number',
+		ImagingRequestLinkCol('imaging request number','imaging.imaging_table',
+			url_kwargs=imaging_request_url_kwargs))
 	imaging_requests_subtable_class.add_column('imager',Col('imager'))
 	imaging_requests_subtable_class.add_column('imaging_progress',Col('imaging progress'))
 	imaging_url_kwargs = {'username':'username','request_name':'request_name','sample_name':'sample_name'}
-	# imaging_requests_subtable_class.add_column('new imaging request',
-	# 	LinkCol('new imaging request','imaging.new_imaging_request',url_kwargs=imaging_url_kwargs))
+	imaging_requests_subtable_class.add_column('new imaging request',
+		ButtonCol('request additional imaging','imaging.new_imaging_request',url_kwargs=imaging_url_kwargs))
 
 	processing_request_subtable_options = {
 	'table_id':f'processing_requests',
@@ -226,13 +243,20 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 	}
 	processing_requests_subtable_class = create_table('processing_request_subtable',
 		options=processing_request_subtable_options)
-	processing_requests_subtable_class.add_column('processing_request_number',Col('processing request number'))
+	processing_request_url_kwargs = {'username':'username',
+		'request_name':'request_name','sample_name':'sample_name',
+		'imaging_request_number':'imaging_request_number',
+		'processing_request_number':'processing_request_number'}
+	processing_requests_subtable_class.add_column('processing_request_number',
+		ProcessingRequestLinkCol('processing request number','processing.processing_table',
+			url_kwargs=processing_request_url_kwargs))
 	processing_requests_subtable_class.add_column('processor',Col('processor'))
 	processing_requests_subtable_class.add_column('processing_progress',Col('processing progress'))
 	processing_url_kwargs = {'username':'username','request_name':'request_name',
 	'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
-	# processing_requests_subtable_class.add_column('new processing request',
-	# 	LinkCol('new processing request','processing.new_processing_request',url_kwargs=processing_url_kwargs))
+	processing_requests_subtable_class.add_column('new processing request',
+		ButtonCol('request additional processing','processing.new_processing_request',
+			url_kwargs=processing_url_kwargs))
 	imaging_requests_subtable_class.add_column('processing_requests',
 		NestedTableCol('Processing Requests',processing_requests_subtable_class))
 

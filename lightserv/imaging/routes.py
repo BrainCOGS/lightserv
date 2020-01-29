@@ -221,8 +221,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			now = datetime.now()
 			date = now.strftime('%Y-%m-%d')
 			dj.Table._update(imaging_request_contents,'imaging_performed_date',date)
-			return redirect(url_for('requests.request_overview',username=username,
-				request_name=request_name,sample_name=sample_name))
+			return redirect(url_for('imaging.imaging_manager'))
 
 		else:
 			logger.info("Not validated")
@@ -462,12 +461,16 @@ def imaging_table(username,request_name,sample_name,imaging_request_number):
 	 		f'imaging_request_number="{imaging_request_number}"' 
 
 	imaging_overview_table = ImagingTable(imaging_request_contents)
-
-	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
-			f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
-	 		f'imaging_request_number="{imaging_request_number}"' 
+	imaging_progress = imaging_request_contents.fetch1('imaging_progress')
+	if imaging_progress != 'complete':
+		imaging_channel_contents = []
+	else:
+		imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
+				f'request_name="{request_name}"' & \
+		 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
+		 		f'imaging_request_number="{imaging_request_number}"' 
 	imaging_channel_table = ImagingChannelTable(imaging_channel_contents)
+
 	return render_template('imaging/imaging_log.html',
 		imaging_overview_table=imaging_overview_table,
 		imaging_channel_table=imaging_channel_table)

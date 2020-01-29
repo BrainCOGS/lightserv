@@ -408,3 +408,36 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 		imaging_overview_table=imaging_overview_table,
 		existing_processing_table=existing_processing_table,
 		channel_contents_lists=channel_contents_lists,sample_dict=sample_dict)
+
+
+@processing.route("/processing/processing_table/<username>/<request_name>/<sample_name>/<imaging_request_number>/<processing_request_number>",
+	methods=['GET','POST'])
+@logged_in
+@log_http_requests
+def processing_table(username,request_name,
+	sample_name,imaging_request_number,processing_request_number): 
+	""" Shows overview of a processing request  """
+	logger.info(f"{session['user']} accessed processing table")
+	sample_contents = (db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
+			f'username="{username}"' & f'sample_name="{sample_name}"')
+
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & f'request_name="{request_name}"' & \
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			 f'imaging_request_number="{imaging_request_number}"' & \
+			 f'processing_request_number="{processing_request_number}"'
+
+	processing_resolution_request_contents = db_lightsheet.Request.ProcessingResolutionRequest() & f'request_name="{request_name}"' & \
+				f'username="{username}"' & f'sample_name="{sample_name}"' & \
+				f'imaging_request_number="{imaging_request_number}"' & \
+				f'processing_request_number="{processing_request_number}"'
+	# channel_contents = db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
+	# 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
+	# 		f'imaging_request_number="{imaging_request_number}"' # all of the channels for this sample
+	# channel_content_dict_list = channel_contents.fetch(as_dict=True)
+
+	joined_contents = sample_contents * processing_request_contents * processing_resolution_request_contents 
+	
+	overview_table_id = 'horizontal_procsesing_table'
+	overview_table = create_dynamic_processing_overview_table(joined_contents,table_id=overview_table_id)
+
+	return render_template('processing/processing_log.html',overview_table=overview_table)

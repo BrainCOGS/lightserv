@@ -2,7 +2,8 @@ from flask import request
 from flask_table import Table, Col, LinkCol, ButtonCol, create_table
 from functools import partial
 from lightserv.main.utils import table_sorter
-from lightserv.main.tables import DateTimeCol,DesignatedRoleCol, BooltoStringCol
+from lightserv.main.tables import (DateTimeCol, DesignatedRoleCol,
+    BooltoStringCol, ProgressCol)
 import os
 
 def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
@@ -108,7 +109,7 @@ def create_dynamic_processing_overview_table(contents,table_id,ignore_columns=[]
     # table_class.add_column('channel_name',Col('channel name'))
     # table_class.add_column('tiling_scheme',Col('tiling scheme'))
     table_class.add_column('processor',Col('processor'))
-    table_class.add_column('processing_progress',Col('processing progress'))
+    table_class.add_column('processing_progress',ProgressCol('processing progress'))
 
     table = table_class(contents)
     
@@ -129,7 +130,6 @@ class ImagingOverviewTable(Table):
     sample_name = Col('sample name',column_html_attrs=column_html_attrs)
     image_resolution = Col('image resolution',column_html_attrs=column_html_attrs)
     channel_name = Col('channel name',column_html_attrs=column_html_attrs)
-
 
 class ExistingProcessingTable(Table):
     """ A table to show the existing processing already
