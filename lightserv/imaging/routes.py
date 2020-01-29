@@ -271,7 +271,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 		channel_contents_lists=channel_contents_lists,
 		overview_dict=overview_dict,imaging_table=imaging_table)
 
-@imaging.route("/imaging/new_imaging_request/<username>/<request_name>/<sample_name>/",methods=['GET','POST'])
+@imaging.route("/imaging/new_imaging_request/<username>/<request_name>/<sample_name>/",
+	methods=['GET','POST'])
 @logged_in
 @log_http_requests
 def new_imaging_request(username,request_name,sample_name): 

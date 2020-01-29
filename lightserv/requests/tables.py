@@ -1,8 +1,9 @@
-from flask import url_for,flash,redirect, request
+from flask import url_for,flash,redirect, request, Markup
 from flask_table import Table, Col, LinkCol, ButtonCol, create_table, NestedTableCol
 from functools import partial
 from lightserv.main.utils import table_sorter
-from lightserv.main.tables import DateTimeCol, ImagingRequestLinkCol, ProcessingRequestLinkCol
+from lightserv.main.tables import (DateTimeCol, ImagingRequestLinkCol,
+	ProcessingRequestLinkCol, element,)
 from lightserv import db_lightsheet
 import os
 
@@ -62,16 +63,17 @@ class AllRequestTable(Table):
 		return next_url
 
 class ClearingTableLinkCol(LinkCol):
-    
-    def td_contents(self, item, attr_list):
-        if item['clearing_progress'] == 'complete':
-            return '<a href="{url}">{text}</a>'.format(
-                url=self.url(item),
-                text=self.td_format(self.text(item, attr_list)))
-        else:
-            return "N/A"
+	
+	def td_contents(self, item, attr_list):
+		if item['clearing_progress'] == 'complete':
+			return '<a href="{url}">{text}</a>'.format(
+				url=self.url(item),
+				text=self.td_format(self.text(item, attr_list)))
+		else:
+			return "N/A"
 
 class AllSamplesTable(Table):
+
 	border = True
 	allow_sort = True
 	no_items = "No Samples Yet"
@@ -97,6 +99,16 @@ class AllSamplesTable(Table):
 		'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
 	   anchor_attrs=anchor_attrs,allow_sort=False)
 	datetime_submitted = DateTimeCol('datetime submitted')
+	imaging_url_kwargs = {'username':'username','request_name':'request_name','sample_name':'sample_name'}
+	new_imaging_request_tooltip_text = ('Only request additional imaging for this sample'
+		'if your original request did not cover the sufficient imaging. '
+		 'To see what imaging you have already requested, '
+		 'click on the existing imaging request number(s) for this sample.')
+	new_imaging_request_html_attrs = {'class':'infolink','title':new_imaging_request_tooltip_text}
+
+	new_imaging_request = LinkCol('Request additional imaging',
+		'imaging.new_imaging_request',url_kwargs=imaging_url_kwargs,
+		th_html_attrs=new_imaging_request_html_attrs,allow_sort=False)
 	imaging_request_subtable_options = {
 	'table_id':f'imaging_requests',
 	'border':True,
@@ -111,10 +123,18 @@ class AllSamplesTable(Table):
 			url_kwargs=imaging_request_url_kwargs))
 	imaging_requests_subtable_class.add_column('imager',Col('imager'))
 	imaging_requests_subtable_class.add_column('imaging_progress',Col('imaging progress'))
-	imaging_url_kwargs = {'username':'username','request_name':'request_name','sample_name':'sample_name'}
-	imaging_requests_subtable_class.add_column('new imaging request',
-		ButtonCol('request additional imaging','imaging.new_imaging_request',
-			url_kwargs=imaging_url_kwargs))
+	processing_url_kwargs = {'username':'username','request_name':'request_name',
+	'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
+	new_processing_request_tooltip_text = ('Only request additional processing for this sample and imaging request '
+		'if your original request did not cover the sufficient processing. '
+		 'To see what processing you have already requested, '
+		 'click on the existing processing request number(s) corresponding to this imaging request.')
+	new_processing_request_html_attrs = {'class':'infolink','title':new_processing_request_tooltip_text}
+	imaging_requests_subtable_class.add_column('new processing request',
+		LinkCol('request additional processing',
+			'processing.new_processing_request',url_kwargs=processing_url_kwargs,
+			allow_sort=False,th_html_attrs=new_processing_request_html_attrs))
+
 	processing_request_subtable_options = {
 	'table_id':f'processing_requests',
 	'border':True,
@@ -130,14 +150,16 @@ class AllSamplesTable(Table):
 			url_kwargs=processing_request_url_kwargs))
 	processing_requests_subtable_class.add_column('processor',Col('processor'))
 	processing_requests_subtable_class.add_column('processing_progress',Col('processing progress'))
-	processing_url_kwargs = {'username':'username','request_name':'request_name',
-	'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
-	processing_requests_subtable_class.add_column('new processing request',
-		ButtonCol('request additional processing','processing.new_processing_request',url_kwargs=processing_url_kwargs))
+	
 	imaging_requests_subtable_class.add_column('processing_requests',
 		NestedTableCol('Processing Requests',processing_requests_subtable_class,allow_sort=False))
+	
+	# new_imaging_request_url = '/imaging/new_imaging_request/username/<request_name>/<sample_name>/('imaging.new_imaging_request',**imaging_url_kwargs)
+	# imaging_requests_header = Markup(f'''Imaging Requests <form action={new_imaging_request_url}> <input type="submit" \
+		# value="request additional imaging">''')
 
-	imaging_requests = NestedTableCol('Imaging Requests', imaging_requests_subtable_class,allow_sort=False)
+	imaging_requests = NestedTableCol('Imaging Requests',
+	 imaging_requests_subtable_class,allow_sort=False)
 	
 	url_kwargs = {'username':'username','request_name':'request_name'}
 	anchor_attrs = {'target':"_blank",}
@@ -234,8 +256,15 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 	imaging_requests_subtable_class.add_column('imager',Col('imager'))
 	imaging_requests_subtable_class.add_column('imaging_progress',Col('imaging progress'))
 	imaging_url_kwargs = {'username':'username','request_name':'request_name','sample_name':'sample_name'}
+	new_imaging_request_tooltip_text = ('Only request additional imaging for this sample'
+		'if your original request did not cover the sufficient imaging. '
+		 'To see what imaging you have already requested, '
+		 'click on the existing imaging request number(s) for this sample.')
+	new_imaging_request_html_attrs = {'class':'infolink','title':new_imaging_request_tooltip_text}
+
 	imaging_requests_subtable_class.add_column('new imaging request',
-		ButtonCol('request additional imaging','imaging.new_imaging_request',url_kwargs=imaging_url_kwargs))
+		LinkCol('request additional imaging','imaging.new_imaging_request',
+			url_kwargs=imaging_url_kwargs,th_html_attrs=new_imaging_request_html_attrs))
 
 	processing_request_subtable_options = {
 	'table_id':f'processing_requests',
@@ -254,9 +283,14 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 	processing_requests_subtable_class.add_column('processing_progress',Col('processing progress'))
 	processing_url_kwargs = {'username':'username','request_name':'request_name',
 	'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
+	new_processing_request_tooltip_text = ('Only request additional processing for this sample and imaging request '
+		'if your original request did not cover the sufficient processing. '
+		 'To see what processing you have already requested, '
+		 'click on the existing processing request number(s) corresponding to this imaging request.')
+	new_processing_request_html_attrs = {'class':'infolink','title':new_processing_request_tooltip_text}
 	processing_requests_subtable_class.add_column('new processing request',
-		ButtonCol('request additional processing','processing.new_processing_request',
-			url_kwargs=processing_url_kwargs))
+		LinkCol('request additional processing','processing.new_processing_request',
+			url_kwargs=processing_url_kwargs,th_html_attrs=new_processing_request_html_attrs))
 	imaging_requests_subtable_class.add_column('processing_requests',
 		NestedTableCol('Processing Requests',processing_requests_subtable_class))
 

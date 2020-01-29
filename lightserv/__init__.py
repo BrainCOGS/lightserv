@@ -102,7 +102,7 @@ def create_app(config_class=Config):
 		csrf_time_limit_seconds = app.config['WTF_CSRF_TIME_LIMIT']
 		csrf_time_limit_hours = csrf_time_limit_seconds/3600.
 		flash(f"The form expired after {csrf_time_limit_hours} hours. "
-		      f"Please continue completing the form within the next {csrf_time_limit_hours} hours .","warning")
+		      f"Please continue completing the form within the next {csrf_time_limit_hours} hours.","warning")
 		next_url = os.path.join('/',*request.url.split('?')[0].split('/')[3:])
 		return redirect(next_url)
 

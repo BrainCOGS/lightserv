@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from flask import session,current_app
-from flask_table import Col,LinkCol
+from flask_table import Col,LinkCol,NestedTableCol
 # from datetime import strftime
 from functools import partial
 
@@ -94,7 +94,44 @@ class ProgressCol(Col):
                 content=content,
                 escape_content=False,
                 attrs=self.td_html_attrs)
-            
+    
+
+class HeaderButtonLinkCol(Col):
+    """ Conditional bold fonting """
+    def __init__(self, name, attr=None, attr_list=None,
+                 allow_sort=True, show=True,
+                 th_html_attrs=None, td_html_attrs=None,
+                 column_html_attrs=None,**kwargs):
+        super(ProgressCol, self).__init__(
+            name,
+            attr=attr,
+            attr_list=attr_list,
+            **kwargs)
+        self.name = name
+        self.allow_sort = allow_sort
+        self._counter_val = Col._counter
+        self.attr_list = attr_list
+        column_html_attrs = column_html_attrs or {}
+        self.td_html_attrs = column_html_attrs.copy()
+
+    def td(self, item, attr):
+        content = self.td_contents(item, self.get_attr_list(attr))
+
+        if content != 'complete':
+            attrs = self.td_html_attrs.copy()
+            attrs['bgcolor'] = "#F9F607"
+            return element(
+                'td',
+                content=content,
+                escape_content=False,
+                attrs=attrs)
+        else:
+            return element(
+                'td',
+                content=content,
+                escape_content=False,
+                attrs=self.td_html_attrs)
+
 
 class ImagingRequestLinkCol(LinkCol):
     """Subclass of LinkCol to show the imaging request number 
@@ -115,3 +152,4 @@ class ProcessingRequestLinkCol(LinkCol):
 
     def text(self, item, attr_list):
         return item['processing_request_number']
+
