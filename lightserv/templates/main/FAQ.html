@@ -13,5 +13,23 @@
 	<p> You can test your connection to spock: <a href="{{url_for('main.spock_connection_test')}}">here</a>. Note that this will not run any jobs as you and therefore your spock karma will be unaffected.
 <hr class='class-2'>
 
+<h4 align="center"> Q: What are imaging request numbers and processing request numbers?</h4>
+	<p>
+		<b>A:</b> 
+	</p>
+<hr class='class-2'>
+
+<h4 align="center"> Q: Can I request additional imaging for a sample I already submitted?</h4>
+	<p>
+		<b>A:</b> Yes. The easiest way to do this is to go to <a href="{{url_for('requests.all_samples')}}">Your Samples</a> page, and find the sample in the table for which you want additional imaging. In the same row as your sample, there is a "Request additonal imaging" link. You can review the imaging you have already requested by clicking the imaging request numbers in that table. Clicking "Request additional imaging" link will take you to a form where you can request additional imaging for a<i>single sample at a time</i>. If you have multiple samples that require additional imaging, please follow the above process for each sample. 
+	</p>
+<hr class='class-2'>
+
+<h4 align="center"> Q: Can I request additional processing for a sample that has already been imaged?</h4>
+	<p>
+		<b>A:</b> Yes. The easiest way to do this is to go to <a href="{{url_for('requests.all_samples')}}">Your Samples</a> page, and find the sample in the table for which you want additional imaging. Then find the imaging request for that sample for which you want to request additional processing. In the same row as your imaging request, there is a "Request additonal processing" link. Clicking that link will take you to a form where you can request additional processing. This form only works for a single sample/imaging request at a time.  
+	</p>
+<hr class='class-2'>
+
 	{% endblock content %}
 
