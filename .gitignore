@@ -12,4 +12,5 @@ screenshots
 **/.cache
 **/htmlcov
 .coverage
-*pem
+**/*pem
+scripts
