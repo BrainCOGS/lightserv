@@ -18,6 +18,7 @@ class BaseConfig(object):
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_testing'
 	IMAGING_CHANNELS = ['488','555','647','790']
 	WTF_CSRF_TIME_LIMIT = 24*3600 # seconds (24 hours)
+	# WTF_CSRF_TIME_LIMIT = 1 #
 	ATLAS_NAME_FILE_DICTIONARY = {
 	'allen_2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/average_template_25_sagittal_forDVscans.tif',
 	'allen_pre2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/average_template_25_sagittal_forDVscans.tif',

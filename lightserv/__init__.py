@@ -1,5 +1,5 @@
 import os,sys
-from flask import Flask, session, flash, request, redirect
+from flask import Flask, session, flash, request, redirect, url_for, render_template
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_wtf.csrf import CSRFProtect
@@ -99,10 +99,17 @@ def create_app(config_class=Config):
 
 	@app.errorhandler(CSRFError)
 	def handle_csrf_error(e):
-		csrf_time_limit_seconds = app.config['WTF_CSRF_TIME_LIMIT']
-		csrf_time_limit_hours = csrf_time_limit_seconds/3600.
-		flash(f"The form expired after {csrf_time_limit_hours} hours. "
-		      f"Please continue completing the form within the next {csrf_time_limit_hours} hours.","warning")
+		# print(e)
+		# print(type(e))
+		# print(len(e))
+		# print(len('400 Bad Request: The CSRF token has expired.'))
+		if e.description =='The CSRF token has expired.':
+			csrf_time_limit_seconds = app.config['WTF_CSRF_TIME_LIMIT']
+			csrf_time_limit_hours = csrf_time_limit_seconds/3600.
+			flash(f"The form expired after {csrf_time_limit_hours} hours. "
+			      f"Please continue completing the form within the next {csrf_time_limit_hours} hours.","warning")
+		else:
+			return render_template('errors/500.html')
 		next_url = os.path.join('/',*request.url.split('?')[0].split('/')[3:])
 		return redirect(next_url)
 
