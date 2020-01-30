@@ -200,4 +200,11 @@ height: 1.25rem;
     border-color: white;
     text-decoration: none;
 }
+/*
+li{
+  margin: 10px 0;
+}*/
 
+li.widespace { 
+            margin: 10px 0;
+        } 

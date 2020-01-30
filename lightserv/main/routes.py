@@ -118,3 +118,11 @@ def login():
 	db_admin.UserActionLog().insert1(insert_dict)
 	return redirect(next_url)
 
+@main.route("/pre_handoff_instructions")
+@logged_in
+@log_http_requests
+def pre_handoff(): 
+	current_user = session['user']
+	logger.info(f"{current_user} accessed pre_handoff route")
+	return render_template('main/pre_handoff.html')
+

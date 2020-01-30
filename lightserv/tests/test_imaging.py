@@ -62,7 +62,6 @@ def test_imaging_entry_form_submits(test_client,test_cleared_request_ahoag,
 	""" Test that Zahra (zmd, an imaging admin) can submit the imaging entry form
 	for a test sample """
 	from lightserv import db_lightsheet
-	# print(db_lightsheet.Request.ImagingRequest())
 	print(db_lightsheet.Request.ImagingChannel())
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
@@ -81,8 +80,8 @@ def test_imaging_entry_form_submits(test_client,test_cleared_request_ahoag,
 			imaging_request_number=1),
 		data=data,
 		follow_redirects=True)
-	assert b'Request overview:' in response.data
-	assert b'Samples in this request:' in response.data 
+	assert b'Imaging management GUI' in response.data
+	assert b'admin_request' in response.data 
 
 	imaging_progress = (db_lightsheet.Request.ImagingRequest() & 'request_name="admin_request"' & \
 		'username="ahoag"' & 'sample_name="sample-001"' & 'imaging_request_number=1').fetch1('imaging_progress')

@@ -7,7 +7,6 @@ from functools import partial
 
 from flask import Markup
 
-
 channel_str_dict = {'regch':'registration','injch':'injection/probe detection',
                     'cellch':'cell detection','gench':'generic imaging'}
 
@@ -19,7 +18,6 @@ def element(element, attrs=None, content='',
         content=_format_content(content, escape_content),
     )
 
-
 def _format_attrs(attrs, escape_attrs=True):
     out = []
     for name, value in sorted(attrs.items()):
@@ -28,7 +26,6 @@ def _format_attrs(attrs, escape_attrs=True):
             value = Markup.escape(value)
         out.append(' {name}="{value}"'.format(name=name, value=value))
     return ''.join(out)
-
 
 def _format_content(content, escape_content=True):
     if isinstance(content, (list, tuple)):
