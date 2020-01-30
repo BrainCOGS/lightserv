@@ -35,16 +35,29 @@ taskmanager = Blueprint('taskmanager',__name__)
 
 @cel.task()
 def status_checker():
-    """ Checks all outstanding job statuses on spock
+    """ 
+    Checks all outstanding job statuses on spock
     and updates their status in the SpockJobManager() in db_admin
     and ProcessingResolutionRequest() in db_lightsheet, 
     then finally figures out which ProcessingRequest() 
     entities are now complete based on the potentially multiple
-    ProcessingResolutionRequest() entries they reference. """
+    ProcessingResolutionRequest() entries they reference.
+
+    A ProcessingRequest() can consist of several jobs because
+    jobs are at the ProcessingResolutionRequest() level. 
+    If any of the ProcessingResolutionRequest() jobs failed,
+    set the processing_progress in the ProcessingRequest() 
+    table to 'failed'. If all jobs completed, then set 
+    processing_progress to 'complete'
+    """
     processing_resolution_contents = db_lightsheet.Request.ProcessingResolutionRequest()
+   
     """ First get all rows with latest timestamps """
     job_contents = db_admin.SpockJobManager()
     unique_contents = dj.U('jobid','username',).aggr(job_contents,timestamp='max(timestamp)')*job_contents
+    """ Get a list of all jobs we need to check up on, i.e.
+    those that are not completed and not failed 
+    """
     incomplete_contents = unique_contents & 'status!="COMPLETED"' & 'status!="FAILED"'
     jobids = list(incomplete_contents.fetch('jobid'))
     if jobids == []:

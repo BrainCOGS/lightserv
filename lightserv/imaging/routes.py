@@ -212,8 +212,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 						'The raw data for your request:\n'
 						f'request_name: "{request_name}"\n'
 						f'sample_name: "{sample_name}"\n'
-						f'are now available on bucket here: {path_to_data}')
-			# mail.send(msg)
+						f'are now available on bucket here: {path_to_data}\n\n')
+			mail.send(msg)
 			flash(f"""Imaging is complete. An email has been sent to {correspondence_email} 
 				informing them that their raw data is now available on bucket.
 				The processing pipeline is now ready to run. ""","success")
@@ -222,7 +222,6 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			date = now.strftime('%Y-%m-%d')
 			dj.Table._update(imaging_request_contents,'imaging_performed_date',date)
 			return redirect(url_for('imaging.imaging_manager'))
-
 		else:
 			logger.info("Not validated")
 			logger.info(form.errors)
