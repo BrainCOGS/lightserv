@@ -3,7 +3,8 @@ from flask import (render_template, url_for, flash,
 				   Markup, current_app)
 from lightserv.processing.forms import StartProcessingForm, NewProcessingRequestForm
 from lightserv.processing.tables import (create_dynamic_processing_overview_table,
-	dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable)
+	dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable,
+	ProcessingChannelTable)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests)
@@ -440,4 +441,11 @@ def processing_table(username,request_name,
 	overview_table_id = 'horizontal_procsesing_table'
 	overview_table = create_dynamic_processing_overview_table(joined_contents,table_id=overview_table_id)
 
-	return render_template('processing/processing_log.html',overview_table=overview_table)
+	processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & f'request_name="{request_name}"' & \
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			f'imaging_request_number="{imaging_request_number}"' & \
+			f'processing_request_number={processing_request_number}'
+	processing_channel_table = ProcessingChannelTable(processing_channel_contents)
+			 # all of the channels for this sample
+	return render_template('processing/processing_log.html',overview_table=overview_table,
+		processing_channel_table=processing_channel_table)

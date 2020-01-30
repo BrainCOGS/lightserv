@@ -8,6 +8,9 @@ from functools import partial
 from flask import Markup
 
 
+channel_str_dict = {'regch':'registration','injch':'injection/probe detection',
+                    'cellch':'cell detection','gench':'generic imaging'}
+
 def element(element, attrs=None, content='',
             escape_attrs=True, escape_content=True):
     return '<{element}{formatted_attrs}>{content}</{element}>'.format(
@@ -48,6 +51,12 @@ class DesignatedRoleCol(Col):
             return 'N/A'
         else:
             return content
+
+class ChannelPurposeCol(Col):
+    """ Column for showing the purpose
+    of imaging/processing channels in human readable text  """
+    def td_format(self, content):
+        return channel_str_dict[content]
 
 class BooltoStringCol(Col):
     """ Subclassing Col to show 'yes' if Boolean

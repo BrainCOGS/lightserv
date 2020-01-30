@@ -3,7 +3,7 @@ from flask_table import Table, Col, LinkCol, ButtonCol, create_table
 from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import (DateTimeCol, DesignatedRoleCol,
-    BooltoStringCol, ProgressCol)
+    BooltoStringCol, ProgressCol,ChannelPurposeCol)
 import os
 
 def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
@@ -110,6 +110,7 @@ def create_dynamic_processing_overview_table(contents,table_id,ignore_columns=[]
     # table_class.add_column('tiling_scheme',Col('tiling scheme'))
     table_class.add_column('processor',Col('processor'))
     table_class.add_column('processing_progress',ProgressCol('processing progress'))
+    table_class.add_column('spock_jobid',Col('spock jobid'))
 
     table = table_class(contents)
     
@@ -150,3 +151,22 @@ class ExistingProcessingTable(Table):
     cell_detection = BooltoStringCol('cell detection',column_html_attrs=column_html_attrs)
     generic_imaging = BooltoStringCol('generic imaging',column_html_attrs=column_html_attrs)
     atlas_name = Col('atlas name',column_html_attrs=column_html_attrs)
+
+class ProcessingChannelTable(Table):
+    """ A table to show the ProcessingChannel() entries """ 
+    border = True
+    allow_sort=False
+    no_items = "No channels processed yet"
+    html_attrs = {"style":'font-size:18px'} # gets assigned to table header
+    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    image_resolution = Col('image resolution',column_html_attrs=column_html_attrs)
+    channel_name = Col('channel name',column_html_attrs=column_html_attrs)
+    lightsheet_channel_str = ChannelPurposeCol('channel purpose',column_html_attrs=column_html_attrs)
+    datetime_processing_started = DateTimeCol('datetime started',column_html_attrs=column_html_attrs)
+    # registration = BooltoStringCol('registration',column_html_attrs=column_html_attrs)
+    # injection_detection = BooltoStringCol('injection detection',column_html_attrs=column_html_attrs)
+    # probe_detection = BooltoStringCol('probe detection',column_html_attrs=column_html_attrs)
+    # cell_detection = BooltoStringCol('cell detection',column_html_attrs=column_html_attrs)
+    # generic_imaging = BooltoStringCol('generic imaging',column_html_attrs=column_html_attrs)
+    # atlas_name = Col('atlas name',column_html_attrs=column_html_attrs)

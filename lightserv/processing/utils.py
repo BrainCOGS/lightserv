@@ -257,12 +257,12 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 						lightsheet_channel_str = 'gench'
 					inputdictionary[rawdata_fullpath].append([lightsheet_channel_str,str(channel_index).zfill(2)])
 					
-					# processing_channel_insert_dict['lightsheet_channel_str'] = lightsheet_channel_str
-					# now = datetime.now()
-					# processing_channel_insert_dict['datetime_processing_started'] = now
-					# logger.info("Inserting into ProcessingChannel()")
-					# logger.info(processing_channel_insert_dict)
-					# db_lightsheet.Request.ProcessingChannel().insert1(processing_insert_dict,replace=True)
+					processing_channel_insert_dict['lightsheet_channel_str'] = lightsheet_channel_str
+					now = datetime.now()
+					processing_channel_insert_dict['datetime_processing_started'] = now
+					logger.info("Inserting into ProcessingChannel()")
+					logger.info(processing_channel_insert_dict)
+					db_lightsheet.Request.ProcessingChannel().insert1(processing_channel_insert_dict,replace=True)
 
 			logger.debug("inputdictionary:")
 			logger.debug(inputdictionary)
