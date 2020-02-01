@@ -1,7 +1,8 @@
 from .forms import  (LightSheetStatusForm, TwoPhotonStatusForm, ConfocalStatusForm,
 					NewMicroscopeForm, NewLaserForm, NewChannelForm,NewDichroicForm,
 					NewFilterForm, NewObjectiveForm, NewScannerForm, NewPMTForm,
-					NewPreampForm, NewDAQForm, NewAcquisitionSoftwareForm)
+					NewPreampForm, NewDAQForm, NewAcquisitionSoftwareForm,
+					LaserMaintenanceForm)
 from lightserv import db_microscope
 
 def microscope_form_picker(microscope):
@@ -13,7 +14,6 @@ def microscope_form_picker(microscope):
 	# elif microscope == 'confocal microscope':
 	form = ConfocalStatusForm()
 	return form
-
 
 def data_entry_form_picker(data_entry_type):
 	""" Given a microscope string, return the corresponding form """
@@ -67,6 +67,23 @@ def data_entry_dbtable_picker(data_entry_type):
 		dbtable = db_microscope.DaqSystemType
 	elif data_entry_type == 'new_acq_software':
 		dbtable = db_microscope.AcquisitionSoftware
+	else:
+		pass
+	return dbtable
+
+def component_maintenance_form_picker(component):
+	""" Given a microscope component, return the form
+	for doing maintenance on that component """
+	if component == 'laser':
+		form = LaserMaintenanceForm()
+	else:
+		pass
+	return form
+
+def component_maintenance_dbtable_picker(component):
+	""" Given a microscope string, return the corresponding form """
+	if component == 'laser':
+		dbtable = db_microscope.LaserMaintenance
 	else:
 		pass
 	return dbtable

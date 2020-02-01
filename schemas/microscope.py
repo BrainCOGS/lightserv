@@ -54,10 +54,10 @@ class Microscope(dj.Lookup):
 @schema
 class Laser(dj.Manual):
     definition = """
-    laser_name:     varchar(32)
-    ---
-    laser_model:    varchar(64)
     laser_serial:   varchar(64)
+    ---
+    laser_name:     varchar(32)
+    laser_model:    varchar(64)
     """
 
 
@@ -65,9 +65,14 @@ class Laser(dj.Manual):
 class LaserMaintenance(dj.Manual):
     definition = """
     -> Laser
-    laser_maintenance_time:    datetime
+    laser_maintenance_date:    date
     ---
-    type_of_maintenance:       enum("Clean filter of power", "Clean filter of laser", "Change coolant", "Check PZT", "Check Spectrum", "Wavelength sweep")
+    clean_filter_chiller:      boolean
+    clean_filter_laser:        boolean
+    change_coolant:            boolean
+    check_pzt:                 boolean
+    check_spectrum:            boolean
+    wavelength_sweep:          boolean
     maintenance_notes='':      varchar(255)
     """
 
@@ -89,14 +94,13 @@ class Channel(dj.Manual):
     channel_name:  varchar(16)
     """
 
-
 @schema
 class DichroicMirrorType(dj.Manual):
     definition = """
-    mirror_type:             varchar(16)
-    ---
-    mirror_brand='':         varchar(64)
     mirror_model='':         varchar(64)
+    ---
+    mirror_type:             varchar(16)
+    mirror_brand='':         varchar(64)
     mirror_spectrum=null:    varchar(255) # link to google drive picture
     """
 
@@ -104,10 +108,11 @@ class DichroicMirrorType(dj.Manual):
 @schema
 class FilterType(dj.Manual):
     definition = """
-    filter_type:             varchar(32)
-    ---
-    filter_brand='':         varchar(64)
     filter_model='':         varchar(64)
+    ---
+    filter_type:             varchar(32)
+
+    filter_brand='':         varchar(64)
     filter_spectrum=null:    varchar(255) # link to google drive picture
     """
 
@@ -121,24 +126,23 @@ class ObjectiveLensType(dj.Manual):
     lens_model='':         varchar(64)
     """
 
-
 @schema
 class ScannerType(dj.Manual):
     definition = """
-    scanner_type:              enum("galvo", "resonance")
+    scanner_type:              varchar(64)
     ---
-    resonance_freq=null:       int
+    resonance_freq=null:       int # kHz
     mirror_size:               int    # in mm
     scanner_config:            enum("xy", "xyy", "conjugated x and y", "other")
     scanner_info='':           varchar(512)
     """
-
 
 @schema
 class Pmt(dj.Manual):
     definition = """
     pmt_serial:             varchar(32)
     ---
+    pmt_date_of_first_fabrication:  date
     pmt_brand:              varchar(64)
     pmt_model:              varchar(64)
     pmt_date_of_first_use:  date
@@ -162,11 +166,6 @@ class DaqSystemType(dj.Lookup):
     ---
     daq_notes='':   varchar(255)
     """
-    contents = [
-        ['National Instrument PXI', ''],
-        ['National Instrument PCI', ''],
-        ['Vidrio hardware', '']
-    ]
 
 
 @schema
@@ -397,4 +396,18 @@ class PowerLawFluoresLaser(dj.Imported):
     fluores_value:      blob
     laser_power:        blob
     power_coefficient:  float
+    """
+
+@schema
+class CustomOpticalAssembly(dj.Lookup):
+    definition = """
+    component_name:  varchar(128) # A field for Stephan to enter in any component name he likes for any microscope
+    ---
+    """
+
+@schema
+class MagnificationTelescope(dj.Lookup):
+    definition = """
+    magnification:  float # A field for Stephan to enter in any decimal value
+    ---
     """

@@ -5,13 +5,15 @@ import datajoint as dj
 import os
 from datetime import datetime
 from lightserv.microscope.forms import (NewSwapLogEntryForm, UpdateSwapLogEntryForm,
-                                        StatusMonitorSelectForm,MicroscopeActionSelectForm,
-                                        DataEntrySelectForm)
+    StatusMonitorSelectForm,MicroscopeActionSelectForm,
+    DataEntrySelectForm,ComponentMaintenanceSelectForm,
+    LaserMaintenanceForm)
 from lightserv import db_lightsheet, db_microscope
 from lightserv.microscope.tables import MicroscopeCalibrationTable
 from lightserv.main.utils import table_sorter,logged_in
 from lightserv.microscope.utils import (microscope_form_picker,
-      data_entry_form_picker, data_entry_dbtable_picker)
+      data_entry_form_picker, data_entry_dbtable_picker,
+      component_maintenance_form_picker,component_maintenance_dbtable_picker)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -41,8 +43,10 @@ def landing_page():
         action = form.action.data
         if action == 'enter_data':
             return redirect(url_for('microscope.data_entry_selector'))
-        elif action == 'microscope_maintenance':
+        elif action == 'microscope_config':
             return redirect(url_for('microscope.status_monitor_picker'))
+        elif action == 'maintenance':
+            return redirect(url_for('microscope.component_maintenance_selector'))
     return render_template('microscope/microscope_landing_page.html',form=form)
 
 @microscope.route('/microscope/data_entry_selector', methods=['GET','POST'])
@@ -181,6 +185,47 @@ def status_monitor(microscope):
 
     return render_template('microscope/status_monitor.html',
         microscope_form=microscope_form,microscope=microscope)
+
+@microscope.route('/microscope/component_maintenance_selector/', methods=['GET','POST'])
+@logged_in
+def component_maintenance_selector():
+    form = ComponentMaintenanceSelectForm()
+  
+    if form.validate_on_submit():
+        component = form.component.data    
+        return redirect(url_for('microscope.component_maintenance',component=component))
+    return render_template('microscope/component_maintenance_selector.html',form=form)
+
+@microscope.route('/microscope/component_maintenance/<component>', methods=['GET','POST'])
+@logged_in
+def component_maintenance(component):
+    form = component_maintenance_form_picker(component)
+
+    if component == 'laser':
+        laser_serials = db_microscope.Laser().fetch('laser_serial')
+        laser_serial_choices = [(laser_serial,laser_serial) for laser_serial in laser_serials]
+        form.laser_serial.choices = laser_serial_choices
+    if form.validate_on_submit():
+        form_fields = [x for x in form._fields.keys() if 'submit' not in x and 'csrf_token' not in x]
+        insert_dict = {field:form[field].data for field in form_fields}
+        logger.info("form validated")
+        db_table = component_maintenance_dbtable_picker(component)
+        try:
+            db_table().insert1(insert_dict)
+            flash(f"Successfully added your entry into the database!",'success')
+            return redirect(url_for('microscope.data_entry_selector'))
+
+        except dj.errors.DuplicateError:
+            ''' Figure out the primary key(s) and then report to the user 
+            that the combination is already taken '''
+            primary_key_list = db_table().primary_key
+            primary_key_result_str =', '.join(f'{form[key].label.text} = {insert_dict[key]}' \
+                for key in primary_key_list)
+
+            flash(f"An entry already exists in the database with {primary_key_result_str}.\
+                    Try again.",'danger')
+
+    return render_template('microscope/component_maintenance.html',component=component,form=form)
 
 @microscope.route('/microscope/new_swap_entry', methods=['GET','POST'])
 @logged_in

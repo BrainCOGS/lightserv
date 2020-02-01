@@ -1,0 +1,84 @@
+
+	 <div class="content-section">
+		<form method="POST" action="">
+			{{ form.hidden_tag() }}
+			<fieldset class="form-group">
+				<legend class="border-bottom mb-2 mt-4">Laser Maintenance Form</legend>
+				
+				<div class="form-group">
+					{% if form.laser_serial.flags.required %}*{% endif %}
+
+					{{ form.laser_serial.label(class="form-control-label") }}
+					{% if form.laser_serial.errors %}
+						{{ form.laser_serial(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.laser_serial.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.laser_serial(class="form-control form-control-lg") }}
+					{% endif %}
+				</div>
+				<div class='mb-2'>
+					{% if form.laser_maintenance_date.flags.required %}*{% endif %}
+					{{ form.laser_maintenance_date.label(class="form-control-label")}}
+					{{ form.laser_maintenance_date(class='datepicker') }}
+				</div>
+
+				<hr class='class-3'>
+				<legend class='border-bottom'> Check all that apply: </legend>
+				<div class="checkbox">
+					{{ form.clean_filter_chiller(class="form-check-input" ) }}
+					{{ form.clean_filter_chiller.label(class="form-check-label") }}
+				</div>
+
+				<div class="checkbox">
+					{{ form.clean_filter_laser(class="form-check-input" ) }}
+					{{ form.clean_filter_laser.label(class="form-check-label") }}
+				</div>
+
+				<div class="checkbox">
+					{{ form.change_coolant(class="form-check-input" ) }}
+					{{ form.change_coolant.label(class="form-check-label") }}
+				</div>
+
+				<div class="checkbox">
+					{{ form.check_pzt(class="form-check-input" ) }}
+					{{ form.check_pzt.label(class="form-check-label") }}
+				</div>
+
+				<div class="checkbox">
+					{{ form.check_spectrum(class="form-check-input" ) }}
+					{{ form.check_spectrum.label(class="form-check-label") }}
+				</div>
+
+				<div class="checkbox">
+					{{ form.wavelength_sweep(class="form-check-input" ) }}
+					{{ form.wavelength_sweep.label(class="form-check-label") }}
+				</div>
+
+				<hr class='class-3'>
+				
+				<div class="form-group">
+					{% if form.maintenance_notes.flags.required %}*{% endif %}
+
+					{{ form.maintenance_notes.label(class="form-control-label") }}
+					{% if form.maintenance_notes.errors %}
+						{{ form.maintenance_notes(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.maintenance_notes.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.maintenance_notes(class="form-control form-control-lg") }}
+					{% endif %}
+				</div> 
+
+				<div class="form-group">
+					{{ form.submit(class="btn btn-info mt-4") }}	            
+				</div>
+			</fieldset>
+		</form>
+	</div>

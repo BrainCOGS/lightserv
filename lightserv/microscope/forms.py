@@ -85,7 +85,8 @@ class UpdateSwapLogEntryForm(FlaskForm):
 class MicroscopeActionSelectForm(FlaskForm):
 	""" The form for selecting whether we are doing microscope maintenance or data entry """
 	action = SelectField('Choose what to do:', choices=[('enter_data','Enter new data'),
-		('microscope_maintenance','Microscope maintenance')],default='value')
+		('microscope_config','Microscope configuration'),
+		('maintenance','Component maintenance')])
 	submit = SubmitField('Submit')	
 
 class DataEntrySelectForm(FlaskForm):
@@ -97,6 +98,14 @@ class DataEntrySelectForm(FlaskForm):
 		('new_daq','New DAQ'),('new_acq_software','New acquisition software')],
 		default='new_microscope')
 	submit = SubmitField('Submit')	
+
+class ComponentMaintenanceSelectForm(FlaskForm):
+	""" The form for selecting which form we need for data entry  """
+	component = SelectField('Select which component needs maintenance:', choices=[('laser','laser')],
+		default='new_laser')
+	submit = SubmitField('Submit')
+
+""" Data entry forms """
 
 class NewMicroscopeForm(FlaskForm):
 	""" The form for entering in a new microscope """
@@ -111,9 +120,9 @@ class NewMicroscopeForm(FlaskForm):
 
 class NewLaserForm(FlaskForm):
 	""" The form for entering in a new laser """
+	laser_serial = StringField('Laser serial',validators=[InputRequired(),Length(max=64)])
 	laser_name = StringField('Laser name',validators=[InputRequired(),Length(max=32)])
 	laser_model = StringField('Laser model',validators=[InputRequired(),Length(max=64)])
-	laser_serial = StringField('Laser serial',validators=[InputRequired(),Length(max=64)])
 	submit = SubmitField('Submit new entry')
 
 class NewChannelForm(FlaskForm):
@@ -133,7 +142,6 @@ class NewDichroicForm(FlaskForm):
 		validators=[Optional(),Length(max=255),url()])
 
 	submit = SubmitField('Submit new entry')
-
 
 class NewFilterForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
@@ -175,9 +183,10 @@ class NewPMTForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 
 	pmt_serial = StringField('PMT serial',validators=[InputRequired(),Length(max=32)])
+	pmt_date_of_fabrication = DateField('PMT date of fabrication: ',validators=[InputRequired()])
 	pmt_brand = StringField('PMT brand',validators=[InputRequired(),Length(max=64)])
 	pmt_model = StringField('PMT model',validators=[InputRequired(),Length(max=64)])
-	pmt_date_of_first_use = DateField('PMT date of first use',validators=[InputRequired()])
+	pmt_date_of_first_use = DateField('PMT date of first use: ',validators=[InputRequired()])
 
 	submit = SubmitField('Submit new entry')	
 
@@ -205,3 +214,21 @@ class NewAcquisitionSoftwareForm(FlaskForm):
 	acq_version = TextAreaField('Software version',validators=[InputRequired(),Length(max=16)])
 
 	submit = SubmitField('Submit new entry')
+
+
+""" Maintenance forms """
+
+class LaserMaintenanceForm(FlaskForm):
+	""" The form for entering in a new laser """
+	laser_serial = SelectField('Laser serial',choices=[],validators=[InputRequired()])
+	laser_maintenance_date = DateField("Laser Maintenance Date:",validators=[InputRequired()])
+	clean_filter_chiller = BooleanField("Cleaned filter of chiller")
+	clean_filter_laser = BooleanField("Cleaned filter of laser")
+	change_coolant = BooleanField("Changed coolant")
+	check_pzt = BooleanField("Checked PZT")
+	check_spectrum = BooleanField("Checked spectrum")
+	wavelength_sweep = BooleanField("Performed wavelength sweep")
+	maintenance_notes = TextAreaField("Maintenance notes:")
+	submit = SubmitField('Submit')
+
+

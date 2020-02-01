@@ -51,6 +51,11 @@
 					{% endif %}
 				</div>
 
+				<div class='mb-2'>
+					{% if form.pmt_date_of_fabrication.flags.required %}*{% endif %}
+					{{ form.pmt_date_of_fabrication.label(class="form-control-label")}}
+					{{ form.pmt_date_of_fabrication(class='datepicker') }}
+				</div>
 
 				<div>
 					{% if form.pmt_date_of_first_use.flags.required %}*{% endif %}

@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block content %}
+
+	{% if component == 'laser' %}
+		{% include "microscope/laser_maintenance.html" %}
+	{% else %}
+		Form not found.
+	{% endif %}
+
+{% endblock content %}
