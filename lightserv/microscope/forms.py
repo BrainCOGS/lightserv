@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import (StringField, SubmitField, TextAreaField,
         			 SelectField, BooleanField, RadioField,
-        			 IntegerField)
+        			 IntegerField,DecimalField)
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Optional, url
 from wtforms.fields.html5 import DateField, URLField
 from wtforms.widgets import html5
@@ -40,14 +40,18 @@ class ConfocalStatusForm(FlaskForm):
 	laser_serial = SelectField('Laser',choices=[],validators=[InputRequired()])
 	objective_lens_type = SelectField('Objective',choices=[],validators=[InputRequired()])
 	scanner_type = SelectField('Scanner',choices=[],validators=[InputRequired()])
-	ch1_filter_type = SelectField('CH1 Filter',choices=[],validators=[InputRequired()])
-	ch2_filter_type = SelectField('CH2 Filter',choices=[],validators=[InputRequired()])
-	nir_filter_type = SelectField('NIR Filter',choices=[],validators=[InputRequired()])
-	visible_filter_type = SelectField('Visible Filter',choices=[],validators=[InputRequired()])
+	magnification_telescope = DecimalField('Magnification Telescope',
+		places=2,validators=[InputRequired()],) 
+	ch1_filter_type_model = SelectField('CH1 Filter',choices=[],validators=[InputRequired()])
+	ch2_filter_type_model = SelectField('CH2 Filter',choices=[],validators=[InputRequired()])
+	nir_filter_type_model = SelectField('NIR Filter',choices=[],validators=[InputRequired()])
+	visible_filter_type_model = SelectField('Visible Filter',choices=[],validators=[InputRequired()])
 	ch1_preamp_model = SelectField('CH1 PreAmp',choices=[],validators=[InputRequired()])
 	ch2_preamp_model = SelectField('CH2 PreAmp',choices=[],validators=[InputRequired()])
-	laser_dichroic_mirror_type = SelectField('Laser Dichroic',choices=[],validators=[InputRequired()])
-	emission_dichroic_mirror_type = SelectField('Emission Dichroic',choices=[],validators=[InputRequired()])
+	laser_dichroic_mirror_model = SelectField('Laser Dichroic',choices=[],validators=[InputRequired()])
+	emission_dichroic_mirror_model = SelectField('Emission Dichroic',choices=[],validators=[InputRequired()])
+	ch1_detector_serial_number = SelectField('CH1 Detector',choices=[],validators=[InputRequired()])
+	ch2_detector_serial_number = SelectField('CH2 Detector',choices=[],validators=[InputRequired()])
 	daq_name = SelectField('DAQ name',choices=[],validators=[InputRequired()])
 	acq_software_name = SelectField('Acqusition Software name',choices=[],validators=[InputRequired()])
 	submit = SubmitField("Save changes")
@@ -185,7 +189,7 @@ class NewPMTForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
 
 	pmt_serial = StringField('PMT serial',validators=[InputRequired(),Length(max=32)])
-	pmt_date_of_fabrication = DateField('PMT date of fabrication: ',validators=[InputRequired()])
+	pmt_date_of_first_fabrication = DateField('PMT date of fabrication: ',validators=[InputRequired()])
 	pmt_brand = StringField('PMT brand',validators=[InputRequired(),Length(max=64)])
 	pmt_model = StringField('PMT model',validators=[InputRequired(),Length(max=64)])
 	pmt_date_of_first_use = DateField('PMT date of first use: ',validators=[InputRequired()])

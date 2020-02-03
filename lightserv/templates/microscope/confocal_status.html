@@ -139,7 +139,7 @@
 <rect x="{{laser_dichroic_left}}" y="{{laser_dichroic_top}}" transform="matrix(0.693 0.7209 -0.7209 0.693 269.9883 -103.052)" class="st2" width="12" height="109"/>
 <text transform="matrix(1.0227 0 0 1 {{laser_dichroic_label_left}} {{laser_dichroic_label_top}})" class="st9 st11">LaserDichroic</text>
 <foreignobject class="node" x="{{laser_dichroic_selector_left}}" y="{{laser_dichroic_selector_top}}" width="150" height=50>
-	{{ microscope_form.laser_dichroic_mirror_type(class="form-control form-control-sm col-sm-10") }}
+	{{ microscope_form.laser_dichroic_mirror_model(class="form-control form-control-sm col-sm-10") }}
 </foreignobject>
 <!-- ##### -->
 
@@ -154,7 +154,7 @@
 <rect x="{{visible_filter_left}}" y="{{visible_filter_top}}" class="st6" width="105" height="9"/>
 <text transform="matrix(1.0227 0 0 1 {{visible_filter_label_left}} {{visible_filter_label_top}})" class="st9 st11">Visible blocking filter</text>
 <foreignobject class="node" x="{{visible_filter_selector_left}}" y="{{visible_filter_selector_top}}" width="150" height=50>
-	{{ microscope_form.visible_filter_type(class="form-control form-control-sm col-sm-10") }}
+	{{ microscope_form.visible_filter_type_model(class="form-control form-control-sm col-sm-10") }}
 </foreignobject>
 <!-- ##### -->
 
@@ -174,7 +174,7 @@
 <rect x="{{emission_dichroic_left}}" y="{{emission_dichroic_top}}" transform="matrix(0.6876 -0.7261 0.7261 0.6876 28.2759 592.7241)" class="st3" width="12" height="109"/>
 <text transform="matrix(1.0227 0 0 1 {{emission_dichroic_label_left}} {{emission_dichroic_label_top}})" class="st9 st11">Emission Dichroic</text>
 <foreignobject class="node" x="{{emission_dichroic_selector_left}}" y="{{emission_dichroic_selector_top}}" width="150" height=50>
-	{{ microscope_form.emission_dichroic_mirror_type(class="form-control form-control-sm col-sm-10") }}
+	{{ microscope_form.emission_dichroic_mirror_model(class="form-control form-control-sm col-sm-10") }}
 </foreignobject>
 <!-- ##### -->
 
@@ -221,7 +221,7 @@
 <rect x="{{ch1_filter_left}}" y="{{ch1_filter_top}}" class="st6" width="105" height="9"/>
 <text transform="matrix(1.0227 0 0 1 {{ch1_filter_label_left}} {{ch1_filter_label_top}})" class="st9 st11">CH1 Filter</text>
 <foreignobject class="node" x="{{ch1_filter_selector_left}}" y="{{ch1_filter_selector_top}}" width="150" height=50>
-	{{ microscope_form.ch1_filter_type(class="form-control form-control-sm col-sm-10") }}
+	{{ microscope_form.ch1_filter_type_model(class="form-control form-control-sm col-sm-10") }}
 </foreignobject>
 <!-- ##### -->
 
@@ -237,7 +237,7 @@
 <rect x="{{nir_filter_left}}" y="{{nir_filter_top}}" class="st7" width="9" height="105"/>
 <text transform="matrix(1.0227 0 0 1 {{nir_filter_label_left}} {{nir_filter_label_top}})" class="st9 st11">NIR blocking filter</text>
 <foreignobject class="node" x="{{nir_filter_selector_left}}" y="{{nir_filter_selector_top}}" width="150" height=50>
-	{{ microscope_form.nir_filter_type(class="form-control form-control-sm col-sm-10") }}
+	{{ microscope_form.nir_filter_type_model(class="form-control form-control-sm col-sm-10") }}
 </foreignobject>
 <!-- ##### -->
 
@@ -251,7 +251,7 @@
 <rect x="{{ch2_filter_left}}" y="{{ch2_filter_top}}" transform="matrix(4.490281e-11 -1 1 4.490281e-11 503 1033)" class="st8" width="105" height="9"/>
 <text transform="matrix(1.0227 0 0 1 {{ch2_filter_label_left}} {{ch2_filter_label_top}})" class="st9 st11">CH2 Filter</text>
 <foreignobject class="node" x="{{ch2_filter_selector_left}}" y="{{ch2_filter_selector_top}}" width="150" height=50>
-	{{ microscope_form.ch2_filter_type(class="form-control form-control-sm col-sm-10") }}
+	{{ microscope_form.ch2_filter_type_model(class="form-control form-control-sm col-sm-10") }}
 </foreignobject>
 <!-- ##### -->
 
@@ -263,18 +263,57 @@
 </foreignobject>
 
 <!-- Mag. Telescope -->
-<rect x="476.5" y="62.5" class="st14" width="133" height="35"/>
-<text transform="matrix(1 0 0 1 498.5088 81.8599)" class="st9 st10">Mag. Telescope</text>
+{% set magnification_telescope_left = 476.5 %}
+{% set magnification_telescope_top = 62.5 %}
+{% set magnification_telescope_label_left = magnification_telescope_left + 25  %}
+{% set magnification_telescope_label_top = magnification_telescope_top + 20 %}
+{% set magnification_telescope_selector_left = magnification_telescope_left - 7 %}
+{% set magnification_telescope_selector_top = magnification_telescope_top - 40  %}
+<rect x="{{magnification_telescope_left}}" y="{{magnification_telescope_top}}" class="st14" width="133" height="35"/>
+<text transform="matrix(1 0 0 1 {{magnification_telescope_label_left}} {{magnification_telescope_label_top}})" class="st9 st10">Mag. Telescope</text>
+<foreignobject class="node" x="{{magnification_telescope_selector_left}}" y="{{ magnification_telescope_selector_top}}" width="150" height=50>
+	<div class="form-group">
+		{% if microscope_form.magnification_telescope.errors %}
+			{{ microscope_form.magnification_telescope(class="form-control form-control-sm is-invalid") }}
+			<div class="invalid-feedback">
+				{% for error in microscope_form.magnification_telescope.errors %}
+					<span>{{ error }}</span>
+				{% endfor %}
+			</div>
+		{% else %}
+			{{ microscope_form.magnification_telescope(class="form-control form-control-sm") }}
+		{% endif %}
+	</div>
+</foreignobject>
+
 <!-- ##### -->
 
 <!-- CH2 Detector -->
+{% set ch2_detector_left = 802.5 %}
+{% set ch2_detector_top = 239.5 %}
+{% set ch2_detector_label_left = ch2_detector_left + 110 %}
+{% set ch2_detector_label_top = ch2_detector_top - 50 %}
+{% set ch2_detector_selector_left = ch2_detector_left + 70 %}
+{% set ch2_detector_selector_top = ch2_detector_top - 40  %}
 <rect x="802.5" y="239.5" class="st15" width="131" height="46"/>
-<text transform="matrix(1.0227 0 0 1 837.2983 232.3057)" class="st9 st11">CH2 Detector </text>
+<text transform="matrix(1.0227 0 0 1 {{ch2_detector_label_left}} {{ch2_detector_label_top}})" class="st9 st11">CH2 Detector </text>
+<foreignobject class="node" x="{{ch2_detector_selector_left}}" y="{{ch2_detector_selector_top}}" width="150" height=50>
+	{{ microscope_form.ch2_detector_serial_number(class="form-control form-control-sm") }}
+</foreignobject>
 <!-- ##### -->
 
 <!-- CH1 Detector -->
-<rect x="630" y="383" transform="matrix(4.489215e-11 -1 1 4.489215e-11 289.5 1101.5)" class="st15" width="131" height="46"/>
-<text transform="matrix(1.0227 0 0 1 721.2983 423.3057)" class="st9 st11">CH1 Detector</text>
+{% set ch1_detector_left = 630 %}
+{% set ch1_detector_top = 383 %}
+{% set ch1_detector_label_left = ch1_detector_left + 100 %}
+{% set ch1_detector_label_top = ch1_detector_top + 35 %}
+{% set ch1_detector_selector_left = ch1_detector_label_left %}
+{% set ch1_detector_selector_top = ch1_detector_top + 45 %}
+<rect x="{{ch1_detector_left}}" y="{{ch1_detector_top}}" transform="matrix(4.489215e-11 -1 1 4.489215e-11 289.5 1101.5)" class="st15" width="131" height="46"/>
+<text transform="matrix(1.0227 0 0 1 {{ch1_detector_label_left}} {{ch1_detector_label_top}})" class="st9 st11">CH1 Detector</text>
+<foreignobject class="node" x="{{ch1_detector_selector_left}}" y="{{ch1_detector_selector_top}}" width="150" height=50>
+	{{ microscope_form.ch1_detector_serial_number(class="form-control form-control-sm") }}
+</foreignobject>
 <!-- ##### -->
 
 <!-- CH1 PreAmp -->

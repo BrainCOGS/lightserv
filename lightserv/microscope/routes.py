@@ -125,55 +125,30 @@ def microscope_center_js():
 def status_monitor(microscope):
     microscope_form = microscope_form_picker(microscope)
 
-
-    ''' Pre-populate the select field choices with all options in the db '''
-    # LASER
-    laser_serials = db_microscope.Laser().fetch('laser_serial')
-    laser_serial_choices = [(laser_serial,laser_serial) for laser_serial in laser_serials]
-    microscope_form.laser_serial.choices = laser_serial_choices
-    # fetch the most recent saved value in the db, if there is one
-    try:
-        last_laser_serial = \
-            db_microscope.LaserStatus() & f'microscope="{microscope}"'.fetch(
-            'laser_serial',
-            order_by='laser_change_date')[-1]
-        microscope_form.laser_serial.data = last_laser_serial
-    except:
-        logger.debug("did not update laser serial")
-        pass
-    
+    """ Populate all of the select field with the rest of the choices
+    from the db """
     # OBJECTIVE
     lens_types = db_microscope.ObjectiveLensType().fetch('lens_type')
     lens_type_choices = [(lens_type,lens_type) for lens_type in lens_types]
     microscope_form.objective_lens_type.choices = lens_type_choices
-    # fetch the most recent saved value in the db, if there is one
-    try:
-        last_objective_lens_type = \
-            db_microscope.ObjectiveStatus.Objective() & \
-            f'microscope_name={microscope}'.fetch(
-            'lens_type',
-            order_by='objective_config_date')[-1]
-        microscope_form.objective_lens_type.data = last_objective_lens_type
-    except:
-        pass
-    
 
     # SCANNER
     scanner_types = db_microscope.ScannerType().fetch('scanner_type')
     scanner_type_choices = [(scanner_type,scanner_type) for scanner_type in scanner_types]
-    microscope_form.scanner_type.choices = scanner_type_choices
+    microscope_form.scanner_type.choices = scanner_type_choices     
 
     ## FILTERS
-    filter_types = db_microscope.FilterType().fetch('filter_type')
-    filter_type_choices = [(filter_type,filter_type) for filter_type in filter_types]
+    filter_models,filter_types = db_microscope.FilterType().fetch('filter_model','filter_type')
+    filter_type_model_choices = [('%s, %s' % (filter_models[ii],filter_types[ii]),'%s, %s' % \
+        (filter_models[ii],filter_types[ii])) for ii in range(len(filter_models))]
     # CH1_FILTER
-    microscope_form.ch1_filter_type.choices = filter_type_choices
+    microscope_form.ch1_filter_type_model.choices = filter_type_model_choices
     # CH2_FILTER
-    microscope_form.ch2_filter_type.choices = filter_type_choices
+    microscope_form.ch2_filter_type_model.choices = filter_type_model_choices
     # NIR_FILTER
-    microscope_form.nir_filter_type.choices = filter_type_choices
+    microscope_form.nir_filter_type_model.choices = filter_type_model_choices
     # VISIBLE FILTER
-    microscope_form.visible_filter_type.choices = filter_type_choices
+    microscope_form.visible_filter_type_model.choices = filter_type_model_choices
 
     ## PREAMPS
     preamp_models = db_microscope.PreAmplifierType().fetch('amp_model')
@@ -184,13 +159,20 @@ def status_monitor(microscope):
     microscope_form.ch2_preamp_model.choices = preamp_model_choices    
 
     # DICHROICS
-    mirror_types = db_microscope.DichroicMirrorType().fetch('mirror_type')
-    mirror_type_choices = [(mirror_type,mirror_type) for mirror_type in mirror_types]
+    mirror_models = db_microscope.DichroicMirrorType().fetch('mirror_model')
+    mirror_model_choices = [(mirror_model,mirror_model) for mirror_model in mirror_models]
     # LASER DICHROIC
-    microscope_form.laser_dichroic_mirror_type.choices = mirror_type_choices
+    microscope_form.laser_dichroic_mirror_model.choices = mirror_model_choices
     # EMISSION DICHROIC
-    microscope_form.emission_dichroic_mirror_type.choices = mirror_type_choices
+    microscope_form.emission_dichroic_mirror_model.choices = mirror_model_choices
  
+    # Detectors (PMTs)
+    pmt_serial_numbers = db_microscope.Pmt().fetch('pmt_serial')
+    pmt_serial_number_choices = [(pmt_serial,pmt_serial) for pmt_serial in pmt_serial_numbers]
+    # CH1 Detector
+    microscope_form.ch1_detector_serial_number.choices = pmt_serial_number_choices
+    # CH2 Detector
+    microscope_form.ch2_detector_serial_number.choices = pmt_serial_number_choices
     # DAQ
     daq_names = db_microscope.DaqSystemType().fetch('daq_name')
     daq_name_choices = [(daq_name,daq_name) for daq_name in daq_names]
@@ -200,48 +182,113 @@ def status_monitor(microscope):
     acq_software_names = db_microscope.AcquisitionSoftware().fetch('acq_software')
     acq_software_name_choices = [(acq_software_name,acq_software_name) for acq_software_name in acq_software_names]
     microscope_form.acq_software_name.choices = acq_software_name_choices
-    ''' Now set the values in the form to ones stored last in the database '''
-        
+   
+    # LASER
+    laser_serials = db_microscope.Laser().fetch('laser_serial')
+    laser_serial_choices = [(laser_serial,laser_serial) for laser_serial in laser_serials]
+    microscope_form.laser_serial.choices = laser_serial_choices
+
     if request.method == 'POST':
-        ''' Update the database with the current status of components '''
-        today = date.today().strftime('%Y-%m-%d')
-        # Objective status
-        objective_lens_type = microscope_form.objective_lens_type.data
-        objective_config_date = today
-        objective_status_insert_dict = dict(
-            microscope_name=microscope,
-            objective_config_date = objective_config_date)
-        db_microscope.ObjectiveStatus().insert1(
-            objective_status_insert_dict,skip_duplicates=True)
-        objective_insert_dict = dict(
-            microscope_name=microscope,
-            objective_config_date = objective_config_date,
-            objective_location='standard',
-            lens_type=objective_lens_type)
-        db_microscope.ObjectiveStatus.Objective.insert1(
-            objective_insert_dict,skip_duplicates=True)
-        # Laser status
-        laser_serial = microscope_form.laser_serial.data
-        laser_change_date = today
-        laser_status_insert_dict = dict(
-            microscope_name=microscope,
-            laser_serial=laser_serial,
-            laser_change_date=laser_change_date
-            )
-        db_microscope.LaserStatus().insert1(
-            laser_status_insert_dict,skip_duplicates=True)
+        logger.debug("POST request")
+        if microscope_form.validate_on_submit():
+            logger.debug("Form validated!")
+            ''' Update the database with the current status of components '''
+            today = date.today().strftime('%Y-%m-%d')
+            # Objective status
+            objective_lens_type = microscope_form.objective_lens_type.data
+            objective_config_date = today
+            objective_status_insert_dict = dict(
+                microscope_name=microscope,
+                objective_config_date = objective_config_date,
+                lens_type=objective_lens_type)
+            logger.debug(objective_status_insert_dict)
+            db_microscope.ObjectiveStatus().insert1(
+                objective_status_insert_dict,skip_duplicates=True)
+            
+            # Laser status
+            laser_serial = microscope_form.laser_serial.data
+            laser_change_date = today
+            laser_status_insert_dict = dict(
+                microscope_name=microscope,
+                laser_serial=laser_serial,
+                laser_change_date=laser_change_date
+                )
+            db_microscope.LaserStatus().insert1(
+                laser_status_insert_dict,skip_duplicates=True)
+            # Scanner status
+            scanner_type = microscope_form.scanner_type.data
+            scanner_config_date = today
+            scanner_status_insert_dict = dict(
+                microscope_name=microscope,
+                scanner_type=scanner_type,
+                scanner_config_date=scanner_config_date
+                )
+            db_microscope.ScannerStatus().insert1(
+                scanner_status_insert_dict,skip_duplicates=True)
 
-        # CH1 Filter status
-        # ch1_filter = microscope_form.ch1_filter_type.data
-        # laser_change_date = today
-        # laser_status_insert_dict = dict(
-        #     microscope_name=microscope,
-        #     laser_serial=laser_serial,
-        #     laser_change_date=laser_change_date
-        #     )
-        # db_microscope.LaserStatus().insert1(
-        #     laser_status_insert_dict,skip_duplicates=True)
+            # Magnification telescope
+            magnification = microscope_form.magnification_telescope.data
+            magnification_insert_dict = dict(
+                microscope_name=microscope,
+                magnification=magnification,
+                change_date=today)
+            db_microscope.MagnificationTelescopeStatus().insert1(
+                magnification_insert_dict,skip_duplicates=True)
 
+            # CH1 Filter status
+            # ch1_filter = microscope_form.ch1_filter_type.data
+            # laser_change_date = today
+            # laser_status_insert_dict = dict(
+            #     microscope_name=microscope,
+            #     laser_serial=laser_serial,
+            #     laser_change_date=laser_change_date
+            #     )
+            # db_microscope.LaserStatus().insert1(
+            #     laser_status_insert_dict,skip_duplicates=True)
+            flash("Configuration saved","success")
+        else:
+            flash("There were errrors in the input. See below for details","danger")
+            logger.debug("Not validated!")
+            logger.debug(microscope_form.errors)
+
+    ''' Now set the values in the form to ones stored last in the database '''
+
+    # LASER
+    try:
+        last_laser_serial = \
+            (db_microscope.LaserStatus() & f'microscope_name="{microscope}"').fetch(
+            'laser_serial',
+            order_by='laser_change_date')[-1]
+        logger.debug("Laser: {}".format(last_laser_serial))
+        microscope_form.laser_serial.data = last_laser_serial
+    except:
+        logger.debug("did not update laser serial")
+        pass
+    
+    # OBJECTIVE
+    
+    # fetch the most recent saved value in the db, if there is one
+    try:
+        # logger.debug(db_microscope.ObjectiveStatus.Objective())
+        last_objective_lens_type = \
+            (db_microscope.ObjectiveStatus() & f'microscope_name="{microscope}"').fetch(
+                'lens_type',order_by='objective_config_date')[-1]
+        logger.debug('Objective: {}'.format(last_objective_lens_type))
+        microscope_form.objective_lens_type.data = last_objective_lens_type
+    except:
+        logger.debug("did not update objective lens")
+        pass
+
+    # MAGNIFICATION TELESCOPE
+    try:
+        last_magnification = \
+            (db_microscope.MagnificationTelescopeStatus() & f'microscope_name="{microscope}"').fetch(
+                'magnification',order_by='change_date')[-1]
+        logger.debug('Magnification: {}'.format(last_magnification))
+        microscope_form.magnification_telescope.data = last_magnification
+    except:
+        logger.debug("did not update magnification")
+        pass
     return render_template('microscope/status_monitor.html',
         microscope_form=microscope_form,microscope=microscope)
 

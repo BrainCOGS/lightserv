@@ -111,7 +111,6 @@ class FilterType(dj.Manual):
     filter_model='':         varchar(64)
     ---
     filter_type:             varchar(32)
-
     filter_brand='':         varchar(64)
     filter_spectrum=null:    varchar(255) # link to google drive picture
     """
@@ -233,15 +232,18 @@ class ObjectiveStatus(dj.Manual):
     definition = """
     -> Microscope
     objective_config_date:  date
+    -> ObjectiveLensType
+    ---
     """
 
-    class Objective(dj.Part):
-        definition = """
-        -> master
-        objective_location:  varchar(32)
-        ---
-        -> ObjectiveLensType
-        """
+@schema
+class ScannerStatus(dj.Manual):
+    definition = """
+    -> Microscope
+    scanner_config_date:  date
+    -> ScannerType
+    ---
+    """
 
 
 @schema
@@ -406,8 +408,10 @@ class CustomOpticalAssembly(dj.Lookup):
     """
 
 @schema
-class MagnificationTelescope(dj.Lookup):
+class MagnificationTelescopeStatus(dj.Manual):
     definition = """
+    -> Microscope
     magnification:  float # A field for Stephan to enter in any decimal value
+    change_date: date
     ---
     """
