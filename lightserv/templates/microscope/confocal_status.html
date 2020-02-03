@@ -1,3 +1,6 @@
+<form method="POST" action="">
+	{{ microscope_form.hidden_tag() }}
+
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 width="1000" viewBox="0 0 1200 768" style="enable-background:new 0 0 1024 768;" xml:space="preserve">
 <style type="text/css">
@@ -119,7 +122,7 @@
 	<stop  offset="1" style="stop-color:#000000"/>
 </linearGradient>
 <rect x="117" y="199" transform="matrix(0.693 0.7209 -0.7209 0.693 220.5096 -10.8542)" class="st1" width="12" height="109"/>
-<text transform="matrix(1.0227 0 0 1 40 250)" class="st9 st11">Beam Splitter</text>
+<!-- <text transform="matrix(1.0227 0 0 1 40 250)" class="st9 st11">Beam Splitter</text> -->
 
 
 <!-- LaserDichroic -->
@@ -140,13 +143,39 @@
 </foreignobject>
 <!-- ##### -->
 
+<!-- Visible blocking filter -->
+
+{% set visible_filter_left = 195 %}
+{% set visible_filter_top = 180 %}
+{% set visible_filter_label_left = visible_filter_left + 120 %}
+{% set visible_filter_label_top = visible_filter_top - 25 %}
+{% set visible_filter_selector_left = visible_filter_left + 110 %}
+{% set visible_filter_selector_top = visible_filter_top - 10 %}
+<rect x="{{visible_filter_left}}" y="{{visible_filter_top}}" class="st6" width="105" height="9"/>
+<text transform="matrix(1.0227 0 0 1 {{visible_filter_label_left}} {{visible_filter_label_top}})" class="st9 st11">Visible blocking filter</text>
+<foreignobject class="node" x="{{visible_filter_selector_left}}" y="{{visible_filter_selector_top}}" width="150" height=50>
+	{{ microscope_form.visible_filter_type(class="form-control form-control-sm col-sm-10") }}
+</foreignobject>
+<!-- ##### -->
+
+
+
 <!-- Emission Dichroic -->
+{% set emission_dichroic_left = 697 %}
+{% set emission_dichroic_top = 209 %}
+{% set emission_dichroic_label_left = emission_dichroic_left - 60 %}
+{% set emission_dichroic_label_top = emission_dichroic_top - 30 %}
+{% set emission_dichroic_selector_left = emission_dichroic_left - 80 %}
+{% set emission_dichroic_selector_top = emission_dichroic_top - 25 %}
 <linearGradient id="SVGID_3_" gradientUnits="userSpaceOnUse" x1="573.2067" y1="-168.4365" x2="586.2067" y2="-168.4365" gradientTransform="matrix(0.6876 -0.7261 0.7261 0.6876 426.6661 800.2219)">
 	<stop  offset="0" style="stop-color:#FFFFFF"/>
 	<stop  offset="1" style="stop-color:#000000"/>
 </linearGradient>
-<rect x="697" y="209" transform="matrix(0.6876 -0.7261 0.7261 0.6876 28.2759 592.7241)" class="st3" width="12" height="109"/>
-<text transform="matrix(1.0227 0 0 1 644.2983 218.3057)" class="st9 st11">EmissionDichroic</text>
+<rect x="{{emission_dichroic_left}}" y="{{emission_dichroic_top}}" transform="matrix(0.6876 -0.7261 0.7261 0.6876 28.2759 592.7241)" class="st3" width="12" height="109"/>
+<text transform="matrix(1.0227 0 0 1 {{emission_dichroic_label_left}} {{emission_dichroic_label_top}})" class="st9 st11">Emission Dichroic</text>
+<foreignobject class="node" x="{{emission_dichroic_selector_left}}" y="{{emission_dichroic_selector_top}}" width="150" height=50>
+	{{ microscope_form.emission_dichroic_mirror_type(class="form-control form-control-sm col-sm-10") }}
+</foreignobject>
 <!-- ##### -->
 
 <!-- Scanners -->
@@ -190,7 +219,7 @@
 {% set ch1_filter_selector_left = ch1_filter_label_left %}
 {% set ch1_filter_selector_top = ch1_filter_top + 35 %}
 <rect x="{{ch1_filter_left}}" y="{{ch1_filter_top}}" class="st6" width="105" height="9"/>
-<text transform="matrix(1.0227 0 0 1 {{ch1_filter_label_left}} {{ch1_filter_label_top}})" class="st9 st11">CH1Filter</text>
+<text transform="matrix(1.0227 0 0 1 {{ch1_filter_label_left}} {{ch1_filter_label_top}})" class="st9 st11">CH1 Filter</text>
 <foreignobject class="node" x="{{ch1_filter_selector_left}}" y="{{ch1_filter_selector_top}}" width="150" height=50>
 	{{ microscope_form.ch1_filter_type(class="form-control form-control-sm col-sm-10") }}
 </foreignobject>
@@ -206,7 +235,7 @@
 {% set nir_filter_selector_left = nir_filter_label_left %}
 {% set nir_filter_selector_top = nir_filter_top - 40 %}
 <rect x="{{nir_filter_left}}" y="{{nir_filter_top}}" class="st7" width="9" height="105"/>
-<text transform="matrix(1.0227 0 0 1 {{nir_filter_label_left}} {{nir_filter_label_top}})" class="st9 st11">NIR filter</text>
+<text transform="matrix(1.0227 0 0 1 {{nir_filter_label_left}} {{nir_filter_label_top}})" class="st9 st11">NIR blocking filter</text>
 <foreignobject class="node" x="{{nir_filter_selector_left}}" y="{{nir_filter_selector_top}}" width="150" height=50>
 	{{ microscope_form.nir_filter_type(class="form-control form-control-sm col-sm-10") }}
 </foreignobject>
@@ -215,10 +244,10 @@
 <!-- CH2 filter -->
 {% set ch2_filter_left = 715.5 %}
 {% set ch2_filter_top = 260.5 %}
-{% set ch2_filter_label_left = ch2_filter_left %}
-{% set ch2_filter_label_top = ch2_filter_top - 95 %}
-{% set ch2_filter_selector_left = ch2_filter_label_left %}
-{% set ch2_filter_selector_top = ch2_filter_top - 85 %}
+{% set ch2_filter_label_left = ch2_filter_left + 35 %}
+{% set ch2_filter_label_top = ch2_filter_top - 115 %}
+{% set ch2_filter_selector_left = ch2_filter_left + 20%}
+{% set ch2_filter_selector_top = ch2_filter_top - 110 %}
 <rect x="{{ch2_filter_left}}" y="{{ch2_filter_top}}" transform="matrix(4.490281e-11 -1 1 4.490281e-11 503 1033)" class="st8" width="105" height="9"/>
 <text transform="matrix(1.0227 0 0 1 {{ch2_filter_label_left}} {{ch2_filter_label_top}})" class="st9 st11">CH2 Filter</text>
 <foreignobject class="node" x="{{ch2_filter_selector_left}}" y="{{ch2_filter_selector_top}}" width="150" height=50>
@@ -230,7 +259,7 @@
 <rect x="632.5" y="43.5" class="st8" width="193" height="74"/>
 <text transform="matrix(1 0 0 1 670.5088 30)" class="st9 st10">Laser</text>
 <foreignobject class="node" x="660" y="65" width="150" height=50>
-	{{ microscope_form.laser_name(class="form-control form-control-sm") }}
+	{{ microscope_form.laser_serial(class="form-control form-control-sm") }}
 </foreignobject>
 
 <!-- Mag. Telescope -->
@@ -343,3 +372,4 @@
 {{ microscope_form.submit(class='btn btn-info mb-4') }}
 <hr class='class-1'>
 
+</form>
