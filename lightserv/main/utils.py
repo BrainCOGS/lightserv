@@ -212,8 +212,7 @@ def logged_in_as_imager(f):
 					return redirect(url_for('main.welcome'))
 			else: # imager is assigned 
 				if imager in current_app.config['IMAGING_ADMINS']: # one of the admins started the form
-					if current_user in  current_app.config['IMAGING_ADMINS']: # one of the admins is accessing the form
-						
+					if current_user in current_app.config['IMAGING_ADMINS']: # one of the admins is accessing the form
 						if current_user != imager:
 							logger.info(f"""Current user: {current_user} accessed the form of which {imager} is the imager""")
 							flash("While you have access to this page, "

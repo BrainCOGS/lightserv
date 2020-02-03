@@ -877,7 +877,6 @@ def test_sagittal_orientation_required_if_registration(test_client,test_login):
 	assert b'New Request Form' in response.data  
 	assert b'Output orientation must be sagittal since registration was selected' in response.data 
 
-
 def test_duplicate_sample_names(test_client,test_login):
 	""" Ensure that having duplicate sample names raises an error
 

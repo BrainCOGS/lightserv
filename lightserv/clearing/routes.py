@@ -181,7 +181,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 							   'clearing_protocol':clearing_protocol,'antibody1':antibody1,
 							   'antibody2':antibody2,'clearing_batch_number':clearing_batch_number}
 							samples_this_clearing_batch = (db_lightsheet.Request.Sample() & sample_keys).fetch('sample_name')
-							samples_str = ','.join(sample for sample in samples_this_clearing_batch)
+							samples_str = ', '.join(sample for sample in samples_this_clearing_batch)
 							# logger.debug(samples_this_clearing_batch)	
 							imaging_manager_url = 'http://braincogs00.pni.princeton.edu' + url_for('imaging.imaging_manager')
 							msg = Message('Lightserv automated email: Clearing complete',
@@ -191,11 +191,11 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 							msg.body = ('Hello!\n\nThis is an automated email sent from lightserv, '
 								'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 								'The clearing for your batch:\n'
-								f'request_name: "{request_name}"\n'
-								f'clearing_protocol: "{clearing_protocol}"'
-								f'antibody1: "{antibody1}"'
-								f'antibody2: "{antibody2}"'
-								f'clearing_batch_number: {clearing_batch_number}'
+								f'request_name: {request_name}\n'
+								f'clearing_protocol: "{clearing_protocol}\n'
+								f'antibody1: {antibody1}\n'
+								f'antibody2: {antibody2}\n'
+								f'clearing_batch_number: {clearing_batch_number}\n'
 								f'Samples: {samples_str}\n\n'
 								f'is now complete. Check the imaging management GUI: {imaging_manager_url}\n'
 								'to see if you designated yourself as the imager for any of these samples\n\n'
@@ -203,6 +203,27 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 								'emails when the imaging for each of your samples is complete.\n\n'
 								'Thanks,\nThe Histology and Brain Registration Core Facility.')
 							mail.send(msg)
+
+							""" Admin emails """
+							imaging_admin_email_addresses = [netid + '@princeton.edu' for netid in current_app.config['IMAGING_ADMINS']]
+							logger.debug(imaging_admin_email_addresses)
+							imaging_admin_email_addresses = ['ahoag@princeton.edu'] # for now while in DEV phase
+							msg_admin = Message('Lightserv automated email: Clearing complete',
+								sender='lightservhelper@gmail.com',
+								recipients=imaging_admin_email_addresses) # keep it to me while in DEV phase
+							
+							msg_admin.body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+								'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
+								'The clearing for batch:\n'
+								f'request_name: {request_name}\n'
+								f'clearing_protocol: {clearing_protocol}\n'
+								f'antibody1: {antibody1}\n'
+								f'antibody2: {antibody2}\n'
+								f'clearing_batch_number: {clearing_batch_number}\n'
+								f'Samples: {samples_str}\n\n'
+								f'is now complete. These samples should now appear in the imaging management GUI: {imaging_manager_url}\n\n'
+								'Thanks,\nThe Histology and Brain Registration Core Facility.')
+							mail.send(msg_admin)
 							return redirect(url_for('clearing.clearing_manager'))
 
 					elif re.search("^(?!perfusion).*_date_submit$",key) != None: # one of the calendar date submit buttons

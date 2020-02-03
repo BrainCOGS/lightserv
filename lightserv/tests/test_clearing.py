@@ -36,6 +36,15 @@ def test_nonadmin_access_clearing_manager(test_client,test_single_sample_request
 	assert b'nonadmin_request' not in response.data 
 	assert b'admin_request' not in response.data 
 
+def test_nonadmin_can_see_self_clearing_request(test_client,test_self_clearing_and_imaging_request):
+	""" Test that lightserv-test, a nonadmin can see 
+	their entry because they designated themselves as the clearer
+	"""
+	response = test_client.get(url_for('clearing.clearing_manager')
+		, follow_redirects=True)
+	assert b'Clearing management GUI' in response.data
+	assert b'self_clearing_and_imaging_request' in response.data 
+
 def test_ll3_access_clearing_manager(test_client,test_single_sample_request_nonadmin,test_single_sample_request_ahoag,test_login_ll3):
 	""" Test that Laura (ll3, a clearing admin) can access the clearing task manager
 	and see entries made by multiple users """

@@ -8,7 +8,7 @@ from datetime import datetime
 """ Tests for Imaging Manager """
 def test_ahoag_access_imaging_manager(test_client,test_cleared_request_ahoag):
 	""" Test that ahoag can access the imaging task manager
-	and see the single entry made and cleared by ahoag  """
+	and see the single entry s and cleared by ahoag  """
 	response = test_client.get(url_for('imaging.imaging_manager')
 		, follow_redirects=True)
 	assert b'Imaging management GUI' in response.data
@@ -42,6 +42,26 @@ def test_multichannel_imaging_worked(test_client,test_imaged_multichannel_reques
 		, follow_redirects=True)
 	assert b'Imaging management GUI' in response.data
 	assert b'admin_multichannel_request' in response.data 
+
+def test_nonadmin_can_see_self_imaging_request(test_client,test_self_cleared_request_nonadmin):
+	""" Test that lightserv-test, a nonadmin can see their 
+	request in which they designated themselves as the clearer and imager 
+	"""
+	response = test_client.get(url_for('imaging.imaging_manager')
+		, follow_redirects=True)
+	assert b'Imaging management GUI' in response.data
+	assert b'self_clearing_and_imaging_request' in response.data 
+	# assert b'admin_request' not in response.data 
+
+def test_admin_can_see_self_imaging_request(test_client,test_self_cleared_request_nonadmin,test_login_zmd):
+	""" Test that Zahra (zmd, an imaging admin) can see the
+	sample for which lightserv-test, a nonadmin designated themselves the imager.
+	"""
+	response = test_client.get(url_for('imaging.imaging_manager')
+		, follow_redirects=True)
+	assert b'Imaging management GUI' in response.data
+	assert b'self_clearing_and_imaging_request' in response.data 
+	# assert b'admin_request' not in response.data 
 
 """ Tests for imaging entry form """
 
@@ -526,6 +546,19 @@ def test_multichannel_imaging_entry_form_validates(test_client,test_cleared_mult
 	validation_str = 'Subfolder: test488. Tiling and imaging parameters must be identical for all channels in the same subfolder. Check your entries.'
 	assert validation_str.encode('utf-8') in response.data
 
+def test_admin_cannot_access_self_imaging_request(test_client,test_self_cleared_request_nonadmin,test_login_zmd):
+	""" Test that Zahra (zmd, an imaging admin) cannot 
+	access the imaging entry form for a sample that a user (admin or not)
+	has designated themselves as a self-imager.
+	"""
+	response = test_client.get(url_for('imaging.imaging_entry',
+		username='lightserv-test',request_name='self_clearing_and_imaging_request',
+		sample_name='sample-001',
+		imaging_request_number=1),
+		follow_redirects=True)
+	assert b'Welcome to the Brain Registration and Histology' in response.data 
+	assert b'The imager has already been assigned for this entry' in response.data
+
 """ Tests for New imaging request """	
 
 def test_new_imaging_request(test_client,test_single_sample_request_ahoag):
@@ -644,9 +677,8 @@ def test_new_imaging_request_image_resolution_forms_validation(test_client,test_
 	assert test_str4.encode('utf-8') in response4.data
 
 def test_new_imaging_request_self_imaging(test_client,test_single_sample_request_ahoag):
-	""" Test that hitting the new image resolution button works
-	Uses the test_single_sample_request_ahoag fixture
-	to insert a request into the database as ahoag. 
+	""" Test that a user can request a new imaging request
+	with self-imaging
 	"""
 	from lightserv import db_lightsheet
 	response = test_client.post(

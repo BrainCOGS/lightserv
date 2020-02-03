@@ -167,7 +167,7 @@ def test_delete_request_db_contents(test_client):
 	db_admin.UserActionLog().delete()	
 	db_admin.SpockJobManager().delete()	
 
-""" Fixtures for inserting requests as different users or using different species """
+""" Fixtures for requests """
 
 @pytest.fixture(scope='function') 
 def test_single_sample_request_ahoag(test_client,test_login,test_delete_request_db_contents):
@@ -491,6 +491,44 @@ def test_request_generic_imaging_nonadmin(test_client,test_login_nonadmin,test_d
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_nonadmin fixture --------')
 
+@pytest.fixture(scope='function') 
+def test_self_clearing_and_imaging_request(test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits a new request as 'lightserv-test' (a nonadmin) that can be used for various tests.
+	In this request, the user sets themselves as the clearer and imager
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_self_clearing_and_imaging_request fixture ----------')
+	from lightserv import db_lightsheet
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+		print(f"Current user is {current_user}")
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Tank/Brody",'correspondence_email':"lightserv-test@princeton.edu",
+			'request_name':"self_clearing_and_imaging_request",
+			'description':"This is a request by lightserv-test, a non admin",
+			'species':"mouse",'number_of_samples':1,
+			'username':current_user,
+			'self_clearing':True,
+			'self_imaging':True,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_self_clearing_and_imaging_request fixture --------')
+	
 """ Fixtures for clearing """
 
 @pytest.fixture(scope='function') 
@@ -733,6 +771,32 @@ def test_cleared_rat_request(test_client,
 
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_cleared_request_ahoag fixture --------')
+
+
+@pytest.fixture(scope='function') 
+def test_self_cleared_request_nonadmin(test_client,test_self_clearing_and_imaging_request):
+	""" Clears the self-clearing single request by 'lightserv-test'
+	with clearer='lightserv-test'
+
+	"""
+	print('----------test_self_cleared_request_nonadmin fixture ----------')
+	from lightserv import db_lightsheet
+	now = datetime.now()
+	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		dehydr_pbs_wash1_notes='some notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
+			request_name="self_clearing_and_imaging_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_self_cleared_request_nonadmin fixture --------')
+
 
 """ Fixtures for imaging  """
 
