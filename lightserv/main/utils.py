@@ -59,6 +59,21 @@ def logged_in(f):
 			return redirect(login_url)
 	return decorated_function
 
+def request_exists(f):
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		
+		username = kwargs['username']
+		request_name = kwargs['request_name']
+		request_contents = db_lightsheet.Request() & \
+		f'request_name="{request_name}"' & f'username="{username}"'
+		if len(request_contents) == 0:
+			flash("That request does not exist","danger")
+			return redirect(url_for('requests.all_requests'))
+		else:
+			return f(*args, **kwargs)
+	return decorated_function
+
 def logged_in_as_clearer(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):

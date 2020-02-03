@@ -58,3 +58,5 @@ class TestConfig(BaseConfig):
 	CLEARING_CALENDAR_ID = 'skq68osl830f13tfgv6i0kq750@group.calendar.google.com' # the test calendar for the time being
 	CELERY_BROKER_URL='amqp://localhost//',
 	CELERY_RESULT_BACKEND=f'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test'
+	MAIL_USERNAME = os.environ.get('EMAIL_USER')
+	MAIL_PASSWORD = os.environ.get('EMAIL_PASS')

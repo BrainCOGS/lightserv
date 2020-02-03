@@ -400,8 +400,7 @@ def test_no_right_lightsheet_submits(test_client,test_cleared_request_ahoag,
 			imaging_request_number=1),
 		data=data,
 		follow_redirects=True)
-	assert b'Request overview:' in response.data
-	assert b'Samples in this request:' in response.data 
+	assert b'Imaging management GUI' in response.data
 
 	imaging_progress = \
 	(db_lightsheet.Request.ImagingRequest() & 'request_name="admin_request"' & \
@@ -482,8 +481,7 @@ def test_multichannel_imaging_entry_form_submits(test_client,test_cleared_multic
 			imaging_request_number=1),
 		data=data,
 		follow_redirects=True)
-	assert b'Request overview:' in response.data
-	assert b'Samples in this request:' in response.data 
+	assert b'Imaging management GUI' in response.data
 
 	imaging_progress = (db_lightsheet.Request.ImagingRequest() & 'request_name="admin_multichannel_request"' & \
 		'username="ahoag"' & 'sample_name="sample-001"' & 'imaging_request_number=1').fetch1('imaging_progress')

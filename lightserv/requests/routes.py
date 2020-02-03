@@ -8,7 +8,8 @@ from lightserv.requests.tables import (AllRequestTable,
 	AllSamplesTable)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
-	check_clearing_completed,check_imaging_completed,log_http_requests)
+	check_clearing_completed,check_imaging_completed,log_http_requests,
+	request_exists)
 from lightserv import cel,mail
 from flask_mail import Message
 import datajoint as dj
@@ -118,6 +119,7 @@ def all_requests():
 @requests.route("/request_overview/<username>/<request_name>",)
 @logged_in
 @log_http_requests
+@request_exists
 def request_overview(username,request_name):
 	""" A route for displaying a single request. """
 

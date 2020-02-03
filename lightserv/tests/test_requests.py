@@ -586,7 +586,7 @@ def test_submit_bad_mouse_clearing_protocol(test_client,test_login,test_delete_r
 			follow_redirects=True
 		)	
 	assert b"New Request Form" in response.data
-	assert b"One of the clearing protocols selected can only be used with rats" in response.data
+	assert b"Clearing protocol: iDISCO abbreviated clearing (rat) can only be used with rat subjects." in response.data
 
 def test_submit_bad_rat_clearing_protocol(test_client,test_login,test_delete_request_db_contents):
 	""" Ensure that a validation error is raised if
@@ -605,19 +605,19 @@ def test_submit_bad_rat_clearing_protocol(test_client,test_login,test_delete_req
 			'description':"This is a demo request",
 			'species':"rat",'number_of_samples':1,
 			'username':test_login['user'],
-			'clearing_samples-0-clearing_protocol':'iDISCO+_immuno',
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'sample-001',
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
-			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
 			'submit':True
 			},content_type='multipart/form-data',
 			follow_redirects=True
 		)	
 	assert b"New Request Form" in response.data
-	assert b"At least one of the clearing protocols you chose is not applicable for rats." in response.data
+	assert b"The clearing protocol you selected: iDISCO abbreviated clearing is not valid for species=rat." in response.data
 
 def test_rat_request_only_generic_imaging_allowed(test_client,test_login,test_delete_request_db_contents):
 	""" Ensure that only generic imaging is allowed (other options disabled)
@@ -1343,11 +1343,8 @@ def test_request_samples_multiple_processing_requests(test_client,test_new_proce
 	rows = first_sample_imaging_requests_table_tag.find_all('tr')
 	assert len(rows) == 3 # 1 for main sample, 3 for first imaging request (the nested processing request adds an extra row), 3 for second imaging request
 
-def test_sort_request_overview_table(test_client,test_single_sample_request_nonadmin):
-	""" Check that both imaging requests are displayed 
-	in the samples table in the request_overview() route
-	when multiple imaging requests are present in the 
-	same request.
+def test_sort_request_overview_table(test_client,test_single_sample_request_ahoag):
+	""" Check that the sort links work in request overview table
 
 	Uses the test_new_imaging_request_ahoag fixture
 	to insert a request and then a new imaging request
@@ -1356,11 +1353,13 @@ def test_sort_request_overview_table(test_client,test_single_sample_request_nona
 
 
 	for column_name in ['sample_name','request_name','username','clearing_protocol']:
+		print(column_name)
 		response = test_client.get(
 					url_for('requests.request_overview',request_name='admin_request',
 						username='ahoag',sample_name='sample-001',sort=column_name,direction='desc'),
 				follow_redirects=True
 			)	
+		print(response.data)
 		assert b'Samples in this request:' in response.data	
 
 
