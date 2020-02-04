@@ -229,7 +229,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			flash(flash_str,'danger')
 			if 'image_resolution_forms' in form.errors:
 				for error in form.errors['image_resolution_forms']:
-					flash(error,'danger')
+					error_str = error[0]
+					flash(error_str,'danger')
 
 	elif request.method == 'GET': # get request
 		if imaging_progress == 'complete':
