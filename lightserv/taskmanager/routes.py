@@ -13,6 +13,7 @@ import logging
 import paramiko,time
 import os
 from flask_mail import Message
+from datetime import datetime, timedelta
 
 
 logger = logging.getLogger(__name__)
@@ -324,3 +325,24 @@ def say_goodbye():
 @cel.task()
 def goodbye():
     return "goodbye world"    
+
+
+@taskmanager.route("/send_feedback_email") 
+def send_feedback_email():
+    eta = datetime.utcnow() + timedelta(seconds=1)
+    send_email.apply_async(kwargs={'request_name':'test'},eta=eta)
+    return "Email sent"
+
+@cel.task()
+def send_email(request_name):
+    msg_user = Message('Lightserv automated email: Your feedback (test)',
+                        sender='lightservhelper@gmail.com',
+                        recipients=['ahoag@princeton.edu']) # send it to me while in DEV phase
+                    
+    msg_user.body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+        'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
+        'We would love your feedback on your request:\n\n'
+        f'request_name: {request_name}\n\n'        
+        'Thanks,\nThe Histology and Brain Registration Core Facility.')
+    mail.send(msg_user)
+    return "Test Email sent!"
