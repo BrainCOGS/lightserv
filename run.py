@@ -6,7 +6,6 @@ import socket
 
 app = create_app()
 
-
 if __name__ == '__main__':
 	import logging
 	logger = logging.getLogger('werkzeug')
@@ -27,6 +26,6 @@ if __name__ == '__main__':
 	if socket.gethostname() == 'braincogs00.pni.princeton.edu':
 		app.run(host='0.0.0.0',port='8080',debug=True)
 	else:
-		app.run(debug=True)
+		app.run(port='5001',debug=True)
 
 	

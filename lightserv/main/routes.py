@@ -4,7 +4,8 @@ from flask import (render_template, request, redirect,
 from lightserv import db_lightsheet, db_admin
 import pandas as pd
 from lightserv.main.utils import logged_in, table_sorter, log_http_requests
-from lightserv.main.forms import SpockConnectionTesterForm
+from lightserv.main.forms import SpockConnectionTesterForm, FeedbackForm
+from lightserv.main.tables import RequestTable
 from functools import partial, wraps
 
 import datajoint as dj
@@ -126,3 +127,15 @@ def pre_handoff():
 	logger.info(f"{current_user} accessed pre_handoff route")
 	return render_template('main/pre_handoff.html')
 
+
+@main.route("/feedback_form/<request_name>")
+@logged_in
+@log_http_requests
+def feedback(request_name): 
+	current_user = session['user']
+	request_contents = db_lightsheet.Request() & {'username':current_user,'request_name':request_name}
+	logger.info(f"{current_user} accessed feedback route")
+	form = FeedbackForm()
+	table = RequestTable(request_contents)
+	return render_template('main/feedback_form.html',
+		form=form,table=table)

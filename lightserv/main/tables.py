@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from flask import session,current_app
-from flask_table import Col,LinkCol,NestedTableCol
+from flask_table import Col,LinkCol,NestedTableCol, Table
 # from datetime import strftime
 from functools import partial
 
@@ -159,3 +159,15 @@ class ProcessingRequestLinkCol(LinkCol):
     def text(self, item, attr_list):
         return item['processing_request_number']
 
+
+class RequestTable(Table):
+    border = True
+    no_items = "No Request"
+    html_attrs = {"style":'font-size:18px'} # gets assigned to table header
+    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    username = Col('username',column_html_attrs=column_html_attrs)
+    request_name = Col('request name',column_html_attrs=column_html_attrs)
+    description = Col('description',column_html_attrs=column_html_attrs)
+    species = Col('species',column_html_attrs=column_html_attrs)
+    number_of_samples = Col('number_of_samples',column_html_attrs=column_html_attrs)

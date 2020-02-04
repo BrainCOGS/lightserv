@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1 align="center" class="mb-4">Feedback Form</h1>
+<hr class='class-4'>
+<h5 align="center"> Please rate your experience with how we handled your request: </h5>
+<div align="center">
+	{{ table }}
+</div>
+<hr class='class-2'>
+<form method="POST" action="">
+	{{ form.hidden_tag() }}
+	<!-- CLEARING -->
+	<legend align="center"> Clearing </legend>
+	<div class='form-field'>
+		{{ form.clearing_rating.label(class="form-control-label mr-4") }}
+		{% for subfield in form.clearing_rating %}
+		    <tr>
+		        <td>{{ subfield }}</td>
+		        <td>{{ subfield.label(class='mr-4') }}</td>
+		    </tr>
+		{% endfor %}
+	</div>
+
+	<div class="form-group">
+		{{ form.clearing_notes.label(class="form-control-label") }}
+		{% if form.clearing_notes.errors %}
+			{{ form.clearing_notes(class="form-control form-control-lg is-invalid") }}
+			<div class="invalid-feedback">
+				{% for error in form.clearing_notes.errors %}
+					<span>{{ error }}</span>
+				{% endfor %}
+			</div>
+		{% else %}
+			{{ form.clearing_notes(class="form-control form-control-lg") }}
+		{% endif %}
+	</div>
+<hr class='class-2'>
+<!-- IMAGING -->
+<legend align="center"> Imaging </legend>
+
+<div class='form-field'>
+	{{ form.imaging_rating.label(class="form-control-label mr-4") }}
+	{% for subfield in form.imaging_rating %}
+	    <tr>
+	        <td>{{ subfield }}</td>
+	        <td>{{ subfield.label(class='mr-4') }}</td>
+	    </tr>
+	{% endfor %}
+</div>
+
+<div class="form-group">
+	{{ form.imaging_notes.label(class="form-control-label") }}
+	{% if form.imaging_notes.errors %}
+		{{ form.imaging_notes(class="form-control form-control-lg is-invalid") }}
+		<div class="invalid-feedback">
+			{% for error in form.imaging_notes.errors %}
+				<span>{{ error }}</span>
+			{% endfor %}
+		</div>
+	{% else %}
+		{{ form.imaging_notes(class="form-control form-control-lg") }}
+	{% endif %}
+</div>
+<hr class='class-2'>
+
+<!-- PROCESSING -->
+<legend align="center"> Processing </legend>
+
+<div class='form-field'>
+	{{ form.processing_rating.label(class="form-control-label mr-4") }}
+	{% for subfield in form.processing_rating %}
+	    <tr>
+	        <td>{{ subfield }}</td>
+	        <td>{{ subfield.label(class='mr-4') }}</td>
+	    </tr>
+	{% endfor %}
+</div>
+
+<div class="form-group">
+	{{ form.processing_notes.label(class="form-control-label") }}
+	{% if form.processing_notes.errors %}
+		{{ form.processing_notes(class="form-control form-control-lg is-invalid") }}
+		<div class="invalid-feedback">
+			{% for error in form.processing_notes.errors %}
+				<span>{{ error }}</span>
+			{% endfor %}
+		</div>
+	{% else %}
+		{{ form.processing_notes(class="form-control form-control-lg") }}
+	{% endif %}
+</div>
+<hr class='class-2'>
+	{{ form.submit(class="btn btn-lg btn-info mt-2") }}
+</form>
+
+{% endblock content %}
