@@ -10,7 +10,10 @@ import os
 import glob
 from lightserv import db_lightsheet,db_subject
 from wtforms import DateField
+from datetime import datetime
 
+def date_validator(form, field):	
+	datetime_obj = datetime.strptime(field.data,'%Y-%m-%d')
 
 class ClearingForm(FlaskForm):
 	""" A form that is used in ExpForm() via a FormField FieldList
@@ -22,11 +25,17 @@ class ClearingForm(FlaskForm):
 		 ('iDISCO abbreviated clearing (rat)','Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
 	     ('iDISCO+_immuno','iDISCO+ (immunostaining)'),
 	     ('uDISCO','uDISCO'),('iDISCO_EdU','Wang Lab iDISCO Protocol-EdU')],validators=[InputRequired()]) 
-	antibody1 = TextAreaField('Primary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
-	antibody2 = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',validators=[Length(max=100)])
-	perfusion_date = StringField('Perfusion Date (YYYY-MM-DD); leave blank if unsure):')
-	expected_handoff_date = StringField('Expected date of hand-off (YYYY-MM-DD; leave blank if not sure or not applicable):')
-	notes_for_clearer = TextAreaField('Special notes for clearing  -- max 1024 characters --',validators=[Length(max=1024)])
+	antibody1 = TextAreaField('Primary antibody and concentrations desired (if doing immunostaining)',
+		validators=[Length(max=100)])
+	antibody2 = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',
+		validators=[Length(max=100)])
+	perfusion_date = StringField('Perfusion Date (YYYY-MM-DD); leave blank if unsure):',
+		validators=[Optional(),date_validator])
+	expected_handoff_date = StringField(
+		'Expected date of hand-off (YYYY-MM-DD; leave blank if not sure or not applicable):',
+		validators=[Optional(),date_validator])
+	notes_for_clearer = TextAreaField(
+		'Special notes for clearing  -- max 1024 characters --',validators=[Length(max=1024)])
 
 	def validate_antibody1(self,antibody1):
 		''' Makes sure that primary antibody is not blank if immunostaining clearing protocol
@@ -187,6 +196,8 @@ class NewRequestForm(FlaskForm):
 			Also make sure that if registration is used 
 			in a given image resolution table, the output_orientation
 			must be sagittal
+
+			Also make sure there can only be 1 registration channel per image resolution
 		"""
 		for ii in range(len(imaging_samples.data)):
 			imaging_sample_dict = imaging_samples[ii].data
