@@ -128,14 +128,47 @@ def pre_handoff():
 	return render_template('main/pre_handoff.html')
 
 
-@main.route("/feedback_form/<request_name>")
+@main.route("/feedback_form/<username>/<request_name>",methods=['GET','POST'])
 @logged_in
 @log_http_requests
-def feedback(request_name): 
+def feedback(username,request_name): 
 	current_user = session['user']
-	request_contents = db_lightsheet.Request() & {'username':current_user,'request_name':request_name}
+	# if current_user != username:
+	# 	flash("You do not have permission to view the feedback form","danger")
+	# 	logger.info(f"{current_user} accessed feedback form for {username}/{request_name} -"
+	# 		         "they do not have permission and are being redirected")
+	# 	return redirect(url_for('main.welcome'))
+	feedback_table_contents = db_admin.RequestFeedback() & f'username="{username}"' & \
+		f'request_name="{request_name}"'
+	# if len(feedback_table_contents) > 0:
+	# 	flash("Feedback already received for this request. Thank you.","warning")
+	# 	logger.info(f"Feedback form for {username}/{request_name} "
+	# 		         "already submitted.")
+	# 	return redirect(url_for('main.welcome'))
+
+	request_contents = db_lightsheet.Request() & {'username':username,'request_name':request_name}
 	logger.info(f"{current_user} accessed feedback route")
 	form = FeedbackForm()
 	table = RequestTable(request_contents)
+
+	if request.method == 'POST':
+		logger.debug("POST request")
+		if form.validate_on_submit():
+			logger.debug("Form validated")
+			feedback_insert_dict = {}
+			feedback_insert_dict['username'] = username
+			feedback_insert_dict['request_name'] = request_name
+			feedback_insert_dict['clearing_rating'] = form.clearing_rating.data
+			feedback_insert_dict['clearing_notes'] = form.clearing_notes.data
+			feedback_insert_dict['imaging_rating'] = form.imaging_rating.data
+			feedback_insert_dict['imaging_notes'] = form.imaging_notes.data
+			feedback_insert_dict['processing_rating'] = form.processing_rating.data
+			feedback_insert_dict['processing_notes'] = form.processing_notes.data
+			feedback_insert_dict['other_notes'] = form.other_notes.data
+			db_admin.RequestFeedback().insert1(feedback_insert_dict,skip_duplicates=True)
+		else:
+			logger.debug("Form NOT validated")
+			logger.debug(form.imaging_rating.errors)
+
 	return render_template('main/feedback_form.html',
 		form=form,table=table)

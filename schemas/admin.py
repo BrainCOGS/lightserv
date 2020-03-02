@@ -1,6 +1,7 @@
 import datajoint as dj
 import socket
 import os
+from . import lightsheet
 
 
 if os.environ.get('FLASK_MODE') == 'TEST':
@@ -46,4 +47,20 @@ class SpockJobManager(dj.Manual):
     username : varchar(32)
     status : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
     """
+
+@schema 
+class RequestFeedback(dj.Lookup):
+    definition = """    # Table to keep track of users' feedback from the forms they submitted. 
+    # Feedback is gathered after a delay from submitting a request so it may not be present in this table if the request was recent 
+    -> lightsheet.Request
+    ---
+    clearing_rating : tinyint
+    clearing_notes : varchar(512)
+    imaging_rating : tinyint
+    imaging_notes : varchar(512)
+    processing_rating : tinyint
+    processing_notes : varchar(512)
+    other_notes : varchar(512)
+    """
+    
 

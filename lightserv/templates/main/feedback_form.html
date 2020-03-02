@@ -2,20 +2,22 @@
 {% block content %}
 <h1 align="center" class="mb-4">Feedback Form</h1>
 <hr class='class-4'>
-<h5 align="center"> Please rate your experience with how we handled your request: </h5>
+<h5 align="center"> For request: </h5>
 <div align="center">
 	{{ table }}
 </div>
+<h5 align="center" class='mt-4'> Please rate your experience with how we handled this request on scale from 1 (terrible) to 5 (excellent) </h5>
 <hr class='class-2'>
+ 
 <form method="POST" action="">
 	{{ form.hidden_tag() }}
 	<!-- CLEARING -->
-	<legend align="center"> Clearing </legend>
+	<legend align="center" class='border-bottom'><b> Clearing </b> </legend>
 	<div class='form-field'>
 		{{ form.clearing_rating.label(class="form-control-label mr-4") }}
 		{% for subfield in form.clearing_rating %}
 		    <tr>
-		        <td>{{ subfield }}</td>
+		        <td>{{ subfield(required="required") }}</td>
 		        <td>{{ subfield.label(class='mr-4') }}</td>
 		    </tr>
 		{% endfor %}
@@ -34,15 +36,14 @@
 			{{ form.clearing_notes(class="form-control form-control-lg") }}
 		{% endif %}
 	</div>
-<hr class='class-2'>
 <!-- IMAGING -->
-<legend align="center"> Imaging </legend>
+<legend align="center" class='border-bottom mt-4'> <b>Imaging</b> </legend>
 
 <div class='form-field'>
 	{{ form.imaging_rating.label(class="form-control-label mr-4") }}
 	{% for subfield in form.imaging_rating %}
 	    <tr>
-	        <td>{{ subfield }}</td>
+	        <td>{{ subfield(required="required") }}</td>
 	        <td>{{ subfield.label(class='mr-4') }}</td>
 	    </tr>
 	{% endfor %}
@@ -61,16 +62,15 @@
 		{{ form.imaging_notes(class="form-control form-control-lg") }}
 	{% endif %}
 </div>
-<hr class='class-2'>
 
 <!-- PROCESSING -->
-<legend align="center"> Processing </legend>
+<legend align="center" class='border-bottom mt-4'> <b>Processing</b> </legend>
 
 <div class='form-field'>
 	{{ form.processing_rating.label(class="form-control-label mr-4") }}
 	{% for subfield in form.processing_rating %}
 	    <tr>
-	        <td>{{ subfield }}</td>
+	        <td>{{ subfield(required="required") }}</td>
 	        <td>{{ subfield.label(class='mr-4') }}</td>
 	    </tr>
 	{% endfor %}
@@ -89,6 +89,24 @@
 		{{ form.processing_notes(class="form-control form-control-lg") }}
 	{% endif %}
 </div>
+
+
+<legend align="center" class='border-bottom mt-4'> <b>Other</b> </legend>
+
+<div class="form-group">
+	{{ form.other_notes.label(class="form-control-label") }}
+	{% if form.other_notes.errors %}
+		{{ form.other_notes(class="form-control form-control-lg is-invalid") }}
+		<div class="invalid-feedback">
+			{% for error in form.other_notes.errors %}
+				<span>{{ error }}</span>
+			{% endfor %}
+		</div>
+	{% else %}
+		{{ form.other_notes(class="form-control form-control-lg") }}
+	{% endif %}
+</div>
+
 <hr class='class-2'>
 	{{ form.submit(class="btn btn-lg btn-info mt-2") }}
 </form>
