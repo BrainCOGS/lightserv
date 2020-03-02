@@ -1,6 +1,6 @@
 from flask import (render_template, request, redirect,
 				   Blueprint, session, url_for, flash,
-				   Markup, Request, Response)
+				   Markup, Request, Response,abort)
 from lightserv import db_lightsheet, db_admin
 import pandas as pd
 from lightserv.main.utils import logged_in, table_sorter, log_http_requests
@@ -127,12 +127,16 @@ def pre_handoff():
 	logger.info(f"{current_user} accessed pre_handoff route")
 	return render_template('main/pre_handoff.html')
 
-
 @main.route("/feedback_form/<username>/<request_name>",methods=['GET','POST'])
 @logged_in
 @log_http_requests
 def feedback(username,request_name): 
 	current_user = session['user']
+	logger.info(f"{current_user} accessed feedback route")
+	request_contents = db_lightsheet.Request() & {'username':username,'request_name':request_name}
+	if len(request_contents) == 0:
+		flash("No request with those parameters exists","danger")
+		abort(404)
 	# if current_user != username:
 	# 	flash("You do not have permission to view the feedback form","danger")
 	# 	logger.info(f"{current_user} accessed feedback form for {username}/{request_name} -"
@@ -146,8 +150,7 @@ def feedback(username,request_name):
 	# 		         "already submitted.")
 	# 	return redirect(url_for('main.welcome'))
 
-	request_contents = db_lightsheet.Request() & {'username':username,'request_name':request_name}
-	logger.info(f"{current_user} accessed feedback route")
+	
 	form = FeedbackForm()
 	table = RequestTable(request_contents)
 
