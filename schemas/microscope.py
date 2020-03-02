@@ -10,17 +10,15 @@ if os.environ.get('FLASK_MODE') == 'TEST':
     dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']
     print("setting up test light sheet schema")
     schema = dj.schema('ahoag_microscope_test')
-    schema.drop()
+    schema.drop(force=True)
     schema = dj.schema('ahoag_microscope_test')
 else: # Still don't have a real db on datajoint00 for microscope yet
     dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
     dj.config['database.port'] = 3306
-
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']
-    print("setting up real light sheet schema")
-    schema = dj.schema('ahoag_microscope_demo')
-    schema.drop()
+    print("setting up microscope schema")
+
     schema = dj.schema('ahoag_microscope_demo')
 
 @schema

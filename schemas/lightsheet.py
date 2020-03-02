@@ -9,7 +9,7 @@ if os.environ.get('FLASK_MODE') == 'TEST':
     dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']
     print("setting up test light sheet schema")
     schema = dj.schema('ahoag_lightsheet_test')
-    schema.drop()
+    schema.drop(force=True)
     schema = dj.schema('ahoag_lightsheet_test')
 else:
     dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
@@ -19,8 +19,8 @@ else:
     dj.config['database.password'] = os.environ['DJ_DB_PASS']
     print("setting up real light sheet schema")
     # schema = dj.schema('u19lightserv_lightsheet')
-    schema = dj.schema('ahoag_lightsheet_demo')
-    schema.drop()
+    # schema = dj.schema('ahoag_lightsheet_demo')
+    # schema.drop()
     # schema = dj.schema('u19lightserv_lightsheet')
     schema = dj.schema('ahoag_lightsheet_demo')
 

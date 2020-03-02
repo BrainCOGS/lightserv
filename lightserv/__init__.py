@@ -48,7 +48,7 @@ def set_schema():
 	elif os.environ['FLASK_MODE'] == 'TEST':
 		print("Setting up schemas in TEST mode")
 		# test_schema = create_test_schema() 
-		from schemas import lightsheet,admin,subject
+		from schemas import admin,lightsheet,subject
 		dj.config['database.host'] = '127.0.0.1'
 		dj.config['database.user'] = os.environ['DJ_DB_TEST_USER']
 		dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']

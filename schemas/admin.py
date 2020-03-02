@@ -1,7 +1,6 @@
 import datajoint as dj
 import socket
 import os
-from . import lightsheet
 
 
 if os.environ.get('FLASK_MODE') == 'TEST':
@@ -10,9 +9,8 @@ if os.environ.get('FLASK_MODE') == 'TEST':
     dj.config['database.user'] = os.environ['DJ_DB_TEST_USER']
     dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']
     print("setting up test admin schema")
-
     schema = dj.schema('ahoag_admin_test')
-    schema.drop()
+    schema.drop(force=True)
     schema = dj.schema('ahoag_admin_test')
 else:
     dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
@@ -20,11 +18,11 @@ else:
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']
     print("setting up real admin schema")
+    # schema = dj.schema('ahoag_admin_demo')
+    # schema.drop()
+    schema = dj.schema('ahoag_admin_demo')
 
-    # schema = dj.schema('u19lightserv_appcore')
-    schema = dj.schema('ahoag_admin_demo')
-    schema.drop()
-    schema = dj.schema('ahoag_admin_demo')
+from . import lightsheet
 
 @schema 
 class UserActionLog(dj.Manual):
@@ -35,7 +33,7 @@ class UserActionLog(dj.Manual):
     browser_name    : varchar(255)
     browser_version : varchar(255)
     platform        : varchar(255)
-    event=""  : varchar(255)  # custom message
+    event=""        : varchar(255)  # custom message
     """
 
 @schema 
