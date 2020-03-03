@@ -1034,18 +1034,6 @@ def test_new_processing_request_ahoag(test_client,test_single_sample_request_aho
 """ Fixtures for celery testing """
 
 @pytest.fixture(scope='session')
-def test_celery_worker():
-	print('-------Setup test_celery_worker--------')
-	from lightserv import cel
-	app = create_app(config_class=config.TestConfig)
-	app.config['CELERY_ALWAYS_EAGER'] = True
-	ctx = app.test_request_context() # makes it so I can use the url_for() function in the tests
-	ctx.push()
-	yield app # testing happens
-	print('-------Teardown test_celery_worker--------')
-	ctx.pop()
-
-@pytest.fixture(scope='session')
 def celery_config():
 	return {
 	    'broker_url': 'amqp://localhost//',

@@ -5,6 +5,8 @@ def test_hello_task(celery_app,celery_worker,test_client):
 	that does not depend on the state of the app """
 	response = test_client.get(url_for('taskmanager.say_hello'),
 		follow_redirects=True)
+	""" check that the last entry in the test celery database is "hello world" """
+
 	# print(celery_app.conf)
 	assert 4==4
 

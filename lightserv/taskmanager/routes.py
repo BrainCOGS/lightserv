@@ -55,16 +55,23 @@ def status_checker():
    
     """ First get all rows with latest timestamps """
     job_contents = db_admin.SpockJobManager()
-    unique_contents = dj.U('jobid','username',).aggr(job_contents,timestamp='max(timestamp)')*job_contents
+    unique_contents = dj.U('jobid','username',).aggr(
+        job_contents,timestamp='max(timestamp)')*job_contents
+    
     """ Get a list of all jobs we need to check up on, i.e.
-    those that are not completed and not failed 
+    those that could conceivably change. Also list the problematic_codes
+    which will be used later for error reporting to the user.
     """
-    incomplete_contents = unique_contents & 'status!="COMPLETED"' & 'status!="FAILED"'
+
+    problematic_codes = ("FAILED","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REVOKED")
+    # static_codes = ('COMPLETED','FAILED','BOOT_FAIL','CANCELLED','DEADLINE','OUT_OF_MEMORY','REVOKED')
+    ongoing_codes = ('SUBMITTED','RUNNING','PENDING','REQUEUED','RESIZING','SUSPENDED')
+    incomplete_contents = unique_contents & f'status in {ongoing_codes}'
     jobids = list(incomplete_contents.fetch('jobid'))
     if jobids == []:
         return "No jobs to check"
     jobids_str = ','.join(str(jobid) for jobid in jobids)
-
+    logger.debug(f"Outstanding job ids are: {jobids}")
     port = 22
     username = 'ahoag'
     hostname = 'spock.pni.princeton.edu'
@@ -75,9 +82,7 @@ def status_checker():
         client.set_missing_host_key_policy(paramiko.WarningPolicy)
         
         client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
-        # jobids_str = ','.join(str(jobid) for jobid in jobids)
-        # for jobid in jobids:
-            # command += """sacct -b -P -n -a  -j {} | head -1 | cut -d "|" -f2; """.format(jobid)
+        logger.debug("connected to spock")
         command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f2""".format(jobids_str)
         stdin, stdout, stderr = client.exec_command(command)
         stdout_str = stdout.read().decode("utf-8")
@@ -97,7 +102,7 @@ def status_checker():
         db_admin.SpockJobManager.insert(insert_list,replace=True)
         client.close()
     except:
-        logger.info("There was a problem connecting to spock to get the status of outstanding jobs")
+        logger.info("There was a problem getting the status of outstanding jobs from spock")
         client.close()
         return "Error"
         
@@ -110,14 +115,14 @@ def status_checker():
                    number_of_jobs="count(*)",
                    number_of_pending_jobs='SUM(spock_job_progress="PENDING")',
                    number_of_completed_jobs='SUM(spock_job_progress="COMPLETED")',
-                   number_of_failed_jobs='SUM(spock_job_progress="FAILED")',
+                   number_of_problematic_jobs=f'SUM(spock_job_progress in {problematic_codes})',
                    spock_jobid ='spock_jobid') 
     """ For processing requests where all jobids have status=COMPLETE,
     then the processing_progress='complete' for the whole processing request """
     completed_processing_requests_modified_contents = (running_processing_requests_modified_contents & \
         'number_of_completed_jobs = number_of_jobs')
 
-    completed_procesing_primary_keys_dict_list = completed_processing_requests_modified_contents.fetch(
+    completed_processing_primary_keys_dict_list = completed_processing_requests_modified_contents.fetch(
         'username',
         'request_name',
         'sample_name',
@@ -125,7 +130,7 @@ def status_checker():
         'processing_request_number',
         as_dict=True)
 
-    for d in completed_procesing_primary_keys_dict_list:
+    for d in completed_processing_primary_keys_dict_list:
         logger.debug("Updating processing request table")
         username = d.get('username')
         request_name = d.get('request_name')
@@ -137,6 +142,7 @@ def status_checker():
             f'sample_name="{sample_name}"' & f'imaging_request_number={imaging_request_number}' & \
             f'processing_request_number={processing_request_number}',
             'processing_progress','complete')
+        
         """ Send email to user saying their entire processing request is complete """
         sample_basepath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
             request_name,sample_name,f'imaging_request_{imaging_request_number}')
@@ -162,12 +168,12 @@ def status_checker():
         mail.send(msg)
         logger.debug("Sent email that processing was completed")
     
-    """ For processing requests where even just one jobid has status=FAILED,
+    """ For processing requests where even just one jobid has a problematic status,
     then update the processing_progress='failed' for the whole processing request.
     Can provide more details in an email """
-    failed_processing_requests_modified_contents = (running_processing_requests_modified_contents & \
-        'number_of_failed_jobs > 0')
-    failed_procesing_primary_keys_dict_list = failed_processing_requests_modified_contents.fetch(
+    problematic_processing_requests_modified_contents = (running_processing_requests_modified_contents & \
+        'number_of_problematic_jobs > 0')
+    problematic_processing_primary_keys_dict_list = problematic_processing_requests_modified_contents.fetch(
         'username',
         'request_name',
         'sample_name',
@@ -175,7 +181,7 @@ def status_checker():
         'processing_request_number',
         as_dict=True)
 
-    for d in failed_procesing_primary_keys_dict_list:
+    for d in problematic_processing_primary_keys_dict_list:
         logger.debug("Updating processing request table")
         username = d.get('username')
         request_name = d.get('request_name')
@@ -239,8 +245,6 @@ def status_checker():
 
         mail.send(msg_admin)
 
-
-
     # for each running process, find all jobids in the processing resolution request tables
     return jsonify(jobids=jobids,status_codes=status_codes)
 
@@ -268,7 +272,6 @@ def submit_job():
 
         stdin, stdout, stderr = client.exec_command(command)
         jobid = str(stdout.read().decode("utf-8").strip('\n'))
-        # jobid = 16046124
         status = 'SUBMITTED'
         entry_dict = {'jobid':jobid,'username':username,'status':status}
         db_admin.SpockJobManager.insert1(entry_dict)    
