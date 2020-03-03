@@ -52,23 +52,18 @@ def test_client():
 	print('-------Teardown test client--------')
 	ctx.pop()
 
-@pytest.fixture(scope='module') 
+@pytest.fixture(scope='function') 
 def test_client_firefox():
-	""" Create the application and the test client.
+	""" Create the application and the test firefox client.
 
-	The way a fixture works is whaterver is yielded
-	by this function will be passed to the tests that 
-	take the name of the fixture function as an argument.
-
-	We use scope='module' because we only want the test_client
-	to last for tests in a single module. If we use scope='session',
-	then the state of the test client will be altered by one test module,
-	and then that is the state of the client when the next test module
-	is executed. This will mean the test order will matter which is a 
-	bad way to do things. It does mean we will have to reload the
-	test client in each module in which we use it, so it is slightly slower this way."" 
+	We use scope='function' because we only want this test client
+	to last for tests in a single function. If we use scope='session'
+	or scope='module' then the context set up in this fixture tends to collide
+	with the test_client context that I use module wide. I only need to use this 
+	fixture for a few tests so we don't lose much in performance by making this 
+	restriction to scope='function'.
 	"""
-	print('----------Setup test client----------')
+	print('----------Setup test firefox client----------')
 	app = create_app(config_class=config.TestConfig)
 	# testing_client = app.test_client()
 	testing_client = app.test_client()
@@ -79,7 +74,7 @@ def test_client_firefox():
 	ctx = app.test_request_context() # makes it so I can use the url_for() function in the tests
 	ctx.push()
 	yield testing_client # this is where the testing happens
-	print('-------Teardown test client--------')
+	print('-------Teardown test firefox client--------')
 	ctx.pop()
 
 """ Fixtures for logging in as different users (admins, non admins) """
@@ -88,7 +83,7 @@ def test_client_firefox():
 def test_login(test_client):
 
 	""" Log the user in. Requires a test_client fixture to do this. """
-	print('----------Setup login as ahoag response----------')
+	print('----------Setup login as ahoag ---------')
 	username = 'ahoag'
 	with test_client.session_transaction() as sess:
 		sess['user'] = username
@@ -98,7 +93,7 @@ def test_login(test_client):
 		user_dict = {'username':username,'princeton_email':email}
 		db_lightsheet.User().insert1(user_dict)
 	yield sess
-	print('----------Teardown login as ahoag response----------')
+	print('----------Teardown login as ahoag ----------')
 	pass
 
 @pytest.fixture(scope='function')
@@ -138,6 +133,25 @@ def test_login_nonadmin(test_client):
 	""" Log the user in. Requires a test_client fixture to do this. """
 	print('----------Setup login_nonadmin response----------')
 	username = 'lightserv-test'
+	with test_client.session_transaction() as sess:
+		sess['user'] = username
+	all_usernames = db_lightsheet.User().fetch('username') 
+	if username not in all_usernames:
+		email = username + '@princeton.edu'
+		user_dict = {'username':username,'princeton_email':email}
+		db_lightsheet.User().insert1(user_dict)
+	yield sess
+	print('----------Teardown login_nonadmin response----------')
+	pass	
+
+@pytest.fixture(scope='function')
+def test_login_newuser(test_client):
+	""" Log a completely new user in. Requires a test_client fixture to do this.
+	This fixture is useful for testing out failure modes of
+	things that the user manually needs to set up, like the 
+	the spock ssh connection """
+	print('----------Setup login_nonadmin response----------')
+	username = 'foreignnetid'
 	with test_client.session_transaction() as sess:
 		sess['user'] = username
 	all_usernames = db_lightsheet.User().fetch('username') 

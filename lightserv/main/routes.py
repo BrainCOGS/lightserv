@@ -53,7 +53,6 @@ def gallery():
 	logger.info(f"{current_user} accessed gallery page")
 	return render_template('main/gallery.html',)
 
-
 @main.route("/FAQ")
 @logged_in
 @log_http_requests
@@ -66,7 +65,6 @@ def FAQ():
 @logged_in
 @log_http_requests
 def spock_connection_test(): 
-	
 	form = SpockConnectionTesterForm()
 	if request.method == 'POST':
 		hostname = 'spock.pni.princeton.edu'
@@ -169,9 +167,10 @@ def feedback(username,request_name):
 			feedback_insert_dict['processing_notes'] = form.processing_notes.data
 			feedback_insert_dict['other_notes'] = form.other_notes.data
 			db_admin.RequestFeedback().insert1(feedback_insert_dict,skip_duplicates=True)
+			flash("Feedback received. Thank you.","success")
+			return redirect(url_for("main.welcome"))
 		else:
-			logger.debug("Form NOT validated")
-			logger.debug(form.imaging_rating.errors)
-
+			logger.debug("Form NOT validated") # pragma: no cover - used to exclude this line from testing
+			logger.debug(form.errors) # pragma: no cover - used to exclude this line from testing
 	return render_template('main/feedback_form.html',
 		form=form,table=table)

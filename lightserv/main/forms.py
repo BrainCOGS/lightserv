@@ -7,20 +7,9 @@ from wtforms.fields.html5 import DateField
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email, Optional
 from wtforms.widgets import html5, HiddenInput
 
-class FieldsRequiredForm(FlaskForm):
-    """Require all fields to have content. This works around the bug that WTForms radio
-    fields don't honor the `DataRequired` or `InputRequired` validators.
-    """
-
-    class Meta:
-        def render_field(self, field, render_kw):
-            render_kw.setdefault('required', True)
-            return super().render_field(field, render_kw)
-
 class SpockConnectionTesterForm(FlaskForm):
 	submit = SubmitField("Test connection")
 	
-
 class FeedbackForm(FlaskForm):
 	rating_choices = [(x,x) for x in range(1,6)]
 	clearing_rating = RadioField('Clearing:',choices=rating_choices,coerce=int) # required field, but a bug prevents me from using InputRequired() so I handle it in html
