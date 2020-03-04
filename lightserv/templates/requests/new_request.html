@@ -18,15 +18,15 @@
 					</div>
 				{% endif %}
 				<!-- <input type="checkbox" name="checkfield" id="g01-01"  onchange="togglefield(this)"/> -->
-				{% if form.clearing_samples|length > 0 and form.username.data %}
+				{% if form.clearing_samples|length > 0 and form.other_username.data %}
 					<div class="form-group" id="username_field" style="display: block">
-						{{ form.username.label }}
-						{{ form.username(readonly=true, class="form-control form-control-lg") }}
+						{{ form.other_username.label }}
+						{{ form.other_username(readonly=true, class="form-control form-control-lg") }}
 					</div>
 				{% else %}
 					<div class="form-group" id="username_field" style="display: none">
-						{{ form.username.label }}
-						{{ form.username(class="form-control form-control-lg") }}
+						{{ form.other_username.label }}
+						{{ form.other_username(class="form-control form-control-lg") }}
 					</div>
 				{% endif %}
 				
@@ -152,16 +152,6 @@
 				<hr class='class-3'>
 				{% if form.clearing_samples.data|length == 0 %}
 					<h3 class='border-bottom'>Samples setup</h3>
-					
-					<hr class='class-2'>
-					<div class="checkbox">
-	                    {{ form.self_clearing(class="form-check-input") }}
-	                    {{ form.self_clearing.label(class="form-check-label") }}
-	                </div>
-	                <div class="checkbox">
-	                    {{ form.self_imaging(class="form-check-input") }}
-	                    {{ form.self_imaging.label(class="form-check-label") }}
-	                </div>
 
 					<div class="form-group mt-2">
 						{{ form.sample_submit_button(class="btn btn-success mt-2") }}
@@ -448,6 +438,16 @@
 			<!-- Only show it if form is ready to be submitted (i.e. at least one image resolution table has been set up -->
 			{% if form.imaging_samples.data|length > 0 %}
 				{% if form.imaging_samples[0].image_resolution_forms|length > 0 %}
+					<h3 class='border-bottom'>Final Steps</h3>
+					<div class="checkbox">
+	                    {{ form.self_clearing(class="form-check-input") }}
+	                    {{ form.self_clearing.label(class="form-check-label") }}
+	                </div>
+	                <div class="checkbox">
+	                    {{ form.self_imaging(class="form-check-input") }}
+	                    {{ form.self_imaging.label(class="form-check-label") }}
+	                </div>
+
 					<div class="form-group">
 						{{ form.submit(class="btn btn-success mt-2") }}
 					</div>

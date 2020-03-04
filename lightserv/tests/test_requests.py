@@ -478,6 +478,45 @@ def test_submit_mouse_self_imaging_request(test_client,test_login,test_delete_re
 	assert b"This is a demo request where the imager is self-assigned" in response.data
 	assert b"New Request Form" not in response.data
 
+def test_submit_mouse_self_clearing_nonadmin_request(test_client,
+	test_login_nonadmin,test_delete_request_db_contents):
+	""" Ensure that entire new request form submits when good
+	data are used.
+
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	from lightserv import db_lightsheet
+
+	request_name = "Nonadmin_self_clearing_request"
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':request_name,
+			'description':"This is a demo request where the clearer is self-assigned",
+			'species':"mouse",'number_of_samples':1,
+			'self_clearing':True,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	clearer = (db_lightsheet.Request.ClearingBatch() & 'username="lightserv-test"' & \
+		f'request_name="{request_name}"' & 'clearing_batch_number=1').fetch1('clearer')
+	assert clearer == 'lightserv-test'
+	assert b"core facility requests" in response.data
+	assert b"This is a demo request where the clearer is self-assigned" in response.data
+	assert b"New Request Form" not in response.data
+
+
 def test_idiscoplus_request_validates_antibody(test_client,test_login,test_delete_request_db_contents):
 	""" Ensure that trying to submit a request where
 	iDISCO+_immuno clearing protocol is used but 

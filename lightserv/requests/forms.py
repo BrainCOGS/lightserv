@@ -88,7 +88,7 @@ class NewRequestForm(FlaskForm):
 	""" The form for a new request """
 	max_number_of_samples = 50
 	enter_for_otheruser = BooleanField('Check if you are filling out this form for someone else',default=False)
-	username = StringField('Netid of that person',
+	other_username = StringField('Netid of that person',
 		validators=[Length(max=20)])
 	subject_fullname_unique_list = sorted(list(set(db_subject.Subject().fetch('subject_fullname'))))
 	subject_fullname_choices = [('','')] + [(x,x) for x in subject_fullname_unique_list]
@@ -150,8 +150,8 @@ class NewRequestForm(FlaskForm):
 
 	def validate_request_name(self,request_name):
 		""" Make sure request name is unique """
-		if self.username.data:
-			username = self.username.data
+		if self.other_username.data:
+			username = self.other_username.data
 		else:
 			username = session['user']
 		if ' ' in request_name.data:

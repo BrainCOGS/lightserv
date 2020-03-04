@@ -395,10 +395,7 @@ def new_request():
 				# form.hide_species(value=form.species.data)
 				# form.subject_fullname.render_kw = {'disabled':'disabled'}
 
-
 				column_name = 'clearing_samples-0-sample_name'
-
-
 
 			elif submit_key == 'uniform_clearing_submit_button': # The uniform clearing button
 				logger.info("uniform clearing button pressed")
@@ -469,8 +466,11 @@ def new_request():
 					at any point during any of the inserts"""
 				connection = db_lightsheet.Request.connection
 				with connection.transaction:
-					if form.username.data:
-						username = form.username.data
+					""" If someone else's username is entered, then
+					override the username dictionary entry to use this """
+					if form.other_username.data:
+						username = form.other_username.data
+						logger.info(f"Other username entered. Setting username={username}")
 						princeton_email = username + '@princeton.edu'
 						""" insert into User() db table 
 						with skip_duplicates=True in case username 
@@ -479,6 +479,8 @@ def new_request():
 						db_lightsheet.User().insert1(user_insert_dict,skip_duplicates=True)
 					else:
 						username = current_user
+						logger.info(f"Form filled out by current user with username={username}.")
+
 					princeton_email_current_user = current_user + '@princeton.edu'
 					
 					current_user_insert_dict = dict(username=current_user,
@@ -537,8 +539,11 @@ def new_request():
 						clearing_batch_insert_dict['clearing_protocol'] = clearing_sample_form_dict['clearing_protocol']
 						clearing_batch_insert_dict['antibody1'] = clearing_sample_form_dict['antibody1']
 						clearing_batch_insert_dict['antibody2'] = clearing_sample_form_dict['antibody2']
-						if form.self_clearing.data:
+						if form.self_clearing.data == True:
+							logger.debug("Self clearing selected!")
 							clearing_batch_insert_dict['clearer'] = username
+						else:
+							logger.debug("Self clearing not selected")
 						clearing_batch_insert_dict['clearing_progress'] = 'incomplete'
 						perfusion_date = clearing_sample_form_dict['perfusion_date']
 						if perfusion_date:
@@ -665,8 +670,8 @@ def new_request():
 								clearing_batch_number = clearing_batch_insert_dict.get('clearing_batch_number')
 								sample_insert_dict['clearing_batch_number'] = clearing_batch_number
 
-					# logger.info("ClearingBatch() insert ")
-					# logger.info(clearing_batch_insert_list)
+					logger.info("ClearingBatch() insert ")
+					logger.info(clearing_batch_insert_list)
 					db_lightsheet.Request.ClearingBatch().insert(clearing_batch_insert_list,)
 					# logger.info("Sample() insert:")
 					# logger.debug(sample_insert_list)

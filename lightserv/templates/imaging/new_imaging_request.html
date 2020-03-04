@@ -14,13 +14,7 @@
 			{{ form.hidden_tag() }}
 			<fieldset class="form-group">
 				<h3 class='border-bottom mb-4'>Imaging/Processing setup</h3>
-				<div class="checkbox">
-		            {{ form.self_imaging(class="form-check-input") }}
-		            {{ form.self_imaging.label(class="form-check-label") }}
-		        </div>
-
-		    	<hr class='class-2'>
-
+				
 		        <!-- Loop through all image resolution forms and make a table for each -->
 				{% for image_resolution_form in form.image_resolution_forms %}
 					<!-- render the hidden field -->
@@ -144,6 +138,11 @@
 			<hr class='class-3'>
 			<hr class='class-4'>
 			{% if form.image_resolution_forms|length > 0 %}
+				<h3 class='border-bottom'>Final Steps</h3>
+				<div class="checkbox">
+		            {{ form.self_imaging(class="form-check-input") }}
+		            {{ form.self_imaging.label(class="form-check-label") }}
+		        </div>
 				<div class="form-group">
 					{{ form.submit(class="btn btn-success mt-2") }}
 				</div>
