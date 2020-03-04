@@ -156,9 +156,9 @@
 	<hr class='class-1'>
 
 	<div>
-		<h3>Move all raw data folders to this bucket location: (make sure not to overwrite folders and never put data from two different resolutions into the same folder):</h3>
+		<h3 class="infolink" data-toggle='tooltip' title='Make sure not to overwrite folders and do not put data from two different resolutions into the same folder unless they were read-out from the microscope that way'>Move all raw data folders so that they live inside this folder on bucket: </h3>
 		<p>
-			/jukebox/LightSheetData/lightserv_testing/{{overview_dict['username']}}/{{overview_dict['request_name']}}/{{overview_dict['sample_name']}}/rawdata/
+			{{rawdata_filepath}}
 		</p>
 	</div>
 
