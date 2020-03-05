@@ -353,7 +353,7 @@ def new_request():
 						image_resolution_form.image_resolution.data = image_resolution_forsetup
 						
 						""" Set the focus point for javascript to scroll to """
-						if form.species.data == 'mouse':
+						if form.species.data == 'mouse' and image_resolution_forsetup !='2x':
 							column_name = f'imaging_samples-{ii}-image_resolution_forms-{resolution_table_index}-channel_forms-0-registration'
 						else:
 							column_name = f'imaging_samples-{ii}-image_resolution_forms-{resolution_table_index}-channel_forms-0-generic_imaging'
@@ -370,9 +370,15 @@ def new_request():
 								image_resolution_form.channel_forms[x].injection_detection.render_kw = {'disabled':'disabled'}
 								image_resolution_form.channel_forms[x].probe_detection.render_kw = {'disabled':'disabled'}
 								image_resolution_form.channel_forms[x].cell_detection.render_kw = {'disabled':'disabled'}
+							elif image_resolution_forsetup == '2x':
+								logger.info("Using 2x image resolution. Disabling registration/detection options")
+								image_resolution_form.channel_forms[x].registration.render_kw = {'disabled':'disabled'}
+								image_resolution_form.channel_forms[x].injection_detection.render_kw = {'disabled':'disabled'}
+								image_resolution_form.channel_forms[x].probe_detection.render_kw = {'disabled':'disabled'}
+								image_resolution_form.channel_forms[x].cell_detection.render_kw = {'disabled':'disabled'}
 							elif channel_name == '488' and image_resolution_forsetup == "1.3x":
 								image_resolution_form.channel_forms[x].registration.data = 1
-
+						logger.info(f"Column name is: {column_name}")
 			""" Handle all of the different "*submit*" buttons pressed """
 			if submit_key == 'sample_submit_button': # The sample setup button
 				logger.info("sample submit")
@@ -387,13 +393,6 @@ def new_request():
 						form.clearing_samples[ii].clearing_protocol.data = 'iDISCO abbreviated clearing (rat)'
 
 					form.imaging_samples.append_entry()
-				# """ Now disable the fields in the top section """
-				# logger.debug(form.species.data)
-				# form.species_display.data = form.species.data
-				# logger.debug(form.species_display.data)
-				# form.species_display.render_kw = {'disabled':'disabled'}
-				# form.hide_species(value=form.species.data)
-				# form.subject_fullname.render_kw = {'disabled':'disabled'}
 
 				column_name = 'clearing_samples-0-sample_name'
 
@@ -463,7 +462,7 @@ def new_request():
 				""" Start a transaction for doing the inserts.
 					This is done to avoid inserting only into Experiment
 					table but not Sample and ImagingChannel tables if there is an error 
-					at any point during any of the inserts"""
+					at any point during any of the inserts """
 				connection = db_lightsheet.Request.connection
 				with connection.transaction:
 					""" If someone else's username is entered, then
