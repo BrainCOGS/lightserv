@@ -268,9 +268,14 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				this_channel_form.image_resolution.data = channel_content['image_resolution']
 				this_channel_form.rawdata_subfolder.data = 'test488'
 
+	rawdata_filepath = os.path.join("/jukebox/LightSheetData/lightserv_testing",
+		overview_dict['username'],overview_dict['request_name'],
+		overview_dict['sample_name'],
+		'imaging_request_{}'.format(overview_dict['imaging_request_number']),
+		'rawdata/')
 	return render_template('imaging/imaging_entry.html',form=form,
 		channel_contents_lists=channel_contents_lists,
-		overview_dict=overview_dict,imaging_table=imaging_table)
+		rawdata_filepath=rawdata_filepath,imaging_table=imaging_table)
 
 @imaging.route("/imaging/new_imaging_request/<username>/<request_name>/<sample_name>/",
 	methods=['GET','POST'])

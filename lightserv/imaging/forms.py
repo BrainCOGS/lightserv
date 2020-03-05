@@ -22,8 +22,7 @@ class ChannelForm(FlaskForm):
 	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',default='1x1')
 	tiling_overlap = DecimalField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
 		places=2,validators=[Optional()],default=0.1) 
-	z_step = IntegerField('Z resolution (microns)',
-		widget=html5.NumberInput(),validators=[InputRequired()],default=10)
+	z_step = DecimalField('Z resolution (microns)',validators=[InputRequired()],default=10.0)
 	number_of_z_planes = IntegerField('Number of z planes',
 		widget=html5.NumberInput(),validators=[InputRequired()],default=657)
 	rawdata_subfolder = TextAreaField('channel subfolder',validators=[InputRequired()])
@@ -91,7 +90,8 @@ class ImagingForm(FlaskForm):
 		one light sheet selected. 
 
 		Also make sure that each rawdata folder has the correct number 
-		of files that the imager reported there was.
+		of files given the number of z planes, tiling scheme and number of 
+		lightsheets reported by the user.
 
 		Also make sure that every channel within the same rawdata subfolder 
 		has the same imaging parameters
@@ -106,6 +106,9 @@ class ImagingForm(FlaskForm):
 				right_lightsheet_used = channel_dict['right_lightsheet_used']
 				number_of_z_planes = channel_dict['number_of_z_planes']
 				rawdata_subfolder = channel_dict['rawdata_subfolder']
+				tiling_scheme = channel_dict['tiling_scheme']
+				n_rows = int(tiling_scheme.lower().split('x')[0])
+				n_columns = int(tiling_scheme.lower().split('x')[1])
 				""" First check that at least one of the 
 				light sheets (left or right) was selected """
 				if not (left_lightsheet_used or right_lightsheet_used):
@@ -125,7 +128,7 @@ class ImagingForm(FlaskForm):
 						f'imaging_request_{self.imaging_request_number.data}',
 						'rawdata',rawdata_subfolder) 
 
-				number_of_rawfiles_expected = number_of_z_planes*(left_lightsheet_used+right_lightsheet_used)
+				number_of_rawfiles_expected = number_of_z_planes*(left_lightsheet_used+right_lightsheet_used)*n_rows*n_columns
 				number_of_rawfiles_found = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*Filter000{channel_index}*'))				
 				if number_of_rawfiles_found != number_of_rawfiles_expected:
 					error_str = (f"You entered that for channel: {channel_name} there should be {number_of_rawfiles_expected} files, "
