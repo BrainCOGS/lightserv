@@ -156,10 +156,12 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				image_resolution = form_resolution_dict['image_resolution']
 				for form_channel_dict in form_resolution_dict['channel_forms']:
 					channel_name = form_channel_dict['channel_name']
-					number_of_z_planes = form_channel_dict['number_of_z_planes']
+					# number_of_z_planes = form_channel_dict['number_of_z_planes']
 					rawdata_subfolder = form_channel_dict['rawdata_subfolder']
-					left_lightsheet_used = form_channel_dict['left_lightsheet_used']
-					right_lightsheet_used = form_channel_dict['right_lightsheet_used']
+					# left_lightsheet_used = form_channel_dict['left_lightsheet_used']
+					# right_lightsheet_used = form_channel_dict['right_lightsheet_used']
+					# if image_resolution == '2x':
+					# 	zoom_body_magnification = form_channel_dict['zoom_body_magnification']
 					# logger.debug(left_lightsheet_used)
 					# logger.debug(right_lightsheet_used)
 					if rawdata_subfolder in subfolder_dict.keys():

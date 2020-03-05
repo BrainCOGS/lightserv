@@ -67,10 +67,10 @@ class ImageResolutionForm(FlaskForm):
 	
 	atlas_name = SelectField('Atlas for registration',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
-				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])
+				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[Optional()])
 	final_orientation = SelectField('Output orientation',
 		choices=[('sagittal','sagittal'),('coronal','coronal'),
-				 ('horizontal','horizontal')],default='sagittal',validators=[InputRequired()])
+				 ('horizontal','horizontal')],default='sagittal',validators=[Optional()])
 
 class ImagingForm(FlaskForm):
 	""" A form that is used in ExpForm() via a FormField FieldList

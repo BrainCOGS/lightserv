@@ -15,6 +15,7 @@ class ChannelForm(FlaskForm):
 	"""
 	channel_name = HiddenField('Channel name')
 	image_resolution = HiddenField('Image resolution')
+	zoom_body_magnification = DecimalField('Zoom body magnification',default=1.0,validators=[Optional()])
 	image_orientation = SelectField('Image orientation',choices=[('sagittal','sagittal'),('coronal','coronal'),
 				 ('horizontal','horizontal')],default='sagittal',validators=[InputRequired()])
 	left_lightsheet_used = BooleanField('Left',default=False)

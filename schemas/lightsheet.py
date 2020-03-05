@@ -102,6 +102,7 @@ class Request(dj.Manual):
         channel_name                              :   varchar(64)                
         ----
         imaging_date = NULL                       :   date 
+        zoom_body_magnification = NULL            :   float # only applicable for 2x
         left_lightsheet_used = 1                  :   boolean
         right_lightsheet_used = 1                 :   boolean
         registration = 0                          :   boolean

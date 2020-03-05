@@ -21,7 +21,11 @@
 		{% set image_resolution = image_resolution_form.image_resolution.data %}
 
 		<hr class='class-2'>
-		<h3 class='mb-4'> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+		{% if image_resolution == '2x' %}
+			<h3 class='mb-4 infolink' data-toggle="tooltip" title="Make sure to use organic dipping cap on 2x objective if sample went through oil-based clearing protocol like iDISCO or uDISCO."> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+        {% else %}
+			<h3 class='mb-4 infolink' data-toggle="tooltip" title="Do NOT use the zoom body (at a value other than 1) for this objective. If you do, we will very likely not be able to process the images. An exception is if no processing is needed (i.e. only raw images are required)."> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+		{% endif %}
 		<div class="form-group">
 			{{ image_resolution_form.notes_for_imager.label(class="form-control-label")}}
 			{{ image_resolution_form.notes_for_imager(readonly=true, class="form-control form-control-lg") }}
@@ -33,6 +37,9 @@
 	        <tr>
 	            <th>Channel wavelength(nm)</th>
 	            <th>Image resolution </th>
+	            {% if image_resolution == '2x' %}
+		            <th class="infolink" data-toggle="tooltip" title="Set to a discrete value on the dial. Otherwise, it will be impossible to accurately calculate the resulting image pixel size.">Zoom body magnification</th>
+		        {% endif %}
 	            <th>*Image orientation </th>
 	            <th>*Lightsheets used </th>
 	           	<th>*Tiling scheme (e.g. 1x1, 3x3)  </th>
@@ -52,6 +59,22 @@
 				<tr>   
 				    <td>{{channel_name}}</td>
 				    <td>{{image_resolution}}</td>
+				    {% if image_resolution == '2x' %}
+			        	<td>
+					    	<div class="form-group">
+								{% if channel_form.zoom_body_magnification.errors %}
+									{{ channel_form.zoom_body_magnification(class="form-control form-control-sm is-invalid") }}
+									<div class="invalid-feedback">
+										{% for error in channel_form.zoom_body_magnification.errors %}
+											<span>{{ error }}</span>
+										{% endfor %}
+									</div>
+								{% else %}
+									{{ channel_form.zoom_body_magnification(class="form-control form-control-sm") }}
+								{% endif %}
+							</div>
+						</td>
+			        {% endif %}
 				    <td>
 				    	<div class="form-group">
 							{% if channel_form.image_orientation.errors %}

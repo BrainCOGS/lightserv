@@ -80,7 +80,7 @@ def all_requests():
 		n_cleared='CONVERT(SUM(clearing_progress="complete"),char)').proj(
 		**replicated_args,
 			fraction_cleared='CONCAT(n_cleared,"/",CONVERT(number_of_samples,char))')
-
+	# logger.debug(sample_joined_contents)
 	imaging_joined_contents = dj.U('username','request_name').aggr(
 	sample_joined_contents * imaging_request_contents,
 	**replicated_args,
@@ -91,7 +91,7 @@ def all_requests():
 		fraction_cleared='fraction_cleared',
 		fraction_imaged='CONCAT(n_imaged,"/",total_imaging_requests)'
 		)
-
+	# logger.debug(imaging_joined_contents)
 	processing_joined_contents = dj.U('username','request_name').aggr(
 	imaging_joined_contents * processing_request_contents,
 	**replicated_args,
@@ -105,7 +105,7 @@ def all_requests():
 		fraction_imaged='fraction_imaged',
 		fraction_processed='CONCAT(n_processed,"/",total_processing_requests)'
 		)
-
+	logger.debug(processing_joined_contents)
 	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sorted_results = sorted(processing_joined_contents.fetch(as_dict=True),
@@ -364,19 +364,19 @@ def new_request():
 							channel_name = current_app.config['IMAGING_CHANNELS'][x]
 							image_resolution_form.channel_forms[x].channel_name.data = channel_name
 							# Make the default for channel 488 to be 1.3x imaging with registration checked
-							if form.species.data != 'mouse':
-								logger.info("Species != mouse! Disabling registration/detection options")
-								image_resolution_form.channel_forms[x].registration.render_kw = {'disabled':'disabled'}
-								image_resolution_form.channel_forms[x].injection_detection.render_kw = {'disabled':'disabled'}
-								image_resolution_form.channel_forms[x].probe_detection.render_kw = {'disabled':'disabled'}
-								image_resolution_form.channel_forms[x].cell_detection.render_kw = {'disabled':'disabled'}
-							elif image_resolution_forsetup == '2x':
-								logger.info("Using 2x image resolution. Disabling registration/detection options")
-								image_resolution_form.channel_forms[x].registration.render_kw = {'disabled':'disabled'}
-								image_resolution_form.channel_forms[x].injection_detection.render_kw = {'disabled':'disabled'}
-								image_resolution_form.channel_forms[x].probe_detection.render_kw = {'disabled':'disabled'}
-								image_resolution_form.channel_forms[x].cell_detection.render_kw = {'disabled':'disabled'}
-							elif channel_name == '488' and image_resolution_forsetup == "1.3x":
+							# if form.species.data != 'mouse':
+							# 	logger.info("Species != mouse! Disabling registration/detection options")
+							# 	image_resolution_form.channel_forms[x].registration.render_kw = {'disabled':'disabled'}
+							# 	image_resolution_form.channel_forms[x].injection_detection.render_kw = {'disabled':'disabled'}
+							# 	image_resolution_form.channel_forms[x].probe_detection.render_kw = {'disabled':'disabled'}
+							# 	image_resolution_form.channel_forms[x].cell_detection.render_kw = {'disabled':'disabled'}
+							# elif image_resolution_forsetup == '2x':
+							# 	logger.info("Using 2x image resolution. Disabling registration/detection options")
+							# 	image_resolution_form.channel_forms[x].registration.render_kw = {'disabled':'disabled'}
+							# 	image_resolution_form.channel_forms[x].injection_detection.render_kw = {'disabled':'disabled'}
+							# 	image_resolution_form.channel_forms[x].probe_detection.render_kw = {'disabled':'disabled'}
+							# 	image_resolution_form.channel_forms[x].cell_detection.render_kw = {'disabled':'disabled'}
+							if form.species.data == 'mouse' and channel_name == '488' and image_resolution_forsetup == "1.3x":
 								image_resolution_form.channel_forms[x].registration.data = 1
 						logger.info(f"Column name is: {column_name}")
 			""" Handle all of the different "*submit*" buttons pressed """
@@ -600,18 +600,20 @@ def new_request():
 							imaging_resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
 							imaging_resolution_insert_dict['notes_for_imager'] = resolution_dict['notes_for_imager']
 							imaging_resolution_insert_list.append(imaging_resolution_insert_dict)
-							""" now processing entry """
-							processing_resolution_insert_dict = {}
-							processing_resolution_insert_dict['request_name'] = form.request_name.data
-							processing_resolution_insert_dict['username'] = username 
-							processing_resolution_insert_dict['sample_name'] = sample_name
-							processing_resolution_insert_dict['imaging_request_number'] = imaging_request_number
-							processing_resolution_insert_dict['processing_request_number'] = processing_request_number
-							processing_resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
-							processing_resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
-							processing_resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
-							processing_resolution_insert_dict['final_orientation'] = resolution_dict['final_orientation']
-							processing_resolution_insert_list.append(processing_resolution_insert_dict)
+							""" now processing entry (if not 2x imaging request)"""
+							if resolution_dict['image_resolution'] != '2x':
+								processing_resolution_insert_dict = {}
+								processing_resolution_insert_dict['request_name'] = form.request_name.data
+								processing_resolution_insert_dict['username'] = username 
+								processing_resolution_insert_dict['sample_name'] = sample_name
+								processing_resolution_insert_dict['imaging_request_number'] = imaging_request_number
+								processing_resolution_insert_dict['processing_request_number'] = processing_request_number
+								processing_resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
+								processing_resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
+								processing_resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
+								processing_resolution_insert_dict['final_orientation'] = resolution_dict['final_orientation']
+								processing_resolution_insert_list.append(processing_resolution_insert_dict)
+
 							""" now loop through the imaging channels and fill out the ImagingChannel entries """
 							for imaging_channel_dict in resolution_dict['channel_forms']:
 								""" The way to tell which channels were picked is to see 
@@ -680,13 +682,17 @@ def new_request():
 					db_lightsheet.Request.ImagingRequest().insert(imaging_request_insert_list)
 					# logger.info("ProcessingRequest() insert:")
 					# logger.info(processing_request_insert_list)
-					db_lightsheet.Request.ProcessingRequest().insert(processing_request_insert_list)
+					""" If there were no processing resolution requests (because all were 2x imaging requests),
+					then don't make a processing request """
+					if len(processing_resolution_insert_list) > 0:
+						db_lightsheet.Request.ProcessingRequest().insert(processing_request_insert_list)
 					# logger.info("ImagingResolutionRequest() insert:")
 					# logger.info(imaging_resolution_insert_list)
 					db_lightsheet.Request.ImagingResolutionRequest().insert(imaging_resolution_insert_list)
 					# logger.info("ProcessingResolutionRequest() insert:")
 					# logger.info(processing_resolution_insert_list)
-					db_lightsheet.Request.ProcessingResolutionRequest().insert(processing_resolution_insert_list)
+					if len(processing_resolution_insert_list) > 0:
+						db_lightsheet.Request.ProcessingResolutionRequest().insert(processing_resolution_insert_list)
 					# logger.info('channel insert:')
 					# logger.info(channel_insert_list)
 					
@@ -741,6 +747,7 @@ def new_request():
 					flash(error_str,'danger')
 			
 			logger.debug("Not validated! See error dict below:")
+			# logger.debug(form.imaging_samples[0].image_resolution_forms[0].atlas_name.data)
 			logger.debug(form.errors)
 			logger.debug("")
 			flash_str = 'There were errors below. Correct them before proceeding'
