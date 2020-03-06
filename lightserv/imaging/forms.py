@@ -152,7 +152,6 @@ class ImagingForm(FlaskForm):
 				image_resolution = HiddenField('Image resolution')
 
 
-
 """ For new imaging requests """
 
 class ChannelRequestForm(FlaskForm):
@@ -170,7 +169,7 @@ class ImageResolutionRequestForm(FlaskForm):
 	image_resolution = HiddenField('image resolution')
 	final_orientation = SelectField('Output orientation',
 		choices=[('sagittal','sagittal'),('coronal','coronal'),
-				 ('horizontal','horizontal')],default='sagittal',validators=[InputRequired()])
+				 ('horizontal','horizontal')],default='sagittal',validators=[Optional()])
 	channels = FieldList(FormField(ChannelRequestForm),min_entries=4,max_entries=4)
 	notes_for_imager = TextAreaField('''Note here why you are requesting additional imaging. Also include any special notes for imaging 
 		(e.g. z step size, exposure time, suggested tiling scheme -- make sure to specify which channel) -- max 1024 characters --''',
@@ -181,7 +180,7 @@ class ImageResolutionRequestForm(FlaskForm):
 
 	atlas_name = SelectField('Atlas for registration',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
-				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()])
+				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[Optional()])
 
 class NewImagingRequestForm(FlaskForm):
 	""" The form for entering imaging information """

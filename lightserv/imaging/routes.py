@@ -377,9 +377,9 @@ def new_imaging_request(username,request_name,sample_name):
 					logger.info("ProcessingRequest() insert:")
 					logger.info(processing_request_insert_dict)
 					logger.info("")
-					db_lightsheet.Request.ProcessingRequest().insert1(processing_request_insert_dict)
 
-					""" Now insert each image resolution/channel combo """
+
+					""" Now set up inserts for each image resolution/channel combo """
 					imaging_resolution_insert_list = []
 					processing_resolution_insert_list = []
 					channel_insert_list = []
@@ -395,17 +395,18 @@ def new_imaging_request(username,request_name,sample_name):
 						imaging_resolution_insert_dict['notes_for_imager'] = resolution_dict['notes_for_imager']
 						imaging_resolution_insert_list.append(imaging_resolution_insert_dict)
 						""" now processing entry """
-						processing_resolution_insert_dict = {}
-						processing_resolution_insert_dict['request_name'] = request_name
-						processing_resolution_insert_dict['username'] = username 
-						processing_resolution_insert_dict['sample_name'] = sample_name
-						processing_resolution_insert_dict['imaging_request_number'] = new_imaging_request_number
-						processing_resolution_insert_dict['processing_request_number'] = processing_request_number
-						processing_resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
-						processing_resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
-						processing_resolution_insert_dict['final_orientation'] = resolution_dict['final_orientation']
-						processing_resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
-						processing_resolution_insert_list.append(processing_resolution_insert_dict)
+						if resolution_dict['image_resolution'] != '2x':
+							processing_resolution_insert_dict = {}
+							processing_resolution_insert_dict['request_name'] = request_name
+							processing_resolution_insert_dict['username'] = username 
+							processing_resolution_insert_dict['sample_name'] = sample_name
+							processing_resolution_insert_dict['imaging_request_number'] = new_imaging_request_number
+							processing_resolution_insert_dict['processing_request_number'] = processing_request_number
+							processing_resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
+							processing_resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
+							processing_resolution_insert_dict['final_orientation'] = resolution_dict['final_orientation']
+							processing_resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
+							processing_resolution_insert_list.append(processing_resolution_insert_dict)
 						""" Now loop through channels and make insert dict for each """
 						for imaging_channel_dict in resolution_dict['channels']:
 							logger.debug(imaging_channel_dict)
@@ -434,9 +435,16 @@ def new_imaging_request(username,request_name,sample_name):
 					logger.info(imaging_resolution_insert_list)
 					db_lightsheet.Request.ImagingResolutionRequest().insert(imaging_resolution_insert_list)		
 
-					logger.info('ProcessingResolutionRequest() insert:')
-					logger.info(processing_resolution_insert_list)
-					db_lightsheet.Request.ProcessingResolutionRequest().insert(processing_resolution_insert_list)	
+					""" Only enter a processing request if there are processing resolution requests,
+					i.e. image resolutions that are not 2x. We do not process 2x data sets. """
+					if len(processing_resolution_insert_list) > 0:
+						logger.info('ProcessingRequest() insert:')
+						logger.info(processing_request_insert_list)
+						db_lightsheet.Request.ProcessingRequest().insert1(processing_request_insert_dict)
+
+						logger.info('ProcessingResolutionRequest() insert:')
+						logger.info(processing_resolution_insert_list)
+						db_lightsheet.Request.ProcessingResolutionRequest().insert(processing_resolution_insert_list)	
 					
 					logger.info('ImagingChannel() insert:')
 					logger.info(channel_insert_list)
