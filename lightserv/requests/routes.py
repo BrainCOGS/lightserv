@@ -92,18 +92,32 @@ def all_requests():
 		fraction_imaged='CONCAT(n_imaged,"/",total_imaging_requests)'
 		)
 	# logger.debug(imaging_joined_contents)
-	processing_joined_contents = dj.U('username','request_name').aggr(
-	imaging_joined_contents * processing_request_contents,
+	# processing_joined_contents = dj.U('username','request_name').aggr(
+	# imaging_joined_contents * processing_request_contents,
+	# **replicated_args,
+	# fraction_cleared='fraction_cleared',
+	# fraction_imaged='fraction_imaged',
+	# n_processed='CONVERT(SUM(processing_progress="complete"),char)',
+	# total_processing_requests='CONVERT(COUNT(*),char)'
+	# ).proj(
+	# 	**replicated_args,
+	# 	fraction_cleared='fraction_cleared',
+	# 	fraction_imaged='fraction_imaged',
+	# 	fraction_processed='CONCAT(n_processed,"/",total_processing_requests)'
+	# 	)
+	processing_joined_contents = (dj.U('username','request_name') * imaging_joined_contents).aggr(   
+    processing_request_contents,
 	**replicated_args,
 	fraction_cleared='fraction_cleared',
 	fraction_imaged='fraction_imaged',
 	n_processed='CONVERT(SUM(processing_progress="complete"),char)',
-	total_processing_requests='CONVERT(COUNT(*),char)'
+	total_processing_requests='CONVERT(COUNT(processing_progress),char)',
+    keep_all_rows=True
 	).proj(
 		**replicated_args,
 		fraction_cleared='fraction_cleared',
 		fraction_imaged='fraction_imaged',
-		fraction_processed='CONCAT(n_processed,"/",total_processing_requests)'
+		fraction_processed='IF(n_processed is NULL,"0/0",CONCAT(n_processed,"/",total_processing_requests))' 
 		)
 	logger.debug(processing_joined_contents)
 	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value

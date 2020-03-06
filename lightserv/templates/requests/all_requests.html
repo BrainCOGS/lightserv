@@ -26,8 +26,8 @@
 		<hr class="class-2">	
 
 		<div>
-			<b>*</b> A given sample can have multiple imaging requests, so the denominator may be larger than the number of samples </br>
-			<b>**</b> A given sample can have multiple processing requests per imaging request, so the denominator may be larger than the number of samples or the number of imaging requests 
+			<b>*</b> A given sample can have multiple imaging requests, so the denominator may be larger than or equal to denominator in fraction_cleared, which is the same as the number of samples. </br>
+			<b>**</b> A given sample can have multiple processing requests per imaging request and a given sample may have no processing requests (for example if only 2x imaging was requested) so the denominator may be less than, larger than or equal to the denominator in fraction_imaged and the denominator in fraction_cleared. If fraction_processed is "0/0" it is because no processing was requested for any samples in that request.
 		</div>
 
 		{% endif %}
