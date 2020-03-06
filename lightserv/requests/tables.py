@@ -3,7 +3,7 @@ from flask_table import Table, Col, LinkCol, ButtonCol, create_table, NestedTabl
 from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import (DateTimeCol, ImagingRequestLinkCol,
-	ProcessingRequestLinkCol, element,)
+	ProcessingRequestLinkCol, element,AdditionalProcessingRequestLinkCol)
 from lightserv import db_lightsheet
 import os
 
@@ -109,6 +109,8 @@ class AllSamplesTable(Table):
 	new_imaging_request = LinkCol('Request additional imaging',
 		'imaging.new_imaging_request',url_kwargs=imaging_url_kwargs,
 		th_html_attrs=new_imaging_request_html_attrs,allow_sort=False)
+
+	""" Imaging requests subtable setup """
 	imaging_request_subtable_options = {
 	'table_id':f'imaging_requests',
 	'border':True,
@@ -128,13 +130,14 @@ class AllSamplesTable(Table):
 	new_processing_request_tooltip_text = ('Only request additional processing for this sample and imaging request '
 		'if your original request did not cover the sufficient processing. '
 		 'To see what processing you have already requested, '
-		 'click on the existing processing request number(s) corresponding to this imaging request.')
+		 'click on the existing processing request number(s) corresponding to this imaging request. '
+		 'If this field shows "N/A" it is because no processing is possible for this sample.')
 	new_processing_request_html_attrs = {'class':'infolink','title':new_processing_request_tooltip_text}
 	imaging_requests_subtable_class.add_column('new processing request',
-		LinkCol('request additional processing',
+		AdditionalProcessingRequestLinkCol('request additional processing',
 			'processing.new_processing_request',url_kwargs=processing_url_kwargs,
 			allow_sort=False,th_html_attrs=new_processing_request_html_attrs))
-
+	""" Processing requests subtable setup """
 	processing_request_subtable_options = {
 	'table_id':f'processing_requests',
 	'border':True,
@@ -154,18 +157,13 @@ class AllSamplesTable(Table):
 	imaging_requests_subtable_class.add_column('processing_requests',
 		NestedTableCol('Processing Requests',processing_requests_subtable_class,allow_sort=False))
 	
-	# new_imaging_request_url = '/imaging/new_imaging_request/username/<request_name>/<sample_name>/('imaging.new_imaging_request',**imaging_url_kwargs)
-	# imaging_requests_header = Markup(f'''Imaging Requests <form action={new_imaging_request_url}> <input type="submit" \
-		# value="request additional imaging">''')
-
+	""" Add processing subtable as a subtable to imaging requests subtable """
 	imaging_requests = NestedTableCol('Imaging Requests',
-	 imaging_requests_subtable_class,allow_sort=False)
+		imaging_requests_subtable_class,allow_sort=False)
 	
 	url_kwargs = {'username':'username','request_name':'request_name'}
 	anchor_attrs = {'target':"_blank",}
 	
-	# samples_link = LinkCol('View request status', 'requests.request_overview',url_kwargs=url_kwargs,
-	#     anchor_attrs=anchor_attrs,allow_sort=False)
 	
 	def sort_url(self, col_key, reverse=False):
 		if reverse:

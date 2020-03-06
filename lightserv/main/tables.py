@@ -64,7 +64,6 @@ class BooltoStringCol(Col):
         else:
             return "no"
 
-
 class ProgressCol(Col):
     """ Conditional bold fonting """
     def __init__(self, name, attr=None, attr_list=None,
@@ -150,14 +149,46 @@ class ImagingRequestLinkCol(LinkCol):
         return item['imaging_request_number']
 
 class ProcessingRequestLinkCol(LinkCol):
-    """Subclass of LinkCol to show the processing request number 
+    """Subclass of LinkCol to conditionally show the processing request number 
     as a link to the table overview of that processing request,
     but keep the text displayed as the actual processing request number.
-    This is hard (or impossible) to do with the regular LinkCol
+    The condition to show the link is if processing requests are allowed for this sample.
+    If they are, show the link, if not show "N/A'"
     """
-
+    def __init__(self,name,endpoint,**kwargs):
+        super(ProcessingRequestLinkCol, self).__init__(name,endpoint,**kwargs)
+    
     def text(self, item, attr_list):
         return item['processing_request_number']
+
+    def td_contents(self, item,attr_list):
+        # print(item)
+        if item['processing_request_number'] == None:
+            return "N/A"
+        else:
+            attrs = dict(href=self.url(item))
+            attrs.update(self.anchor_attrs)
+            text = self.td_format(self.text(item, attr_list))
+            return element('a', attrs=attrs, content=text, escape_content=False)
+    
+
+class AdditionalProcessingRequestLinkCol(LinkCol):
+    """Subclass of LinkCol to conditionally show a link to the form 
+    requesting additional processing. The condition
+    to show the link is if processing requests are allowed for this sample.
+    If they are, show the link, if not show "N/A'"
+    """
+    def __init__(self,name,endpoint,**kwargs):
+        super(AdditionalProcessingRequestLinkCol, self).__init__(name,endpoint,**kwargs)
+
+    def td_contents(self, item,attr_list):
+        if item['processing_requests'][0]['processing_request_number'] == None:
+            return "N/A"
+        else:
+            attrs = dict(href=self.url(item))
+            attrs.update(self.anchor_attrs)
+            text = self.td_format(self.text(item, attr_list))
+            return element('a', attrs=attrs, content=text, escape_content=False)
 
 
 class RequestTable(Table):

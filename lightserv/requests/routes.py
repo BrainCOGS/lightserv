@@ -266,11 +266,23 @@ def all_samples():
 		clearing_joined_contents*imaging_request_contents,
 		**replicated_args)
 
-	processing_joined_contents = dj.U('username','request_name','sample_name').aggr(
-		imaging_joined_contents*processing_request_contents,
-		**replicated_args,processing_request_number='processing_request_number',
-	processor='processor',processing_progress='processing_progress')
-
+	# processing_joined_contents = dj.U('username','request_name','sample_name').aggr(
+	# 	imaging_joined_contents*processing_request_contents,
+	# 	**replicated_args,processing_request_number='processing_request_number',
+	# processor='processor',processing_progress='processing_progress')
+	# processing_joined_contents = (dj.U('username','request_name')*imaging_joined_contents).aggr(   
+ #    processing_request_contents,
+	# **replicated_args,processor='processor',processing_progress='processing_progress',
+	# processing_request_number='IF(processing_request_number is NULL,"N/A",processing_request_number)',
+ #    keep_all_rows=True
+	# )
+	processing_joined_contents = (dj.U('username','request_name')*imaging_joined_contents).aggr(   
+    processing_request_contents,
+	**replicated_args,processor='processor',processing_progress='processing_progress',
+	processing_request_number='processing_request_number',
+    keep_all_rows=True
+	)
+	logger.debug(processing_joined_contents)
 	all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
 	keep_keys = ['username','request_name','sample_name','species',
 				 'clearing_protocol','clearing_progress','antibody1','antibody2',
