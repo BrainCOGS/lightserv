@@ -439,7 +439,7 @@ def new_imaging_request(username,request_name,sample_name):
 					i.e. image resolutions that are not 2x. We do not process 2x data sets. """
 					if len(processing_resolution_insert_list) > 0:
 						logger.info('ProcessingRequest() insert:')
-						logger.info(processing_request_insert_list)
+						logger.info(processing_request_insert_dict)
 						db_lightsheet.Request.ProcessingRequest().insert1(processing_request_insert_dict)
 
 						logger.info('ProcessingResolutionRequest() insert:')
