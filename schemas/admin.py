@@ -4,7 +4,7 @@ import os
 
 
 if os.environ.get('FLASK_MODE') == 'TEST':
-    dj.config['database.host'] = '127.0.0.1'
+    dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
     dj.config['database.port'] = 3306
     dj.config['database.user'] = os.environ['DJ_DB_TEST_USER']
     dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']

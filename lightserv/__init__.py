@@ -13,12 +13,13 @@ from flask_wtf.csrf import CSRFError
 dj.config["enable_python_native_blobs"] = True
 
 def set_celery_db():
+	print(os.environ['FLASK_MODE'])
 	if os.environ['FLASK_MODE'] == 'DEV':
 		cel = Celery(__name__,broker='amqp://rabbit//',
 			backend='redis://redis:6379/0')
 	elif os.environ['FLASK_MODE'] == 'TEST':
-		cel = Celery(__name__,broker='amqp://localhost//',
-			backend=f'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test')
+		cel = Celery(__name__,broker='amqp://rabbit//',
+			backend='redis://redis:6379/0')
 	return cel
 cel = set_celery_db()
 
@@ -47,7 +48,7 @@ def set_schema():
 		print("Setting up schemas in TEST mode")
 		# test_schema = create_test_schema() 
 		from schemas import admin,lightsheet,subject
-		dj.config['database.host'] = '127.0.0.1'
+		dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
 		dj.config['database.user'] = os.environ['DJ_DB_TEST_USER']
 		dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']
 		db_lightsheet = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
