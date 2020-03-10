@@ -1,8 +1,8 @@
-# lightserv_dj_demo
+# lightserv
 
-lightserv_dj_demo is a flask application to allow users to create light sheet microscopy data requests at the Princeton Neuroscience Institute U19 Core Facility. Users can view their current and past requests. The application uses [datajoint](https://github.com/datajoint/datajoint-python) to connect to a MariaDB or MySQL database hosted on localhost:3306. One can forward a port (see [Database Setup](#database-setup) below) to 3306 as a way to connect to an external database server.
+lightserv is a flask application that enables users to submit requests to acquire light sheet microscopy images (and derivative data products) of their biological samples at the Princeton Neuroscience Institute U19 Brain Registration and Histology Core Facility. Users can view the statuses of their current and past requests. The application uses [datajoint](https://github.com/datajoint/datajoint-python) to connect to a MariaDB or MySQL database. 
 
-This is currently a demo, so submitting a new request only updates a database table but does not start an actual experiment.
+The service is hosted at  [https://braincogs00.pni.princeton.edu](https://braincogs00.pni.princeton.edu).
 
 
 ## Setup
@@ -28,11 +28,6 @@ Set environment variables:
 SECRET_KEY # a random hex string, for example
 MAIL_USERNAME # The email account from which password reset info will be delivered to user
 MAIL_PASSWORD # The password to the above email account
-```
-
-In order to connect to the MariaDB database, forward port 3306 from jtb3-dev.princeton.edu to localhost:3306:
-```
-ssh {username}@jtb3-dev.princeton.edu -L 3306:127.0.0.1:3306 -N
 ```
 
 ## Celery config
