@@ -1,6 +1,5 @@
 import os,sys
 from flask import Flask, session, flash, request, redirect, url_for, render_template
-from flask_login import LoginManager
 from flask_mail import Mail
 from flask_wtf.csrf import CSRFProtect
 from lightserv.config import Config
@@ -32,11 +31,11 @@ try:
 except KeyError:
 	print("WARNING. FLASK_MODE environmental variable not found. WARNING")
 def set_schema():
-
 	if os.environ['FLASK_MODE'] == 'DEV':
 		dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
 		dj.config['database.user'] = os.environ['DJ_DB_USER']
 		dj.config['database.password'] = os.environ['DJ_DB_PASS']
+		print("here")
 		# db_lightsheet = dj.create_virtual_module('lightsheet','u19lightserv_lightsheet',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
 		db_lightsheet = dj.create_virtual_module('lightsheet','ahoag_lightsheet_demo',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
 		db_admin = dj.create_virtual_module('admin','ahoag_admin_demo',create_schema=True)
@@ -75,7 +74,7 @@ def create_app(config_class=Config):
 	# from lightserv.users.routes import users
 	from lightserv.requests.routes import requests
 	from lightserv.main.routes import main
-	from lightserv.ontology.routes import ontology
+	# from lightserv.ontology.routes import ontology
 	from lightserv.clearing.routes import clearing
 	from lightserv.imaging.routes import imaging
 	from lightserv.processing.routes import processing
@@ -86,7 +85,7 @@ def create_app(config_class=Config):
 	# app.register_blueprint(users)
 	app.register_blueprint(requests)
 	app.register_blueprint(main)
-	app.register_blueprint(ontology)
+	# app.register_blueprint(ontology)
 	app.register_blueprint(clearing)
 	app.register_blueprint(imaging)
 	app.register_blueprint(processing)

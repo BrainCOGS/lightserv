@@ -1,6 +1,6 @@
 import os
 os.environ['FLASK_MODE']='DEV'
-
+hosturl = os.environ['HOSTURL']
 from lightserv import create_app
 import socket
 
@@ -23,7 +23,7 @@ if __name__ == '__main__':
 	logger.addHandler(stream_handler)
 	logger.addHandler(file_handler)
 
-	if socket.gethostname() == 'braincogs00.pni.princeton.edu':
+	if hosturl == 'braincogs00.pni.princeton.edu':
 		app.run(host='0.0.0.0',port='8080',debug=True)
 	else:
 		app.run(port='5001',debug=True)

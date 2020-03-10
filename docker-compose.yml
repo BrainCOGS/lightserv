@@ -1,0 +1,38 @@
+version: "3.4"
+
+services:
+  # redis:
+  #   image: redis
+  #   expose:
+  #     - 6379
+  flask:
+    env_file: .dockerenv
+    build:
+      context: .
+      dockerfile: flask.Dockerfile
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - '8080:8080'
+  # worker:
+  #   build:
+  #     context: ./flask-demo
+  #     dockerfile: worker.Dockerfile
+  #   volumes:
+  #     - ./flask-demo:/app
+  #   depends_on:
+  #     - redis
+  #   env_file:
+  #     - ".env"
+  # scheduler:
+  #   build:
+  #     context: ./flask-demo
+  #     dockerfile: scheduler.Dockerfile
+  #   volumes:
+  #     - ./flask-demo:/app
+  #   depends_on:
+  #     - redis
+  #     - worker
+  #   env_file:
+  #     - ".env"

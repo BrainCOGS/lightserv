@@ -14,3 +14,4 @@ screenshots
 .coverage
 **/*pem
 scripts
+.dockerenv

@@ -2,7 +2,6 @@ from flask import (render_template, request, redirect,
 				   Blueprint, session, url_for, flash,
 				   Markup, Request, Response,abort)
 from lightserv import db_lightsheet, db_admin
-import pandas as pd
 from lightserv.main.utils import logged_in, table_sorter, log_http_requests
 from lightserv.main.forms import SpockConnectionTesterForm, FeedbackForm
 from lightserv.main.tables import RequestTable
