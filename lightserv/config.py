@@ -37,7 +37,7 @@ class BaseConfig(object):
 	# BROKER_USE_SSL = True
 	CELERYBEAT_SCHEDULE = {
     'job_status_checker': {
-        'task': 'lightserv.taskmanager.routes.status_checker',
+        'task': 'lightserv.taskmanager.routes.hello',
         'schedule': timedelta(seconds=5)
     },
 }

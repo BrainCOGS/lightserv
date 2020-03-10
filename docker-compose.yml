@@ -1,50 +1,54 @@
 version: "3.4"
 
 services:
-	worker:
-		env_file: .dockerenv
-		image: flaskcelery_test:latest
-		command: ["celery",
-							"worker",
-							"-A",
-							"celery_worker.cel",
-							"--loglevel=info"]
-		volumes:
-			- .:/app
-		depends_on:
-			- rabbit
-			- redis
-	redis:
-		image: redis
-		expose:
-			- 6379
-	rabbit:
-		image: rabbitmq:3.8.3-rc.2
-		expose:
-			- 5672
-	flask:
-		env_file: .dockerenv
-		image: flaskcelery_test:latest
-		command: ["python", "run.py"]
-		volumes:
-			- .:/app # so changes made to the app are propagated to the container without having to rebuild
-			- /var/run/docker.sock:/var/run/docker.sock # so that I can see inside the container from outside
-		ports:
-			- '8080:8080'
-
-	# scheduler:
-	#   build:
-	#     context: ./flask-demo
-	#     dockerfile: scheduler.Dockerfile
-	#   volumes:
-	#     - ./flask-demo:/app
-	#   depends_on:
-	#     - redis
-	#     - worker
-	#   env_file:
-	#     - ".env"
+  redis:
+    image: redis
+    expose:
+      - 6379
+  rabbit:
+    image: rabbitmq:3.8.3-rc.2
+    expose:
+      - 5672
+  flask:
+    env_file: .dockerenv
+    image: flaskcelery_test:latest
+    command: ["python", "run.py"]
+    volumes:
+      - .:/app # so changes made to the app are propagated to the container without having to rebuild
+      - /var/run/docker.sock:/var/run/docker.sock # so that I can see inside the container from outside
+    ports:
+      - '8080:8080'
+  worker:
+    env_file: .dockerenv
+    image: flaskcelery_test:latest
+    command: ["celery",
+              "worker",
+              "-A",
+              "celery_worker.cel",
+              "--loglevel=info"]
+    volumes:
+      - .:/app
+    depends_on:
+      - rabbit
+      - redis
+  scheduler:
+    env_file: .dockerenv
+    image: flaskcelery_test:latest
+    command: ["celery",
+              "beat",
+              "-A",
+              "celery_worker.cel",
+              "--schedule=/tmp/celerybeat-schedule",
+              "--loglevel=info",
+              "--pidfile=/tmp/celerybeat.pid"]
+    volumes:
+      - .:/app
+    depends_on:
+      - rabbit
+      - redis
+      - worker
 
 networks:
-	default:
-		external:
-			name: lightserv
+  default:
+    external:
+      name: lightserv
