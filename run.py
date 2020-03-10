@@ -1,6 +1,6 @@
 import os
 os.environ['FLASK_MODE']='DEV'
-hosturl = os.environ['HOSTURL']
+hosturl = os.environ.get('HOSTURL')
 from lightserv import create_app
 import socket
 

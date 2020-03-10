@@ -14,8 +14,8 @@ dj.config["enable_python_native_blobs"] = True
 
 def set_celery_db():
 	if os.environ['FLASK_MODE'] == 'DEV':
-		cel = Celery(__name__,broker='amqp://localhost//',
-			backend=f'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery')
+		cel = Celery(__name__,broker='amqp://rabbit//',
+			backend='redis://redis:6379/0')
 	elif os.environ['FLASK_MODE'] == 'TEST':
 		cel = Celery(__name__,broker='amqp://localhost//',
 			backend=f'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test')
@@ -35,7 +35,6 @@ def set_schema():
 		dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
 		dj.config['database.user'] = os.environ['DJ_DB_USER']
 		dj.config['database.password'] = os.environ['DJ_DB_PASS']
-		print("here")
 		# db_lightsheet = dj.create_virtual_module('lightsheet','u19lightserv_lightsheet',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
 		db_lightsheet = dj.create_virtual_module('lightsheet','ahoag_lightsheet_demo',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
 		db_admin = dj.create_virtual_module('admin','ahoag_admin_demo',create_schema=True)
