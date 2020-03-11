@@ -36,11 +36,15 @@ class BaseConfig(object):
 	# CELERY_RESULT_BACKEND=f'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test'
 	# BROKER_USE_SSL = True
 	CELERYBEAT_SCHEDULE = {
-    'job_status_checker': {
-        'task': 'lightserv.taskmanager.routes.hello',
-        'schedule': timedelta(seconds=5)
-    },
-}
+		# 'job_status_checker': {
+		# 'task': 'lightserv.taskmanager.routes.hello',
+		# 'schedule': timedelta(seconds=5)
+		# },
+		'ng_viewer_cleanser': {
+		'task': 'lightserv.neuroglancer.routes.ng_viewer_checker',
+		'schedule': timedelta(seconds=15)
+		},
+	}
 
 # The default config
 class Config(BaseConfig):

@@ -10,3 +10,13 @@ docker-compose build
 docker network rm lightserv
 
 docker network create --attachable lightserv
+
+## build cloud volume latest tag
+cd ./cloudvolume
+
+docker build -f ./cloudvolume.Dockerfile -t cloudv:latest .
+
+## build neuroglancer latest tag
+cd ../neuroglancer
+
+docker build -f ./neuroglancer.Dockerfile -t nglancer:latest .

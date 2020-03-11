@@ -15,7 +15,7 @@ dj.config["enable_python_native_blobs"] = True
 def set_celery_db():
 	print(os.environ['FLASK_MODE'])
 	if os.environ['FLASK_MODE'] == 'DEV':
-		cel = Celery(__name__,broker='amqp://rabbit//',
+		cel = Celery(__name__,broker='redis://redis:6379/0',
 			backend='redis://redis:6379/0')
 	elif os.environ['FLASK_MODE'] == 'TEST':
 		cel = Celery(__name__,broker='amqp://rabbit//',
@@ -65,41 +65,39 @@ mail = Mail()
 def create_app(config_class=Config):
 	""" Create the flask app instance"""
 	app = Flask(__name__)
+	
+	# Initialize external libs
 	csrf = CSRFProtect(app)
 	app.config.from_object(config_class)
 	cel.conf.update(app.config)
-	# login_manager.init_app(app)
-
 	mail.init_app(app)
-	# from lightserv.users.routes import users
+
+	# Blueprints
 	from lightserv.requests.routes import requests
 	from lightserv.main.routes import main
-	# from lightserv.ontology.routes import ontology
 	from lightserv.clearing.routes import clearing
 	from lightserv.imaging.routes import imaging
 	from lightserv.processing.routes import processing
 	from lightserv.taskmanager.routes import taskmanager
 	from lightserv.microscope.routes import microscope
+	from lightserv.neuroglancer.routes import neuroglancer
 	from lightserv.errors.handlers import errors
 
-	# app.register_blueprint(users)
 	app.register_blueprint(requests)
 	app.register_blueprint(main)
-	# app.register_blueprint(ontology)
 	app.register_blueprint(clearing)
 	app.register_blueprint(imaging)
 	app.register_blueprint(processing)
 	app.register_blueprint(taskmanager)
-
+	app.register_blueprint(neuroglancer)
 	app.register_blueprint(microscope)
 	app.register_blueprint(errors)
 
 	@app.errorhandler(CSRFError)
 	def handle_csrf_error(e):
-		# print(e)
-		# print(type(e))
-		# print(len(e))
-		# print(len('400 Bad Request: The CSRF token has expired.'))
+		""" If there is an CSRF Error anywhere in the application,
+		this function will handle it - brings the user to a 500 error 
+		page """
 		if e.description =='The CSRF token has expired.':
 			csrf_time_limit_seconds = app.config['WTF_CSRF_TIME_LIMIT']
 			csrf_time_limit_hours = csrf_time_limit_seconds/3600.

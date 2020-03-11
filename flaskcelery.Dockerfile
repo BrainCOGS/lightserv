@@ -9,6 +9,8 @@ WORKDIR /app
 
 RUN pip install -r flask_requirements.txt
 
-COPY . /app
+COPY lightserv/ /app
+
+COPY run.py /app
 
 # CMD python run.py

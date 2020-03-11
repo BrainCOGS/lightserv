@@ -5,16 +5,17 @@ services:
     image: redis
     expose:
       - 6379
-  rabbit:
-    image: rabbitmq:3.8.3-rc.2
-    expose:
-      - 5672
+  # rabbit:
+  #   image: rabbitmq:3.8.3-rc.2
+  #   expose:
+  #     - 5672
   flask:
     env_file: .dockerenv
     image: flaskcelery_test:latest
     command: ["python", "run.py"]
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
+      - ./lib:/opt/libraries # for progproxy api
       - /var/run/docker.sock:/var/run/docker.sock # so that I can see inside the container from outside
     ports:
       - '8080:8080'
@@ -28,25 +29,41 @@ services:
               "--loglevel=info"]
     volumes:
       - .:/app
+      - ./lib:/opt/libraries
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
-      - rabbit
+      # - rabbit
       - redis
-  scheduler:
+  # scheduler:
+  #   env_file: .dockerenv
+  #   image: flaskcelery_test:latest
+  #   command: ["celery",
+  #             "beat",
+  #             "-A",
+  #             "celery_worker.cel",
+  #             "--schedule=/tmp/celerybeat-schedule",
+  #             "--loglevel=info",
+  #             "--pidfile=/tmp/celerybeat.pid"]
+  #   volumes:
+  #     - .:/app
+  #     - ./lib:/opt/libraries
+  #   depends_on:
+  #     - rabbit
+  #     - redis
+  #     - worker
+  confproxy:
     env_file: .dockerenv
-    image: flaskcelery_test:latest
-    command: ["celery",
-              "beat",
-              "-A",
-              "celery_worker.cel",
-              "--schedule=/tmp/celerybeat-schedule",
-              "--loglevel=info",
-              "--pidfile=/tmp/celerybeat.pid"]
-    volumes:
-      - .:/app
-    depends_on:
-      - rabbit
-      - redis
-      - worker
+    image: jupyterhub/configurable-http-proxy:3.1.1
+    # expose the proxy to the world
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    command: ['configurable-http-proxy',
+              '--auto-rewrite',
+              '--no-include-prefix',
+              '--no-prepend-path',
+              '--log-level', 'debug',
+              '--api-ip', '0.0.0.0']
 
 networks:
   default:
