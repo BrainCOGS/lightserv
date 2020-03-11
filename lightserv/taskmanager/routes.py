@@ -2,7 +2,7 @@ from flask import (render_template, request, redirect,
 				   Blueprint, session, url_for, flash,
 				   Markup, Request, Response,jsonify,
                    current_app)
-from lightserv import db_lightsheet,db_admin, cel, mail
+from lightserv import db_lightsheet, db_admin, cel, smtp_server
 from lightserv.main.utils import logged_in, table_sorter, log_http_requests
 from functools import partial, wraps
 
@@ -12,8 +12,8 @@ import requests
 import logging
 import paramiko,time
 import os
-from flask_mail import Message
 from datetime import datetime, timedelta
+from email.message import EmailMessage
 
 
 logger = logging.getLogger(__name__)
@@ -149,12 +149,13 @@ def status_checker():
 
         output_directory = os.path.join(sample_basepath,'output',
                 f'processing_request_{processing_request_number}')
-        
-        msg = Message('Lightserv automated email: SUCCESSFUL processing request',
-                        sender='lightservhelper@gmail.com',
-                        recipients=['ahoag@princeton.edu']) # send it to me while in DEV phase
+        msg = EmailMessage()
+        msg['Subject'] = 'Lightserv automated email: image processing complete'
+        msg['From'] = 'lightservhelper@gmail.com'
+        msg['To'] = 'ahoag@princeton.edu' # to me while in DEV phase
+
                     
-        msg.body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+        message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
             'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
             'The processing for your request:\n\n'
             f'request_name: "{request_name}"\n'
@@ -165,7 +166,8 @@ def status_checker():
             'You can find your processed data here:'
             f'\n{output_directory}'
             '\n\nThanks,\nThe Histology and Brain Registration Core Facility.')
-        mail.send(msg)
+        msg.set_content(message_body)
+        smtp_server.send_message(msg)
         logger.debug("Sent email that processing was completed")
     
     """ For processing requests where even just one jobid has a problematic status,

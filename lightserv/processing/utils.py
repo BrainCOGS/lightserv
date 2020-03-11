@@ -4,7 +4,7 @@ from flask import (render_template, url_for, flash,
 from lightserv.processing.forms import StartProcessingForm, NewProcessingRequestForm
 from lightserv.processing.tables import (dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable)
 from lightserv import db_lightsheet, db_admin
-from lightserv import cel,mail
+from lightserv import cel
 import datajoint as dj
 from datetime import datetime
 import logging

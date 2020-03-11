@@ -14,5 +14,6 @@ screenshots
 .coverage
 **/*pem
 scripts
+**/id_rsa.pub
 .dockerenv
 .testdockerenv

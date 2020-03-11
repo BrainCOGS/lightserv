@@ -1,6 +1,5 @@
 import os,sys
 from flask import Flask, session, flash, request, redirect, url_for, render_template
-from flask_mail import Mail
 from flask_wtf.csrf import CSRFProtect
 from lightserv.config import Config
 import datajoint as dj
@@ -8,6 +7,12 @@ from datajoint.table import Log
 import socket
 from celery import Celery
 from flask_wtf.csrf import CSRFError
+import smtplib
+
+""" Connect to gmail smtp server """
+smtp_server = smtplib.SMTP('smtp.gmail.com',587)
+smtp_server.starttls()
+smtp_server.login(os.environ.get('EMAIL_USER'),os.environ.get('EMAIL_PASS'))
 
 ''' Allow writing python objects to db as blob '''
 dj.config["enable_python_native_blobs"] = True
@@ -17,6 +22,8 @@ def set_celery_db():
 	if os.environ['FLASK_MODE'] == 'DEV':
 		cel = Celery(__name__,broker='redis://redis:6379/0',
 			backend='redis://redis:6379/0')
+		# cel = Celery(__name__,broker='amqp://dockerhost',
+		# 	backend='redis://redis:6379/0')
 	elif os.environ['FLASK_MODE'] == 'TEST':
 		cel = Celery(__name__,broker='amqp://rabbit//',
 			backend='redis://redis:6379/0')
@@ -60,8 +67,6 @@ def set_schema():
 
 db_lightsheet,db_microscope,db_admin,db_subject = set_schema()
 
-mail = Mail()
-
 def create_app(config_class=Config):
 	""" Create the flask app instance"""
 	app = Flask(__name__)
@@ -70,7 +75,6 @@ def create_app(config_class=Config):
 	csrf = CSRFProtect(app)
 	app.config.from_object(config_class)
 	cel.conf.update(app.config)
-	mail.init_app(app)
 
 	# Blueprints
 	from lightserv.requests.routes import requests

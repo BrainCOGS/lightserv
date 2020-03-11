@@ -19,6 +19,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock # so that I can see inside the container from outside
     ports:
       - '8080:8080'
+    # extra_hosts:
+    #   - "dockerhost:$DOCKERHOST"
   worker:
     env_file: .dockerenv
     image: flaskcelery_test:latest
@@ -27,6 +29,8 @@ services:
               "-A",
               "celery_worker.cel",
               "--loglevel=info"]
+    # extra_hosts:
+    #   - "dockerhost:$DOCKERHOST"
     volumes:
       - .:/app
       - ./lib:/opt/libraries

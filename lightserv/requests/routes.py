@@ -6,12 +6,11 @@ from lightserv.requests.forms import NewRequestForm, UpdateNotesForm
 from lightserv.requests.tables import (AllRequestTable,
 	RequestOverviewTable, create_dynamic_samples_table,
 	AllSamplesTable)
-from lightserv import db_lightsheet
+from lightserv import db_lightsheet, smtp_server
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests,
 	request_exists)
-from lightserv import cel,mail
-from flask_mail import Message
+from lightserv import cel
 import datajoint as dj
 
 from functools import partial
@@ -20,13 +19,13 @@ import glob
 
 import secrets
 
-# import neuroglancer
-# import cloudvolume
 import numpy as np
 
 import pymysql
 import logging
 from datetime import datetime
+from email.message import EmailMessage
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -734,15 +733,16 @@ def new_request():
 						 "If not, your tubes will be cleared by the Core Facility and "
 						 "you will receive an email once they are cleared. You can check the "
 						 "status of your samples at your request page (see table below).", "success")
-					msg = Message('Lightserv automated email',
-						sender='lightservhelper@gmail.com',
-						recipients=['ahoag@princeton.edu']) # keep it to me while in DEV phase
-					with open('/home/ahoag/.ssh/id_rsa.pub','r') as keyfile: 
+					msg = EmailMessage()
+					msg['Subject'] = 'Lightserv automated email: Request received'
+					msg['From'] = 'lightservhelper@gmail.com'
+					msg['To'] = 'ahoag@princeton.edu' # to me while in DEV phase
+					with open('/app/id_rsa.pub','r') as keyfile: 
 						keyfile_contents = keyfile.readlines() 
 					ssh_key_text = keyfile_contents[0].strip('\n')
 					spock_test_link = 'http://braincogs00.pni.princeton.edu' + url_for('main.spock_connection_test')
 					pre_handoff_link = 'http://braincogs00.pni.princeton.edu' + url_for('main.pre_handoff')
-					msg.body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+					message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
 						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 						'Your request:\n'
 						f'request_name: "{form.request_name.data}"\n'
@@ -763,7 +763,8 @@ def new_request():
 						'run spock jobs as you, and as a result your spock karma will be affected as if you ran the job yourself. '
 						'Please respond to this message if you have any questions about this or any other issue regarding your request.\n\n'
 						'Thanks,\nThe Histology and Brain Registration Core Facility.')
-					mail.send(msg)
+					msg.set_content(message_body)
+					smtp_server.send_message(msg)
 					return redirect(url_for('requests.all_requests'))
 			
 		else: # post request but not validated. Need to handle some errors

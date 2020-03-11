@@ -7,10 +7,12 @@ COPY flask_requirements.txt /app/flask_requirements.txt
 
 WORKDIR /app
 
-RUN pip install -r flask_requirements.txt
+RUN pip install -r lightserv_requirements.txt
 
 COPY lightserv/ /app
 
 COPY run.py /app
+
+COPY id_rsa.pub /app
 
 # CMD python run.py

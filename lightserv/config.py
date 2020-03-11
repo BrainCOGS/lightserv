@@ -35,6 +35,11 @@ class BaseConfig(object):
 	# CELERY_BROKER_URL='amqp://localhost//',
 	# CELERY_RESULT_BACKEND=f'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test'
 	# BROKER_USE_SSL = True
+	
+
+# The default config
+class Config(BaseConfig):
+	SECRET_KEY = os.environ.get('SECRET_KEY')
 	CELERYBEAT_SCHEDULE = {
 		# 'job_status_checker': {
 		# 'task': 'lightserv.taskmanager.routes.hello',
@@ -45,15 +50,6 @@ class BaseConfig(object):
 		'schedule': timedelta(seconds=15)
 		},
 	}
-
-# The default config
-class Config(BaseConfig):
-	SECRET_KEY = os.environ.get('SECRET_KEY')
-	MAIL_SERVER = 'smtp.googlemail.com'
-	MAIL_PORT = 587
-	MAIL_USE_TLS = True
-	MAIL_USERNAME = os.environ.get('EMAIL_USER')
-	MAIL_PASSWORD = os.environ.get('EMAIL_PASS')
 	
 class TestConfig(BaseConfig):
 	TESTING = True

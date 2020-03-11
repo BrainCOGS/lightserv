@@ -1,7 +1,7 @@
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup, current_app)
-from lightserv import db_lightsheet, mail, cel
+from lightserv import db_lightsheet, cel, smtp_server
 
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 								  logged_in_as_imager,check_clearing_completed,
@@ -13,10 +13,10 @@ import numpy as np
 import datajoint as dj
 import re
 from datetime import datetime
-from flask_mail import Message
 import logging
 import glob
 import os
+from email.message import EmailMessage
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -206,16 +206,20 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			 f'request_name="{request_name}"').fetch1('correspondence_email')
 			path_to_data = f'/jukebox/LightSheetData/lightserv_testing/{username}/{request_name}/\
 				{sample_name}/rawdata/imaging_request_number_{imaging_request_number}'
-			msg = Message('Lightserv automated email',
-			          sender='lightservhelper@gmail.com',
-			          recipients=['ahoag@princeton.edu']) # keep it to me while in DEV phase
-			msg.body = ('Hello!\n    This is an automated email sent from lightserv, '
+			""" Send email """
+			msg = EmailMessage()
+			msg['Subject'] = 'Lightserv automated email: Imaging complete'
+			msg['From'] = 'lightservhelper@gmail.com'
+			msg['To'] = 'ahoag@princeton.edu' # to me while in DEV phase
+
+			message_body = ('Hello!\n    This is an automated email sent from lightserv, '
 						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 						'The raw data for your request:\n'
 						f'request_name: "{request_name}"\n'
 						f'sample_name: "{sample_name}"\n'
 						f'are now available on bucket here: {path_to_data}\n\n')
-			mail.send(msg)
+			msg.set_content(message_body)
+			smtp_server.send_message(msg)
 			flash(f"""Imaging is complete. An email has been sent to {correspondence_email} 
 				informing them that their raw data is now available on bucket.
 				The processing pipeline is now ready to run. ""","success")

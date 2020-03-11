@@ -9,7 +9,7 @@ from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests)
 from lightserv.processing.utils import run_spock_pipeline
-from lightserv import cel,mail
+from lightserv import cel
 import datajoint as dj
 from datetime import datetime
 import logging
