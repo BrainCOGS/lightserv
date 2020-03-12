@@ -8,11 +8,24 @@ import socket
 from celery import Celery
 from flask_wtf.csrf import CSRFError
 import smtplib
+import types
 
 """ Connect to gmail smtp server """
 smtp_server = smtplib.SMTP('smtp.gmail.com',587)
 smtp_server.starttls()
 smtp_server.login(os.environ.get('EMAIL_USER'),os.environ.get('EMAIL_PASS'))
+""" Subclass the send_message method of smtplib.SMTP to NOT send 
+the email if FLASK_MODE=='TEST' """
+def send_message_conditional(self,message): 
+	"self is the smtp_server"
+	if os.environ['FLASK_MODE'] == 'TEST': 
+		print("not sending email because this is a test") 
+	else: 
+		print("sending email")
+		smtplib.SMTP.send_message(self,message) 
+		print("sent")
+funcType = types.MethodType
+smtp_server.send_message = funcType(send_message_conditional,smtp_server)
 
 ''' Allow writing python objects to db as blob '''
 dj.config["enable_python_native_blobs"] = True
