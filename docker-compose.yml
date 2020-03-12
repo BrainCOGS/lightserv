@@ -11,6 +11,7 @@ services:
   #     - 5672
   flask:
     env_file: .dockerenv
+    hostname: docker_lightserv
     image: flaskcelery_test:latest
     command: ["python", "run.py"]
     volumes:

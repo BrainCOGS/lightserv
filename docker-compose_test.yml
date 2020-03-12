@@ -15,6 +15,7 @@ services:
     command: "pytest -vs lightserv/tests/test_main.py"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
+      - ./lib:/opt/libraries # for progproxy api
       - /var/run/docker.sock:/var/run/docker.sock # so that I can see inside the container from outside
     ports:
       - '8080:8080'

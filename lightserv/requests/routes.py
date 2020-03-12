@@ -737,7 +737,7 @@ def new_request():
 					msg['Subject'] = 'Lightserv automated email: Request received'
 					msg['From'] = 'lightservhelper@gmail.com'
 					msg['To'] = 'ahoag@princeton.edu' # to me while in DEV phase
-					with open('/app/id_rsa.pub','r') as keyfile: 
+					with open('/root/.ssh/id_rsa.pub','r') as keyfile: 
 						keyfile_contents = keyfile.readlines() 
 					ssh_key_text = keyfile_contents[0].strip('\n')
 					spock_test_link = 'http://braincogs00.pni.princeton.edu' + url_for('main.spock_connection_test')

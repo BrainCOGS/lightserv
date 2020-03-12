@@ -15,5 +15,7 @@ screenshots
 **/*pem
 scripts
 **/id_rsa.pub
+**/id_rsa
+sshconfig
 .dockerenv
 .testdockerenv
