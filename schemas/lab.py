@@ -12,8 +12,12 @@ if os.environ.get('FLASK_MODE') == 'TEST':
     dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']
     print("setting up test lab schema")
     schema = dj.schema('ahoag_lab_test')
-    schema.drop()
-    schema = dj.schema('ahoag_lab_test')
+    # is_worker = os.environ.get('IS_WORKER')
+    # if is_worker is not None:
+    #     print("Worker; not dropping db")
+    # else:
+    #     schema.drop()
+    #     schema = dj.schema('ahoag_lab_test')
 else:
     sys.exit()
 

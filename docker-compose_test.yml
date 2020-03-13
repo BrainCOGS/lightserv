@@ -1,10 +1,10 @@
 version: "3.4"
 
 services:
-  # redis:
-  #   image: redis
-  #   expose:
-  #     - 6379
+  redis:
+    image: redis
+    expose:
+      - 6379
   # rabbit:
   #   image: rabbitmq:3.8.3-rc.2
   #   expose:
@@ -12,26 +12,27 @@ services:
   testflask:
     env_file: .testdockerenv
     image: flaskcelery_test:latest
-    command: "pytest -vs lightserv/tests/test_requests.py::test_submit_good_mouse_request"
+    command: "pytest -vs lightserv/tests/test_imaging.py::test_imaging_entry_form_submits"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
+      - /jukebox/LightSheetData:/jukebox/LightSheetData # so changes made to the app are propagated to the container without having to rebuild
       - ./lib:/opt/libraries # for progproxy api
       - /var/run/docker.sock:/var/run/docker.sock # so that I can see inside the container from outside
     ports:
       - '8080:8080'
-  # worker:
-  #   env_file: .dockerenv
-  #   image: flaskcelery_test:latest
-  #   command: ["celery",
-  #             "worker",
-  #             "-A",
-  #             "celery_worker.cel",
-  #             "--loglevel=info"]
-  #   volumes:
-  #     - .:/app
-  #   depends_on:
-  #     - rabbit
-  #     - redis
+  worker:
+    env_file: .testworkerdockerenv
+    image: flaskcelery_test:latest
+    command: bash -c "sleep 3 && celery worker -A celery_worker.cel --loglevel=info" # sleep to wait for testflask to make the dbs
+    volumes:
+      - .:/app
+      - ./lib:/opt/libraries
+      - /jukebox/LightSheetData:/jukebox/LightSheetData
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      # - rabbit
+      - redis
+      - testflask
   # scheduler:
   #   env_file: .dockerenv
   #   image: flaskcelery_test:latest
@@ -48,7 +49,3 @@ services:
   #     - rabbit
   #     - redis
   #     - worker
-# networks:
-#   default:
-#     external:
-#       name: lightserv

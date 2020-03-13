@@ -9,6 +9,7 @@ from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 from lightserv.imaging.tables import (ImagingTable, dynamic_imaging_management_table,
 	SampleTable, ExistingImagingTable, ImagingChannelTable)
 from .forms import ImagingForm, NewImagingRequestForm
+from . import tasks
 import numpy as np
 import datajoint as dj
 import re
@@ -99,6 +100,10 @@ def imaging_manager():
 @check_clearing_completed
 @log_http_requests
 def imaging_entry(username,request_name,sample_name,imaging_request_number): 
+	""" Route for handling form data for
+	parameters used to image a dataset.
+	"""
+
 	form = ImagingForm(request.form)
 	form.username.data = username
 	form.request_name.data = request_name
@@ -150,20 +155,13 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			""" Loop through the image resolution forms and find all channels in the form  
 			and update the existing table entries with the new imaging information """
 			
-
 			for form_resolution_dict in form.image_resolution_forms.data:
 				subfolder_dict = {}
 				image_resolution = form_resolution_dict['image_resolution']
 				for form_channel_dict in form_resolution_dict['channel_forms']:
 					channel_name = form_channel_dict['channel_name']
-					# number_of_z_planes = form_channel_dict['number_of_z_planes']
 					rawdata_subfolder = form_channel_dict['rawdata_subfolder']
-					# left_lightsheet_used = form_channel_dict['left_lightsheet_used']
-					# right_lightsheet_used = form_channel_dict['right_lightsheet_used']
-					# if image_resolution == '2x':
-					# 	zoom_body_magnification = form_channel_dict['zoom_body_magnification']
-					# logger.debug(left_lightsheet_used)
-					# logger.debug(right_lightsheet_used)
+					number_of_z_planes = form_channel_dict['number_of_z_planes']
 					if rawdata_subfolder in subfolder_dict.keys():
 						subfolder_dict[rawdata_subfolder].append(channel_name)
 					else:
@@ -178,11 +176,6 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					
 					channel_content = channel_contents & f'channel_name="{channel_name}"' & \
 					f'image_resolution="{image_resolution}"' & f'imaging_request_number={imaging_request_number}'
-					# logger.debug(channel_contents)
-					# logger.debug(channel_contents)
-					# logger.debug(image_resolution)
-					# logger.debug(channel_name)
-					# logger.debug(imaging_request_number)
 					channel_content_dict = channel_content.fetch1()
 					''' Make a copy of the current row in a new dictionary which we will insert '''
 					channel_insert_dict = {}
@@ -201,6 +194,15 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					logger.info(channel_insert_dict)
 			
 					db_lightsheet.Request.ImagingChannel().insert1(channel_insert_dict,replace=True)
+					""" Kick off celery task for creating precomputed data from this
+					raw data image dataset 
+					"""
+					precomputed_kwargs = dict(username=username,request_name=request_name,
+											sample_name=sample_name,imaging_request_number=imaging_request_number,
+											image_resolution=image_resolution,channel_name=channel_name,
+											channel_index=channel_index,number_of_z_planes=number_of_z_planes,
+											rawdata_subfolder=rawdata_subfolder)
+					tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 				
 			correspondence_email = (db_lightsheet.Request() & f'username="{username}"' & \
 			 f'request_name="{request_name}"').fetch1('correspondence_email')
@@ -227,6 +229,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			now = datetime.now()
 			date = now.strftime('%Y-%m-%d')
 			dj.Table._update(imaging_request_contents,'imaging_performed_date',date)
+			
 			return redirect(url_for('imaging.imaging_manager'))
 		else:
 			logger.info("Not validated")

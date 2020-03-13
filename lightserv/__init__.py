@@ -10,6 +10,11 @@ from flask_wtf.csrf import CSRFError
 import smtplib
 import types
 
+try:
+	print("RUNNING IN FLASK_MODE:",os.environ['FLASK_MODE'])
+except KeyError:
+	print("WARNING. FLASK_MODE environmental variable not found. WARNING")
+
 """ Connect to gmail smtp server """
 smtp_server = smtplib.SMTP('smtp.gmail.com',587)
 smtp_server.starttls()
@@ -31,14 +36,13 @@ smtp_server.send_message = funcType(send_message_conditional,smtp_server)
 dj.config["enable_python_native_blobs"] = True
 
 def set_celery_db():
-	print(os.environ['FLASK_MODE'])
 	if os.environ['FLASK_MODE'] == 'DEV':
 		cel = Celery(__name__,broker='redis://redis:6379/0',
 			backend='redis://redis:6379/0')
 		# cel = Celery(__name__,broker='amqp://dockerhost',
 		# 	backend='redis://redis:6379/0')
 	elif os.environ['FLASK_MODE'] == 'TEST':
-		cel = Celery(__name__,broker='amqp://rabbit//',
+		cel = Celery(__name__,broker='redis://redis:6379/0',
 			backend='redis://redis:6379/0')
 	return cel
 cel = set_celery_db()
@@ -47,10 +51,7 @@ cel = set_celery_db()
 we can use them for multiple apps if we want. Don't want to tie 
 them to a single app in the create_app() function below '''
 
-try:
-	print("RUNNING IN FLASK_MODE:",os.environ['FLASK_MODE'])
-except KeyError:
-	print("WARNING. FLASK_MODE environmental variable not found. WARNING")
+
 def set_schema():
 	if os.environ['FLASK_MODE'] == 'DEV':
 		dj.config['database.host'] = 'datajoint00.pni.princeton.edu'

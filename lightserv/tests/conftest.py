@@ -10,7 +10,7 @@ import os, sys
 if os.environ.get('FLASK_MODE') != 'TEST':
 	raise KeyError("Must set environmental variable FLASK_MODE=TEST")
 from flask import url_for,request
-from lightserv import create_app, config, db_lightsheet
+from lightserv import create_app, config, db_admin,db_lightsheet,db_microscope,db_subject
 import secrets
 import pytest
 from flask import url_for
@@ -50,6 +50,12 @@ def test_client():
 	ctx.push()
 	yield testing_client # this is where the testing happens
 	print('-------Teardown test client--------')
+	""" Drop all schemas """
+	db_admin.schema.drop(force=True)
+	db_lightsheet.schema.drop(force=True)
+	db_microscope.schema.drop(force=True)
+	db_subject.schema.drop(force=True)
+
 	ctx.pop()
 
 @pytest.fixture(scope='function') 

@@ -128,7 +128,6 @@ class ImagingForm(FlaskForm):
 						self.username.data,self.request_name.data,self.sample_name.data,
 						f'imaging_request_{self.imaging_request_number.data}',
 						'rawdata',rawdata_subfolder) 
-
 				number_of_rawfiles_expected = number_of_z_planes*(left_lightsheet_used+right_lightsheet_used)*n_rows*n_columns
 				number_of_rawfiles_found = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*Filter000{channel_index}*'))				
 				if number_of_rawfiles_found != number_of_rawfiles_expected:
