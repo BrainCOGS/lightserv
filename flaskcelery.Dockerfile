@@ -10,12 +10,19 @@ WORKDIR /app
 RUN pip install -r lightserv_requirements.txt
 
 COPY lightserv/ /app
+COPY logs /app/logs
 
 COPY run.py /app
 
-RUN mkdir /root/.ssh
+# Make lightservuser 
+RUN useradd -r -u 153574 -d /home/lightservuser -m lightservuser
+# Give read and write permissions to lightservuser /app
+RUN chown -R lightservuser /app
 
-COPY sshconfig/id_rsa /root/.ssh
-COPY sshconfig/id_rsa.pub /root/.ssh
-
-RUN chmod 700 /root/.ssh/id_rsa 
+RUN mkdir /home/lightservuser/.ssh
+COPY sshconfig/id_rsa /home/lightservuser/.ssh/id_rsa
+COPY sshconfig/id_rsa.pub /home/lightservuser/.ssh/id_rsa.pub
+RUN chown -R lightservuser /home/lightservuser/.ssh/id_rsa
+# Set active user lightservuser
+USER lightservuser
+RUN chmod 700 /home/lightservuser/.ssh/id_rsa 

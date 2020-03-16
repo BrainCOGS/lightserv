@@ -23,7 +23,7 @@ services:
   worker:
     env_file: .testworkerdockerenv
     image: flaskcelery_test:latest
-    command: bash -c "sleep 3 && celery worker -A celery_worker.cel --loglevel=info" # sleep to wait for testflask to make the dbs
+    command: bash -c "sleep 5 && celery worker -A celery_worker.cel --loglevel=info" # sleep to wait for testflask to make the dbs
     volumes:
       - .:/app
       - ./lib:/opt/libraries

@@ -162,6 +162,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					channel_name = form_channel_dict['channel_name']
 					rawdata_subfolder = form_channel_dict['rawdata_subfolder']
 					number_of_z_planes = form_channel_dict['number_of_z_planes']
+					z_step = form_channel_dict['z_step']
 					if rawdata_subfolder in subfolder_dict.keys():
 						subfolder_dict[rawdata_subfolder].append(channel_name)
 					else:
@@ -201,7 +202,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 											sample_name=sample_name,imaging_request_number=imaging_request_number,
 											image_resolution=image_resolution,channel_name=channel_name,
 											channel_index=channel_index,number_of_z_planes=number_of_z_planes,
-											rawdata_subfolder=rawdata_subfolder)
+											z_step=z_step,rawdata_subfolder=rawdata_subfolder)
 					tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 				
 			correspondence_email = (db_lightsheet.Request() & f'username="{username}"' & \
