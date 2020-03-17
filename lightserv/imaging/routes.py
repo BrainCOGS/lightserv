@@ -162,6 +162,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					channel_name = form_channel_dict['channel_name']
 					rawdata_subfolder = form_channel_dict['rawdata_subfolder']
 					number_of_z_planes = form_channel_dict['number_of_z_planes']
+					tiling_scheme = form_channel_dict['tiling_scheme']
 					z_step = form_channel_dict['z_step']
 					if rawdata_subfolder in subfolder_dict.keys():
 						subfolder_dict[rawdata_subfolder].append(channel_name)
@@ -196,14 +197,19 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			
 					db_lightsheet.Request.ImagingChannel().insert1(channel_insert_dict,replace=True)
 					""" Kick off celery task for creating precomputed data from this
-					raw data image dataset 
+					raw data image dataset if there is more than one tile.
 					"""
-					precomputed_kwargs = dict(username=username,request_name=request_name,
-											sample_name=sample_name,imaging_request_number=imaging_request_number,
-											image_resolution=image_resolution,channel_name=channel_name,
-											channel_index=channel_index,number_of_z_planes=number_of_z_planes,
-											z_step=z_step,rawdata_subfolder=rawdata_subfolder)
-					tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
+					if tiling_scheme == '1x1':
+						logger.info("Only one tile. Creating precomputed data for neuroglancer visualization. ")
+						precomputed_kwargs = dict(username=username,request_name=request_name,
+												sample_name=sample_name,imaging_request_number=imaging_request_number,
+												image_resolution=image_resolution,channel_name=channel_name,
+												channel_index=channel_index,number_of_z_planes=number_of_z_planes,
+												z_step=z_step,rawdata_subfolder=rawdata_subfolder)
+						tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
+					else:
+						logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
+									 "Not creating precomputed data for neuroglancer visualization.")
 				
 			correspondence_email = (db_lightsheet.Request() & f'username="{username}"' & \
 			 f'request_name="{request_name}"').fetch1('correspondence_email')

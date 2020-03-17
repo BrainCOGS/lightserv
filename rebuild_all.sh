@@ -21,9 +21,5 @@ cd ../neuroglancer
 
 docker build -f ./neuroglancer.Dockerfile -t nglancer:latest .
 
-## build precomputed latest tag
-cd ../precomputed
-
-docker build -f ./precomputed.Dockerfile -t precomputed:latest .
 
 

@@ -64,4 +64,14 @@ class RequestFeedback(dj.Lookup):
     other_notes : varchar(512)
     """
     
-
+@schema 
+class RawPrecomputedSpockJob(dj.Manual):
+    definition = """    # Spock job management table for precomputed jobs
+    jobid_step2  : varchar(16) # the jobid on spock of step2 (downsampling) in the precomputed pipeline. Used as primary key so that the progress of the precomputed pipeline can be probed.
+    timestamp = CURRENT_TIMESTAMP : timestamp
+    ---
+    jobid_step0 : varchar(16)
+    jobid_step1 : varchar(16)
+    username : varchar(32)
+    status : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+    """

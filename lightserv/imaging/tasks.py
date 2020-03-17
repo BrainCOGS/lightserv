@@ -3,10 +3,11 @@ import errno
 import pickle
 import math
 import paramiko
-from lightserv import cel
-
-
 import logging
+from lightserv import cel, db_admin
+
+import datajoint as dj
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -71,26 +72,130 @@ def make_precomputed_rawdata(**kwargs):
 
 	""" Now set up the connection to spock """
 	
-	command = ("cd /jukebox/wang/ahoag/precomputed; sbatch --parsable --export=ALL,n_array_jobs_step1={}"
-			   ",n_array_jobs_step2={},viz_dir='{}' /jukebox/wang/ahoag/precomputed/precomputed_pipeline.sh").format(
+	command = ("cd /jukebox/wang/ahoag/precomputed; "
+			   "/jukebox/wang/ahoag/precomputed/precomputed_pipeline.sh {} {} {}").format(
 		n_array_jobs_step1,n_array_jobs_step2,viz_dir)
 	# command = "cd /jukebox/wang/ahoag/precomputed; sbatch --parsable --export=ALL,viz_dir='{}' /jukebox/wang/ahoag/precomputed/precomputed_pipeline.sh".format(
 	# 	viz_dir)
-	print("Running command on spock:")
-	print(command)
 	hostname = 'spock.pni.princeton.edu'
 	port=22
-	username='ahoag'
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
 
 	client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
 	stdin, stdout, stderr = client.exec_command(command)
-	print("stderr (if any):")
-	print(stderr.read().decode("utf-8"))
-	jobid = str(stdout.read().decode("utf-8").strip('\n'))
+	# jobid_final_step = str(stdout.read().decode("utf-8").strip('\n'))
+	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
+	jobid_step0, jobid_step1, jobid_step2 = response.split('\n')
 
-	# status = 'SUBMITTED'
-	return f"Submitted jobid: {jobid}"
+	status = 'SUBMITTED'
+	entry_dict = {'jobid_step0':jobid_step0,
+				  'jobid_step1':jobid_step1,
+				  'jobid_step2':jobid_step2,
+				  'username':username,'status':status}
+	db_admin.RawPrecomputedSpockJob.insert1(entry_dict)    
+	logger.info(f"Precomputed (Raw data) job inserted into RawPrecomputedSpockJob() table: {entry_dict}")
+	logger.info(f"Precomputed (Raw data) job successfully submitted to spock, jobid_step2: {jobid_step2}")
+	# dj.Table._update(this_image_resolution_content,'spock_jobid',jobid)
+	# dj.Table._update(this_image_resolution_content,'spock_job_progress','SUBMITTED')
+	
+	# # finally:
+	# client.close()
+	# # status = 'SUBMITTED'
+	return f"Submitted jobid: {jobid_step2}"
 
+@cel.task()
+def check_raw_precomputed_statuses():
+	""" 
+	Checks all outstanding precomputed job statuses on spock
+	and updates their status in the SpockJobManager() in db_admin
+	and ProcessingResolutionRequest() in db_lightsheet, 
+	then finally figures out which ProcessingRequest() 
+	entities are now complete based on the potentially multiple
+	ProcessingResolutionRequest() entries they reference.
+
+	A ProcessingRequest() can consist of several jobs because
+	jobs are at the ProcessingResolutionRequest() level. 
+
+	set the processing_progress in the ProcessingRequest() 
+	table to 'failed'. If all jobs completed, then set 
+	processing_progress to 'complete'
+	"""
+
+	""" First get all rows with latest timestamps """
+	# return "made it"
+	job_contents = db_admin.RawPrecomputedSpockJob()
+	unique_contents = dj.U('jobid_step2','username',).aggr(
+		job_contents,timestamp='max(timestamp)')*job_contents
+	
+	# """ Get a list of all jobs we need to check up on, i.e.
+	# those that could conceivably change. Also list the problematic_codes
+	# which will be used later for error reporting to the user.
+	# """
+
+	problematic_codes = ("FAILED","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REVOKED")
+	# static_codes = ('COMPLETED','FAILED','BOOT_FAIL','CANCELLED','DEADLINE','OUT_OF_MEMORY','REVOKED')
+	ongoing_codes = ('SUBMITTED','RUNNING','PENDING','REQUEUED','RESIZING','SUSPENDED')
+	incomplete_contents = unique_contents & f'status in {ongoing_codes}'
+	# logger.debug(incomplete_contents)
+	jobids = list(incomplete_contents.fetch('jobid_step2'))
+	if jobids == []:
+		return "No jobs to check"
+	jobids_str = ','.join(str(jobid) for jobid in jobids)
+	logger.debug(f"Outstanding job ids are: {jobids}")
+	port = 22
+	username = 'ahoag'
+	hostname = 'spock.pni.princeton.edu'
+	# try:
+	client = paramiko.SSHClient()
+	client.load_system_host_keys()
+	client.set_missing_host_key_policy(paramiko.WarningPolicy)
+	
+	client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+	logger.debug("connected to spock")
+	command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
+	stdin, stdout, stderr = client.exec_command(command)
+	stdout_str = stdout.read().decode("utf-8")
+	response_lines = stdout_str.strip('\n').split('\n')
+	jobids_received = [x.split('|')[0].split('_')[0] for x in response_lines]
+	status_codes_received = [x.split('|')[1] for x in response_lines]
+	logger.debug(jobids_received)
+	job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
+	job_insert_list = []
+	for jobid,indices_list in job_status_indices_dict.items():
+		job_insert_dict = {'jobid_step2':jobid}
+		status_codes = [status_codes_received[ii] for ii in indices_list]
+		if len(status_codes) > 1:
+			if all([status_codes[jj]==status_codes[0] for jj in range(len(status_codes))]):
+				# If all are the same then just report whatever that code is
+				status=status_codes[0]
+			elif any([status_codes[jj] in problematic_codes for jj in range(len(status_codes))]):
+				# Check if some have problematic codes 
+				status="FAILED"
+			else:
+				# If none have failed but there are multiple then they must be running
+				status="RUNNING"
+		else:
+			status = status_codes[0]
+		if 'CANCELLED' in status: 
+			# in case status is "CANCELLED by {UID}"
+			status = 'CANCELLED'
+		job_insert_dict['status'] = status
+		""" Find the username, other jobids associated with this jobid """
+		username_thisjob,jobid_step0,jobid_step1 = (unique_contents & f'jobid_step2={jobid}').fetch1(
+			'username','jobid_step0','jobid_step1')
+		job_insert_dict['username']=username_thisjob
+		job_insert_dict['jobid_step0']=jobid_step0
+		job_insert_dict['jobid_step1']=jobid_step1
+		job_insert_list.append(job_insert_dict)
+	logger.debug("Insert list:")
+	logger.debug(job_insert_list)
+	db_admin.RawPrecomputedSpockJob.insert(job_insert_list,replace=True)
+	client.close()
+	# except:
+	# 	logger.debug("Problem connecting to spock or processing jobids")
+	# finally:
+		
+	return "checked statuses"
+	

@@ -45,9 +45,13 @@ class Config(BaseConfig):
 		# 'task': 'lightserv.taskmanager.routes.hello',
 		# 'schedule': timedelta(seconds=5)
 		# },
-		'ng_viewer_cleanser': {
-		'task': 'lightserv.neuroglancer.routes.ng_viewer_checker',
-		'schedule': timedelta(seconds=15)
+		# 'ng_viewer_cleanser': {
+		# 'task': 'lightserv.neuroglancer.routes.ng_viewer_checker',
+		# 'schedule': timedelta(seconds=15)
+		# },
+		'rawprecomp_job_status_checker': {
+		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
+		'schedule': timedelta(seconds=5)
 		},
 	}
 	

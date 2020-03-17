@@ -40,23 +40,22 @@ services:
     depends_on:
       # - rabbit
       - redis
-  # scheduler:
-  #   env_file: .dockerenv
-  #   image: flaskcelery_test:latest
-  #   command: ["celery",
-  #             "beat",
-  #             "-A",
-  #             "celery_worker.cel",
-  #             "--schedule=/tmp/celerybeat-schedule",
-  #             "--loglevel=info",
-  #             "--pidfile=/tmp/celerybeat.pid"]
-  #   volumes:
-  #     - .:/app
-  #     - ./lib:/opt/libraries
-  #   depends_on:
-  #     - rabbit
-  #     - redis
-  #     - worker
+  scheduler:
+    env_file: .dockerenv
+    image: flaskcelery_test:latest
+    command: ["celery",
+              "beat",
+              "-A",
+              "celery_worker.cel",
+              "--schedule=/tmp/celerybeat-schedule",
+              "--loglevel=info",
+              "--pidfile=/tmp/celerybeat.pid"]
+    volumes:
+      - .:/app
+      - ./lib:/opt/libraries
+    depends_on:
+      - redis
+      - worker
   confproxy:
     env_file: .dockerenv
     image: jupyterhub/configurable-http-proxy:3.1.1

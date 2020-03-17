@@ -123,6 +123,7 @@ class Request(dj.Manual):
         number_of_z_planes = NULL                 :   smallint unsigned
         rawdata_subfolder = NULL                  :   varchar(512)
         imspector_channel_index = NULL            :   tinyint    # refers to multi-channel imaging - 0 if first (or only) channel in rawdata_subfolder, 1 if second, 2 if third, ...
+        rawdata_precomputed_job_progress = NULL   :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
         """
 
     class ProcessingRequest(dj.Part):
