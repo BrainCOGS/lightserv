@@ -4,7 +4,7 @@ import pickle
 import math
 import paramiko
 import logging
-from lightserv import cel, db_admin
+from lightserv import cel, db_admin, db_lightsheet
 
 import datajoint as dj
 
@@ -44,6 +44,11 @@ def make_precomputed_rawdata(**kwargs):
 	number_of_z_planes=kwargs['number_of_z_planes']
 	rawdata_subfolder=kwargs['rawdata_subfolder']
 
+	restrict_dict = dict(username=username,request_name=request_name,
+		sample_name=sample_name,imaging_request_number=imaging_request_number,
+		image_resolution=image_resolution,channel_name=channel_name)
+	this_imaging_channel_content = db_lightsheet.Request.ImagingChannel() & restrict_dict
+	logger.debug(this_imaging_channel_content)
 	""" Now append to kwargs to make the parameter dictionary
 	to save on /jukebox so spock can see it """
 	# x_dim,y_dim,z_dim = 2160,2560,int(number_of_z_planes)
@@ -97,12 +102,9 @@ def make_precomputed_rawdata(**kwargs):
 	db_admin.RawPrecomputedSpockJob.insert1(entry_dict)    
 	logger.info(f"Precomputed (Raw data) job inserted into RawPrecomputedSpockJob() table: {entry_dict}")
 	logger.info(f"Precomputed (Raw data) job successfully submitted to spock, jobid_step2: {jobid_step2}")
-	# dj.Table._update(this_image_resolution_content,'spock_jobid',jobid)
-	# dj.Table._update(this_image_resolution_content,'spock_job_progress','SUBMITTED')
-	
-	# # finally:
-	# client.close()
-	# # status = 'SUBMITTED'
+	logger.debug(type(jobid_step2))
+	dj.Table._update(this_imaging_channel_content,'raw_precomputed_spock_jobid',str(jobid_step2))
+	dj.Table._update(this_imaging_channel_content,'raw_precomputed_spock_job_progress','SUBMITTED')
 	return f"Submitted jobid: {jobid_step2}"
 
 @cel.task()
@@ -189,6 +191,11 @@ def check_raw_precomputed_statuses():
 		job_insert_dict['jobid_step0']=jobid_step0
 		job_insert_dict['jobid_step1']=jobid_step1
 		job_insert_list.append(job_insert_dict)
+		""" Get the imaging channel entry associated with this jobid
+		and update the progress """
+		this_imaging_channel_content = db_lightsheet.Request.ImagingChannel() & \
+		f'raw_precomputed_spock_jobid={jobid}'
+		dj.Table._update(this_imaging_channel_content,'raw_precomputed_spock_job_progress',status)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_admin.RawPrecomputedSpockJob.insert(job_insert_list,replace=True)

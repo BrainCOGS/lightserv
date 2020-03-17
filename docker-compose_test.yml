@@ -9,17 +9,17 @@ services:
   #   image: rabbitmq:3.8.3-rc.2
   #   expose:
   #     - 5672
-  # testflask:
-  #   env_file: .testdockerenv
-  #   image: flaskcelery_test:latest
-  #   command: "pytest -vs lightserv/tests/test_imaging.py::test_imaging_entry_form_submits"
-  #   volumes:
-  #     - .:/app # so changes made to the app are propagated to the container without having to rebuild
-  #     - /jukebox/LightSheetData:/jukebox/LightSheetData # so changes made to the app are propagated to the container without having to rebuild
-  #     - ./lib:/opt/libraries # for progproxy api
-  #     - /var/run/docker.sock:/var/run/docker.sock # so that I can see inside the container from outside
-  #   ports:
-  #     - '8080:8080'
+  testflask:
+    env_file: .testdockerenv
+    image: flaskcelery_test:latest
+    command: "pytest -vs lightserv/tests/test_imaging.py::test_imaging_entry_form_submits"
+    volumes:
+      - .:/app # so changes made to the app are propagated to the container without having to rebuild
+      - /jukebox/LightSheetData:/jukebox/LightSheetData # so changes made to the app are propagated to the container without having to rebuild
+      - ./lib:/opt/libraries # for progproxy api
+      - /var/run/docker.sock:/var/run/docker.sock # so that I can see inside the container from outside
+    ports:
+      - '8080:8080'
   worker:
     env_file: .testworkerdockerenv
     image: flaskcelery_test:latest
@@ -33,14 +33,14 @@ services:
       # - rabbit
       - redis
       #- testflask
-  scheduler:
-    env_file: .testworkerdockerenv
-    image: flaskcelery_test:latest
-    command: bash -c "sleep 10 && celery beat -A celery_worker.cel --schedule=/tmp/celerybeat-schedule --loglevel=info --pidfile=/tmp/celerybeat.pid"
-    volumes:
-      - .:/app
-      - ./lib:/opt/libraries
-    depends_on:
-      #- rabbit
-      - redis
-      - worker
+  # scheduler:
+  #   env_file: .testworkerdockerenv
+  #   image: flaskcelery_test:latest
+  #   command: bash -c "sleep 10 && celery beat -A celery_worker.cel --schedule=/tmp/celerybeat-schedule --loglevel=info --pidfile=/tmp/celerybeat.pid"
+  #   volumes:
+  #     - .:/app
+  #     - ./lib:/opt/libraries
+  #   depends_on:
+  #     #- rabbit
+  #     - redis
+  #     - worker
