@@ -6,16 +6,16 @@ from lightserv.requests.forms import NewRequestForm, UpdateNotesForm
 from lightserv.requests.tables import (AllRequestTable,
 	RequestOverviewTable, create_dynamic_samples_table,
 	AllSamplesTable)
-from lightserv import db_lightsheet, smtp_server
+from lightserv import cel,db_lightsheet, smtp_server
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests,
-	request_exists)
-from lightserv import cel
+	request_exists,mymkdir)
+
 import datajoint as dj
 
 from functools import partial
 # from lightsheet_py3
-import glob
+import os,glob
 
 import secrets
 
@@ -525,6 +525,7 @@ def new_request():
 					request_insert_dict['time_submitted'] = time
 
 					db_lightsheet.Request().insert1(request_insert_dict)
+
 					
 					''' Sample section '''
 					clearing_samples = form.clearing_samples.data
@@ -595,6 +596,20 @@ def new_request():
 						imaging_request_insert_dict['imaging_request_time_submitted'] = time
 						imaging_request_insert_dict['imaging_progress'] = "incomplete"
 						imaging_request_insert_list.append(imaging_request_insert_dict)
+						""" Make the directory on /jukebox corresponding to this imaging request """
+						raw_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+							username,form.request_name.data,sample_name,f'imaging_request_{imaging_request_number}',
+							'rawdata')
+						output_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+							username,form.request_name.data,sample_name,f'imaging_request_{imaging_request_number}',
+							'output')
+						viz_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+							username,form.request_name.data,sample_name,f'imaging_request_{imaging_request_number}',
+							'viz')
+						mymkdir(raw_path_to_make)
+						mymkdir(output_path_to_make)
+						mymkdir(viz_path_to_make)
+						logger.debug("Made raw, output and viz directories")
 
 						""" ProcessingRequest """
 						processing_request_insert_dict = {}
@@ -616,28 +631,34 @@ def new_request():
 						
 						for resolution_dict in imaging_sample_form_dict['image_resolution_forms']:
 							# logger.debug(resolution_dict)
+							image_resolution = resolution_dict['image_resolution']
 							""" imaging entry first """
 							imaging_resolution_insert_dict = {}
 							imaging_resolution_insert_dict['request_name'] = form.request_name.data
 							imaging_resolution_insert_dict['username'] = username 
 							imaging_resolution_insert_dict['sample_name'] = sample_name
 							imaging_resolution_insert_dict['imaging_request_number'] = imaging_request_number
-							imaging_resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
+							imaging_resolution_insert_dict['image_resolution'] = image_resolution
 							imaging_resolution_insert_dict['notes_for_imager'] = resolution_dict['notes_for_imager']
 							imaging_resolution_insert_list.append(imaging_resolution_insert_dict)
 							""" now processing entry (if not 2x imaging request)"""
-							if resolution_dict['image_resolution'] != '2x':
+							if image_resolution != '2x':
 								processing_resolution_insert_dict = {}
 								processing_resolution_insert_dict['request_name'] = form.request_name.data
 								processing_resolution_insert_dict['username'] = username 
 								processing_resolution_insert_dict['sample_name'] = sample_name
 								processing_resolution_insert_dict['imaging_request_number'] = imaging_request_number
 								processing_resolution_insert_dict['processing_request_number'] = processing_request_number
-								processing_resolution_insert_dict['image_resolution'] = resolution_dict['image_resolution']
+								processing_resolution_insert_dict['image_resolution'] = image_resolution
 								processing_resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
 								processing_resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
 								processing_resolution_insert_dict['final_orientation'] = resolution_dict['final_orientation']
 								processing_resolution_insert_list.append(processing_resolution_insert_dict)
+								""" Make processing path on /jukebox """
+								processing_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+								username,form.request_name.data,sample_name,f'imaging_request_{imaging_request_number}',
+								'output',f'processing_request_{processing_request_number}',f'resolution_{image_resolution}')
+								mymkdir(processing_path_to_make)
 
 							""" now loop through the imaging channels and fill out the ImagingChannel entries """
 							for imaging_channel_dict in resolution_dict['channel_forms']:
@@ -711,6 +732,7 @@ def new_request():
 					then don't make a processing request """
 					if len(processing_resolution_insert_list) > 0:
 						db_lightsheet.Request.ProcessingRequest().insert(processing_request_insert_list)
+						""" Make the directory on /jukebox corresponding to this processing request """
 					# logger.info("ImagingResolutionRequest() insert:")
 					# logger.info(imaging_resolution_insert_list)
 					db_lightsheet.Request.ImagingResolutionRequest().insert(imaging_resolution_insert_list)

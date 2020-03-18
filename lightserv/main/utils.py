@@ -1,5 +1,6 @@
 from flask import session,request,url_for,redirect, flash, current_app
 from functools import wraps
+import os,time
 from lightserv import db_lightsheet, db_admin
 import datajoint as dj
 
@@ -373,3 +374,25 @@ def check_imaging_completed(f):
 		else:
 			return f(*args, **kwargs)
 	return decorated_function
+
+def toabs(path):
+	""" Convert relative path to absolute path. From Cloudvolume.lib """
+	path = os.path.expanduser(path)
+	return os.path.abspath(path)
+
+def mymkdir(path):
+	""" Recursively make directories as needed up to path,
+	checking to make sure directory does not already exist. From Cloudvolume.lib """
+	path = toabs(path)
+
+	try:
+		if path != '' and not os.path.exists(path):
+			os.makedirs(path)
+	except OSError as e:
+		if e.errno == 17: # File Exists
+			time.sleep(0.1)
+			return mkdir(path)
+		else:
+			raise
+
+	return path

@@ -334,9 +334,15 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 					processing_resolution_insert_dict['sample_name'] = sample_name
 					processing_resolution_insert_dict['imaging_request_number'] = imaging_request_number
 					processing_resolution_insert_dict['processing_request_number'] = new_processing_request_number
-					processing_resolution_insert_dict['image_resolution'] = form_resolution_dict['image_resolution']
+					processing_resolution_insert_dict['image_resolution'] = this_image_resolution
 					processing_resolution_insert_dict['atlas_name'] = form_resolution_dict['atlas_name']
 					processing_resolution_insert_list.append(processing_resolution_insert_dict)
+					""" Make processing path on /jukebox """
+					processing_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+					username,request_name,sample_name,f'imaging_request_{imaging_request_number}',
+					'output',f'processing_request_{new_processing_request_number}',
+					f'resolution_{this_image_resolution}')
+					mymkdir(processing_path_to_make)
 
 				logger.info("ProcessingResolutionRequest() insert:")
 				logger.info(processing_resolution_insert_list)

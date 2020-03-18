@@ -51,7 +51,7 @@ class Config(BaseConfig):
 		# },
 		'rawprecomp_job_status_checker': {
 		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
-		'schedule': timedelta(seconds=5)
+		'schedule': timedelta(seconds=15)
 		},
 	}
 	

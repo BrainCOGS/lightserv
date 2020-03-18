@@ -58,7 +58,6 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 		request_name,sample_name,f'imaging_request_{imaging_request_number}')
 	raw_basepath = os.path.join(sample_basepath,'rawdata')
 
-
 	""" Loop through the image resolutions requested since 
 	a different image resolution necessary means a different spock job.
 	"""
@@ -272,11 +271,6 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 			""" Prepare insert to processing db table """
 			
 			""" Now write the pickle file with the parameter dictionary """	
-			try:
-			    os.makedirs(output_directory)
-			except OSError as exc: 
-			    if exc.errno == errno.EEXIST and os.path.isdir(output_directory):
-			        pass
 			logger.info(f"Made directory: {output_directory}")
 			pickle_fullpath = output_directory + '/param_dict.p'
 			with open(pickle_fullpath,'wb') as pkl_file:
