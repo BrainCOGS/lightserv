@@ -12,7 +12,7 @@ services:
   testflask:
     env_file: .testdockerenv
     image: flaskcelery_test:latest
-    command: "pytest -vs lightserv/tests/test_requests.py"
+    command: "pytest -vs lightserv/tests/test_processing.py::test_multichannel_processing_entry_form_submits"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData # so changes made to the app are propagated to the container without having to rebuild

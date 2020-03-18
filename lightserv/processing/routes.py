@@ -8,7 +8,7 @@ from lightserv.processing.tables import (create_dynamic_processing_overview_tabl
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests,mymkdir)
-from lightserv.processing.utils import run_spock_pipeline
+from lightserv.processing.tasks import run_spock_pipeline
 from lightserv import cel
 import datajoint as dj
 from datetime import datetime
@@ -182,7 +182,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 			to avoid a race condition (the pipeline also updates the processing_progress flag if it fails or succeeds) '''
 			
 			# try:
-			run_spock_pipeline(username=username,request_name=request_name,sample_name=sample_name,
+			run_spock_pipeline.delay(username=username,request_name=request_name,sample_name=sample_name,
 				imaging_request_number=imaging_request_number,
 				processing_request_number=processing_request_number)
 			dj.Table._update(processing_request_contents,'processing_progress','running')

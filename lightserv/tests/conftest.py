@@ -969,7 +969,7 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 		'image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
 		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'2x2',
+		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
 		'image_resolution_forms-0-channel_forms-1-z_step':15,
 		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',

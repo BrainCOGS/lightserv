@@ -206,7 +206,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 												image_resolution=image_resolution,channel_name=channel_name,
 												channel_index=channel_index,number_of_z_planes=number_of_z_planes,
 												z_step=z_step,rawdata_subfolder=rawdata_subfolder)
-						tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
+						if os.environ['FLASK_MODE'] != 'TEST':
+							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 					else:
 						logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
 									 "Not creating precomputed data for neuroglancer visualization.")
