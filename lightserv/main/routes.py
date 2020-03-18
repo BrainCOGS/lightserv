@@ -97,7 +97,7 @@ def login():
 		flash(f"Warning: parts of this web portal were not completely tested on your browser: {browser_name}. "
 		 "Firefox users will experience some known issues. We recommend switching to Google Chrome for a better experience.",'danger')
 	hostname = socket.gethostname()
-	if hostname == 'braincogs00.pni.princeton.edu':
+	if hostname == 'docker_lightserv':
 		username = request.headers['X-Remote-User']
 	else:
 		username = 'ahoag' # pragma: no cover - used to exclude this line from testing
