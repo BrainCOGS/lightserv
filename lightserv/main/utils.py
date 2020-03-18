@@ -380,18 +380,20 @@ def toabs(path):
 	path = os.path.expanduser(path)
 	return os.path.abspath(path)
 
-def mymkdir(path):
-	""" Recursively make directories as needed up to path,
-	checking to make sure directory does not already exist. From Cloudvolume.lib """
+def mymkdir(path,mode=0o777):
+	""" Make directories recursively as needed up to path,
+	checking to make sure directory does not already exist. Modified 
+	from Cloudvolume.lib """
 	path = toabs(path)
 
 	try:
 		if path != '' and not os.path.exists(path):
 			os.makedirs(path)
+			os.chmod(path=path,mode=mode)
 	except OSError as e:
 		if e.errno == 17: # File Exists
 			time.sleep(0.1)
-			return mkdir(path)
+			return mymkdir(path)
 		else:
 			raise
 
