@@ -7,7 +7,7 @@ from lightserv.processing.tables import (create_dynamic_processing_overview_tabl
 	ProcessingChannelTable)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
-	check_clearing_completed,check_imaging_completed,log_http_requests)
+	check_clearing_completed,check_imaging_completed,log_http_requests,mymkdir)
 from lightserv.processing.utils import run_spock_pipeline
 from lightserv import cel
 import datajoint as dj

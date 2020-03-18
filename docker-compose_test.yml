@@ -12,7 +12,7 @@ services:
   testflask:
     env_file: .testdockerenv
     image: flaskcelery_test:latest
-    command: "pytest -vs lightserv/tests/test_requests.py::test_submit_good_mouse_request"
+    command: "pytest -vs lightserv/tests/test_requests.py"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData # so changes made to the app are propagated to the container without having to rebuild
@@ -20,15 +20,15 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock # so that I can see inside the container from outside
     ports:
       - '8080:8080'
-  worker:
-    env_file: .testworkerdockerenv
-    image: flaskcelery_test:latest
-    command: bash -c "sleep 5 && celery worker -A celery_worker.cel --loglevel=info" # sleep to wait for testflask to make the dbs
-    volumes:
-      - .:/app
-      - ./lib:/opt/libraries
-      - /jukebox/LightSheetData:/jukebox/LightSheetData
-      - /var/run/docker.sock:/var/run/docker.sock
+  # worker:
+  #   env_file: .testworkerdockerenv
+  #   image: flaskcelery_test:latest
+  #   command: bash -c "sleep 5 && celery worker -A celery_worker.cel --loglevel=info" # sleep to wait for testflask to make the dbs
+  #   volumes:
+  #     - .:/app
+  #     - ./lib:/opt/libraries
+  #     - /jukebox/LightSheetData:/jukebox/LightSheetData
+  #     - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       # - rabbit
       - redis
