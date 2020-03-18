@@ -1,3 +1,4 @@
+from flask import current_app
 import os
 import errno
 import pickle
@@ -53,11 +54,11 @@ def make_precomputed_rawdata(**kwargs):
 	to save on /jukebox so spock can see it """
 	# x_dim,y_dim,z_dim = 2160,2560,int(number_of_z_planes)
 
-	rawdata_path = (f"/jukebox/LightSheetData/lightserv_testing/{username}/"
+	rawdata_path = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
 								 f"{request_name}/{sample_name}/"
 								 f"imaging_request_{imaging_request_number}/rawdata/"
 								 f"{rawdata_subfolder}")
-	viz_dir = (f"/jukebox/LightSheetData/lightserv_testing/{username}/"
+	viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
 								 f"{request_name}/{sample_name}/"
 								 f"imaging_request_{imaging_request_number}/viz")
 	kwargs['rawdata_path'] = rawdata_path

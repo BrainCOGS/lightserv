@@ -213,7 +213,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				
 			correspondence_email = (db_lightsheet.Request() & f'username="{username}"' & \
 			 f'request_name="{request_name}"').fetch1('correspondence_email')
-			path_to_data = f'/jukebox/LightSheetData/lightserv_testing/{username}/{request_name}/\
+			path_to_data = f'{current_app.config["DATA_BUCKET_ROOTPATH"]}/{username}/{request_name}/\
 				{sample_name}/rawdata/imaging_request_number_{imaging_request_number}'
 			""" Send email """
 			msg = EmailMessage()
@@ -284,7 +284,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				this_channel_form.image_resolution.data = channel_content['image_resolution']
 				this_channel_form.rawdata_subfolder.data = 'test488'
 
-	rawdata_filepath = os.path.join("/jukebox/LightSheetData/lightserv_testing",
+	rawdata_filepath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 		overview_dict['username'],overview_dict['request_name'],
 		overview_dict['sample_name'],
 		'imaging_request_{}'.format(overview_dict['imaging_request_number']),

@@ -237,10 +237,12 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 		logger.info(f"Processing is currently {processing_progress} but accessing the processing entry page anyway")
 		flash(f"Processing is {processing_progress} for this sample. "
 			"This page is read only and hitting submit will do nothing",'warning')
+	data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
 	return render_template('processing/processing_entry.html',
 		processing_request_number=processing_request_number,
 		channel_contents_lists=channel_contents_lists,
-		sample_dict=sample_dict,form=form,overview_table=overview_table)	
+		sample_dict=sample_dict,data_bucket_rootpath=data_bucket_rootpath,
+		form=form,overview_table=overview_table)	
 
 @processing.route("/processing/new_processing_request/<username>/<request_name>/<sample_name>/<imaging_request_number>",methods=['GET','POST'])
 @logged_in

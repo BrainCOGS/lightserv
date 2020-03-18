@@ -1,6 +1,6 @@
 from flask import (render_template, request, redirect,
                    Blueprint, session, url_for, flash,
-                   Markup, Request, Response,abort)
+                   Markup, Request, Response,abort, current_app)
 import docker
 import redis
 
@@ -60,7 +60,7 @@ def ngdemo():
     cv1_container_name = '{}_cv1_container'.format(session_name)
     cv1_name = "testvol1"
     layer1_type = "image"
-    cv1_localhost_path = '/jukebox/LightSheetData/lightserv_testing/neuroglancer/oostland_m27' 
+    cv1_localhost_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],'neuroglancer/oostland_m27' )
     
     cv1_mounts = {
         cv1_localhost_path:{
@@ -89,7 +89,7 @@ def ngdemo():
     cv2_container_name = '{}_cv2_container'.format(session_name)
     cv2_name = "testvol2"
     layer2_type = "segmentation"
-    cv2_localhost_path = '/jukebox/LightSheetData/lightserv_testing/neuroglancer/princetonmouse' 
+    cv2_localhost_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],'neuroglancer/princetonmouse')
     
     cv2_mounts = {
         cv2_localhost_path:{
