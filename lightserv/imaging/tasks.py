@@ -85,11 +85,12 @@ def make_precomputed_rawdata(**kwargs):
 	# 	viz_dir)
 	hostname = 'spock.pni.princeton.edu'
 	port=22
+	spock_username = 'lightserv-test' # Use the service account for this step - if it gets overloaded we can switch to user accounts
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
 
-	client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+	client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
 	stdin, stdout, stderr = client.exec_command(command)
 	# jobid_final_step = str(stdout.read().decode("utf-8").strip('\n'))
 	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline

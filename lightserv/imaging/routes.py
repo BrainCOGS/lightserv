@@ -1,7 +1,7 @@
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup, current_app)
-from lightserv import db_lightsheet, cel, smtp_server
+from lightserv import db_lightsheet, cel, smtp_connect
 
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 								  logged_in_as_imager,check_clearing_completed,
@@ -228,6 +228,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 						f'sample_name: "{sample_name}"\n'
 						f'are now available on bucket here: {path_to_data}\n\n')
 			msg.set_content(message_body)
+			smtp_server = smtp_connect()
 			smtp_server.send_message(msg)
 			flash(f"""Imaging is complete. An email has been sent to {correspondence_email} 
 				informing them that their raw data is now available on bucket.

@@ -4,7 +4,7 @@ from flask import (render_template, url_for, flash,
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 									  iDiscoAbbreviatedRatForm, uDiscoForm,  iDiscoEduForm )
 from lightserv.clearing.tables import ClearingTable,IdiscoPlusTable, dynamic_clearing_management_table
-from lightserv import db_lightsheet, smtp_server
+from lightserv import db_lightsheet, smtp_connect
 from .utils import (determine_clearing_form, add_clearing_calendar_entry,
 				   determine_clearing_dbtable, determine_clearing_table) 
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,
@@ -204,6 +204,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 								'emails when the imaging for each of your samples is complete.\n\n'
 								'Thanks,\nThe Histology and Brain Registration Core Facility.')
 							msg.set_content(message_body)
+							smtp_server = smtp_connect()
 							smtp_server.send_message(msg)
 
 							# """ Admin emails """

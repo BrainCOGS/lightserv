@@ -6,7 +6,7 @@ from lightserv.requests.forms import NewRequestForm, UpdateNotesForm
 from lightserv.requests.tables import (AllRequestTable,
 	RequestOverviewTable, create_dynamic_samples_table,
 	AllSamplesTable)
-from lightserv import cel,db_lightsheet, smtp_server
+from lightserv import cel,db_lightsheet, smtp_connect
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests,
 	request_exists,mymkdir)
@@ -609,6 +609,7 @@ def new_request():
 						mymkdir(raw_path_to_make)
 						mymkdir(output_path_to_make)
 						mymkdir(viz_path_to_make)
+
 						logger.debug("Made raw, output and viz directories")
 
 						""" ProcessingRequest """
@@ -786,6 +787,8 @@ def new_request():
 						'Please respond to this message if you have any questions about this or any other issue regarding your request.\n\n'
 						'Thanks,\nThe Histology and Brain Registration Core Facility.')
 					msg.set_content(message_body)
+
+					smtp_server = smtp_connect()
 					smtp_server.send_message(msg)
 					return redirect(url_for('requests.all_requests'))
 			

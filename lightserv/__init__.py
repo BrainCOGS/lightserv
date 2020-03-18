@@ -16,9 +16,7 @@ except KeyError:
 	print("WARNING. FLASK_MODE environmental variable not found. WARNING")
 
 """ Connect to gmail smtp server """
-smtp_server = smtplib.SMTP('smtp.gmail.com',587)
-smtp_server.starttls()
-smtp_server.login(os.environ.get('EMAIL_USER'),os.environ.get('EMAIL_PASS'))
+
 """ Subclass the send_message method of smtplib.SMTP to NOT send 
 the email if FLASK_MODE=='TEST' """
 def send_message_conditional(self,message): 
@@ -28,9 +26,18 @@ def send_message_conditional(self,message):
 	else: 
 		print("sending email")
 		smtplib.SMTP.send_message(self,message) 
-		print("sent")
+		print("sent email")
 funcType = types.MethodType
-smtp_server.send_message = funcType(send_message_conditional,smtp_server)
+def smtp_connect():
+	# Instantiate a connection object...
+	print("Making SMTP connection")
+	smtpObj = smtplib.SMTP('smtp.gmail.com',587)
+	smtpObj.ehlo()
+	smtpObj.starttls()
+	smtpObj.login(os.environ.get('EMAIL_USER'),os.environ.get('EMAIL_PASS'))
+	smtpObj.send_message = funcType(send_message_conditional,smtpObj)
+	print("SMTP connection ready to send message")
+	return smtpObj
 
 ''' Allow writing python objects to db as blob '''
 dj.config["enable_python_native_blobs"] = True
