@@ -44,12 +44,15 @@ class ProcessingPipelineSpockJob(dj.Manual):
     definition = """    # Spock job management table 
     jobid_step3  : varchar(16) # the jobid on spock for the final step in the pipeline. Status column refers to this jobid
     timestamp = CURRENT_TIMESTAMP : timestamp
-    ---
+    ---    
+    username : varchar(32)
     jobid_step0  : varchar(16)
     jobid_step1  : varchar(16)
     jobid_step2  : varchar(16)
-    username : varchar(32)
-    status : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
+    status_step0 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
+    status_step1 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
+    status_step2 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
+    status_step3 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
     """
 
 @schema 
