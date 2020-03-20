@@ -42,7 +42,7 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
     table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted'))
-    table_class.add_column('request_name',Col('experiment name'))
+    table_class.add_column('request_name',Col('request name'))
     table_class.add_column('sample_name',Col('sample name'))
     table_class.add_column('username',Col('username'))    
     table_class.add_column('imaging_request_number',Col('imaging request number'))    
@@ -89,7 +89,7 @@ class ImagingTable(Table):
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    request_name = Col('experiment name',column_html_attrs=column_html_attrs)
+    request_name = Col('request name',column_html_attrs=column_html_attrs)
     sample_name = Col('sample name',column_html_attrs=column_html_attrs)
     imager = Col('imager',column_html_attrs=column_html_attrs)
     imaging_request_number = Col('imaging request number',column_html_attrs=column_html_attrs)
@@ -102,7 +102,7 @@ class SampleTable(Table):
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
-    request_name = Col('experiment name',column_html_attrs=column_html_attrs)
+    request_name = Col('request name',column_html_attrs=column_html_attrs)
     sample_name = Col('sample name',column_html_attrs=column_html_attrs)
 
 class ExistingImagingTable(Table):
