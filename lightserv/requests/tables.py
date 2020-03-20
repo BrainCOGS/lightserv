@@ -100,7 +100,7 @@ class AllSamplesTable(Table):
 	   anchor_attrs=anchor_attrs,allow_sort=False)
 	datetime_submitted = DateTimeCol('datetime submitted')
 	imaging_url_kwargs = {'username':'username','request_name':'request_name','sample_name':'sample_name'}
-	new_imaging_request_tooltip_text = ('Only request additional imaging for this sample'
+	new_imaging_request_tooltip_text = ('Only request additional imaging for this sample '
 		'if your original request did not cover the sufficient imaging. '
 		 'To see what imaging you have already requested, '
 		 'click on the existing imaging request number(s) for this sample.')
