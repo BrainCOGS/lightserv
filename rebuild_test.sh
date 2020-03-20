@@ -4,7 +4,7 @@ docker rm -f $(docker ps -aq)
 docker build -f ./flaskcelery.Dockerfile -t flaskcelery_test:latest .
 
 # Build docker-compose services
-docker-compose -f docker-compose_test.yml build 
+docker-compose -f docker-compose-test.yml build 
 
 ## build cloud volume latest tag
 cd ./cloudvolume

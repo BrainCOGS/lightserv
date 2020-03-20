@@ -78,9 +78,10 @@ def make_precomputed_rawdata(**kwargs):
 
 	""" Now set up the connection to spock """
 	
-	command = ("cd /jukebox/wang/ahoag/precomputed; "
-			   "/jukebox/wang/ahoag/precomputed/precomputed_pipeline.sh {} {} {}").format(
-		n_array_jobs_step1,n_array_jobs_step2,viz_dir)
+	# command = ("cd /jukebox/wang/ahoag/precomputed; "
+	# 		   "/jukebox/wang/ahoag/precomputed/precomputed_pipeline.sh {} {} {}").format(
+	# 	n_array_jobs_step1,n_array_jobs_step2,viz_dir)
+	command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	# command = "cd /jukebox/wang/ahoag/precomputed; sbatch --parsable --export=ALL,viz_dir='{}' /jukebox/wang/ahoag/precomputed/precomputed_pipeline.sh".format(
 	# 	viz_dir)
 	hostname = 'spock.pni.princeton.edu'
@@ -94,6 +95,7 @@ def make_precomputed_rawdata(**kwargs):
 	stdin, stdout, stderr = client.exec_command(command)
 	# jobid_final_step = str(stdout.read().decode("utf-8").strip('\n'))
 	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
+	logger.debug(response)
 	jobid_step0, jobid_step1, jobid_step2 = response.split('\n')
 
 	status = 'SUBMITTED'
@@ -104,7 +106,7 @@ def make_precomputed_rawdata(**kwargs):
 	db_admin.RawPrecomputedSpockJob.insert1(entry_dict)    
 	logger.info(f"Precomputed (Raw data) job inserted into RawPrecomputedSpockJob() table: {entry_dict}")
 	logger.info(f"Precomputed (Raw data) job successfully submitted to spock, jobid_step2: {jobid_step2}")
-	logger.debug(type(jobid_step2))
+	# logger.debug(type(jobid_step2))
 	dj.Table._update(this_imaging_channel_content,'raw_precomputed_spock_jobid',str(jobid_step2))
 	dj.Table._update(this_imaging_channel_content,'raw_precomputed_spock_job_progress','SUBMITTED')
 	return f"Submitted jobid: {jobid_step2}"

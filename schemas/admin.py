@@ -40,13 +40,16 @@ class UserActionLog(dj.Manual):
     """
 
 @schema 
-class SpockJobManager(dj.Manual):
+class ProcessingPipelineSpockJob(dj.Manual):
     definition = """    # Spock job management table 
-    jobid  : varchar(16) # the jobid on spock
+    jobid_step3  : varchar(16) # the jobid on spock for the final step in the pipeline. Status column refers to this jobid
     timestamp = CURRENT_TIMESTAMP : timestamp
     ---
+    jobid_step0  : varchar(16)
+    jobid_step1  : varchar(16)
+    jobid_step2  : varchar(16)
     username : varchar(32)
-    status : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+    status : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
     """
 
 @schema 

@@ -184,8 +184,8 @@ def test_delete_request_db_contents(test_client):
 	yield # this is where the test is run
 	print('-------Teardown test_delete_request_db_contents fixture --------')
 	db_lightsheet.Request().delete()
-	db_admin.UserActionLog().delete()	
-	db_admin.SpockJobManager().delete()	
+	# db_admin.UserActionLog().delete()	
+	# db_admin.LightsheetPipelineSpockJob().delete()	
 
 """ Fixtures for requests """
 
