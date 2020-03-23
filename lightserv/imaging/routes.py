@@ -164,6 +164,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					number_of_z_planes = form_channel_dict['number_of_z_planes']
 					tiling_scheme = form_channel_dict['tiling_scheme']
 					z_step = form_channel_dict['z_step']
+					left_lightsheet_used = form_channel_dict['left_lightsheet_used']
+					right_lightsheet_used = form_channel_dict['right_lightsheet_used']
 					if rawdata_subfolder in subfolder_dict.keys():
 						subfolder_dict[rawdata_subfolder].append(channel_name)
 					else:
@@ -190,7 +192,6 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					for key,val in form_channel_dict.items():
 						if key in channel_content_dict.keys() and key not in ['channel_name','image_resolution','imaging_request_number']:
 							channel_insert_dict[key] = val
-							print(key,val)
 					channel_insert_dict['imspector_channel_index'] = channel_index
 					logger.info("Updating db entry with channel contents:")
 					logger.info(channel_insert_dict)
@@ -205,9 +206,15 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 												sample_name=sample_name,imaging_request_number=imaging_request_number,
 												image_resolution=image_resolution,channel_name=channel_name,
 												channel_index=channel_index,number_of_z_planes=number_of_z_planes,
+												left_lightsheet_used=left_lightsheet_used,
+												right_lightsheet_used=right_lightsheet_used,
 												z_step=z_step,rawdata_subfolder=rawdata_subfolder)
-						# if os.environ['FLASK_MODE'] != 'TEST':
-						tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
+						if left_lightsheet_used:
+							precomputed_kwargs['lightsheet'] = 'left'
+							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
+						if right_lightsheet_used:
+							precomputed_kwargs['lightsheet'] = 'right'
+							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 					else:
 						logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
 									 "Not creating precomputed data for neuroglancer visualization.")

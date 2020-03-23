@@ -103,28 +103,30 @@ class Request(dj.Manual):
     class ImagingChannel(dj.Part):
         definition = """ # Imaging parameters for a channel, belonging to a sample
         -> master.ImagingResolutionRequest
-        channel_name                              :   varchar(64)                
+        channel_name                                            :   varchar(64)                
         ----
-        imaging_date = NULL                       :   date 
-        zoom_body_magnification = NULL            :   float # only applicable for 2x
-        left_lightsheet_used = 1                  :   boolean
-        right_lightsheet_used = 1                 :   boolean
-        registration = 0                          :   boolean
-        injection_detection = 0                   :   boolean
-        probe_detection = 0                       :   boolean
-        cell_detection = 0                        :   boolean
-        generic_imaging = 0                       :   boolean
-        pixel_type = NULL                         :   varchar(32)
-        image_orientation                         :   enum("sagittal","coronal","horizontal") # how the imager imaged the sample. Most of the time will be horizontal
-        numerical_aperture = NULL                 :   float # it is not always recorded in metadata so those times it will be NULL
-        tiling_scheme = '1x1'                     :   char(3)
-        tiling_overlap = 0.0                      :   float
-        z_step = 10                               :   float # distance between z planes in microns
-        number_of_z_planes = NULL                 :   smallint unsigned
-        rawdata_subfolder = NULL                  :   varchar(512)
-        imspector_channel_index = NULL            :   tinyint    # refers to multi-channel imaging - 0 if first (or only) channel in rawdata_subfolder, 1 if second, 2 if third, ...
-        raw_precomputed_spock_jobid = NULL        :   varchar(32)
-        raw_precomputed_spock_job_progress = NULL :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+        imaging_date = NULL                                     :   date 
+        zoom_body_magnification = NULL                          :   float # only applicable for 2x
+        left_lightsheet_used = 1                                :   boolean
+        right_lightsheet_used = 1                               :   boolean
+        registration = 0                                        :   boolean
+        injection_detection = 0                                 :   boolean
+        probe_detection = 0                                     :   boolean
+        cell_detection = 0                                      :   boolean
+        generic_imaging = 0                                     :   boolean
+        pixel_type = NULL                                       :   varchar(32)
+        image_orientation                                       :   enum("sagittal","coronal","horizontal") # how the imager imaged the sample. Most of the time will be horizontal
+        numerical_aperture = NULL                               :   float # it is not always recorded in metadata so those times it will be NULL
+        tiling_scheme = '1x1'                                   :   char(3)
+        tiling_overlap = 0.0                                    :   float
+        z_step = 10                                             :   float # distance between z planes in microns
+        number_of_z_planes = NULL                               :   smallint unsigned
+        rawdata_subfolder = NULL                                :   varchar(512)
+        imspector_channel_index = NULL                          :   tinyint    # refers to multi-channel imaging - 0 if first (or only) channel in rawdata_subfolder, 1 if second, 2 if third, ...
+        left_lightsheet_precomputed_spock_jobid = NULL          :   varchar(32)
+        left_lightsheet_precomputed_spock_job_progress = NULL   :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+        right_lightsheet_precomputed_spock_jobid = NULL         :   varchar(32)
+        right_lightsheet_precomputed_spock_job_progress = NULL  :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
         """
 
     class ProcessingRequest(dj.Part):

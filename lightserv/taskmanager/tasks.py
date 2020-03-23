@@ -53,4 +53,4 @@ def send_email(request_name):
         f'request_name: {request_name}\n\n'        
         'Thanks,\nThe Histology and Brain Registration Core Facility.')
     mail.send(msg_user)
-    return "Test Email sent!"
+    return "Test email sent!"

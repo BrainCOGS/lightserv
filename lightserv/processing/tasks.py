@@ -3,6 +3,7 @@ from flask import (render_template, url_for, flash,
 				   Markup, current_app,jsonify)
 from lightserv.processing.forms import StartProcessingForm, NewProcessingRequestForm
 from lightserv.processing.tables import (dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable)
+from lightserv.processing.utils import determine_status_code
 from lightserv import db_lightsheet, db_admin
 from lightserv import cel
 import datajoint as dj
@@ -321,32 +322,6 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 			client.close()
 	return "SUBMITTED spock job"
 
-def determine_status_code(status_codes):
-	""" Given a list of status codes 
-	from a sacct query on a jobid (could be an array job),
-	return the status code of the group. 
-	This is somewhat subjective and the rules I have defined are:
-	if all statuses are the same then the status is the status that is shared,
-	if any have a code that is problematic (see "problematic_codes"), then we return "FAILED"
-	if none have problematic codes but there are multiple going, then return "RUNNING"
-	"""
-	if len(status_codes) > 1:
-		if all([status_codes[jj]==status_codes[0] for jj in range(len(status_codes))]):
-			# If all are the same then just report whatever that code is
-			status=status_codes[0]
-		elif any([status_codes[jj] in problematic_codes for jj in range(len(status_codes))]):
-			# Check if some have problematic codes 
-			status="FAILED"
-		else:
-			# If none have failed but there are multiple then they must be running
-			status="RUNNING"
-	else:
-		status = status_codes[0]
-	if 'CANCELLED' in status: 
-		# in case status is "CANCELLED by {UID}"
-		status = 'CANCELLED'
-	return status
-
 @cel.task()
 def processing_job_status_checker():
 	""" 
@@ -376,7 +351,6 @@ def processing_job_status_checker():
 	which will be used later for error reporting to the user.
 	"""
 
-	problematic_codes = ("FAILED","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REVOKED")
 	# static_codes = ('COMPLETED','FAILED','BOOT_FAIL','CANCELLED','DEADLINE','OUT_OF_MEMORY','REVOKED')
 	ongoing_codes = ('SUBMITTED','RUNNING','PENDING','REQUEUED','RESIZING','SUSPENDED')
 	incomplete_contents = unique_contents & f'status_step3 in {ongoing_codes}'
@@ -450,9 +424,15 @@ def processing_job_status_checker():
 			client.close()
 			return "Error fetching steps 0-2 job statuses from spock"
 		stdout_str_earlier_steps = stdout_earlier_steps.read().decode("utf-8")
-		response_lines_earlier_steps = stdout_str_earlier_steps.strip('\n').split('\n')
-		jobids_received_earlier_steps = [x.split('|')[0].split('_')[0] for x in response_lines_earlier_steps] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
-		status_codes_received_earlier_steps = [x.split('|')[1] for x in response_lines_earlier_steps]
+		try:
+			response_lines_earlier_steps = stdout_str_earlier_steps.strip('\n').split('\n')
+			jobids_received_earlier_steps = [x.split('|')[0].split('_')[0] for x in response_lines_earlier_steps] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
+			status_codes_received_earlier_steps = [x.split('|')[1] for x in response_lines_earlier_steps]
+		except:
+			logger.debug("Something went wrong parsing output of sacct query for steps 0-2 on spock")
+			client.close()
+			return "Error parsing sacct query of jobids for steps 0-2 on spock"
+
 		job_status_indices_dict_earlier_steps = {jobid:[i for i, x in enumerate(jobids_received_earlier_steps) \
 			if x == jobid] for jobid in set(jobids_received_earlier_steps)} 
 		""" Loop through the earlier steps and figure out their statuses """

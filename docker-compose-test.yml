@@ -33,14 +33,14 @@ services:
       # - rabbit
       - redis
       #- testflask
-  # scheduler:
-  #   env_file: .testworkerdockerenv
-  #   image: flaskcelery_test:latest
-  #   command: bash -c "sleep 10 && celery beat -A celery_worker.cel --schedule=/tmp/celerybeat-schedule --loglevel=info --pidfile=/tmp/celerybeat.pid"
-  #   volumes:
-  #     - .:/app
-  #     - ./lib:/opt/libraries
-  #   depends_on:
-  #     #- rabbit
-  #     - redis
-  #     - worker
+  scheduler:
+    env_file: .testworkerdockerenv
+    image: flaskcelery_test:latest
+    command: bash -c "sleep 10 && celery beat -A celery_worker.cel --schedule=/tmp/celerybeat-schedule --loglevel=info --pidfile=/tmp/celerybeat.pid"
+    volumes:
+      - .:/app
+      - ./lib:/opt/libraries
+    depends_on:
+      #- rabbit
+      - redis
+      - worker
