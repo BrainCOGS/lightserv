@@ -46,6 +46,7 @@ def make_precomputed_rawdata(**kwargs):
 	number_of_z_planes=kwargs['number_of_z_planes']
 	rawdata_subfolder=kwargs['rawdata_subfolder']
 	lightsheet=kwargs['lightsheet']
+	viz_dir = kwargs['viz_dir'] 
 
 	restrict_dict = dict(username=username,request_name=request_name,
 		sample_name=sample_name,imaging_request_number=imaging_request_number,
@@ -60,11 +61,8 @@ def make_precomputed_rawdata(**kwargs):
 								 f"{request_name}/{sample_name}/"
 								 f"imaging_request_{imaging_request_number}/rawdata/"
 								 f"{rawdata_subfolder}")
-	viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
-								 f"{request_name}/{sample_name}/"
-								 f"imaging_request_{imaging_request_number}/viz")
+
 	kwargs['rawdata_path'] = rawdata_path
-	kwargs['viz_dir'] = viz_dir
 	kwargs['layer_name'] = f'channel{channel_name}_raw_{lightsheet}_lightsheet'
 	slurmjobfactor = 20 # the number of processes run per core
 	n_array_jobs_step1 = math.ceil(number_of_z_planes/float(slurmjobfactor)) # how many array jobs we need for step 1
@@ -80,10 +78,10 @@ def make_precomputed_rawdata(**kwargs):
 
 	""" Now set up the connection to spock """
 	
-	# command = ("cd /jukebox/wang/ahoag/precomputed; "
-	# 		   "/jukebox/wang/ahoag/precomputed/precomputed_pipeline.sh {} {} {}").format(
-	# 	n_array_jobs_step1,n_array_jobs_step2,viz_dir)
-	command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+	command = ("cd /jukebox/wang/ahoag/precomputed; "
+			   "/jukebox/wang/ahoag/precomputed/precomputed_pipeline.sh {} {} {}").format(
+		n_array_jobs_step1,n_array_jobs_step2,viz_dir)
+	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	# command = "cd /jukebox/wang/ahoag/precomputed; sbatch --parsable --export=ALL,viz_dir='{}' /jukebox/wang/ahoag/precomputed/precomputed_pipeline.sh".format(
 	# 	viz_dir)
 	hostname = 'spock.pni.princeton.edu'
@@ -192,7 +190,7 @@ def check_raw_precomputed_statuses():
 	job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
 	job_insert_list = []
 	for jobid,indices_list in job_status_indices_dict.items():
-		logger.debug("In loop for jobid: {jobid}")
+		logger.debug(f"In loop for jobid: {jobid}")
 		job_insert_dict = {'jobid_step2':jobid}
 		status_codes = [status_codes_received[ii] for ii in indices_list]
 		status_step2 = determine_status_code(status_codes)
@@ -205,6 +203,8 @@ def check_raw_precomputed_statuses():
 		job_insert_dict['username']=username_thisjob
 		job_insert_dict['jobid_step0']=jobid_step0
 		job_insert_dict['jobid_step1']=jobid_step1
+		jobid_step_dict = {'step0':jobid_step0,'step1':jobid_step1}
+
 		""" Now figure out the status codes for the earlier dependency jobs """
 		this_run_earlier_jobids_str = ','.join([jobid_step0,jobid_step1])
 		try:
@@ -228,21 +228,27 @@ def check_raw_precomputed_statuses():
 		job_status_indices_dict_earlier_steps = {jobid:[i for i, x in enumerate(jobids_received_earlier_steps) \
 			if x == jobid] for jobid in set(jobids_received_earlier_steps)} 
 		""" Loop through the earlier steps and figure out their statuses """
-		step_counter = 0
-		for jobid_earlier_step,indices_list_earlier_step in job_status_indices_dict_earlier_steps.items():
+		for step_counter in range(2):
+		# for jobid_earlier_step,indices_list_earlier_step in job_status_indices_dict_earlier_steps.items():
+			step = f'step{step_counter}'
+			jobid_earlier_step = jobid_step_dict[step]
+			indices_list_earlier_step = job_status_indices_dict_earlier_steps[jobid_earlier_step]
 			logger.debug(f'Step {step_counter} jobid: {jobid_earlier_step}')
 			status_codes_earlier_step = [status_codes_received_earlier_steps[ii] for ii in indices_list_earlier_step]
-			status = determine_status_code(status_codes_earlier_step)
+			status_this_step = determine_status_code(status_codes_earlier_step)
 			status_step_str = f'status_step{step_counter}'
-			job_insert_dict[status_step_str] = status
-			step_counter +=1 
+			job_insert_dict[status_step_str] = status_this_step
+			logger.debug(f"Status for {status_step_str} is: {status_this_step}")
 		job_insert_dict['lightsheet'] = lightsheet_thisjob
 		job_insert_list.append(job_insert_dict)
 		""" Get the imaging channel entry associated with this jobid
 		and update the progress """
-		this_imaging_channel_content = db_lightsheet.Request.ImagingChannel() & \
-		f'{lightsheet_thisjob}_lightsheet_precomputed_spock_jobid={jobid}'
-		dj.Table._update(this_imaging_channel_content,f'{lightsheet_thisjob}_lightsheet_precomputed_spock_job_progress',status_step2)
+		try:
+			this_imaging_channel_content = db_lightsheet.Request.ImagingChannel() & \
+			f'{lightsheet_thisjob}_lightsheet_precomputed_spock_jobid={jobid}'
+			dj.Table._update(this_imaging_channel_content,f'{lightsheet_thisjob}_lightsheet_precomputed_spock_job_progress',status_step2)
+		except:
+			logger.debug("Unable to connect to db_lightsheet")
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_admin.RawPrecomputedSpockJob.insert(job_insert_list)

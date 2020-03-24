@@ -209,11 +209,23 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 												left_lightsheet_used=left_lightsheet_used,
 												right_lightsheet_used=right_lightsheet_used,
 												z_step=z_step,rawdata_subfolder=rawdata_subfolder)
+						logger.debug(precomputed_kwargs)
+						raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
+								 f"{request_name}/{sample_name}/"
+								 f"imaging_request_{imaging_request_number}/viz/raw")
+						channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
+						mymkdir(channel_viz_dir)
 						if left_lightsheet_used:
+							this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
+							mymkdir(this_viz_dir)
 							precomputed_kwargs['lightsheet'] = 'left'
+							precomputed_kwargs['viz_dir'] = this_viz_dir
 							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 						if right_lightsheet_used:
+							this_viz_dir = raw_viz_dir + 'left_lightsheet'
+							mymkdir(this_viz_dir)
 							precomputed_kwargs['lightsheet'] = 'right'
+							precomputed_kwargs['viz_dir'] = this_viz_dir
 							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 					else:
 						logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
