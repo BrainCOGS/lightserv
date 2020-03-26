@@ -311,7 +311,8 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 
 			status = 'SUBMITTED'
 			entry_dict = {'jobid_step3':jobid_step3,'jobid_step2':jobid_step2,'jobid_step1':jobid_step1,
-			'jobid_step0':jobid_step0,'username':username,'status_step0':status,'status_step1':status,
+			'jobid_step0':jobid_step0,'username':username,'stiching_method':stitching_method,
+			'status_step0':status,'status_step1':status,
 			'status_step2':status,'status_step3':status}
 			db_admin.ProcessingPipelineSpockJob.insert1(entry_dict)    
 			logger.info(f"ProcessingResolutionRequest() request was successfully submitted to spock, jobid: {jobid_step3}")

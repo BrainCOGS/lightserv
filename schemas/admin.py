@@ -41,18 +41,19 @@ class UserActionLog(dj.Manual):
 
 @schema 
 class ProcessingPipelineSpockJob(dj.Manual):
-    definition = """    # Spock job management table 
-    jobid_step3  : varchar(16) # the jobid on spock for the final step in the pipeline. Status column refers to this jobid
+    definition = """    # Spock job management table for the entire light sheet pipeline
+    jobid_step3                   : varchar(16) # the jobid on spock for the final step in the pipeline. Status column refers to this jobid
     timestamp = CURRENT_TIMESTAMP : timestamp
     ---    
-    username : varchar(32)
-    jobid_step0  : varchar(16)
-    jobid_step1  : varchar(16)
-    jobid_step2  : varchar(16)
-    status_step0 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
-    status_step1 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
-    status_step2 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
-    status_step3 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
+    username                      : varchar(32)
+    stitching_method              : enum("terastitcher","blending") # to keep track of whether terastitcher was run on tiled data
+    jobid_step0                   : varchar(16)
+    jobid_step1                   : varchar(16)
+    jobid_step2                   : varchar(16)
+    status_step0                  : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
+    status_step1                  : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
+    status_step2                  : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
+    status_step3                  : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
     """
 
 @schema 
@@ -76,6 +77,22 @@ class RawPrecomputedSpockJob(dj.Manual):
     jobid_step2  : varchar(16) # the jobid on spock of step2 (downsampling) in the precomputed pipeline. Used as primary key so that the progress of the precomputed pipeline can be probed.
     timestamp = CURRENT_TIMESTAMP : timestamp
     ---
+    lightsheet   : varchar(8) 
+    jobid_step0  : varchar(16)
+    jobid_step1  : varchar(16)
+    username     : varchar(32)
+    status_step0 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+    status_step1 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+    status_step2 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+    """
+
+@schema 
+class TiledPrecomputedSpockJob(dj.Manual):
+    definition = """    # Spock job management table for precomputed jobs
+    jobid_step2  : varchar(16) # the jobid on spock of step2 (downsampling) in the precomputed pipeline. Used as primary key so that the progress of the precomputed pipeline can be probed.
+    timestamp = CURRENT_TIMESTAMP : timestamp
+    ---
+    -> ProcessingPipelineSpockJob.proj(processing_pipeline_jobid_step3='jobid_step3')
     lightsheet   : varchar(8) 
     jobid_step0  : varchar(16)
     jobid_step1  : varchar(16)

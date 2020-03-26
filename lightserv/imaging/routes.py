@@ -220,33 +220,36 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 							mymkdir(this_viz_dir)
 							precomputed_kwargs['lightsheet'] = 'left'
 							precomputed_kwargs['viz_dir'] = this_viz_dir
-							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
+							# tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 						if right_lightsheet_used:
 							this_viz_dir = raw_viz_dir + 'left_lightsheet'
 							mymkdir(this_viz_dir)
 							precomputed_kwargs['lightsheet'] = 'right'
 							precomputed_kwargs['viz_dir'] = this_viz_dir
-							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
+							# tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 					else:
 						logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
 									 "Not creating precomputed data for neuroglancer visualization.")
 				
 			correspondence_email = (db_lightsheet.Request() & f'username="{username}"' & \
 			 f'request_name="{request_name}"').fetch1('correspondence_email')
-			path_to_data = f'{current_app.config["DATA_BUCKET_ROOTPATH"]}/{username}/{request_name}/\
-				{sample_name}/rawdata/imaging_request_number_{imaging_request_number}'
+			data_rootpath = current_app.config["DATA_BUCKET_ROOTPATH"]
+			path_to_data = (f'{data_rootpath}/{username}/{request_name}/'
+				             f'{sample_name}/rawdata/imaging_request_number_{imaging_request_number}')
 			""" Send email """
 			msg = EmailMessage()
 			msg['Subject'] = 'Lightserv automated email: Imaging complete'
 			msg['From'] = 'lightservhelper@gmail.com'
 			msg['To'] = 'ahoag@princeton.edu' # to me while in DEV phase
 
-			message_body = ('Hello!\n    This is an automated email sent from lightserv, '
+			message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
 						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 						'The raw data for your request:\n'
 						f'request_name: "{request_name}"\n'
 						f'sample_name: "{sample_name}"\n'
-						f'are now available on bucket here: {path_to_data}\n\n')
+						f'are now available on bucket here: {path_to_data}\n\n'
+						 'We will follow up with a link to view your raw data shortly.\n\n'
+						 'Thanks,\n\nThe Core Facility')
 			msg.set_content(message_body)
 			smtp_server = smtp_connect()
 			smtp_server.send_message(msg)
