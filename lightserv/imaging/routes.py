@@ -238,14 +238,19 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				             f'{sample_name}/rawdata/imaging_request_number_{imaging_request_number}')
 			""" Send email """
 			subject = 'Lightserv automated email: Imaging complete'
+			hosturl = os.environ['HOSTURL']
 
+			processing_manager_url = f'http://{hosturl}' + url_for('processing.processing_manager')
 			message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
 						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 						'The raw data for your request:\n'
 						f'request_name: "{request_name}"\n'
 						f'sample_name: "{sample_name}"\n'
 						f'are now available on bucket here: {path_to_data}\n\n'
-						 'We will follow up with a link to view your raw data shortly.\n\n'
+						 'Your raw data will be viewable in Neuroglancer shortly.\n\n'
+						 'To start processing your data, '
+						f'go to the processing management GUI: {processing_manager_url} '
+						'and find your sample to process.\n\n'
 						 'Thanks,\n\nThe Core Facility')
 			send_email.delay(subject=subject,body=message_body)
 			flash(f"""Imaging is complete. An email has been sent to {correspondence_email} 
