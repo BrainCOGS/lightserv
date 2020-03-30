@@ -9,11 +9,11 @@ from .utils import (determine_clearing_form, add_clearing_calendar_entry,
 				   determine_clearing_dbtable, determine_clearing_table) 
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 	 logged_in_as_clearing_manager, log_http_requests)
+from lightserv.taskmanager.tasks import send_email
 import numpy as np
 import datajoint as dj
 import re
 import datetime
-from email.message import EmailMessage
 
 import logging
 from werkzeug.routing import BaseConverter
@@ -185,10 +185,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 							# logger.debug(samples_this_clearing_batch)	
 							imaging_manager_url = 'http://braincogs00.pni.princeton.edu' + url_for('imaging.imaging_manager')
 							
-							msg = EmailMessage()
-							msg['Subject'] = 'Lightserv automated email: Clearing complete'
-							msg['From'] = 'lightservhelper@gmail.com'
-							msg['To'] = 'ahoag@princeton.edu' # to me while in DEV phase
+							subject = 'Lightserv automated email: Clearing complete'
 							message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
 								'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 								'The clearing for your batch:\n'
@@ -203,9 +200,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 								'Otherwise, the imaging will be handled by the Core Facility, and you will receive '
 								'emails when the imaging for each of your samples is complete.\n\n'
 								'Thanks,\nThe Histology and Brain Registration Core Facility.')
-							msg.set_content(message_body)
-							smtp_server = smtp_connect()
-							smtp_server.send_message(msg)
+							send_email.delay(subject=subject,body=message_body)
 
 							# """ Admin emails """
 							# imaging_admin_email_addresses = [netid + '@princeton.edu' for netid in current_app.config['IMAGING_ADMINS']]

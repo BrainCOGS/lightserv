@@ -10,6 +10,7 @@ from lightserv.imaging.tables import (ImagingTable, dynamic_imaging_management_t
 	SampleTable, ExistingImagingTable, ImagingChannelTable)
 from .forms import ImagingForm, NewImagingRequestForm
 from . import tasks
+from lightserv.taskmanager.tasks import send_email
 import numpy as np
 import datajoint as dj
 import re
@@ -17,7 +18,6 @@ from datetime import datetime
 import logging
 import glob
 import os
-from email.message import EmailMessage
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -237,10 +237,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			path_to_data = (f'{data_rootpath}/{username}/{request_name}/'
 				             f'{sample_name}/rawdata/imaging_request_number_{imaging_request_number}')
 			""" Send email """
-			msg = EmailMessage()
-			msg['Subject'] = 'Lightserv automated email: Imaging complete'
-			msg['From'] = 'lightservhelper@gmail.com'
-			msg['To'] = 'ahoag@princeton.edu' # to me while in DEV phase
+			subject = 'Lightserv automated email: Imaging complete'
 
 			message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
 						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
@@ -250,9 +247,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 						f'are now available on bucket here: {path_to_data}\n\n'
 						 'We will follow up with a link to view your raw data shortly.\n\n'
 						 'Thanks,\n\nThe Core Facility')
-			msg.set_content(message_body)
-			smtp_server = smtp_connect()
-			smtp_server.send_message(msg)
+			send_email.delay(subject=subject,body=message_body)
 			flash(f"""Imaging is complete. An email has been sent to {correspondence_email} 
 				informing them that their raw data is now available on bucket.
 				The processing pipeline is now ready to run. ""","success")

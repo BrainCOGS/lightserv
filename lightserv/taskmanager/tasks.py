@@ -42,15 +42,16 @@ def goodbye():
     return "goodbye world"    
 
 @cel.task()
-def send_email(request_name):
-    msg_user = Message('Lightserv automated email: Your feedback (test)',
-                        sender='lightservhelper@gmail.com',
-                        recipients=['ahoag@princeton.edu']) # send it to me while in DEV phase
-                    
-    msg_user.body = ('Hello!\n\nThis is an automated email sent from lightserv, '
-        'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
-        'We would love your feedback on your request:\n\n'
-        f'request_name: {request_name}\n\n'        
-        'Thanks,\nThe Histology and Brain Registration Core Facility.')
-    mail.send(msg_user)
-    return "Test email sent!"
+def send_email(subject,body,sender_email='lightservhelper@gmail.com'):
+	if os.environ['FLASK_MODE'] == 'TEST':
+		print("Not sending email since this is a test.")
+		return "Email not sent because are in TEST mode"
+	""" Asynchronous task to send an email """
+	msg = EmailMessage()
+	msg['Subject'] = subject
+	msg['From'] = sender_email
+	msg['To'] = 'ahoag@princeton.edu' # to me while in DEV phase
+	msg.set_content(body)                    
+	smtp_server = smtp_connect()
+	smtp_server.send_message(msg)
+	return "Email sent!"

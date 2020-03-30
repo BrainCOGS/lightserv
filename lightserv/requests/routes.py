@@ -10,6 +10,7 @@ from lightserv import cel,db_lightsheet, smtp_connect
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests,
 	request_exists,mymkdir)
+from lightserv.taskmanager.tasks import send_email
 
 import datajoint as dj
 
@@ -24,7 +25,6 @@ import numpy as np
 import pymysql
 import logging
 from datetime import datetime
-from email.message import EmailMessage
 
 
 logger = logging.getLogger(__name__)
@@ -747,19 +747,17 @@ def new_request():
 					db_lightsheet.Request.ImagingChannel().insert(channel_insert_list)
 					
 					flash("Request submitted successfully. You will receive an email at "
-						  f"{form.correspondence_email.data} with instructions " 
+						  f"{form.correspondence_email.data} with further instructions " 
 						  "for setting up your spock account in order for this "
 						  "portal to run your jobs.","success")
 					flash("If you elected to clear any of your tubes "
 						 "then head to Task Management -> All Clearing Tasks in the Menu Bar"
-						 " to start the clearing entry form. "
+						 " to start the clearing entry form when ready. "
 						 "If not, your tubes will be cleared by the Core Facility and "
 						 "you will receive an email once they are cleared. You can check the "
 						 "status of your samples at your request page (see table below).", "success")
-					msg = EmailMessage()
-					msg['Subject'] = 'Lightserv automated email: Request received'
-					msg['From'] = 'lightservhelper@gmail.com'
-					msg['To'] = 'ahoag@princeton.edu' # to me while in DEV phase
+					# Email
+					subject = 'Lightserv automated email: Request received'
 					with open('/home/lightservuser/.ssh/id_rsa.pub','r') as keyfile: 
 						keyfile_contents = keyfile.readlines() 
 					ssh_key_text = keyfile_contents[0].strip('\n')
@@ -786,10 +784,8 @@ def new_request():
 						'run spock jobs as you, and as a result your spock karma will be affected as if you ran the job yourself. '
 						'Please respond to this message if you have any questions about this or any other issue regarding your request.\n\n'
 						'Thanks,\nThe Histology and Brain Registration Core Facility.')
-					msg.set_content(message_body)
+					send_email.delay(subject=subject,body=message_body)
 
-					smtp_server = smtp_connect()
-					smtp_server.send_message(msg)
 					return redirect(url_for('requests.all_requests'))
 			
 		else: # post request but not validated. Need to handle some errors

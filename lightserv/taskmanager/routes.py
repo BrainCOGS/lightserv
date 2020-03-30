@@ -13,7 +13,6 @@ import logging
 import paramiko,time
 import os
 from datetime import datetime, timedelta
-from email.message import EmailMessage
 
 
 logger = logging.getLogger(__name__)
