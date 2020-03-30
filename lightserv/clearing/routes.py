@@ -183,7 +183,8 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 							samples_this_clearing_batch = (db_lightsheet.Request.Sample() & sample_keys).fetch('sample_name')
 							samples_str = ', '.join(sample for sample in samples_this_clearing_batch)
 							# logger.debug(samples_this_clearing_batch)	
-							imaging_manager_url = 'http://braincogs00.pni.princeton.edu' + url_for('imaging.imaging_manager')
+							hosturl = os.environ['HOSTURL']
+							imaging_manager_url = f'http://{hosturl}' + url_for('imaging.imaging_manager')
 							
 							subject = 'Lightserv automated email: Clearing complete'
 							message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '

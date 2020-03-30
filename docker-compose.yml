@@ -14,10 +14,12 @@ services:
               '--no-prepend-path',
               '--log-level', 'debug',
               '--api-ip', '0.0.0.0']
+    restart: always
   redis:
     image: redis
     expose:
       - 6379
+    restart: always
   # rabbit:
   #   image: rabbitmq:3.8.3-rc.2
   #   expose:
@@ -34,6 +36,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock # so that I can see inside the container from outside
     ports:
       - '8080:8080'
+    restart: always
     # extra_hosts:
     #   - "dockerhost:$DOCKERHOST"
   worker:
@@ -54,22 +57,24 @@ services:
     depends_on:
       # - rabbit
       - redis
-  scheduler:
-    env_file: .dockerenv
-    image: flaskcelery_test:latest
-    command: ["celery",
-              "beat",
-              "-A",
-              "celery_worker.cel",
-              "--schedule=/tmp/celerybeat-schedule",
-              "--loglevel=info",
-              "--pidfile=/tmp/celerybeat.pid"]
-    volumes:
-      - .:/app
-      - ./lib:/opt/libraries
-    depends_on:
-      - redis
-      - worker
+    restart: always
+  # scheduler:
+  #   env_file: .dockerenv
+  #   image: flaskcelery_test:latest
+  #   command: ["celery",
+  #             "beat",
+  #             "-A",
+  #             "celery_worker.cel",
+  #             "--schedule=/tmp/celerybeat-schedule",
+  #             "--loglevel=info",
+  #             "--pidfile=/tmp/celerybeat.pid"]
+  #   volumes:
+  #     - .:/app
+  #     - ./lib:/opt/libraries
+  #   depends_on:
+  #     - redis
+  #     - worker
+  #   restart: always
 networks:
   default:
     external:

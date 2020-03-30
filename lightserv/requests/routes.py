@@ -761,8 +761,9 @@ def new_request():
 					with open('/home/lightservuser/.ssh/id_rsa.pub','r') as keyfile: 
 						keyfile_contents = keyfile.readlines() 
 					ssh_key_text = keyfile_contents[0].strip('\n')
-					spock_test_link = 'http://braincogs00.pni.princeton.edu' + url_for('main.spock_connection_test')
-					pre_handoff_link = 'http://braincogs00.pni.princeton.edu' + url_for('main.pre_handoff')
+					hosturl = os.environ['HOSTURL']
+					spock_test_link = f'http://{hosturl}' + url_for('main.spock_connection_test')
+					pre_handoff_link = f'http://{hosturl}' + url_for('main.pre_handoff')
 					message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
 						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 						'Your request:\n'
