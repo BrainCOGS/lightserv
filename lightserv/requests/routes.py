@@ -73,10 +73,11 @@ def all_requests():
 	sample_joined_contents = dj.U('username','request_name').aggr(
 		request_contents * clearing_batch_contents,
 		number_of_samples='number_of_samples',
+		number_in_batch='number_in_batch',
 		description='description',
 		species='species',
 		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)',
-		n_cleared='CONVERT(SUM(clearing_progress="complete"),char)').proj(
+		n_cleared='CONVERT(SUM(IF(clearing_progress="complete",number_in_batch,0)),char)').proj(
 		**replicated_args,
 			fraction_cleared='CONCAT(n_cleared,"/",CONVERT(number_of_samples,char))')
 	# logger.debug(sample_joined_contents)
@@ -90,20 +91,8 @@ def all_requests():
 		fraction_cleared='fraction_cleared',
 		fraction_imaged='CONCAT(n_imaged,"/",total_imaging_requests)'
 		)
+	# logger.debug("Imaging joined contents:")
 	# logger.debug(imaging_joined_contents)
-	# processing_joined_contents = dj.U('username','request_name').aggr(
-	# imaging_joined_contents * processing_request_contents,
-	# **replicated_args,
-	# fraction_cleared='fraction_cleared',
-	# fraction_imaged='fraction_imaged',
-	# n_processed='CONVERT(SUM(processing_progress="complete"),char)',
-	# total_processing_requests='CONVERT(COUNT(*),char)'
-	# ).proj(
-	# 	**replicated_args,
-	# 	fraction_cleared='fraction_cleared',
-	# 	fraction_imaged='fraction_imaged',
-	# 	fraction_processed='CONCAT(n_processed,"/",total_processing_requests)'
-	# 	)
 	processing_joined_contents = (dj.U('username','request_name') * imaging_joined_contents).aggr(   
     processing_request_contents,
 	**replicated_args,
@@ -118,7 +107,7 @@ def all_requests():
 		fraction_imaged='fraction_imaged',
 		fraction_processed='IF(n_processed is NULL,"0/0",CONCAT(n_processed,"/",total_processing_requests))' 
 		)
-	logger.debug(processing_joined_contents)
+	# logger.debug(processing_joined_contents)
 	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sorted_results = sorted(processing_joined_contents.fetch(as_dict=True),
