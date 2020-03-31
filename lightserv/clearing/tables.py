@@ -77,7 +77,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
             anchor_attrs=anchor_attrs,allow_sort=False))
     elif table_id == 'horizontal_already_cleared_table':
         table_class.add_column('view_clearing_link',LinkCol('View clearing log',
-         'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
+         'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))
          
     sorted_contents = sorted(contents.fetch(as_dict=True),
