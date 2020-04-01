@@ -31,4 +31,3 @@ from schemas import admin
 # 	microscope_schema.drop(force=True)
 	
 from schemas import microscope
-

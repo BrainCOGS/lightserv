@@ -172,16 +172,14 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 				f'image_resolution="{this_image_resolution}"'
 				# logger.debug(this_image_resolution_content)
 				atlas_name = form_resolution_dict['atlas_name']
-				logger.info("updating atlas and notes_from_processing in ProcessingResolutionRequest() with user's form data")
-				dj.Table._update(this_image_resolution_content,'atlas_name',atlas_name)
-				dj.Table._update(this_image_resolution_content,'notes_from_processing',form.notes_from_processing.data)
-
-			logger.info(f"Starting step0 without celery for testing")
-			# run_step0.delay(username=username,request_name=request_name,sample_name=sample_name)
-			''' Update the processing progress before starting the jobs on spock 
-			to avoid a race condition (the pipeline also updates the processing_progress flag if it fails or succeeds) '''
-			
-			# try:
+				if atlas_name:
+					logger.info("updating atlas and notes_from_processing in ProcessingResolutionRequest() with user's form data")
+					dj.Table._update(this_image_resolution_content,'atlas_name',atlas_name)
+					dj.Table._update(this_image_resolution_content,'notes_from_processing',form.notes_from_processing.data)
+				else:
+					logger.info("Not atlas entered in form. ")
+			logger.info(f"Starting light sheet pipeline task")
+		
 			run_spock_pipeline.delay(username=username,request_name=request_name,sample_name=sample_name,
 				imaging_request_number=imaging_request_number,
 				processing_request_number=processing_request_number)
@@ -198,40 +196,40 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 		else:
 			logger.debug(form.errors)
 	
-	elif request.method == 'GET': # get request
-		channel_contents_lists = []
-		while len(form.image_resolution_forms) > 0:
-			form.image_resolution_forms.pop_entry()
-		""" Figure out the unique number of image resolutions """
-		unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
+	
+	channel_contents_lists = []
+	while len(form.image_resolution_forms) > 0:
+		form.image_resolution_forms.pop_entry()
+	""" Figure out the unique number of image resolutions """
+	unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
 
-		for ii in range(len(unique_image_resolutions)):
-			this_image_resolution = unique_image_resolutions[ii]
-			processing_resolution_request_content = processing_resolution_request_contents & \
-			 f'image_resolution="{this_image_resolution}"'
+	for ii in range(len(unique_image_resolutions)):
+		this_image_resolution = unique_image_resolutions[ii]
+		processing_resolution_request_content = processing_resolution_request_contents & \
+		 f'image_resolution="{this_image_resolution}"'
 
-			channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
-			channel_contents_lists.append([])
-			form.image_resolution_forms.append_entry()
-			this_resolution_form = form.image_resolution_forms[-1]
-			this_resolution_form.image_resolution.data = this_image_resolution
-			this_resolution_form.atlas_name.data = processing_resolution_request_content.fetch1('atlas_name')
+		channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
+		channel_contents_lists.append([])
+		form.image_resolution_forms.append_entry()
+		this_resolution_form = form.image_resolution_forms[-1]
+		this_resolution_form.image_resolution.data = this_image_resolution
+		this_resolution_form.atlas_name.data = processing_resolution_request_content.fetch1('atlas_name')
 
-			''' Now go and add the channel subforms to the image resolution form '''
-			for jj in range(len(channel_contents_list_this_resolution)):
-				channel_content = channel_contents_list_this_resolution[jj]
-				channel_contents_lists[ii].append(channel_content)
-				this_resolution_form.channel_forms.append_entry()
-				this_channel_form = this_resolution_form.channel_forms[-1]
-				this_channel_form.channel_name.data = channel_content['channel_name']
+		''' Now go and add the channel subforms to the image resolution form '''
+		for jj in range(len(channel_contents_list_this_resolution)):
+			channel_content = channel_contents_list_this_resolution[jj]
+			channel_contents_lists[ii].append(channel_content)
+			this_resolution_form.channel_forms.append_entry()
+			this_channel_form = this_resolution_form.channel_forms[-1]
+			this_channel_form.channel_name.data = channel_content['channel_name']
 
-				""" figure out the channel purposes """
-				used_imaging_modes = []
-				for imaging_mode in current_app.config['IMAGING_MODES']:
-					if channel_content[imaging_mode]:
-						used_imaging_modes.append(imaging_mode)
-				channel_purposes_str = ', '.join(mode for mode in used_imaging_modes)
-				this_channel_form.channel_purposes_str.data = channel_purposes_str
+			""" figure out the channel purposes """
+			used_imaging_modes = []
+			for imaging_mode in current_app.config['IMAGING_MODES']:
+				if channel_content[imaging_mode]:
+					used_imaging_modes.append(imaging_mode)
+			channel_purposes_str = ', '.join(mode for mode in used_imaging_modes)
+			this_channel_form.channel_purposes_str.data = channel_purposes_str
 
 	if processing_progress != 'incomplete':
 		logger.info(f"Processing is currently {processing_progress} but accessing the processing entry page anyway")

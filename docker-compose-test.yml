@@ -12,7 +12,7 @@ services:
   testflask:
     env_file: .testdockerenv
     image: flaskcelery_test:latest
-    command: "pytest -vs lightserv/tests/test_imaging.py::test_imaging_entry_form_submits"
+    command: "pytest -vs lightserv/tests/test_processing.py::test_submit_processing_entry_4x_nonadmin"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData # so changes made to the app are propagated to the container without having to rebuild
@@ -33,14 +33,14 @@ services:
       # - rabbit
       - redis
       #- testflask
-  scheduler:
-    env_file: .testworkerdockerenv
-    image: flaskcelery_test:latest
-    command: bash -c "sleep 10 && celery beat -A celery_worker.cel --schedule=/tmp/celerybeat-schedule --loglevel=info --pidfile=/tmp/celerybeat.pid"
-    volumes:
-      - .:/app
-      - ./lib:/opt/libraries
-    depends_on:
-      #- rabbit
-      - redis
-      - worker
+  # scheduler:
+  #   env_file: .testworkerdockerenv
+  #   image: flaskcelery_test:latest
+  #   command: bash -c "sleep 10 && celery beat -A celery_worker.cel --schedule=/tmp/celerybeat-schedule --loglevel=info --pidfile=/tmp/celerybeat.pid"
+  #   volumes:
+  #     - .:/app
+  #     - ./lib:/opt/libraries
+  #   depends_on:
+  #     #- rabbit
+  #     - redis
+  #     - worker

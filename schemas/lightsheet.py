@@ -124,7 +124,7 @@ class Request(dj.Manual):
         number_of_z_planes = NULL                               :   smallint unsigned
         rawdata_subfolder = NULL                                :   varchar(512)
         imspector_channel_index = NULL                          :   tinyint    # refers to multi-channel imaging - 0 if first (or only) channel in rawdata_subfolder, 1 if second, 2 if third, ...
-        -> [nullable] spockadmin.ProcessingPipelineSpockJob # the jobid from step 3 in the light sheet processing pipeline
+        left_lightsheet_precomputed_spock_jobid = NULL          :   varchar(32)
         left_lightsheet_precomputed_spock_job_progress = NULL   :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
         right_lightsheet_precomputed_spock_jobid = NULL         :   varchar(32)
         right_lightsheet_precomputed_spock_job_progress = NULL  :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
@@ -151,8 +151,8 @@ class Request(dj.Manual):
         final_orientation                         :   enum("sagittal","coronal","horizontal")
         notes_for_processor = ""                  :   varchar(1024)
         notes_from_processing = ""                :   varchar(1024) 
-        spock_jobid = NULL                        :   varchar(32)
-        spock_job_progress = NULL                 :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+        spock_jobid = NULL                        :   varchar(16)  # the jobid from step 3 in the light sheet processing pipeline
+        spock_job_progress = NULL                 :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # the spock job status code for step 3 in the light sheet processing pipeline
         """
 
     class ProcessingChannel(dj.Part):
@@ -163,8 +163,13 @@ class Request(dj.Manual):
         ----
         imspector_version = ''                    :   varchar(128)
         datetime_processing_started               :   datetime
+        datetime_processing_completed = NULL      :   datetime
         intensity_correction = 1                  :   boolean
         metadata_xml_string = NULL                :   mediumblob # The entire metadata xml string. Sometimes it is not available so those times it will be NULL
+        left_lightsheet_tiled_precomputed_spock_jobid = NULL          :   varchar(32)
+        left_lightsheet_tiled_precomputed_spock_job_progress = NULL   :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+        right_lightsheet_tiled_precomputed_spock_jobid = NULL         :   varchar(32)
+        right_lightsheet_tiled_precomputed_spock_job_progress = NULL  :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
         """ 
                 
     class IdiscoPlusClearing(dj.Part): # 

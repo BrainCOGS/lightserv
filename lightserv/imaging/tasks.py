@@ -7,7 +7,7 @@ import paramiko
 import logging
 import datajoint as dj
 
-from lightserv import cel, db_admin, db_lightsheet
+from lightserv import cel, db_spockadmin, db_lightsheet
 from lightserv.processing.utils import determine_status_code
 
 
@@ -33,7 +33,8 @@ def make_precomputed_rawdata(**kwargs):
 	(i.e. one that can be read by cloudvolume) from raw 
 	image data from the light sheet microscope. 
 
-	Spawns a docker container to handle the actual computation
+	Spawns a series of spock jobs for handling the
+	actual computation.
 	"""
 
 	""" Read in keys """
@@ -110,7 +111,7 @@ def make_precomputed_rawdata(**kwargs):
 				'status_step1':status_step1,'status_step2':status_step2
 				}
 
-	db_admin.RawPrecomputedSpockJob.insert1(entry_dict)    
+	db_spockadmin.RawPrecomputedSpockJob.insert1(entry_dict)    
 	logger.info(f"Precomputed (Raw data) job inserted into RawPrecomputedSpockJob() table: {entry_dict}")
 	logger.info(f"Precomputed (Raw data) job successfully submitted to spock, jobid_step2: {jobid_step2}")
 	# logger.debug(type(jobid_step2))
@@ -129,7 +130,7 @@ def make_precomputed_rawdata(**kwargs):
 def check_raw_precomputed_statuses():
 	""" 
 	Checks all outstanding precomputed job statuses on spock
-	and updates their status in the SpockJobManager() in db_admin
+	and updates their status in the SpockJobManager() in db_spockadmin
 	and ProcessingResolutionRequest() in db_lightsheet, 
 	then finally figures out which ProcessingRequest() 
 	entities are now complete based on the potentially multiple
@@ -145,7 +146,7 @@ def check_raw_precomputed_statuses():
 
 	""" First get all rows with latest timestamps """
 	# return "made it"
-	job_contents = db_admin.RawPrecomputedSpockJob()
+	job_contents = db_spockadmin.RawPrecomputedSpockJob()
 	unique_contents = dj.U('jobid_step2','username',).aggr(
 		job_contents,timestamp='max(timestamp)')*job_contents
 	
@@ -251,7 +252,7 @@ def check_raw_precomputed_statuses():
 			logger.debug("Unable to connect to db_lightsheet")
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
-	db_admin.RawPrecomputedSpockJob.insert(job_insert_list)
+	db_spockadmin.RawPrecomputedSpockJob.insert(job_insert_list)
 	client.close()
 	# except:
 	# 	logger.debug("Problem connecting to spock or processing jobids")

@@ -6,8 +6,8 @@ services:
     image: jupyterhub/configurable-http-proxy:3.1.1
     # expose the proxy to the world
     ports:
-      - "8002:8000"
-      - "8003:8001"
+      - "8000:8000"
+      - "8001:8001"
     command: ['configurable-http-proxy',
               '--auto-rewrite',
               '--no-include-prefix',
@@ -58,23 +58,23 @@ services:
       # - rabbit
       - redis
     restart: always
-  # scheduler:
-  #   env_file: .dockerenv
-  #   image: flaskcelery_test:latest
-  #   command: ["celery",
-  #             "beat",
-  #             "-A",
-  #             "celery_worker.cel",
-  #             "--schedule=/tmp/celerybeat-schedule",
-  #             "--loglevel=info",
-  #             "--pidfile=/tmp/celerybeat.pid"]
-  #   volumes:
-  #     - .:/app
-  #     - ./lib:/opt/libraries
-  #   depends_on:
-  #     - redis
-  #     - worker
-  #   restart: always
+  scheduler:
+    env_file: .dockerenv
+    image: flaskcelery_test:latest
+    command: ["celery",
+              "beat",
+              "-A",
+              "celery_worker.cel",
+              "--schedule=/tmp/celerybeat-schedule",
+              "--loglevel=info",
+              "--pidfile=/tmp/celerybeat.pid"]
+    volumes:
+      - .:/app
+      - ./lib:/opt/libraries
+    depends_on:
+      - redis
+      - worker
+    restart: always
 networks:
   default:
     external:

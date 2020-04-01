@@ -67,6 +67,7 @@ def set_schema():
 		# db_lightsheet = dj.create_virtual_module('lightsheet','u19lightserv_lightsheet',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
 		db_lightsheet = dj.create_virtual_module('lightsheet','ahoag_lightsheet_demo',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
 		db_admin = dj.create_virtual_module('admin','ahoag_admin_demo',create_schema=True)
+		db_spockadmin = dj.create_virtual_module('spockadmin','ahoag_spockadmin_demo',create_schema=True)
 		db_microscope = dj.create_virtual_module('microscope_demo','ahoag_microscope_demo',create_schema=True)
 		db_subject = dj.create_virtual_module('subject','u19_subject',create_schema=False)
 		# db_microscope = None
@@ -82,11 +83,12 @@ def set_schema():
 		db_lightsheet = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
 		db_microscope = dj.create_virtual_module('ahoag_microscope_test','ahoag_microscope_test',create_schema=True)
 		db_admin = dj.create_virtual_module('ahoag_admin_test','ahoag_admin_test',create_schema=True)
+		db_spockadmin = dj.create_virtual_module('ahoag_spockadmin_test','ahoag_spockadmin_test',create_schema=True)
 		db_subject = dj.create_virtual_module('ahoag_subject_test','ahoag_subject_test',create_schema=True)
 
-	return db_lightsheet,db_microscope,db_admin,db_subject
+	return db_lightsheet,db_microscope,db_admin,db_spockadmin,db_subject
 
-db_lightsheet,db_microscope,db_admin,db_subject = set_schema()
+db_lightsheet,db_microscope,db_admin,db_spockadmin,db_subject = set_schema()
 
 def create_app(config_class=Config):
 	""" Create the flask app instance"""

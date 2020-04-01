@@ -23,7 +23,7 @@ class ImageResolutionProcessingForm(FlaskForm):
 	max_number_of_channels = 4
 	atlas_name = SelectField('Choose atlas for registration:',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
-				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[InputRequired()],default='allen_2017')
+				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[Optional()],default='allen_2017')
 	image_resolution = HiddenField('Image resolution')
 	notes_for_processor = TextAreaField('''Special notes for processing 
 		 -- max 1024 characters --''',validators=[Length(max=1024)])

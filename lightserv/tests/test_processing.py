@@ -52,6 +52,17 @@ def test_zmd_access_processing_manager(test_client,
 	assert b'nonadmin_request' in response.data 
 	assert b'lightserv-test' in response.data 
 
+def test_nonadmin_sees_their_4x_processing_request(test_client,
+	test_imaged_4x_request_nonadmin):
+	""" Test that lightserv-test, a nonadmin can access the processing task manager
+	and can see his entry because everyone is by default the processor for their requests """
+	response = test_client.get(url_for('processing.processing_manager')
+		, follow_redirects=True)
+	assert b'Processing management GUI' in response.data
+	# assert b'admin_request' not in response.data 
+	assert b'test2' in response.data 
+	# assert b'lightserv-test' in response.data 
+
 """ Tests for processing entry form """
 
 def test_processing_entry_form_loads(test_client,test_imaged_request_ahoag):
@@ -218,6 +229,37 @@ def test_submit_processing_entry_generic_imaging_nonadmin(test_client,test_image
 	response = test_client.post(url_for('processing.processing_entry',
 		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
 		imaging_request_number=1,processing_request_number=1)
+		,data=data,
+		follow_redirects=True)
+	
+	assert b"core facility requests" in response.data
+	assert b"Processing entry form" not in response.data
+
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
+			f'request_name="{request_name}"' & \
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			f'imaging_request_number="{imaging_request_number}"' & \
+			f'processing_request_number="{processing_request_number}"'
+	processing_progress = processing_request_contents.fetch1('processing_progress')
+	assert processing_progress == 'running'
+
+def test_submit_processing_entry_4x_nonadmin(test_client,test_imaged_4x_request_nonadmin):
+	""" Test that lightserv-test can submit their 4x processing request"""
+
+	data = {
+		'image_resolution_forms-0-image_resolution':'4x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'647',
+		'submit':True
+		}
+	username='lightserv-test'
+	request_name='test2'
+	sample_name='test2-001'
+	imaging_request_number=1
+	processing_request_number=1
+	response = test_client.post(url_for('processing.processing_entry',
+		username=username,request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number)
 		,data=data,
 		follow_redirects=True)
 	

@@ -18,14 +18,14 @@ class ChannelForm(FlaskForm):
 	zoom_body_magnification = DecimalField('Zoom body magnification',default=1.0,validators=[Optional()])
 	image_orientation = SelectField('Image orientation',choices=[('sagittal','sagittal'),('coronal','coronal'),
 				 ('horizontal','horizontal')],default='sagittal',validators=[InputRequired()])
-	left_lightsheet_used = BooleanField('Left',default=False)
+	left_lightsheet_used = BooleanField('Left',default=True)
 	right_lightsheet_used = BooleanField('Right',default=False)
-	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',default='1x1')
+	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',default='2x3')
 	tiling_overlap = DecimalField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
-		places=2,validators=[Optional()],default=0.1) 
-	z_step = DecimalField('Z resolution (microns)',validators=[InputRequired()],default=10.0)
+		places=2,validators=[Optional()],default=0.15) 
+	z_step = DecimalField('Z resolution (microns)',validators=[InputRequired()],default=2.0)
 	number_of_z_planes = IntegerField('Number of z planes',
-		widget=html5.NumberInput(),validators=[InputRequired()],default=657)
+		widget=html5.NumberInput(),validators=[InputRequired()],default=682)
 	rawdata_subfolder = TextAreaField('channel subfolder',validators=[InputRequired()])
 
 	def validate_tiling_overlap(self,tiling_overlap):
@@ -129,7 +129,13 @@ class ImagingForm(FlaskForm):
 						f'imaging_request_{self.imaging_request_number.data}',
 						'rawdata',rawdata_subfolder) 
 				number_of_rawfiles_expected = number_of_z_planes*(left_lightsheet_used+right_lightsheet_used)*n_rows*n_columns
-				number_of_rawfiles_found = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*Filter000{channel_index}*'))				
+				number_of_rawfiles_found = 0
+				if left_lightsheet_used:
+					number_of_rawfiles_found_left_lightsheet = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
+					number_of_rawfiles_found += number_of_rawfiles_found_left_lightsheet
+				if right_lightsheet_used:
+					number_of_rawfiles_found_right_lightsheet = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C01_*Filter000{channel_index}*'))	
+					number_of_rawfiles_found += number_of_rawfiles_found_right_lightsheet
 				if number_of_rawfiles_found != number_of_rawfiles_expected:
 					error_str = (f"You entered that for channel: {channel_name} there should be {number_of_rawfiles_expected} files, "
 						  f"but found {number_of_rawfiles_found} in raw data folder: "
