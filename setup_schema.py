@@ -13,20 +13,23 @@ dj.config['database.password'] = os.environ['DJ_DB_PASS']
 # dj.config['database.password'] = 'p@sswd'
 os.environ['FLASK_MODE'] = 'DEV'
 
-admin_schema = dj.schema('ahoag_admin_demo')
+spockadmin_schema = dj.schema('ahoag_spockadmin_demo')
 lightsheet_schema = dj.schema('ahoag_lightsheet_demo')
-microscope_schema = dj.schema('ahoag_microscope_demo')
+admin_schema = dj.schema('ahoag_admin_demo')
+# microscope_schema = dj.schema('ahoag_microscope_demo')
 
-drop_lightsheet_admin = input("Drop light sheet and admin databases? (yes or No): ")
+drop_lightsheet_admin = input("Drop light sheet, admin and spockadmin schemas? (yes or No): ")
 if drop_lightsheet_admin == 'yes':
 	admin_schema.drop(force=True)
 	lightsheet_schema.drop(force=True)
-
-from schemas import admin # admin imports lightsheet so no need to reimport here
-
+	spockadmin_schema.drop(force=True)
+# # from schemas import admin # admin imports lightsheet so no need to reimport here
+from schemas import spockadmin 
+from schemas import lightsheet 
+from schemas import admin
 # drop_microscope = input("Drop microscope database? (yes or No): ")
 # if drop_microscope == 'yes':
 # 	microscope_schema.drop(force=True)
 	
-from schemas import microscope
+# from schemas import microscope
 

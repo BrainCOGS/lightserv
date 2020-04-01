@@ -27,6 +27,7 @@ else:
     # schema.drop()
     # schema = dj.schema('u19lightserv_lightsheet')
     schema = dj.schema('ahoag_lightsheet_demo')
+from . import spockadmin
 
 @schema
 class User(dj.Lookup):
@@ -123,7 +124,7 @@ class Request(dj.Manual):
         number_of_z_planes = NULL                               :   smallint unsigned
         rawdata_subfolder = NULL                                :   varchar(512)
         imspector_channel_index = NULL                          :   tinyint    # refers to multi-channel imaging - 0 if first (or only) channel in rawdata_subfolder, 1 if second, 2 if third, ...
-        left_lightsheet_precomputed_spock_jobid = NULL          :   varchar(32)
+        -> [nullable] spockadmin.ProcessingPipelineSpockJob # the jobid from step 3 in the light sheet processing pipeline
         left_lightsheet_precomputed_spock_job_progress = NULL   :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
         right_lightsheet_precomputed_spock_jobid = NULL         :   varchar(32)
         right_lightsheet_precomputed_spock_job_progress = NULL  :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
