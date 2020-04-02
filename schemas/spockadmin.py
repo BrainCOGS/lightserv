@@ -45,7 +45,7 @@ class RawPrecomputedSpockJob(dj.Manual):
     jobid_step2  : varchar(16) # the jobid on spock of step2 (downsampling) in the precomputed pipeline. Used as primary key so that the progress of the precomputed pipeline can be probed.
     timestamp = CURRENT_TIMESTAMP : timestamp
     ---
-    lightsheet   : varchar(8) 
+    lightsheet   : varchar(8) # left or right
     jobid_step0  : varchar(16)
     jobid_step1  : varchar(16)
     username     : varchar(32)
@@ -60,8 +60,8 @@ class TiledPrecomputedSpockJob(dj.Manual):
     jobid_step2  : varchar(16) # the jobid on spock of step2 (downsampling) in the precomputed pipeline. Used as primary key so that the progress of the precomputed pipeline can be probed.
     timestamp = CURRENT_TIMESTAMP : timestamp
     ---
-    -> ProcessingPipelineSpockJob.proj(processing_pipeline_jobid_step3='jobid_step3')
-    lightsheet   : varchar(8) 
+    processing_pipeline_jobid_step3 : varchar(16) # the spock processing pipline job that this is linked to
+    lightsheet   : varchar(8) # left or right
     jobid_step0  : varchar(16)
     jobid_step1  : varchar(16)
     username     : varchar(32)
