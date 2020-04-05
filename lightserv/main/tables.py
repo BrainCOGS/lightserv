@@ -151,6 +151,15 @@ class ImagingRequestLinkCol(LinkCol):
     def text(self, item, attr_list):
         return item['imaging_request_number']
 
+    def td_contents(self, item,attr_list):
+        if self.text(item,attr_list) == 'N/A':
+            return "N/A"
+        else:
+            attrs = dict(href=self.url(item))
+            attrs.update(self.anchor_attrs)
+            text = self.td_format(self.text(item, attr_list))
+            return element('a', attrs=attrs, content=text, escape_content=False)
+
 class NewImagingRequestLinkCol(LinkCol):
     """Subclass of LinkCol to conditionally show the 
     new imaging request link for non-archival requests"
@@ -182,7 +191,7 @@ class ProcessingRequestLinkCol(LinkCol):
 
     def td_contents(self, item,attr_list):
         # print(item)
-        if item['processing_request_number'] == None:
+        if item['processing_request_number'] == None or item['processing_request_number'] == 'N/A':
             return "N/A"
         else:
             attrs = dict(href=self.url(item))
@@ -200,7 +209,6 @@ class NewProcessingRequestLinkCol(LinkCol):
         super(NewProcessingRequestLinkCol, self).__init__(name,endpoint,**kwargs)
 
     def td_contents(self, item,attr_list):
-        print(item)
         if item['processing_requests'][0]['processing_request_number'] == None:
             return "N/A"
         elif item['is_archival']:
