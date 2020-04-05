@@ -531,7 +531,6 @@ def new_imaging_request(username,request_name,sample_name):
 		sample_table=sample_table,existing_imaging_table=existing_imaging_table)
 
 @imaging.route("/imaging/imaging_table/<username>/<request_name>/<sample_name>/<imaging_request_number>",methods=['GET','POST'])
-@logged_in_as_imager
 @check_clearing_completed
 @log_http_requests
 def imaging_table(username,request_name,sample_name,imaging_request_number): 
