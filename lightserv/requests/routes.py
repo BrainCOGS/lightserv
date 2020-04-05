@@ -81,15 +81,17 @@ def all_requests():
         **replicated_args,
             fraction_cleared='CONCAT(n_cleared,"/",CONVERT(number_of_samples,char))')
     # logger.debug(sample_joined_contents)
-    imaging_joined_contents = dj.U('username','request_name').aggr(
-    sample_joined_contents * imaging_request_contents,
+    imaging_joined_contents = sample_joined_contents.aggr(
+    imaging_request_contents,
     **replicated_args,
     fraction_cleared='fraction_cleared',
     n_imaged='CONVERT(SUM(imaging_progress="complete"),char)',
-    total_imaging_requests='CONVERT(COUNT(*),char)'
+    total_imaging_requests='CONVERT(COUNT(*),char)',
+    keep_all_rows=True
     ).proj(**replicated_args,
         fraction_cleared='fraction_cleared',
-        fraction_imaged='CONCAT(n_imaged,"/",total_imaging_requests)'
+        # fraction_imaged='CONCAT(n_imaged,"/",total_imaging_requests)'
+        fraction_imaged='IF(n_imaged is NULL,"0/0",CONCAT(n_imaged,"/",total_imaging_requests))' 
         )
     # logger.debug("Imaging joined contents:")
     # logger.debug(imaging_joined_contents)
