@@ -151,6 +151,22 @@ class ImagingRequestLinkCol(LinkCol):
     def text(self, item, attr_list):
         return item['imaging_request_number']
 
+class NewImagingRequestLinkCol(LinkCol):
+    """Subclass of LinkCol to conditionally show the 
+    new imaging request link for non-archival requests"
+    """
+    def __init__(self,name,endpoint,**kwargs):
+        super(NewImagingRequestLinkCol, self).__init__(name,endpoint,**kwargs)
+    
+    def td_contents(self, item,attr_list):
+        if item['is_archival']:
+            return "N/A"
+        else:
+            attrs = dict(href=self.url(item))
+            attrs.update(self.anchor_attrs)
+            text = self.td_format(self.text(item, attr_list))
+            return element('a', attrs=attrs, content=text, escape_content=False)
+
 class ProcessingRequestLinkCol(LinkCol):
     """Subclass of LinkCol to conditionally show the processing request number 
     as a link to the table overview of that processing request,
@@ -173,19 +189,21 @@ class ProcessingRequestLinkCol(LinkCol):
             attrs.update(self.anchor_attrs)
             text = self.td_format(self.text(item, attr_list))
             return element('a', attrs=attrs, content=text, escape_content=False)
-    
 
-class AdditionalProcessingRequestLinkCol(LinkCol):
+class NewProcessingRequestLinkCol(LinkCol):
     """Subclass of LinkCol to conditionally show a link to the form 
     requesting additional processing. The condition
     to show the link is if processing requests are allowed for this sample.
     If they are, show the link, if not show "N/A'"
     """
     def __init__(self,name,endpoint,**kwargs):
-        super(AdditionalProcessingRequestLinkCol, self).__init__(name,endpoint,**kwargs)
+        super(NewProcessingRequestLinkCol, self).__init__(name,endpoint,**kwargs)
 
     def td_contents(self, item,attr_list):
+        print(item)
         if item['processing_requests'][0]['processing_request_number'] == None:
+            return "N/A"
+        elif item['is_archival']:
             return "N/A"
         else:
             attrs = dict(href=self.url(item))

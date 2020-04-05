@@ -3,8 +3,9 @@ from flask_table import Table, Col, LinkCol, ButtonCol, create_table, NestedTabl
 from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import (DateTimeCol, ImagingRequestLinkCol,
-	ProcessingRequestLinkCol, element,AdditionalProcessingRequestLinkCol,
-	AbbrevDescriptionCol)
+	ProcessingRequestLinkCol, element,NewProcessingRequestLinkCol,
+	AbbrevDescriptionCol,BooltoStringCol,NewImagingRequestLinkCol,
+	NewProcessingRequestLinkCol)
 from lightserv import db_lightsheet
 import os
 
@@ -87,6 +88,7 @@ class AllSamplesTable(Table):
 	sample_name = Col('sample name',column_html_attrs=column_html_attrs)
 	request_name = Col('request name',column_html_attrs=column_html_attrs)
 	username = Col('username',column_html_attrs=column_html_attrs)
+	is_archival = BooltoStringCol('archival?',column_html_attrs=column_html_attrs)
 	species = Col('species',column_html_attrs=column_html_attrs)
 	clearing_protocol = Col('clearing protocol')
 	clearing_progress = Col('clearing progress')
@@ -101,13 +103,14 @@ class AllSamplesTable(Table):
 	   anchor_attrs=anchor_attrs,allow_sort=False)
 	datetime_submitted = DateTimeCol('datetime submitted')
 	imaging_url_kwargs = {'username':'username','request_name':'request_name','sample_name':'sample_name'}
-	new_imaging_request_tooltip_text = ('Only request additional imaging for this sample '
+	new_imaging_request_tooltip_text = ('Not available for archival requests.'
+		'Please only request additional imaging for this sample '
 		'if your original request did not cover the sufficient imaging. '
 		 'To see what imaging you have already requested, '
 		 'click on the existing imaging request number(s) for this sample.')
 	new_imaging_request_html_attrs = {'class':'infolink','title':new_imaging_request_tooltip_text}
 
-	new_imaging_request = LinkCol('Request additional imaging',
+	new_imaging_request = NewImagingRequestLinkCol('Request additional imaging',
 		'imaging.new_imaging_request',url_kwargs=imaging_url_kwargs,
 		th_html_attrs=new_imaging_request_html_attrs,allow_sort=False)
 
@@ -128,16 +131,18 @@ class AllSamplesTable(Table):
 	imaging_requests_subtable_class.add_column('imaging_progress',Col('imaging progress'))
 	processing_url_kwargs = {'username':'username','request_name':'request_name',
 	'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
-	new_processing_request_tooltip_text = ('Only request additional processing for this sample and imaging request '
+	new_processing_request_tooltip_text = ('Not available for archival requests. '
+		'Please only request additional processing for this sample and imaging request '
 		'if your original request did not cover the sufficient processing. '
 		 'To see what processing you have already requested, '
 		 'click on the existing processing request number(s) corresponding to this imaging request. '
 		 'If this field shows "N/A" it is because no processing is possible for this sample.')
 	new_processing_request_html_attrs = {'class':'infolink','title':new_processing_request_tooltip_text}
 	imaging_requests_subtable_class.add_column('new processing request',
-		AdditionalProcessingRequestLinkCol('request additional processing',
+		NewProcessingRequestLinkCol('request additional processing',
 			'processing.new_processing_request',url_kwargs=processing_url_kwargs,
 			allow_sort=False,th_html_attrs=new_processing_request_html_attrs))
+	
 	""" Processing requests subtable setup """
 	processing_request_subtable_options = {
 	'table_id':f'processing_requests',
@@ -158,12 +163,11 @@ class AllSamplesTable(Table):
 	imaging_requests_subtable_class.add_column('processing_requests',
 		NestedTableCol('Processing Requests',processing_requests_subtable_class,allow_sort=False))
 	
-	""" Add processing subtable as a subtable to imaging requests subtable """
+	""" Finally add the imaging requests column to the main table 
+	(which is a nested table containing a nested table ) """
 	imaging_requests = NestedTableCol('Imaging Requests',
 		imaging_requests_subtable_class,allow_sort=False)
 	
-	url_kwargs = {'username':'username','request_name':'request_name'}
-	anchor_attrs = {'target':"_blank",}
 	
 	
 	def sort_url(self, col_key, reverse=False):

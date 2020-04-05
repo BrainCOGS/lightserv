@@ -54,12 +54,13 @@ class Request(dj.Manual):
     species                      :   varchar(50)
     number_of_samples            :   tinyint
     testing = 0                  :   boolean
+    is_archival = 0              :   boolean
     """  
 
     class ClearingBatch(dj.Part):
         definition = """ # Samples from a particular request
         -> Request
-        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU")
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU","iDISCO+_rat")
         antibody1 = ''               :   varchar(100)
         antibody2 = ''               :   varchar(100)
         clearing_batch_number        :   tinyint

@@ -247,6 +247,7 @@ def all_samples():
     logger.info(f"{current_user} accessed all_samples page")
     request_contents = db_lightsheet.Request()
     request_contents = request_contents.proj('description','species','number_of_samples',
+        'is_archival',
         datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
     sample_contents = db_lightsheet.Request.Sample()
     clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
@@ -263,7 +264,7 @@ def all_samples():
         legend = 'All core facility samples (from all requests)'
     
     replicated_args = dict(number_of_samples='number_of_samples',description='description',
-        species='species',datetime_submitted='datetime_submitted')
+        species='species',datetime_submitted='datetime_submitted',is_archival='is_archival')
     sample_joined_contents = request_contents * sample_contents * clearing_batch_contents
     imaging_joined_contents = sample_joined_contents.aggr(
         imaging_request_contents,
@@ -298,15 +299,15 @@ def all_samples():
     keep_keys = ['username','request_name','sample_name','species',
                  'clearing_protocol','clearing_progress','antibody1','antibody2',
                  'clearing_batch_number','n_imaging_requests',
-                 'n_processing_requests','datetime_submitted']
+                 'n_processing_requests','datetime_submitted','is_archival']
     # Assemble the list of dictionaries to pass to the flask table creator
     # Each dict will contain a list of imaging requests which will in turn
     # contain a list of processing requests
     final_dict_list = []
-
     for d in all_contents_dict_list:
         username = d.get('username')
         request_name = d.get('request_name')
+        is_archival_request = d.get('is_archival')
         current_sample_name = d.get('sample_name')
         imaging_request_number = d.get('imaging_request_number')
         imager = d.get('imager')
@@ -314,7 +315,8 @@ def all_samples():
         imaging_request_dict = {'username':username,'request_name':request_name,
                                 'sample_name':current_sample_name,
                                 'imaging_request_number':imaging_request_number,
-                                'imager':imager,'imaging_progress':imaging_progress}
+                                'imager':imager,'imaging_progress':imaging_progress,
+                                'is_archival':is_archival_request}
         processing_request_number = d.get('processing_request_number')
         processor = d.get('processor')
         processing_progress = d.get('processing_progress')
@@ -322,7 +324,8 @@ def all_samples():
                                    'sample_name':current_sample_name,
                                    'imaging_request_number':imaging_request_number,
                                    'processing_request_number':processing_request_number,
-                                      'processor':processor,'processing_progress':processing_progress}
+                                      'processor':processor,'processing_progress':processing_progress,
+                                      }
 
         existing_sample_names = [x.get('sample_name') for x in final_dict_list if x['username']==username and x['request_name']==request_name]
         if current_sample_name not in existing_sample_names: # Then new sample, new imaging request, new processing request
