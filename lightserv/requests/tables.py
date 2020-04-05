@@ -193,7 +193,7 @@ class RequestOverviewTable(Table):
 	number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
 
 def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynamic Samples Table', **sort_kwargs):
-
+	""" For request overview samples table """
 	def dynamic_sort_url(self, col_key, reverse=False):
 		if reverse:
 			direction = 'desc'
