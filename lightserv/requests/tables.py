@@ -66,10 +66,16 @@ class AllRequestTable(Table):
 class ClearingTableLinkCol(LinkCol):
 	
 	def td_contents(self, item, attr_list):
+		print(item)
 		if item['clearing_progress'] == 'complete':
-			return '<a href="{url}">{text}</a>'.format(
-				url=self.url(item),
-				text=self.td_format(self.text(item, attr_list)))
+			if item['is_archival']:
+				return '<a href="{url}">{text}</a>'.format(
+					url=item['link_to_clearing_spreadsheet'],
+					text='link')
+			else:	
+				return '<a href="{url}">{text}</a>'.format(
+					url=self.url(item),
+					text=self.td_format(self.text(item, attr_list)))
 		else:
 			return "N/A"
 

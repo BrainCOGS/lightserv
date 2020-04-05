@@ -71,6 +71,7 @@ class Request(dj.Manual):
         expected_handoff_date = NULL :   date
         -> [nullable] User.proj(clearer='username') # defines a new column here called "clearer" whose value must be either None or one of the "username" entries in the User() table
         notes_for_clearer = ""       :   varchar(1024)                
+        link_to_clearing_spreadsheet = NULL : varchar(256)
         """  
 
     class Sample(dj.Part):

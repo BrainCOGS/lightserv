@@ -142,7 +142,8 @@ def request_overview(username,request_name):
     # combined_contents = (samples_contents * clearing_batch_contents * \
     #     imaging_request_contents * processing_request_contents)
     replicated_args = dict(number_of_samples='number_of_samples',description='description',
-        species='species',is_archival='is_archival')
+        species='species',clearing_progress='clearing_progress',is_archival='is_archival',
+        link_to_clearing_spreadsheet='link_to_clearing_spreadsheet')
     sample_joined_contents = request_contents * sample_contents * clearing_batch_contents
     imaging_joined_contents = sample_joined_contents.aggr(
         imaging_request_contents,
@@ -179,7 +180,8 @@ def request_overview(username,request_name):
 
     keep_keys = ['username','request_name','sample_name','species',
                  'clearing_protocol','antibody1','antibody2','clearing_progress',
-                 'clearing_batch_number','datetime_submitted','is_archival']
+                 'clearing_batch_number','datetime_submitted','is_archival',
+                 'link_to_clearing_spreadsheet']
     final_dict_list = []
 
     for d in all_contents_dict_list:
@@ -266,7 +268,9 @@ def all_samples():
         legend = 'All core facility samples (from all requests)'
     
     replicated_args = dict(number_of_samples='number_of_samples',description='description',
-        species='species',datetime_submitted='datetime_submitted',is_archival='is_archival')
+        species='species',datetime_submitted='datetime_submitted',
+        clearing_progress='clearing_progress',is_archival='is_archival',
+        link_to_clearing_spreadsheet='link_to_clearing_spreadsheet')
     sample_joined_contents = request_contents * sample_contents * clearing_batch_contents
     imaging_joined_contents = sample_joined_contents.aggr(
         imaging_request_contents,
@@ -301,7 +305,8 @@ def all_samples():
     keep_keys = ['username','request_name','sample_name','species',
                  'clearing_protocol','clearing_progress','antibody1','antibody2',
                  'clearing_batch_number','n_imaging_requests',
-                 'n_processing_requests','datetime_submitted','is_archival']
+                 'n_processing_requests','datetime_submitted','is_archival',
+                 'link_to_clearing_spreadsheet']
     # Assemble the list of dictionaries to pass to the flask table creator
     # Each dict will contain a list of imaging requests which will in turn
     # contain a list of processing requests
