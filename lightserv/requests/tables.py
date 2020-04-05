@@ -4,8 +4,7 @@ from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import (DateTimeCol, ImagingRequestLinkCol,
 	ProcessingRequestLinkCol, element,NewProcessingRequestLinkCol,
-	AbbrevDescriptionCol,BooltoStringCol,NewImagingRequestLinkCol,
-	NewProcessingRequestLinkCol)
+	AbbrevDescriptionCol,BooltoStringCol,NewImagingRequestLinkCol)
 from lightserv import db_lightsheet
 import os
 
@@ -103,11 +102,12 @@ class AllSamplesTable(Table):
 	   anchor_attrs=anchor_attrs,allow_sort=False)
 	datetime_submitted = DateTimeCol('datetime submitted')
 	imaging_url_kwargs = {'username':'username','request_name':'request_name','sample_name':'sample_name'}
-	new_imaging_request_tooltip_text = ('Not available for archival requests.'
+	new_imaging_request_tooltip_text = ('Not available for archival requests. '
 		'Please only request additional imaging for this sample '
 		'if your original request did not cover the sufficient imaging. '
 		 'To see what imaging you have already requested, '
-		 'click on the existing imaging request number(s) for this sample.')
+		 'click on the existing imaging request number(s) for this sample. '
+		 'If this field shows "N/A" it is because no processing is possible for this sample.')
 	new_imaging_request_html_attrs = {'class':'infolink','title':new_imaging_request_tooltip_text}
 
 	new_imaging_request = NewImagingRequestLinkCol('Request additional imaging',
@@ -231,7 +231,7 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 	table_class.add_column('sample_name',Col('sample name'))    
 	table_class.add_column('request_name',Col('request name'))
 	table_class.add_column('username',Col('username'))
-	
+	table_class.add_column('is_archival',BooltoStringCol('archival?'))
 	table_class.add_column('clearing_protocol',Col('clearing protocol'))
 	table_class.add_column('clearing_progress',Col('clearing progress'))
 
@@ -259,15 +259,17 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 	imaging_requests_subtable_class.add_column('imager',Col('imager'))
 	imaging_requests_subtable_class.add_column('imaging_progress',Col('imaging progress'))
 	imaging_url_kwargs = {'username':'username','request_name':'request_name','sample_name':'sample_name'}
-	new_imaging_request_tooltip_text = ('Only request additional imaging for this sample'
+	new_imaging_request_tooltip_text = ('Not available for archival requests. '
+		'Please only request additional imaging for this sample '
 		'if your original request did not cover the sufficient imaging. '
 		 'To see what imaging you have already requested, '
-		 'click on the existing imaging request number(s) for this sample.')
+		 'click on the existing imaging request number(s) for this sample. '
+		 'If this field shows "N/A" it is because no additional imaging is possible for this sample.')
 	new_imaging_request_html_attrs = {'class':'infolink','title':new_imaging_request_tooltip_text}
 
-	imaging_requests_subtable_class.add_column('new imaging request',
-		LinkCol('request additional imaging','imaging.new_imaging_request',
-			url_kwargs=imaging_url_kwargs,th_html_attrs=new_imaging_request_html_attrs))
+	table_class.add_column('new imaging request',
+		NewImagingRequestLinkCol('request additional imaging','imaging.new_imaging_request',
+			url_kwargs=imaging_url_kwargs,th_html_attrs=new_imaging_request_html_attrs,allow_sort=False))
 
 	processing_request_subtable_options = {
 	'table_id':f'processing_requests',
@@ -286,13 +288,16 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 	processing_requests_subtable_class.add_column('processing_progress',Col('processing progress'))
 	processing_url_kwargs = {'username':'username','request_name':'request_name',
 	'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
-	new_processing_request_tooltip_text = ('Only request additional processing for this sample and imaging request '
+	new_processing_request_tooltip_text = ('Not available for archival requests. '
+		'Please only request additional processing for this sample and imaging request '
 		'if your original request did not cover the sufficient processing. '
 		 'To see what processing you have already requested, '
-		 'click on the existing processing request number(s) corresponding to this imaging request.')
+		 'click on the existing processing request number(s) corresponding to this imaging request. '
+		 'If this field shows "N/A" it is because no processing is possible for this sample.')
 	new_processing_request_html_attrs = {'class':'infolink','title':new_processing_request_tooltip_text}
-	processing_requests_subtable_class.add_column('new processing request',
-		LinkCol('request additional processing','processing.new_processing_request',
+	
+	imaging_requests_subtable_class.add_column('new processing request',
+		NewProcessingRequestLinkCol('request additional processing','processing.new_processing_request',
 			url_kwargs=processing_url_kwargs,th_html_attrs=new_processing_request_html_attrs))
 	imaging_requests_subtable_class.add_column('processing_requests',
 		NestedTableCol('Processing Requests',processing_requests_subtable_class))

@@ -154,6 +154,8 @@ class ImagingRequestLinkCol(LinkCol):
     def td_contents(self, item,attr_list):
         if self.text(item,attr_list) == 'N/A':
             return "N/A"
+        if item['is_archival']:
+            return self.text(item,attr_list)
         else:
             attrs = dict(href=self.url(item))
             attrs.update(self.anchor_attrs)
@@ -190,9 +192,10 @@ class ProcessingRequestLinkCol(LinkCol):
         return item['processing_request_number']
 
     def td_contents(self, item,attr_list):
-        # print(item)
         if item['processing_request_number'] == None or item['processing_request_number'] == 'N/A':
             return "N/A"
+        if item['is_archival']:
+            return self.text(item,attr_list)
         else:
             attrs = dict(href=self.url(item))
             attrs.update(self.anchor_attrs)
