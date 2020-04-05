@@ -121,7 +121,7 @@ class ImagingOverviewTable(Table):
     performed for a given imaging_request_number """ 
     border = True
     allow_sort=False
-    no_items = "No processing requested yet"
+    no_items = "No imaging requested yet"
     html_attrs = {"style":'font-size:18px'} # gets assigned to table header
     column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
