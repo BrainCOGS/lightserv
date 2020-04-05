@@ -294,7 +294,6 @@ def all_samples():
             total_imaging_requests='total_imaging_requests',
             total_processing_requests='IF(n_processed is NULL,0,total_processing_requests)', 
             )
-    logger.debug(processing_joined_contents)
     all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
     keep_keys = ['username','request_name','sample_name','species',
                  'clearing_protocol','clearing_progress','antibody1','antibody2',

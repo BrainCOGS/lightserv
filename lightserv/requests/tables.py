@@ -3,7 +3,8 @@ from flask_table import Table, Col, LinkCol, ButtonCol, create_table, NestedTabl
 from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import (DateTimeCol, ImagingRequestLinkCol,
-	ProcessingRequestLinkCol, element,AdditionalProcessingRequestLinkCol)
+	ProcessingRequestLinkCol, element,AdditionalProcessingRequestLinkCol,
+	AbbrevDescriptionCol)
 from lightserv import db_lightsheet
 import os
 
@@ -21,7 +22,7 @@ class AllRequestTable(Table):
 
 	username = Col('username',column_html_attrs=column_html_attrs)
 	request_name = Col('request name',column_html_attrs=column_html_attrs)
-	description = Col('description',column_html_attrs=column_html_attrs)
+	description = AbbrevDescriptionCol('description',column_html_attrs=column_html_attrs)
 	species = Col('species',column_html_attrs=column_html_attrs)
 	number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
 	fraction_cleared = Col('fraction cleared',column_html_attrs=column_html_attrs)

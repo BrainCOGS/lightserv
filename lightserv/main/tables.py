@@ -10,6 +10,9 @@ from flask import Markup
 channel_str_dict = {'regch':'registration','injch':'injection/probe detection',
                     'cellch':'cell detection','gench':'generic imaging'}
 
+""" Functions and classes that I use in all of my blueprints.
+They are collected here just for organizational purposes """
+
 def element(element, attrs=None, content='',
             escape_attrs=True, escape_content=True):
     return '<{element}{formatted_attrs}>{content}</{element}>'.format(
@@ -190,6 +193,16 @@ class AdditionalProcessingRequestLinkCol(LinkCol):
             text = self.td_format(self.text(item, attr_list))
             return element('a', attrs=attrs, content=text, escape_content=False)
 
+class AbbrevDescriptionCol(Col):
+    """ Column for showing an abbreviated version 
+    of the description (works for any string-formatted column actually)  """
+    def td_format(self, content):
+        if len(content) > 64:
+            return content[0:64] + ' ...'
+        else:
+            return content
+""" Tables I use in main.routes """
+
 
 class RequestTable(Table):
     border = True
@@ -202,3 +215,4 @@ class RequestTable(Table):
     description = Col('description',column_html_attrs=column_html_attrs)
     species = Col('species',column_html_attrs=column_html_attrs)
     number_of_samples = Col('number_of_samples',column_html_attrs=column_html_attrs)
+
