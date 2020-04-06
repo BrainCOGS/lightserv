@@ -14,7 +14,7 @@ from lightserv.taskmanager.tasks import send_email
 import numpy as np
 import datajoint as dj
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import glob
 import os
@@ -110,15 +110,15 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 	form.sample_name.data = sample_name
 	form.imaging_request_number.data = imaging_request_number
 	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"' 
+			f'username="{username}"' & f'sample_name="{sample_name}"' 
 	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
-	 		f'imaging_request_number="{imaging_request_number}"' 
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			f'imaging_request_number="{imaging_request_number}"' 
 	''' If imaging is already complete (from before), then dont change imaging_progress '''
 	imaging_progress = imaging_request_contents.fetch1('imaging_progress')
 	
 	channel_contents = (db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"')
+			f'username="{username}"' & f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"')
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
 
 	channel_contents_lists = []
@@ -235,12 +235,12 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			 f'request_name="{request_name}"').fetch1('correspondence_email')
 			data_rootpath = current_app.config["DATA_BUCKET_ROOTPATH"]
 			path_to_data = (f'{data_rootpath}/{username}/{request_name}/'
-				             f'{sample_name}/rawdata/imaging_request_number_{imaging_request_number}')
+							 f'{sample_name}/rawdata/imaging_request_number_{imaging_request_number}')
 			""" Send email """
 			subject = 'Lightserv automated email: Imaging complete'
 			hosturl = os.environ['HOSTURL']
 
-			processing_manager_url = f'http://{hosturl}' + url_for('processing.processing_manager')
+			processing_manager_url = f'https://{hosturl}' + url_for('processing.processing_manager')
 			message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
 						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 						'The raw data for your request:\n'
@@ -261,6 +261,34 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			date = now.strftime('%Y-%m-%d')
 			dj.Table._update(imaging_request_contents,'imaging_performed_date',date)
 			
+			""" Finally, set up the 4-day reminder email that will be sent if 
+			user still has not submitted processing request (provided that there exists a processing 
+			request for this imaging request) """
+
+			""" First check if there is a processing request for this imaging request.
+			This will be processing_request_number=1 because we are in the imaging entry
+			form here. """
+			restrict_dict = dict(username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number,
+				processing_request_number=1)
+			processing_request_contents = db_lightsheet.Request.ProcessingRequest() & restrict_dict
+			if len(processing_request_contents) > 0:
+				subject = 'Lightserv automated email. Reminder to start processing.'
+				body = ('Hello, this is a reminder that you still have not started '
+						'the data processing pipeline for your sample:.\n\n'
+						f'request_name: {request_name}\n'
+						f'sample_name: {sample_name}\n\n'
+						'To start processing your data, '
+						f'go to the processing management GUI: {processing_manager_url} '
+						'and find your sample to process.\n\n'
+						'Thanks,\nThe Brain Registration and Histology Core Facility')    
+				logger.debug("Sending reminder email 4 days in the future")
+				future_time = datetime.utcnow() + timedelta(days=4)
+				reminder_email_kwargs = restrict_dict.copy()
+				reminder_email_kwargs['subject'] = subject
+				reminder_email_kwargs['body'] = body
+				tasks.send_processing_reminder_email.apply_async(kwargs=reminder_email_kwargs,eta=future_time)
+				logger.debug("Sent celery task for reminder email.")
 			return redirect(url_for('imaging.imaging_manager'))
 		else:
 			logger.info("Not validated")
@@ -336,14 +364,14 @@ def new_imaging_request(username,request_name,sample_name):
 	all_imaging_modes = current_app.config['IMAGING_MODES']
 
 	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"'								
+			f'username="{username}"' & f'sample_name="{sample_name}"'								
 	
 	sample_table = SampleTable(sample_contents)
 	channel_contents = (db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"')
+			f'username="{username}"' & f'sample_name="{sample_name}"')
 	""" figure out the new imaging request number to give the new request """
 	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"' 
+			f'username="{username}"' & f'sample_name="{sample_name}"' 
 	previous_imaging_request_numbers = np.unique(imaging_request_contents.fetch('imaging_request_number'))
 	previous_max_imaging_request_number = max(previous_imaging_request_numbers)
 	new_imaging_request_number = previous_max_imaging_request_number + 1
@@ -536,8 +564,8 @@ def new_imaging_request(username,request_name,sample_name):
 def imaging_table(username,request_name,sample_name,imaging_request_number): 
 	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & \
 			f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
-	 		f'imaging_request_number="{imaging_request_number}"' 
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			f'imaging_request_number="{imaging_request_number}"' 
 
 	imaging_overview_table = ImagingTable(imaging_request_contents)
 	imaging_progress = imaging_request_contents.fetch1('imaging_progress')
@@ -546,8 +574,8 @@ def imaging_table(username,request_name,sample_name,imaging_request_number):
 	else:
 		imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
 				f'request_name="{request_name}"' & \
-		 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
-		 		f'imaging_request_number="{imaging_request_number}"' 
+				f'username="{username}"' & f'sample_name="{sample_name}"' & \
+				f'imaging_request_number="{imaging_request_number}"' 
 	imaging_channel_table = ImagingChannelTable(imaging_channel_contents)
 
 	return render_template('imaging/imaging_log.html',

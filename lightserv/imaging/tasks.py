@@ -7,8 +7,9 @@ import paramiko
 import logging
 import datajoint as dj
 
-from lightserv import cel, db_spockadmin, db_lightsheet
+from lightserv import cel, db_spockadmin, db_lightsheet, smtp_connect
 from lightserv.processing.utils import determine_status_code
+from email.message import EmailMessage
 
 
 logger = logging.getLogger(__name__)
@@ -260,3 +261,41 @@ def check_raw_precomputed_statuses():
 		
 	return "checked statuses"
 	
+
+@cel.task()
+def send_processing_reminder_email(**reminder_email_kwargs):
+	""" Asynchronous task to send an email, assuming
+	the processing request has not been started yet. """
+	if os.environ['FLASK_MODE'] == 'TEST':	 	
+		print("Not sending reminder email since this is a test.")
+		return "Email not sent because are in TEST mode"
+	subject = reminder_email_kwargs['subject']
+	body = reminder_email_kwargs['body']
+	username = reminder_email_kwargs['username']
+	request_name = reminder_email_kwargs['request_name']
+	sample_name = reminder_email_kwargs['sample_name']
+	imaging_request_number = reminder_email_kwargs['imaging_request_number']
+	processing_request_number = reminder_email_kwargs['processing_request_number']
+
+	restrict_dict = dict(username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number,
+				processing_request_number=processing_request_number)
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & restrict_dict
+	logger.debug("processing request contents:")
+	logger.debug(processing_request_contents)
+	processing_progress = processing_request_contents.fetch1('processing_progress')
+	if processing_progress != 'incomplete':
+		logger.info("Processing already started for this processing request. Not sending reminder email. ")
+		logger.info(processing_request_contents)
+		return "Processing reminder email not necessary"
+
+	sender_email = 'lightservhelper@gmail.com'
+	
+	msg = EmailMessage()
+	msg['Subject'] = subject
+	msg['From'] = sender_email
+	msg['To'] = 'ahoag@princeton.edu' # to me while in DEV phase
+	msg.set_content(body)                    
+	smtp_server = smtp_connect()
+	smtp_server.send_message(msg)
+	return "Processing reminder email sent!"
