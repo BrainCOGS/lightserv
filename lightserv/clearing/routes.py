@@ -183,7 +183,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 							samples_str = ', '.join(sample for sample in samples_this_clearing_batch)
 							# logger.debug(samples_this_clearing_batch)	
 							hosturl = os.environ['HOSTURL']
-							imaging_manager_url = f'http://{hosturl}' + url_for('imaging.imaging_manager')
+							imaging_manager_url = f'https://{hosturl}' + url_for('imaging.imaging_manager')
 							
 							subject = 'Lightserv automated email: Clearing complete'
 							message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
