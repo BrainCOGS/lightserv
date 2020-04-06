@@ -98,8 +98,7 @@ def login():
 		 "Firefox users will experience some known issues. We recommend switching to Google Chrome for a better experience.",'danger')
 	hostname = socket.gethostname()
 	if hostname == 'docker_lightserv':
-		# username = request.headers['X-Remote-User']
-		username='ejdennis'
+		username = request.headers['X-Remote-User']
 	else:
 		username = 'ahoag' # pragma: no cover - used to exclude this line from testing
 

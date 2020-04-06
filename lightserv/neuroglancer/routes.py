@@ -151,7 +151,7 @@ def ngdemo():
     logger.debug(f"Redis contents for this session")
     logger.debug(session_dict)
     
-    neuroglancerurl = f"http://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
+    neuroglancerurl = f"https://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
     return f"""
 <html>
     <head>

@@ -24,7 +24,7 @@ import numpy as np
 
 import pymysql
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 logger = logging.getLogger(__name__)
@@ -788,8 +788,8 @@ def new_request():
                         keyfile_contents = keyfile.readlines() 
                     ssh_key_text = keyfile_contents[0].strip('\n')
                     hosturl = os.environ['HOSTURL']
-                    spock_test_link = f'http://{hosturl}' + url_for('main.spock_connection_test')
-                    pre_handoff_link = f'http://{hosturl}' + url_for('main.pre_handoff')
+                    spock_test_link = f'https://{hosturl}' + url_for('main.spock_connection_test')
+                    pre_handoff_link = f'https://{hosturl}' + url_for('main.pre_handoff')
                     message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
                         'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
                         'Your request:\n'
@@ -859,4 +859,19 @@ def new_request():
 
     return render_template('requests/new_request.html', title='new_request',
         form=form,legend='New Request',column_name=column_name) 
+
+
+@requests.route("/requests/reminder")
+@log_http_requests
+@logged_in
+def reminder(): 
+    subject = 'Lightserv automated email. Reminder to start processing.'
+    body = ('Hello, this is a reminder that you still have not started '
+            'the data processing pipeline for your request.\n\n'
+            'Thanks,\nThe Brain Registration and Histology Core Facility')    
+    logger.debug("Sending reminder email at 15 seconds in the future")
+    future_time = datetime.utcnow() + timedelta(seconds=15)
+    send_email.apply_async(kwargs={
+        'subject':subject,'body':body},eta=future_time)
+    return "Sent reminder!"
 

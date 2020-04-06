@@ -355,6 +355,7 @@ def make_precomputed_tiled_data_poststitching(**kwargs):
 								 f"{request_name}/{sample_name}/"
 								 f"imaging_request_{imaging_request_number}/rawdata/"
 								 f"{rawdata_subfolder}")
+	kwargs['rawdata_path'] = rawdata_path
 	""" construct the terastitcher output path """
 	brainname = rawdata_path[rawdata_path.rfind('/')+8:-9]
 	channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
@@ -365,9 +366,11 @@ def make_precomputed_tiled_data_poststitching(**kwargs):
 	terastitcher_output_dir = max(all_terastitcher_subpaths,key = lambda path: path.count('/'))
 	""" Find the number of tif files, which will be the number of z planes
 	This is not necessarily the same as the number of z planes in the 
-	raw directories because terastitcher can offset when doing tiling """
+	raw directories because terastitcher can perform offset
+	when optimizing tiling """
 	z_plane_files = glob.glob(terastitcher_output_dir + '/*tif')
 	number_of_z_planes = len(z_plane_files)
+	kwargs['z_dim'] = number_of_z_planes
 	""" Figure out number of pixels in x and y """
 	first_plane = z_plane_files[0]
 	first_im = Image.open(first_plane)
@@ -811,6 +814,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_tiled_data():
 			rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder']
 			left_lightsheet_used = this_processing_channel_contents['left_lightsheet_used']
 			right_lightsheet_used = this_processing_channel_contents['right_lightsheet_used']
+			z_step = this_processing_channel_contents['z_step'] # not altered during stitching
 
 			precomputed_kwargs = dict(
 				username=username,request_name=request_name,
@@ -821,7 +825,8 @@ def check_for_spock_jobs_ready_for_making_precomputed_tiled_data():
 				rawdata_subfolder=rawdata_subfolder,
 				left_lightsheet_used=left_lightsheet_used,
 				right_lightsheet_used=right_lightsheet_used,
-				processing_pipeline_jobid_step3=processing_pipeline_jobid_step3)
+				processing_pipeline_jobid_step3=processing_pipeline_jobid_step3,
+				z_step=z_step)
 			stitched_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
 							 f"{request_name}/{sample_name}/"
 							 f"imaging_request_{imaging_request_number}/viz/"
@@ -846,7 +851,6 @@ def check_for_spock_jobs_ready_for_making_precomputed_tiled_data():
 				logger.info("Sent precomputed task for tiling right lightsheet")
 
 	return "Checked for light sheet pipeline jobs whose data have been tiled"
-
 
 @cel.task()
 def tiled_precomputed_job_status_checker():
