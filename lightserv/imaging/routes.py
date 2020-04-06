@@ -220,13 +220,13 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 							mymkdir(this_viz_dir)
 							precomputed_kwargs['lightsheet'] = 'left'
 							precomputed_kwargs['viz_dir'] = this_viz_dir
-							# tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
+							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 						if right_lightsheet_used:
 							this_viz_dir = raw_viz_dir + 'left_lightsheet'
 							mymkdir(this_viz_dir)
 							precomputed_kwargs['lightsheet'] = 'right'
 							precomputed_kwargs['viz_dir'] = this_viz_dir
-							# tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
+							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 					else:
 						logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
 									 "Not creating precomputed data for neuroglancer visualization.")
@@ -332,9 +332,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				this_resolution_form.channel_forms.append_entry()
 				this_channel_form = this_resolution_form.channel_forms[-1]
 				this_channel_form.channel_name.data = channel_content['channel_name']
-				logger.debug(channel_content)
 				this_channel_form.image_resolution.data = channel_content['image_resolution']
-				this_channel_form.rawdata_subfolder.data = '200221_20180220_jg_09_4x_647_008na_1hfds_z2um_100msec_15povlp_14-16-13'
+				this_channel_form.rawdata_subfolder.data = 'test488_555'
 
 	rawdata_filepath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 		overview_dict['username'],overview_dict['request_name'],
@@ -401,8 +400,8 @@ def new_imaging_request(username,request_name,sample_name):
 					# Make the default for channel 488 to be 1.3x imaging with registration checked
 					if channel_name == '488' and image_resolution_forsetup == "1.3x":
 						image_resolution_form.channels[x].registration.data = 1
-			elif submit_key == 'submit':
 
+			elif submit_key == 'submit':
 				connection = db_lightsheet.Request.ImagingRequest.connection
 				with connection.transaction:
 					""" First handle the ImagingRequest() and ProcessingRequest() entries """

@@ -44,6 +44,7 @@ def make_precomputed_rawdata(**kwargs):
 	sample_name=kwargs['sample_name']
 	imaging_request_number=kwargs['imaging_request_number']
 	channel_name=kwargs['channel_name']
+	channel_index=kwargs['channel_index']
 	image_resolution=kwargs['image_resolution']
 	number_of_z_planes=kwargs['number_of_z_planes']
 	rawdata_subfolder=kwargs['rawdata_subfolder']
@@ -80,12 +81,11 @@ def make_precomputed_rawdata(**kwargs):
 
 	""" Now set up the connection to spock """
 	
-	command = ("cd /jukebox/wang/ahoag/precomputed; "
-			   "/jukebox/wang/ahoag/precomputed/precomputed_pipeline_raw.sh {} {} {}").format(
+	command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "
+			   "/jukebox/wang/ahoag/precomputed/raw_pipeline/precomputed_pipeline_raw.sh {} {} {}").format(
 		n_array_jobs_step1,n_array_jobs_step2,viz_dir)
 	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
-	# command = "cd /jukebox/wang/ahoag/precomputed; sbatch --parsable --export=ALL,viz_dir='{}' /jukebox/wang/ahoag/precomputed/precomputed_pipeline.sh".format(
-	# 	viz_dir)
+
 	hostname = 'spock.pni.princeton.edu'
 	port=22
 	spock_username = 'lightserv-test' # Use the service account for this step - if it gets overloaded we can switch to user accounts
@@ -96,10 +96,18 @@ def make_precomputed_rawdata(**kwargs):
 	client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
 	stdin, stdout, stderr = client.exec_command(command)
 	# jobid_final_step = str(stdout.read().decode("utf-8").strip('\n'))
-	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
-	logger.debug(response)
-	jobid_step0, jobid_step1, jobid_step2 = response.split('\n')
+	try:
+		response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
+		logger.debug(response)
+		jobid_step0, jobid_step1, jobid_step2 = response.split('\n')
+	except:
+		if lightsheet == 'left':
+			dj.Table._update(this_imaging_channel_content,'left_lightsheet_precomputed_spock_job_progress','FAILED')
+		else:
+			dj.Table._update(this_imaging_channel_content,'right_lightsheet_precomputed_spock_job_progress','FAILED')
+		logger.debug("Error getting response from spock. ")
 
+		return "Error getting response from spock."
 	status_step0 = 'SUBMITTED'
 	status_step1 = 'SUBMITTED'
 	status_step2 = 'SUBMITTED'

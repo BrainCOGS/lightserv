@@ -429,6 +429,9 @@ def new_request():
                             #   image_resolution_form.channel_forms[x].cell_detection.render_kw = {'disabled':'disabled'}
                             if form.species.data == 'mouse' and channel_name == '488' and image_resolution_forsetup == "1.3x":
                                 image_resolution_form.channel_forms[x].registration.data = 1
+                            if form.species.data == 'mouse' and channel_name == '555' and image_resolution_forsetup == "1.3x":
+                                image_resolution_form.channel_forms[x].injection_detection.data = 1
+                                
                         logger.info(f"Column name is: {column_name}")
             """ Handle all of the different "*submit*" buttons pressed """
             if submit_key == 'sample_submit_button': # The sample setup button

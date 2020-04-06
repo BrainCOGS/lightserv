@@ -95,7 +95,7 @@ class NewRequestForm(FlaskForm):
 	subject_fullname = SelectField('subject_fullname in u19_subject table:',
 		choices=subject_fullname_choices,default='') 
 	request_name = StringField('Request_name - a unique identifier for this request -- max 64 characters --',
-		validators=[InputRequired(),Length(max=64)],default="test2")
+		validators=[InputRequired(),Length(max=64)],default="test")
 	description = TextAreaField('What is the goal of this request? -- max 250 characters --',validators=[InputRequired(),Length(max=250)],default="test")
 	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)],default="Braincogs")
 	correspondence_email = StringField('Correspondence email (default is your princeton email)',

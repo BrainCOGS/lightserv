@@ -111,3 +111,5 @@ def send_feedback_email():
     eta = datetime.utcnow() + timedelta(seconds=1)
     tasks.send_email.apply_async(kwargs={'request_name':'test'},eta=eta)
     return "Email sent"
+
+
