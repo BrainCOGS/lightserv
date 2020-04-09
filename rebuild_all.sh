@@ -1,7 +1,8 @@
-docker rm -f $(docker ps -aq)
+# remove all running and stopped containers from this docker-compose file
+docker rm -f $(docker ps -a | grep lightserv | awk '{print $1}')
 
 # Make the common image that will be used by flask and celery
-docker build -f ./flaskcelery.Dockerfile -t flaskcelery_test:latest .
+docker build -f ./flaskcelery.Dockerfile -t flaskcelery:latest .
 
 # Build docker-compose services
 docker-compose build 

@@ -1,4 +1,4 @@
-docker rm -f $(docker ps -aq)
+docker rm -f $(docker ps -a | grep lightserv_test | awk '{print $1}')
 
 # Make the common image that will be used by flask and celery and for testing
 docker build -f ./flaskcelery.Dockerfile -t flaskcelery_test:latest .
