@@ -398,3 +398,46 @@ def mymkdir(path,mode=0o777):
 			raise
 
 	return path
+
+def check_imaging_request_precomputed(f):
+	""" Ensures that all of the
+	raw data in an imaging request that 
+	can be made into precomputed format 
+	(i.e the non-tiled channels) is completed converted.
+	"""
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		request_name = kwargs['request_name']
+		sample_name = kwargs['sample_name']
+		username = kwargs['username']
+		imaging_request_number = kwargs['imaging_request_number']
+		restrict_dict = dict(username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number)
+		imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict
+		imaging_request_job_statuses = []
+		for imaging_channel_dict in imaging_channel_contents:
+			left_lightsheet_used = imaging_channel_dict['left_lightsheet_used']
+			right_lightsheet_used = imaging_channel_dict['right_lightsheet_used']
+			if left_lightsheet_used:
+				job_status = imaging_channel_dict['left_lightsheet_precomputed_spock_job_progress']
+				imaging_request_job_statuses.append(job_status)
+			if right_lightsheet_used:
+				job_status = imaging_channel_dict['right_lightsheet_precomputed_spock_job_progress']
+				imaging_request_job_statuses.append(job_status)
+		# logger.debug("job statuses for this imaging request:")
+		# logger.debug(imaging_request_job_statuses)
+		if len(imaging_request_job_statuses) == 0:
+			flash(f"Raw images are not visualizable for this imaging request.",'danger')
+			return redirect(url_for('requests.request_overview',username=username,
+				request_name=request_name,
+				sample_name=sample_name))
+		if all(x=='COMPLETED' for x in imaging_request_job_statuses):
+			return f(*args, **kwargs)
+		else:
+			flash(f"Images are not done being converted so that Neuroglancer can visualize them. "
+				  f"Try again later.",'danger')
+			return redirect(url_for('requests.request_overview',username=username,
+				request_name=request_name,
+				sample_name=sample_name))
+			
+	return decorated_function

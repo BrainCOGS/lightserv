@@ -333,7 +333,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				this_channel_form = this_resolution_form.channel_forms[-1]
 				this_channel_form.channel_name.data = channel_content['channel_name']
 				this_channel_form.image_resolution.data = channel_content['image_resolution']
-				this_channel_form.rawdata_subfolder.data = 'test488_555'
+				this_channel_form.rawdata_subfolder.data = '200221_20180220_jg_09_4x_647_008na_1hfds_z2um_100msec_15povlp_14-16-13'
 
 	rawdata_filepath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 		overview_dict['username'],overview_dict['request_name'],

@@ -20,12 +20,12 @@ class ChannelForm(FlaskForm):
 				 ('horizontal','horizontal')],default='sagittal',validators=[InputRequired()])
 	left_lightsheet_used = BooleanField('Left',default=True)
 	right_lightsheet_used = BooleanField('Right',default=False)
-	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',default='1x1')
+	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',default='2x3')
 	tiling_overlap = DecimalField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
 		places=2,validators=[Optional()],default=0.15) 
-	z_step = DecimalField('Z resolution (microns)',validators=[InputRequired()],default=10.0)
+	z_step = DecimalField('Z resolution (microns)',validators=[InputRequired()],default=7.5)
 	number_of_z_planes = IntegerField('Number of z planes',
-		widget=html5.NumberInput(),validators=[InputRequired()],default=657)
+		widget=html5.NumberInput(),validators=[InputRequired()],default=682)
 	rawdata_subfolder = TextAreaField('channel subfolder',validators=[InputRequired()])
 
 	def validate_tiling_overlap(self,tiling_overlap):
@@ -139,7 +139,7 @@ class ImagingForm(FlaskForm):
 				if number_of_rawfiles_found != number_of_rawfiles_expected:
 					error_str = (f"You entered that for channel: {channel_name} there should be {number_of_rawfiles_expected} files, "
 						  f"but found {number_of_rawfiles_found} in raw data folder: "
-						  f"{rawdata_fullpath}","danger")
+						  f"{rawdata_fullpath}")
 					raise ValidationError(error_str)
 			
 			""" Now make sure imaging parameters are the same for all channels within the same subfolder """

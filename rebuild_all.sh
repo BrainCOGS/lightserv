@@ -16,7 +16,7 @@ docker network create --attachable lightserv
 cd ./cloudvolume
 
 docker build -f ./cloudvolume.Dockerfile -t cloudv:latest .
-
+	
 ## build neuroglancer latest tag
 cd ../neuroglancer
 

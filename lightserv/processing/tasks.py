@@ -2,23 +2,22 @@ from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup, current_app,jsonify)
 from lightserv.main.utils import mymkdir
-from lightserv.processing.forms import StartProcessingForm, NewProcessingRequestForm
-from lightserv.processing.tables import (dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable)
 from lightserv.processing.utils import determine_status_code
-from lightserv import db_lightsheet, db_spockadmin
-from lightserv import cel
+from lightserv import cel, db_lightsheet, db_spockadmin
+from lightserv.taskmanager.tasks import send_email
+
 import datajoint as dj
 from datetime import datetime
 import logging
 import tifffile
 import glob
-import os, errno
+import os
 import pickle
 import paramiko
 from PIL import Image
 import math
-import numpy as np
 from pathlib import Path
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -871,11 +870,8 @@ def tiled_precomputed_job_status_checker():
 		job_contents,timestamp='max(timestamp)')*job_contents
 	
 	""" Get a list of all jobs we need to check up on, i.e.
-	those that could conceivably change. Also list the problematic_codes
-	which will be used later for error reporting to the user.
-	"""
+	those that could conceivably change. """
 
-	# static_codes = ('COMPLETED','FAILED','BOOT_FAIL','CANCELLED','DEADLINE','OUT_OF_MEMORY','REVOKED')
 	ongoing_codes = ('SUBMITTED','RUNNING','PENDING','REQUEUED','RESIZING','SUSPENDED')
 	incomplete_contents = unique_contents & f'status_step2 in {ongoing_codes}'
 	jobids = list(incomplete_contents.fetch('jobid_step2'))
@@ -918,13 +914,15 @@ def tiled_precomputed_job_status_checker():
 		client.close()
 		return "Error fetching job statuses from spock"
 
+	""" Loop through the jobids and determine 
+	their status from the list of statuses for each of their array jobs"""
 	for jobid,indices_list in job_status_indices_dict.items():
 		logger.debug(f"Working on jobid={jobid}")
 		job_insert_dict = {'jobid_step2':jobid}
 		status_codes = [status_codes_received[ii] for ii in indices_list]
-		status = determine_status_code(status_codes)
-		logger.debug(f"Status code for this job is: {status}")
-		job_insert_dict['status_step2'] = status
+		status_step2 = determine_status_code(status_codes)
+		logger.debug(f"Status code for this job is: {status_step2}")
+		job_insert_dict['status_step2'] = status_step2
 		""" Find the username, other jobids associated with this jobid """
 		username_thisjob,lightsheet_thisjob,processing_pipeline_jobid_step3_thisjob,jobid_step0,jobid_step1 = (
 			unique_contents & f'jobid_step2={jobid}').fetch1(
@@ -935,26 +933,8 @@ def tiled_precomputed_job_status_checker():
 		job_insert_dict['jobid_step0']=jobid_step0
 		job_insert_dict['jobid_step1']=jobid_step1
 		jobid_step_dict = {'step0':jobid_step0,'step1':jobid_step1}
-
-		""" Get the processing channel entry associated with this jobid
-		and update the progress """
-		if lightsheet_thisjob == 'left':
-			restrict_dict = dict(left_lightsheet_tiled_precomputed_spock_jobid=jobid)
-			replace_key = 'left_lightsheet_tiled_precomputed_spock_job_progress'
-		elif lightsheet_thisjob == 'right':
-			restrict_dict = dict(right_lightsheet_tiled_precomputed_spock_jobid=jobid)
-			replace_key = 'right_lightsheet_tiled_precomputed_spock_job_progress'
-
-		this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict
-		logger.debug("this processing channel content:")
-		logger.debug(this_processing_channel_content)
-		replace_dict = this_processing_channel_content.fetch1()
-		replace_dict[replace_key] = status
-		dj.Table._update(this_processing_channel_content,replace_key,status)
-		# db_lightsheet.Request.ProcessingResolutionRequest().insert1(replace_dict,replace=True)
-		logger.debug("Updated spock_job_progress in ProcessingChannel() table ")
 		
-		""" Now figure out the status codes for the earlier dependency jobs """
+		""" Similarly, figure out the status codes for the earlier dependency jobs """
 		this_run_earlier_jobids_str = ','.join([jobid_step0,jobid_step1])
 		try:
 			command_earlier_steps = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(this_run_earlier_jobids_str)
@@ -975,9 +955,10 @@ def tiled_precomputed_job_status_checker():
 
 		job_status_indices_dict_earlier_steps = {jobid:[i for i, x in enumerate(jobids_received_earlier_steps) \
 			if x == jobid] for jobid in set(jobids_received_earlier_steps)} 
-		""" Loop through the earlier steps and figure out their statuses """
+		
+		""" Loop through the jobids from the earlier steps
+		and figure out their statuses from their array job statuses"""
 		for step_counter in range(2):
-		# for jobid_earlier_step,indices_list_earlier_step in job_status_indices_dict_earlier_steps.items():
 			step = f'step{step_counter}'
 			jobid_earlier_step = jobid_step_dict[step]
 			indices_list_earlier_step = job_status_indices_dict_earlier_steps[jobid_earlier_step]
@@ -987,9 +968,87 @@ def tiled_precomputed_job_status_checker():
 			job_insert_dict[status_step_str] = status
 			step_counter +=1 
 
-		# job_insert_list = []
 		job_insert_list.append(job_insert_dict)
 
+		""" Get the processing channel entry associated with this jobid
+		and update the progress """
+		if lightsheet_thisjob == 'left':
+			restrict_dict = dict(left_lightsheet_tiled_precomputed_spock_jobid=jobid)
+			replace_key = 'left_lightsheet_tiled_precomputed_spock_job_progress'
+		elif lightsheet_thisjob == 'right':
+			restrict_dict = dict(right_lightsheet_tiled_precomputed_spock_jobid=jobid)
+			replace_key = 'right_lightsheet_tiled_precomputed_spock_job_progress'
+		this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict
+		logger.debug("this processing channel content:")
+		logger.debug(this_processing_channel_content)
+		dj.Table._update(this_processing_channel_content,replace_key,status_step2)
+		logger.debug("Updated spock_job_progress in ProcessingChannel() table ")
+
+		""" If this pipeline run is now 100 percent complete,
+		figure out if all of the other tiled precomputed
+		pipelines that exist in this same processing request
+		and see if they are also complete.
+		If so, then email the user that their tiled images
+		are ready to be visualized"""
+
+		if status_step2 == 'COMPLETED':
+			""" Find all processing channels from this same processing request """
+			username,request_name,sample_name,imaging_request_number,processing_request_number = this_processing_channel_content.fetch1(
+				'username','request_name','sample_name','imaging_request_number','processing_request_number')
+			restrict_dict_imaging = dict(username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number)
+			imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict_imaging
+			restrict_dict_processing = dict(username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number,
+				processing_request_number=processing_request_number)
+			processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & restrict_dict_processing
+			# logger.debug(processing_channel_contents)
+			""" Loop through and pool all of the job statuses """
+			processing_request_job_statuses = []
+			for processing_channel_dict in processing_channel_contents:
+				""" get the imaging channel contents for this channel
+				so that I can figure out which light sheets were used """
+				channel_name = processing_channel_dict['channel_name']
+				this_imaging_channel_contents = imaging_channel_contents & f'channel_name="{channel_name}"'
+				left_lightsheet_used = this_imaging_channel_contents.fetch1('left_lightsheet_used')
+				right_lightsheet_used = this_imaging_channel_contents.fetch1('right_lightsheet_used')
+				if left_lightsheet_used:
+					job_status = processing_channel_dict['left_lightsheet_tiled_precomputed_spock_job_progress']
+					processing_request_job_statuses.append(job_status)
+				if right_lightsheet_used:
+					job_status = processing_channel_dict['right_lightsheet_tiled_precomputed_spock_job_progress']
+					processing_request_job_statuses.append(job_status)
+			logger.debug("job statuses for this processing request:")
+			# print(username,)
+			logger.debug(username)
+			logger.debug(request_name)
+			logger.debug(sample_name)
+			logger.debug(imaging_request_number)
+			logger.debug(processing_request_number)
+			# logger.debug(processing_request_job_statuses)
+			# logger.debug(username,request_name,sample_name,imaging_request_number,processing_request_number)
+			neuroglancer_form_relative_url = os.path.join(
+				'/neuroglancer',
+				'stitched_data_setup',
+				username,
+				request_name,
+				sample_name,
+				str(imaging_request_number),
+				str(processing_request_number))
+			neuroglancer_form_full_url = 'https://' + os.environ['HOSTURL'] + neuroglancer_form_relative_url
+			if all(x=='COMPLETED' for x in processing_request_job_statuses):
+				logger.debug("all processing channels in this processing request"
+							 " completely converted to precomputed format!")
+				subject = 'Lightserv automated email: Stitched data ready to be visualized'
+				body = ('Your stitched data for sample:\n\n'
+						f'request_name: {request_name}\n'
+						f'sample_name: {sample_name}\n\n'
+						'are now ready to be visualized. '
+						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
+				send_email(subject=subject,body=body)
+			else:
+				logger.debug("Not all processing channels in this request"
+							 " are completely converted to precomputed format")
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.TiledPrecomputedSpockJob.insert(job_insert_list)

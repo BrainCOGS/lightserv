@@ -1,4 +1,4 @@
-from flask import current_app
+from flask import current_app, url_for
 import os
 import errno
 import pickle
@@ -9,6 +9,7 @@ import datajoint as dj
 
 from lightserv import cel, db_spockadmin, db_lightsheet, smtp_connect
 from lightserv.processing.utils import determine_status_code
+from lightserv.taskmanager.tasks import send_email
 from email.message import EmailMessage
 
 
@@ -80,6 +81,7 @@ def make_precomputed_rawdata(**kwargs):
 	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
 
 	""" Now set up the connection to spock """
+
 	
 	command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "
 			   "/jukebox/wang/ahoag/precomputed/raw_pipeline/precomputed_pipeline_raw.sh {} {} {}").format(
@@ -253,23 +255,55 @@ def check_raw_precomputed_statuses():
 		job_insert_list.append(job_insert_dict)
 		""" Get the imaging channel entry associated with this jobid
 		and update the progress """
-		try:
-			this_imaging_channel_content = db_lightsheet.Request.ImagingChannel() & \
-			f'{lightsheet_thisjob}_lightsheet_precomputed_spock_jobid={jobid}'
-			dj.Table._update(this_imaging_channel_content,f'{lightsheet_thisjob}_lightsheet_precomputed_spock_job_progress',status_step2)
-		except:
-			logger.debug("Unable to connect to db_lightsheet")
+		this_imaging_channel_content = db_lightsheet.Request.ImagingChannel() & \
+		f'{lightsheet_thisjob}_lightsheet_precomputed_spock_jobid={jobid}'
+		dj.Table._update(this_imaging_channel_content,f'{lightsheet_thisjob}_lightsheet_precomputed_spock_job_progress',status_step2)
+		""" If the pipeline is now complete figure out if all of the 
+		resolution/channel combinations that in this same imaging request
+		are complete. If so, then email the user that their images are ready 
+		to be visualized"""
+		if status_step2 == 'COMPLETED':
+			username,request_name,sample_name,imaging_request_number = this_imaging_channel_content.fetch1(
+				'username','request_name','sample_name','imaging_request_number')
+			restrict_dict = dict(username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number)
+			imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict
+			imaging_request_job_statuses = []
+			for imaging_channel_dict in imaging_channel_contents:
+				left_lightsheet_used = imaging_channel_dict['left_lightsheet_used']
+				right_lightsheet_used = imaging_channel_dict['right_lightsheet_used']
+				if left_lightsheet_used:
+					job_status = imaging_channel_dict['left_lightsheet_precomputed_spock_job_progress']
+					imaging_request_job_statuses.append(job_status)
+				if right_lightsheet_used:
+					job_status = imaging_channel_dict['right_lightsheet_precomputed_spock_job_progress']
+					imaging_request_job_statuses.append(job_status)
+			logger.debug("job statuses for this imaging request:")
+			logger.debug(imaging_request_job_statuses)
+			neuroglancer_form_relative_url = url_for('neuroglancer.raw_data_setup',
+				username=username,
+				request_name=request_name,
+				sample_name=sample_name,
+				imaging_request_number=imaging_request_number)
+			neuroglancer_form_full_url = 'https://' + os.environ['HOSTURL'] + neuroglancer_form_relative_url
+			if all(x=='COMPLETED' for x in imaging_request_job_statuses):
+				logger.debug("all imaging channels in this request completed!")
+				subject = 'Lightserv automated email: Raw data ready to be visualized'
+				body = ('Your raw data for sample:\n\n'
+						f'request_name: {request_name}\n'
+						f'sample_name: {sample_name}\n\n'
+						'are now ready to be visualized. '
+						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
+				send_email(subject=subject,body=body)
+			else:
+				logger.debug("Not all imaging channels in this request are completed")
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.RawPrecomputedSpockJob.insert(job_insert_list)
 	client.close()
-	# except:
-	# 	logger.debug("Problem connecting to spock or processing jobids")
-	# finally:
-		
+
 	return "checked statuses"
 	
-
 @cel.task()
 def send_processing_reminder_email(**reminder_email_kwargs):
 	""" Asynchronous task to send an email, assuming

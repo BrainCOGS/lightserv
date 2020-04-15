@@ -23,9 +23,8 @@ if __name__ == '__main__':
 	logger.addHandler(stream_handler)
 	logger.addHandler(file_handler)
 
-	if hosturl == 'braincogs00.pni.princeton.edu':
-		app.run(host='0.0.0.0',port='8080',debug=True)
-	else:
-		app.run(port='5001',debug=True)
+	if hosturl == 'braincogs00-dev.pni.princeton.edu':
+		app.run(host='0.0.0.0',port='5000',debug=True) # 5000 inside the container
+	# still need PROD params
 
 	

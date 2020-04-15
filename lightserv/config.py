@@ -43,11 +43,11 @@ class Config(BaseConfig):
 	CELERYBEAT_SCHEDULE = {
 		'processsing_job_status_checker': {
 		'task': 'lightserv.processing.tasks.processing_job_status_checker',
-		'schedule': timedelta(seconds=7)
+		'schedule': timedelta(seconds=4)
 		},
 		'tiledprecomp_job_ready_checker': {
 		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_tiled_data',
-		'schedule': timedelta(seconds=15)
+		'schedule': timedelta(seconds=6)
 		},
 		'tiledprecomp_job_status_checker': {
 		'task': 'lightserv.processing.tasks.tiled_precomputed_job_status_checker',

@@ -34,24 +34,31 @@ logging.info("viewer token: {}".format(viewer.token))
 
 logging.info("setting viewers default volume")
 # load data from cloudvolume container:
-session_name = os.environ['SESSION_NAME']
+session_name = os.environ['SESSION_NAME'] # from the environment passed to this container when it is run
 session_dict = kv.hgetall(session_name) # gets a dict of all key,val pairs in the session
 cv_count = int(session_dict['cv_count']) # number of cloudvolumes
+cv_names = []
 for ii in range(cv_count):
 	cv_number = ii+1
 	cv_name = session_dict[f'cv{cv_number}_name']
+	cv_names.append(cv_name)
 	layer_type = session_dict[f'layer{cv_number}_type']
 	with viewer.txn() as s:
 		if layer_type == 'image':
-		    s.layers["image"] = neuroglancer.ImageLayer(
+		    s.layers[cv_name] = neuroglancer.ImageLayer(
 		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
 		    )
 		elif layer_type == 'segmentation':
-			s.layers["segmentation"] = neuroglancer.SegmentationLayer(
+			s.layers[cv_name] = neuroglancer.SegmentationLayer(
 		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
 		    )
 
-## need to retool this so it shows the correct link, the internal FQDN is not useful
+row_layout_list = [neuroglancer.LayerGroupViewer(layers=[x]) for x in cv_names]
+with viewer.txn() as s:	
+    s.layout = neuroglancer.row_layout(
+        row_layout_list
+    )
+## need to retool this so it shows the correct link, the container's internal FQDN is not useful
 logging.info("viewer at: {}".format(viewer))
 
 logging.debug("neuroglancer viewer is now available")

@@ -42,11 +42,4 @@ def localviewer(self, port=1337):
 
 
 if __name__ == "__main__":
-    # logging.basicConfig(level=logging.DEBUG)
-    # logging.info(os.listdir('/mnt/data/'))
-    # logging.info(pp)
-    # proxy_h = pp.progproxy(target_hname="confproxy")
-    # proxy_h.getroutes()
-    # register_cloudvol_confproxy()
-    # logging.info("made it here")
     start_server()
