@@ -213,6 +213,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 						raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
 								 f"{request_name}/{sample_name}/"
 								 f"imaging_request_{imaging_request_number}/viz/raw")
+						mymkdir(raw_viz_dir)
 						channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
 						mymkdir(channel_viz_dir)
 						if left_lightsheet_used:
@@ -222,7 +223,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 							precomputed_kwargs['viz_dir'] = this_viz_dir
 							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 						if right_lightsheet_used:
-							this_viz_dir = raw_viz_dir + 'left_lightsheet'
+							this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
 							mymkdir(this_viz_dir)
 							precomputed_kwargs['lightsheet'] = 'right'
 							precomputed_kwargs['viz_dir'] = this_viz_dir
@@ -333,7 +334,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				this_channel_form = this_resolution_form.channel_forms[-1]
 				this_channel_form.channel_name.data = channel_content['channel_name']
 				this_channel_form.image_resolution.data = channel_content['image_resolution']
-				this_channel_form.rawdata_subfolder.data = '200221_20180220_jg_09_4x_647_008na_1hfds_z2um_100msec_15povlp_14-16-13'
+				# this_channel_form.rawdata_subfolder.data = '200221_20180220_jg_09_4x_647_008na_1hfds_z2um_100msec_15povlp_14-16-13'
+				this_channel_form.rawdata_subfolder.data = 'test647'
 
 	rawdata_filepath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 		overview_dict['username'],overview_dict['request_name'],
