@@ -12,7 +12,6 @@ from lightserv.processing.utils import determine_status_code
 from lightserv.taskmanager.tasks import send_email
 from email.message import EmailMessage
 
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -83,10 +82,10 @@ def make_precomputed_rawdata(**kwargs):
 	""" Now set up the connection to spock """
 
 	
-	command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "
-			   "/jukebox/wang/ahoag/precomputed/raw_pipeline/precomputed_pipeline_raw.sh {} {} {}").format(
-		n_array_jobs_step1,n_array_jobs_step2,viz_dir)
-	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+	# command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "
+	# 		   "/jukebox/wang/ahoag/precomputed/raw_pipeline/precomputed_pipeline_raw.sh {} {} {}").format(
+	# 	n_array_jobs_step1,n_array_jobs_step2,viz_dir)
+	command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 
 	hostname = 'spock.pni.princeton.edu'
 	port=22
@@ -280,11 +279,14 @@ def check_raw_precomputed_statuses():
 					imaging_request_job_statuses.append(job_status)
 			logger.debug("job statuses for this imaging request:")
 			logger.debug(imaging_request_job_statuses)
-			neuroglancer_form_relative_url = url_for('neuroglancer.raw_data_setup',
-				username=username,
-				request_name=request_name,
-				sample_name=sample_name,
-				imaging_request_number=imaging_request_number)
+			neuroglancer_form_relative_url =os.path.join(
+				'/neuroglancer',
+				'raw_data_setup',
+				username,
+				request_name,
+				sample_name,
+				str(imaging_request_number)
+				)
 			neuroglancer_form_full_url = 'https://' + os.environ['HOSTURL'] + neuroglancer_form_relative_url
 			if all(x=='COMPLETED' for x in imaging_request_job_statuses):
 				logger.debug("all imaging channels in this request completed!")

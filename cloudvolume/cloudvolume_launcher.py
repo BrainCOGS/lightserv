@@ -7,8 +7,8 @@ import os
 import numpy as np
 import types
 from time import sleep
-# import progproxy as pp
 
+logging.basicConfig(level=logging.DEBUG)
 
 def start_server():
 

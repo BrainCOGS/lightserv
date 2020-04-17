@@ -367,7 +367,7 @@ def check_imaging_completed(f):
 		imaging_progress = imaging_request_contents.fetch1('imaging_progress')
 		if imaging_progress != 'complete':
 			flash(f"Imaging must be completed first for sample_name={sample_name}"
-				  f", imaging_request_number={imaging_request_number}",'warning')
+				  f", imaging_request_number={imaging_request_number}",'danger')
 			return redirect(url_for('requests.request_overview',username=username,
 				request_name=request_name,
 				sample_name=sample_name))

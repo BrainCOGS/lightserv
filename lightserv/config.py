@@ -41,26 +41,26 @@ class BaseConfig(object):
 class Config(BaseConfig):
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	CELERYBEAT_SCHEDULE = {
-		'processsing_job_status_checker': {
-		'task': 'lightserv.processing.tasks.processing_job_status_checker',
-		'schedule': timedelta(seconds=4)
-		},
-		'tiledprecomp_job_ready_checker': {
-		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_tiled_data',
-		'schedule': timedelta(seconds=6)
-		},
-		'tiledprecomp_job_status_checker': {
-		'task': 'lightserv.processing.tasks.tiled_precomputed_job_status_checker',
-		'schedule': timedelta(seconds=10)
-		},
+		# 'processsing_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.processing_job_status_checker',
+		# 'schedule': timedelta(seconds=4)
+		# },
+		# 'tiledprecomp_job_ready_checker': {
+		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_tiled_data',
+		# 'schedule': timedelta(seconds=6)
+		# },
+		# 'tiledprecomp_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.tiled_precomputed_job_status_checker',
+		# 'schedule': timedelta(seconds=10)
+		# },
 		# 'ng_viewer_cleanser': {
 		# 'task': 'lightserv.neuroglancer.routes.ng_viewer_checker',
 		# 'schedule': timedelta(seconds=15)
 		# },
-		# 'rawprecomp_job_status_checker': {
-		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
-		# 'schedule': timedelta(seconds=10)
-		# },
+		'rawprecomp_job_status_checker': {
+		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
+		'schedule': timedelta(seconds=5)
+		},
 	}
 	
 class TestConfig(BaseConfig):

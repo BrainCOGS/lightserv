@@ -16,8 +16,11 @@ logging.basicConfig(level=logging.DEBUG)
 # we are currently using the seunglab hosted neuroglancer static resources
 # ideally this would be self hosted for local development against nglancer
 logging.info("configuring neuroglancer defaults")
+# neuroglancer.set_static_content_source(
+#     url="https://neuromancer-seung-import.appspot.com"
+# )
 neuroglancer.set_static_content_source(
-    url="https://neuromancer-seung-import.appspot.com"
+    url="http://nglancerstatic:8080"
 )
 ## neuroglancer setup segment:	
 ## set the tornado server that is launched to talk on all ips and at port 8080
@@ -36,6 +39,18 @@ logging.info("setting viewers default volume")
 # load data from cloudvolume container:
 session_name = os.environ['SESSION_NAME'] # from the environment passed to this container when it is run
 session_dict = kv.hgetall(session_name) # gets a dict of all key,val pairs in the session
+logging.debug("session dict:")
+logging.debug(session_dict)
+# logging.debug(hosturl)
+# logging.debug(session_name)
+
+""" Define shader code so that the image layer is visible. 
+If not present the image layer will be completely dark """
+shader_code = """void main() {
+  emitGrayscale(toNormalized(getDataValue())*45.0);
+}
+"""
+
 cv_count = int(session_dict['cv_count']) # number of cloudvolumes
 cv_names = []
 for ii in range(cv_count):
@@ -44,15 +59,20 @@ for ii in range(cv_count):
 	cv_names.append(cv_name)
 	layer_type = session_dict[f'layer{cv_number}_type']
 	with viewer.txn() as s:
+		logging.debug("Loading in source: ")
+		logging.debug(f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}")
 		if layer_type == 'image':
 		    s.layers[cv_name] = neuroglancer.ImageLayer(
-		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
+		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}", # this needs to be visible outside of the container in the browser
+		        shader=shader_code
 		    )
 		elif layer_type == 'segmentation':
+			
 			s.layers[cv_name] = neuroglancer.SegmentationLayer(
 		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
 		    )
-
+with viewer.txn() as s:
+	s.navigation.zoomFactor = 40000
 row_layout_list = [neuroglancer.LayerGroupViewer(layers=[x]) for x in cv_names]
 with viewer.txn() as s:	
     s.layout = neuroglancer.row_layout(

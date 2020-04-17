@@ -1,14 +1,12 @@
 from flask import (render_template, request, redirect,
                    Blueprint, session, url_for, flash,
                    Markup, Request, Response,abort, current_app)
-import docker
 import redis
-
-import progproxy as pp
 import logging
 import time
 import secrets
 import os
+import requests
 import json
 from datetime import datetime, timedelta
 from .forms import (RawDataSetupForm,StitchedDataSetupForm)
@@ -16,6 +14,8 @@ from .tables import (ImagingRequestTable, ProcessingRequestTable)
 from lightserv import cel, db_lightsheet
 from lightserv.main.utils import (check_imaging_completed,
     check_imaging_request_precomputed,log_http_requests)
+
+import progproxy as pp
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -55,7 +55,6 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
 
     if request.method == 'POST':
         logger.debug('POST request')
-        client = docker.DockerClient(base_url='unix://var/run/docker.sock')
         config_proxy_auth_token = os.environ['CONFIGPROXY_AUTH_TOKEN']
         # Redis setup for this session
         kv = redis.Redis(host="redis", decode_responses=True)
@@ -98,7 +97,6 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
                         elif lightsheet == 'right':
                             if not viz_right_lightsheet:
                                 continue
-
                         cv_container_name = f'{session_name}_raw_{channel_name}_{lightsheet}_ls_container'
                         cv_name = f"{channel_name}_{lightsheet}_ls_raw"
                         cv_path = os.path.join(data_bucket_rootpath,username,request_name,
@@ -106,21 +104,16 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
                             'raw',f'channel_{channel_name}',f'{lightsheet}_lightsheet',
                             f'channel{channel_name}_raw_{lightsheet}_lightsheet')      
                         
-                        cv_mounts = {
-                            cv_path:{
-                                    'bind':'/mnt/data',
-                                    'mode':'ro'
-                                    },
-                            }       
                         cv_number += 1                        
+                        """ send the data to the viewer-launcher
+                        to launch the cloudvolume """                       
+                        cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
+                            cv_container_name=cv_container_name,
+                            layer_type=layer_type,session_name=session_name)
+                        requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
+                        logger.debug("Made post request to viewer-launcher to launch cloudvolume")
+
                         
-                        cv_container = client.containers.run('cloudv',
-                                                      volumes=cv_mounts,
-                                                      environment=cv_environment,
-                                                      network='lightserv',
-                                                      name=cv_container_name,
-                                                      user=153574,
-                                                      detach=True)
                         """ Enter the cv information into redis
                         so I can get it from within the neuroglancer container """
                         kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
@@ -134,23 +127,27 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
                 """ Now spawn a neuroglancer container which will make
                 layers for each of the spawned cloudvolumes """
                 ng_container_name = f'{session_name}_ng_container'
-                ng_environment = {
-                    'HOSTURL':hosturl,
-                    'PYTHONPATH':'/opt/libraries',
-                    'CONFIGPROXY_AUTH_TOKEN':f"{config_proxy_auth_token}",
-                    'SESSION_NAME':session_name
-                }
-                logging.debug("Starting neuroglancer with the environment:")
-                logging.debug(ng_environment)
-                ng_container = client.containers.run('nglancer',
-                                              environment=ng_environment,
-                                              network='lightserv',
-                                              name=ng_container_name,
-                                              detach=True) 
+                ng_dict = {}
+                ng_dict['hosturl'] = hosturl
+                ng_dict['ng_container_name'] = ng_container_name
+                ng_dict['session_name'] = session_name
+                """ send the data to the viewer-launcher
+                to launch the ng viewer """                       
+                
+                requests.post('http://viewer-launcher:5005/nglauncher',json=ng_dict)
+                logger.debug("Made post request to viewer-launcher to launch ng viewer")
+                
                 # Add the ng container name to redis session key level
                 kv.hmset(session_name, {"ng_container_name": ng_container_name})
                 # Add ng viewer url to config proxy so it can be seen from outside of the lightserv docker network 
-                proxy_h.addroute(proxypath=f'viewers/{session_name}', proxytarget=f"http://{ng_container_name}:8080/")
+                proxy_h.addroute(proxypath=f'viewers/{session_name}', 
+                    proxytarget=f"http://{ng_container_name}:8080/")
+                logger.debug(f"Added {ng_container_name} to redis and confproxy")
+                # Add the ng container name to redis session key level
+                kv.hmset(session_name, {"ng_container_name": ng_container_name})
+                # Add ng viewer url to config proxy so it can be seen from outside of the lightserv docker network 
+                proxy_h.addroute(proxypath=f'viewers/{session_name}', 
+                    proxytarget=f"http://{ng_container_name}:8080/")
 
                 # Spin until the neuroglancer viewer token from redis becomes available (may be waiting on the neuroglancer container to finish writing to redis)
                 while True:
@@ -170,6 +167,7 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
                 
                 neuroglancerurl = f"http://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
                 logger.debug(neuroglancerurl)
+                return render_template('neuroglancer/viewer_link.html',neuroglancerurl=neuroglancerurl)
 
         else: # form not validated
             flash("There were errors below. Correct them in order to proceed.")
@@ -217,7 +215,6 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
     return render_template('neuroglancer/raw_data_setup.html',form=form,
         channel_contents_lists=channel_contents_lists,imaging_request_table=imaging_request_table)
 
-
 @neuroglancer.route("/neuroglancer/stitched_data_setup/<username>/<request_name>/<sample_name>/<imaging_request_number>/<processing_request_number>",
     methods=['GET','POST'])
 @check_imaging_completed
@@ -243,37 +240,32 @@ def stitched_data_setup(username,request_name,sample_name,imaging_request_number
 
     if request.method == 'POST':
         logger.debug('POST request')
-        client = docker.DockerClient(base_url='unix://var/run/docker.sock')
-        config_proxy_auth_token = os.environ['CONFIGPROXY_AUTH_TOKEN']
         # Redis setup for this session
-        kv = redis.Redis(host="redis", decode_responses=True)
+        
         hosturl = os.environ['HOSTURL'] # via dockerenv
         data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
 
         if form.validate_on_submit():
             logger.debug("Form validated")
             """ loop through each image resolution sub-form 
-            and make a neuroglancer viewer link for each one """
+            and make a neuroglancer viewer link for each one,
+            spawning cloudvolumes for each channel/lightsheet combo """
+            kv = redis.Redis(host="redis", decode_responses=True)
+
             for ii in range(len(form.image_resolution_forms)):
                 session_name = secrets.token_hex(6)
-                # session_name = 'my_ng_session'
                 viewer_id = "viewer1" # for storing the viewer info in redis
                 # kv.hmset(session_name,{"viewer_id":viewer_id})
                 kv.hmset(session_name,{"cv_count":0}) # initialize the number of cloudvolumes in this ng session
 
                 # Set up environment to be shared by all cloudvolumes
-                cv_environment = {
-                    'PYTHONPATH':'/opt/libraries',
-                    'CONFIGPROXY_AUTH_TOKEN':f"{config_proxy_auth_token}",
-                    'SESSION_NAME':session_name
-                }
-                layer_type = "image"
-                       
+                
                 cv_number = 0 # to keep track of how many cloudvolumes in this viewer
                 image_resolution_form = form.image_resolution_forms[ii]
                 """ Loop through channels and spawn a cloudvolume 
                 within this session for each light sheet used """
                 for jj in range(len(image_resolution_form.channel_forms)):
+                    
                     channel_form = image_resolution_form.channel_forms[jj]
                     channel_name = channel_form.channel_name.data
                     viz_left_lightsheet = channel_form.viz_left_lightsheet.data
@@ -286,29 +278,23 @@ def stitched_data_setup(username,request_name,sample_name,imaging_request_number
                         elif lightsheet == 'right':
                             if not viz_right_lightsheet:
                                 continue
-
+                        cv_number += 1 
                         cv_container_name = f'{session_name}_raw_{channel_name}_{lightsheet}_ls_container'
                         cv_name = f"{channel_name}_{lightsheet}_ls_raw"
                         cv_path = os.path.join(data_bucket_rootpath,username,request_name,
                             sample_name,f'imaging_request_{imaging_request_number}','viz',
-                            'raw',f'channel_{channel_name}',f'{lightsheet}_lightsheet',
-                            f'channel{channel_name}_raw_{lightsheet}_lightsheet')      
-                        
-                        cv_mounts = {
-                            cv_path:{
-                                    'bind':'/mnt/data',
-                                    'mode':'ro'
-                                    },
-                            }       
-                        cv_number += 1                        
-                        
-                        cv_container = client.containers.run('cloudv',
-                                                      volumes=cv_mounts,
-                                                      environment=cv_environment,
-                                                      network='lightserv',
-                                                      name=cv_container_name,
-                                                      user=153574,
-                                                      detach=True)
+                            f'processing_request_{processing_request_number}','stitched_raw',
+                            f'channel_{channel_name}',f'{lightsheet}_lightsheet',
+                            f'channel{channel_name}_stitched_{lightsheet}_lightsheet')      
+                        layer_type = "image"
+                        """ send the data to the viewer-launcher
+                        to launch the cloudvolume """                       
+                        cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
+                            cv_container_name=cv_container_name,
+                            layer_type=layer_type,session_name=session_name)
+                        requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
+                        logger.debug("Made post request to viewer-launcher to launch cloudvolume")
+
                         """ Enter the cv information into redis
                         so I can get it from within the neuroglancer container """
                         kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
@@ -319,45 +305,49 @@ def stitched_data_setup(username,request_name,sample_name,imaging_request_number
                         proxy_h = pp.progproxy(target_hname='confproxy')
                         proxypath = os.path.join('cloudvols',session_name,cv_name)
                         proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
+                
                 """ Now spawn a neuroglancer container which will make
                 layers for each of the spawned cloudvolumes """
                 ng_container_name = f'{session_name}_ng_container'
-                ng_environment = {
-                    'HOSTURL':hosturl,
-                    'PYTHONPATH':'/opt/libraries',
-                    'CONFIGPROXY_AUTH_TOKEN':f"{config_proxy_auth_token}",
-                    'SESSION_NAME':session_name
-                }
-                logging.debug("Starting neuroglancer with the environment:")
-                logging.debug(ng_environment)
-                ng_container = client.containers.run('nglancer',
-                                              environment=ng_environment,
-                                              network='lightserv',
-                                              name=ng_container_name,
-                                              detach=True) 
+                ng_dict = {}
+                ng_dict['hosturl'] = hosturl
+                ng_dict['ng_container_name'] = ng_container_name
+                ng_dict['session_name'] = session_name
+                """ send the data to the viewer-launcher
+                to launch the ng viewer """                       
+                
+                requests.post('http://viewer-launcher:5005/nglauncher',json=ng_dict)
+                logger.debug("Made post request to viewer-launcher to launch ng viewer")
+                
                 # Add the ng container name to redis session key level
                 kv.hmset(session_name, {"ng_container_name": ng_container_name})
                 # Add ng viewer url to config proxy so it can be seen from outside of the lightserv docker network 
                 proxy_h.addroute(proxypath=f'viewers/{session_name}', proxytarget=f"http://{ng_container_name}:8080/")
+                logger.debug(f"Added {ng_container_name} to redis and confproxy")
 
-                # Spin until the neuroglancer viewer token from redis becomes available (may be waiting on the neuroglancer container to finish writing to redis)
+                # Spin until the neuroglancer viewer token from redis becomes available 
+                # (may be waiting on the neuroglancer container to finish writing to redis)
                 while True:
                     session_dict = kv.hgetall(session_name)
                     if 'viewer' in session_dict.keys():
                         break
                     else:
-                        logging.debug("Still spinning; waiting for redis entry for neuoglancer viewer")
+                        logger.debug("Still spinning; waiting for redis entry for neuoglancer viewer")
                         time.sleep(0.25)
                 viewer_json_str = kv.hgetall(session_name)['viewer']
                 viewer_dict = json.loads(viewer_json_str)
-                logging.debug(f"Redis contents for viewer")
-                logging.debug(viewer_dict)
-                proxy_h.getroutes()
-                # logger.debug("Proxy contents:")
+                logger.debug(f"Redis contents for viewer")
+                logger.debug(viewer_dict)
+                logger.debug("Proxy contents:")
+                response=proxy_h.getroutes()
+                logger.debug(response.text)
                 # logger.debug(proxy_contents)
                 
-                neuroglancerurl = f"http://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
+                neuroglancerurl = f"https://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
+                logger.debug("URL IS:")
                 logger.debug(neuroglancerurl)
+                return render_template('neuroglancer/viewer_link.html',neuroglancerurl=neuroglancerurl)
+                
 
         else: # form not validated
             flash("There were errors below. Correct them in order to proceed.")
@@ -403,7 +393,6 @@ def stitched_data_setup(username,request_name,sample_name,imaging_request_number
 
     return render_template('neuroglancer/stitched_data_setup.html',form=form,
         channel_contents_lists=channel_contents_lists,processing_request_table=processing_request_table)
-
 
 @cel.task() 
 def ng_viewer_checker():
