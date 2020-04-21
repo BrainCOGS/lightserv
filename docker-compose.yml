@@ -6,8 +6,8 @@ services:
     image: jupyterhub/configurable-http-proxy:3.1.1
     # expose the proxy to the world
     ports:
-      - "8000:8000"
-      - "8001:8001"
+      - "8002:8000"
+      - "8003:8001"
     command: ['configurable-http-proxy',
               '--auto-rewrite',
               '--no-include-prefix',
@@ -19,7 +19,7 @@ services:
     image: redis
     expose:
       - 6379
-    restart: always
+    # restart: always
   # rabbit:
   #   image: rabbitmq:3.8.3-rc.2
   #   expose:
@@ -32,10 +32,11 @@ services:
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData
+      - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
       - ./lib:/opt/libraries # for progproxy api
     ports:
       - '5000:5000'
-    restart: always
+    # restart: always
     # extra_hosts:
     #   - "dockerhost:$DOCKERHOST"
   viewer-launcher:
@@ -50,7 +51,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - '5003:5005'
-    restart: always
+    # restart: always
   worker:
     env_file: .dockerenv
     image: flaskcelery:latest
@@ -59,17 +60,16 @@ services:
               "-A",
               "celery_worker.cel",
               "--loglevel=info"]
-    # extra_hosts:
-    #   - "dockerhost:$DOCKERHOST"
     volumes:
       - .:/app
       - ./lib:/opt/libraries
       - /jukebox/LightSheetData:/jukebox/LightSheetData
+      - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       # - rabbit
       - redis
-    restart: always
+    # restart: always
   scheduler:
     env_file: .dockerenv
     image: flaskcelery:latest
@@ -86,7 +86,7 @@ services:
     depends_on:
       - redis
       - worker
-    restart: always
+    # restart: always
 networks:
   default:
     external:

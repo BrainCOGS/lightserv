@@ -11,7 +11,7 @@ from datetime import datetime
 import logging
 import tifffile
 import glob
-import os
+import os,stat
 import pickle
 import paramiko
 from PIL import Image
@@ -35,12 +35,14 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
+""" Jobs run as single tasks (not scheduled) """
 
 @cel.task()
-def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,processing_request_number):
-	""" An asynchronous celery task (runs in a background process) which runs step 0 
-	in the light sheet pipeline -- i.e. makes the parameter dictionary pickle file
-	and grabs a bunch of metadata from the raw files to store in the database.  
+def run_lightsheet_pipeline(username,request_name,
+	sample_name,imaging_request_number,processing_request_number):
+	""" An asynchronous celery task (runs in a background process) which
+	runs a script on spock to run the entire light sheet pipeline 
+	for each ProcessingResolution() entry in this ProcessingRequest()
 	"""
 
 	atlas_dict = current_app.config['ATLAS_NAME_FILE_DICTIONARY']
@@ -56,6 +58,10 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 	all_channel_contents = db_lightsheet.Request.ImagingChannel() & f'username="{username}"' \
 	& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
 	f'imaging_request_number="{imaging_request_number}"'
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & f'username="{username}"' \
+	& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
+	f'imaging_request_number="{imaging_request_number}"' & \
+	f'processing_request_number="{processing_request_number}"' 
 	channel_content_dict_list = all_channel_contents.fetch(as_dict=True)
 	sample_contents_dict = sample_contents.fetch1() 
 	sample_basepath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
@@ -63,7 +69,7 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 	raw_basepath = os.path.join(sample_basepath,'rawdata')
 
 	""" Loop through the image resolutions requested since 
-	a different image resolution necessary means a different spock job.
+	we run the pipeline separately for each image resolution requested.
 	"""
 
 	all_imaging_modes = current_app.config['IMAGING_MODES']
@@ -113,8 +119,8 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 			else:
 				sys.exit("There was a problem finding the resizefactor")
 			param_dict['resizefactor'] = resizefactor
-
-			param_dict['slurmjobfactor'] = 50
+			slurmjobfactor=50
+			param_dict['slurmjobfactor'] = slurmjobfactor
 			
 			""" Now the inputdictionary """
 			inputdictionary = {}
@@ -127,6 +133,7 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 
 			unique_rawdata_subfolders = list(set(channel_contents_this_resolution.fetch('rawdata_subfolder')))
 			logger.debug(f"Have the following rawdata folders: {unique_rawdata_subfolders}")
+			max_number_of_z_planes = 0
 			for ii in range(len(unique_rawdata_subfolders)):
 				rawdata_subfolder = unique_rawdata_subfolders[ii]
 				# this_rawdata_dict['rawdata_subfolder']=rawdata_subfolder
@@ -208,9 +215,12 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 					and it must be the same for each channel in each rawdata folder
 					for the code to run (currently) """
 					if ii == 0 and channel_index == 0: 
-						tiling_scheme,tiling_overlap,z_step,image_orientation = \
+						number_of_z_planes,tiling_scheme,tiling_overlap,z_step,image_orientation = \
 							this_channel_content.fetch1(
-								'tiling_scheme','tiling_overlap','z_step','image_orientation')
+								'number_of_z_planes','tiling_scheme',
+								'tiling_overlap','z_step','image_orientation')
+						if number_of_z_planes > max_number_of_z_planes:
+							max_number_of_z_planes = number_of_z_planes
 						param_dict['tiling_overlap'] = tiling_overlap
 						if tiling_scheme != '1x1':
 							stitching_method = 'terastitcher'
@@ -267,6 +277,7 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 					logger.info(processing_channel_insert_dict)
 					db_lightsheet.Request.ProcessingChannel().insert1(processing_channel_insert_dict,replace=True)
 
+			param_dict['inputdictionary'] = inputdictionary
 			logger.debug("inputdictionary:")
 			logger.debug(inputdictionary)
 			logger.debug("")
@@ -278,17 +289,36 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 			pickle_fullpath = output_directory + '/param_dict.p'
 			with open(pickle_fullpath,'wb') as pkl_file:
 				pickle.dump(param_dict,pkl_file)
+			# Open up permissions on the file so the pipeline can write to it
+			st = os.stat(pickle_fullpath)
 			logger.info(f"wrote pickle file: {pickle_fullpath}")
+			logger.debug("Permissions on pickle file are originally:")
+			logger.debug(st.st_mode)
+			os.chmod(pickle_fullpath,st.st_mode | stat.S_IWOTH)
+			st_now = os.stat(pickle_fullpath)
+			logger.debug("Permissions on pickle file are now:")
+			logger.debug(st_now.st_mode)
 
 			""" Now run the spock pipeline via paramiko """
 			hostname = 'spock.pni.princeton.edu'
+			if stitching_method == 'blending':
+				logger.debug("Running light sheet pipeline with no stitching (single tile)")
+				pipeline_shell_script = 'lightsheet_pipeline_no_stitching.sh'
+			elif stitching_method == 'terastitcher':
+				logger.debug("Running light sheet pipeline with stitching (terastitcher)")
+				pipeline_shell_script = 'lightsheet_pipeline_stitching.sh'
+			""" figure out how many array jobs we will need for step 1"""
+			n_array_jobs_step1 = math.ceil(max_number_of_z_planes/float(slurmjobfactor)) # how many array jobs we need for step 1
+			processing_code_dir = current_app.config['PROCESSING_CODE_DIR']
+			# command = """cd %s;%s/%s %s %s""" % \
+			# 	(processing_code_dir,
+			# 		processing_code_dir,
+			# 		pipeline_shell_script,
+			# 		output_directory,
+			# 		n_array_jobs_step1
+			# 	)
 
-			# command = """cd %s;sbatch --export=output_directory='%s' main.sh """ % \
-			# (current_app.config['PROCESSING_CODE_DIR'],output_directory)
-			# if os.environ['FLASK_MODE'] == 'TEST':
-			command = """cd {}/testing; ./test_pipeline.sh""".format(current_app.config['PROCESSING_CODE_DIR'])
-			# elif os.environ['FLASK_MODE'] == 'DEV':
-			# 	command = """cd {}; ./lightsheet_pipeline.sh""".format(current_app.config['PROCESSING_CODE_DIR'])
+			command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline.sh"""
 			port = 22
 
 			client = paramiko.SSHClient()
@@ -306,12 +336,19 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 					  "Please check that the permissions of your ~/.ssh folder on spock are set to 700 "
 					  "and the permissions of the .ssh/authorized_keys file is 640:","danger")
 				return redirect(url_for('main.FAQ',_anchor='ssh_key'))
+			logger.debug("Command:")
+			logger.debug(command)
 			stdin, stdout, stderr = client.exec_command(command)
-			# jobid = str(stdout.read().decode("utf-8").strip('\n'))
 			response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
+			logger.debug("Response:")
 			logger.debug(response)
+			error_response = str(stderr.read().decode("utf-8"))
+			logger.debug("Error Response:")
+			logger.debug(error_response)
+
 			jobid_step0, jobid_step1, jobid_step2, jobid_step3 = response.split('\n')
 
+			""" Update the job status table in spockadmin schema"""
 			status = 'SUBMITTED'
 			entry_dict = {'jobid_step3':jobid_step3,'jobid_step2':jobid_step2,'jobid_step1':jobid_step1,
 			'jobid_step0':jobid_step0,'username':username,'stitching_method':stitching_method,
@@ -319,9 +356,15 @@ def run_spock_pipeline(username,request_name,sample_name,imaging_request_number,
 			'status_step2':status,'status_step3':status}
 			db_spockadmin.ProcessingPipelineSpockJob.insert1(entry_dict)    
 			logger.info(f"ProcessingResolutionRequest() request was successfully submitted to spock, jobid: {jobid_step3}")
+			""" Update the request tables in lightsheet schema """  
 			dj.Table._update(this_image_resolution_content,'spock_jobid',jobid_step3)
+			logger.debug("Updated spock jobid in ProcessingResolutionRequest() table")
 			dj.Table._update(this_image_resolution_content,'spock_job_progress','SUBMITTED')
-			
+			logger.debug("Updated spock job progress in ProcessingResolutionRequest() table")
+
+			dj.Table._update(processing_request_contents,'processing_progress','running')
+			logger.debug("Updated processing_progress in ProcessingRequest() table")
+
 			# finally:
 			client.close()
 	return "SUBMITTED spock job"
@@ -356,17 +399,26 @@ def make_precomputed_tiled_data_poststitching(**kwargs):
 								 f"{rawdata_subfolder}")
 	kwargs['rawdata_path'] = rawdata_path
 	""" construct the terastitcher output path """
-	brainname = rawdata_path[rawdata_path.rfind('/')+8:-9]
+	# brainname = rawdata_path[rawdata_path.rfind('/')+8:-9]
 	channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
-	terastitcher_output_parent_dir = os.path.join(rawdata_path,brainname+f'_ch{channel_index_padded}'+f'_{lightsheet}_lightsheet_ts_out')
+	logger.debug("CHANNEL INDEX PADDED")
+	logger.debug(channel_index_padded)
+	logger.debug("Search string:")
+	logger.debug(rawdata_path + f'/*_ch{channel_index_padded}_{lightsheet}_lightsheet_ts_out')
+	logger.debug(glob.glob(rawdata_path + '/*ts_out'))
+	terastitcher_output_parent_dirs = glob.glob(rawdata_path + f'/*_ch{channel_index_padded}_{lightsheet}_lightsheet_ts_out')
+	assert len(terastitcher_output_parent_dirs) == 1
+	terastitcher_output_parent_dir = terastitcher_output_parent_dirs[0]
+	logger.debug("TERASTITCHER OUTPUT DIRECTORY:")
+	logger.debug(terastitcher_output_parent_dir)
 	""" Find the deepest directory in the terastitcher output folder hierarchy.
 	That directory contains the tiled tif files at each z plane """
 	all_terastitcher_subpaths = [x[0] for x in os.walk(terastitcher_output_parent_dir)]
 	terastitcher_output_dir = max(all_terastitcher_subpaths,key = lambda path: path.count('/'))
 	""" Find the number of tif files, which will be the number of z planes
 	This is not necessarily the same as the number of z planes in the 
-	raw directories because terastitcher can perform offset
-	when optimizing tiling """
+	raw directories because terastitcher can increase/decrease this
+	when tiling """
 	z_plane_files = glob.glob(terastitcher_output_dir + '/*tif')
 	number_of_z_planes = len(z_plane_files)
 	kwargs['z_dim'] = number_of_z_planes
@@ -399,12 +451,10 @@ def make_precomputed_tiled_data_poststitching(**kwargs):
 
 	# """ Now set up the connection to spock """
 	
-	# command = ("cd /jukebox/wang/ahoag/precomputed; "
-	# 		   "/jukebox/wang/ahoag/precomputed/precomputed_pipeline_stitched.sh {} {} {}").format(
-	# 	n_array_jobs_step1,n_array_jobs_step2,viz_dir)
-	command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
-	# command = "cd /jukebox/wang/ahoag/precomputed; sbatch --parsable --export=ALL,viz_dir='{}' /jukebox/wang/ahoag/precomputed/precomputed_pipeline.sh".format(
-	# 	viz_dir)
+	command = ("cd /jukebox/wang/ahoag/precomputed/stitched_pipeline; "
+			   "/jukebox/wang/ahoag/precomputed/stitched_pipeline/precomputed_pipeline_stitched.sh {} {} {}").format(
+		n_array_jobs_step1,n_array_jobs_step2,viz_dir)
+	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	hostname = 'spock.pni.princeton.edu'
 	port=22
 	spock_username = 'lightserv-test' # Use the service account for this step - if it gets overloaded we can switch to user accounts
@@ -453,8 +503,114 @@ def make_precomputed_tiled_data_poststitching(**kwargs):
 			dj.Table._update(this_processing_channel_content,'right_lightsheet_tiled_precomputed_spock_job_progress','SUBMITTED')
 	except:
 		logger.info("Unable to update ProcessingChannel() table")
-	return f"Submitted jobid: {jobid_step2}"
-	return "Somehow made it"
+	return "Finished task submitting precomputed pipeline for stitched data"
+
+@cel.task()
+def make_precomputed_blended_data(**kwargs):
+	""" Celery task for making precomputed dataset
+	(i.e. one that can be read by cloudvolume) from 
+	blended image data for a single channel.  
+
+	Spawns a series of spock jobs for handling
+	the actual computation
+	"""
+
+	""" Read in keys """
+	username=kwargs['username']
+	request_name=kwargs['request_name']
+	sample_name=kwargs['sample_name']
+	imaging_request_number=kwargs['imaging_request_number']
+	processing_request_number=kwargs['processing_request_number']
+	channel_name=kwargs['channel_name']
+	channel_index=kwargs['channel_index']
+	image_resolution=kwargs['image_resolution']
+	z_step=kwargs['z_step']
+	viz_dir = kwargs['viz_dir'] 
+	logger.debug("Visualization directory:")
+	logger.debug(viz_dir)
+	processing_pipeline_jobid_step3 = kwargs['processing_pipeline_jobid_step3']
+	blended_data_path = kwargs['blended_data_path']
+	
+	""" Find the number of tif files, which will be the number of z planes
+	This is not necessarily the same as the number of z planes in the 
+	raw directories because terastitcher can increase/decrease this
+	when tiling """
+	logger.debug("Blended data path is:")
+	logger.debug(blended_data_path)
+	z_plane_files = glob.glob(blended_data_path + '/*tif')
+	number_of_z_planes = len(z_plane_files)
+	kwargs['z_dim'] = number_of_z_planes
+	""" Figure out number of pixels in x and y """
+	first_plane = z_plane_files[0]
+	first_im = Image.open(first_plane)
+	x_dim,y_dim = first_im.size
+	kwargs['x_dim'] = x_dim
+	kwargs['y_dim'] = y_dim
+	first_im.close()
+	
+	kwargs['layer_name'] = f'channel{channel_name}_blended'
+	
+	slurmjobfactor = 20 # the number of processes to run per core
+	n_array_jobs_step1 = math.ceil(number_of_z_planes/float(slurmjobfactor)) # how many array jobs we need for step 1
+	n_array_jobs_step2 = 5 # how many array jobs we need for step 2
+	kwargs['slurmjobfactor'] = slurmjobfactor
+	kwargs['n_array_jobs_step1'] = n_array_jobs_step1
+	kwargs['n_array_jobs_step2'] = n_array_jobs_step2
+	
+	pickle_fullpath = viz_dir + '/precomputed_params.p'
+	with open(pickle_fullpath,'wb') as pkl_file:
+		pickle.dump(kwargs,pkl_file)
+
+	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
+	
+	command = ("cd /jukebox/wang/ahoag/precomputed/blended_pipeline; "
+			   "/jukebox/wang/ahoag/precomputed/blended_pipeline/precomputed_pipeline_blended.sh {} {} {}").format(
+		n_array_jobs_step1,n_array_jobs_step2,viz_dir)
+	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+	hostname = 'spock.pni.princeton.edu'
+	port=22
+	spock_username = 'lightserv-test' # Use the service account for this step - if it gets overloaded we can switch to user accounts
+	client = paramiko.SSHClient()
+	client.load_system_host_keys()
+	client.set_missing_host_key_policy(paramiko.WarningPolicy)
+
+	client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+	stdin, stdout, stderr = client.exec_command(command)
+	# jobid_final_step = str(stdout.read().decode("utf-8").strip('\n'))
+	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
+	logger.debug("response from spock:")
+	logger.debug(response)
+	jobid_step0, jobid_step1, jobid_step2 = response.split('\n')
+
+	status_step0 = 'SUBMITTED'
+	status_step1 = 'SUBMITTED'
+	status_step2 = 'SUBMITTED'
+	entry_dict   = {
+				'jobid_step0':jobid_step0,
+				'jobid_step1':jobid_step1,
+				'jobid_step2':jobid_step2,
+				'username':username,'status_step0':status_step0,
+				'status_step1':status_step1,'status_step2':status_step2,
+				'processing_pipeline_jobid_step3':processing_pipeline_jobid_step3
+				}
+	logger.debug("Inserting into BlendedPrecomputedSpockJob():")
+	logger.debug(entry_dict)
+	db_spockadmin.BlendedPrecomputedSpockJob.insert1(entry_dict)    
+	logger.info(f"Precomputed (Blended data) job inserted into BlendedPrecomputedSpockJob() table: {entry_dict}")
+	logger.info(f"Precomputed (Blended data) job successfully submitted to spock, jobid_step2: {jobid_step2}")
+	# logger.debug(type(jobid_step2))
+	restrict_dict = dict(
+		username=username,request_name=request_name,
+		sample_name=sample_name,imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number,
+		image_resolution=image_resolution,channel_name=channel_name)
+	this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict 
+	try:
+		dj.Table._update(this_processing_channel_content,'blended_precomputed_spock_jobid',str(jobid_step2))
+		dj.Table._update(this_processing_channel_content,'blended_precomputed_spock_job_progress','SUBMITTED')
+	except:
+		logger.info("Unable to update ProcessingChannel() table")
+	return "Finished task submitting precomputed pipeline for blended data"
 
 """ Jobs that will be scheduled regularly """
 
@@ -477,7 +633,7 @@ def processing_job_status_checker():
 	table to 'failed'. If all jobs completed, then set 
 	processing_progress to 'complete'
 	"""
-	processing_resolution_contents = db_lightsheet.Request.ProcessingResolutionRequest()
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest()
    
 	""" First get all rows with latest timestamps """
 	job_contents = db_spockadmin.ProcessingPipelineSpockJob()
@@ -498,7 +654,7 @@ def processing_job_status_checker():
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
 	port = 22
-	username = 'ahoag'
+	username = 'lightserv-test'
 	hostname = 'spock.pni.princeton.edu'
 
 	client = paramiko.SSHClient()
@@ -532,13 +688,14 @@ def processing_job_status_checker():
 		client.close()
 		return "Error fetching job statuses from spock"
 
+	""" Loop through outstanding jobs and determine their statuses """
 	for jobid,indices_list in job_status_indices_dict.items():
 		logger.debug(f"Working on jobid={jobid}")
 		job_insert_dict = {'jobid_step3':jobid}
 		status_codes = [status_codes_received[ii] for ii in indices_list]
-		status = determine_status_code(status_codes)
-		logger.debug(f"Status code for this job is: {status}")
-		job_insert_dict['status_step3'] = status
+		status_step3 = determine_status_code(status_codes)
+		logger.debug(f"Status code for this job is: {status_step3}")
+		job_insert_dict['status_step3'] = status_step3
 		""" Find the username, other jobids associated with this jobid """
 		username_thisjob,jobid_step0,jobid_step1,jobid_step2 = (unique_contents & f'jobid_step3={jobid}').fetch1(
 			'username','jobid_step0','jobid_step1','jobid_step2')
@@ -555,8 +712,8 @@ def processing_job_status_checker():
 		logger.debug("this processing resolution content:")
 		logger.debug(this_processing_resolution_content)
 		replace_dict = this_processing_resolution_content.fetch1()
-		replace_dict['spock_job_progress'] = status
-		dj.Table._update(this_processing_resolution_content,'spock_job_progress',status)
+		replace_dict['spock_job_progress'] = status_step3
+		dj.Table._update(this_processing_resolution_content,'spock_job_progress',status_step3)
 		# db_lightsheet.Request.ProcessingResolutionRequest().insert1(replace_dict,replace=True)
 		logger.debug("Updated spock_job_progress in ProcessingResolutionRequest() table ")
 		
@@ -593,7 +750,62 @@ def processing_job_status_checker():
 			job_insert_dict[status_step_str] = status
 			step_counter +=1 
 
-		# job_insert_list = []
+		""" If this pipeline run is now 100 percent complete,
+		figure out if all of the other pipeline runs 
+		that exist for this same processing request
+		are also complete.
+		If so, then update the processing progress 
+		and email the user"""
+		(username,request_name,sample_name,imaging_request_number,
+		processing_request_number,image_resolution) = this_processing_resolution_content.fetch1(
+			"username","request_name","sample_name",
+			"imaging_request_number","processing_request_number",
+			"image_resolution")
+		if status_step3 == 'COMPLETED':
+			""" Find all processing channels from this same processing request """
+			restrict_dict_imaging = dict(username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number)
+			imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict_imaging
+			restrict_dict_processing = dict(username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number,
+				processing_request_number=processing_request_number)
+			processing_resolution_contents = db_lightsheet.Request.ProcessingResolutionRequest() & \
+				restrict_dict_processing
+			# logger.debug(processing_channel_contents)
+			""" Loop through and pool all of the job statuses """
+			processing_request_job_statuses = []
+			for processing_resolution_dict in processing_resolution_contents:
+				job_status = processing_resolution_dict['spock_job_progress']
+				processing_request_job_statuses.append(job_status)
+			logger.debug("job statuses for this processing request:")
+			# print(username,)
+			# logger.debug(processing_request_job_statuses)
+			# logger.debug(username,request_name,sample_name,imaging_request_number,processing_request_number)
+			data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
+
+			output_directory = os.path.join(data_bucket_rootpath,username,
+							 request_name,sample_name,
+							 f"imaging_request_{imaging_request_number}",
+							 "output",
+							 f"processing_request_{processing_request_number}",
+							 f"resolution_{image_resolution}")
+			if all(x=='COMPLETED' for x in processing_request_job_statuses):
+				logger.debug("The processing pipeline for all processing resolution requests"
+							 " in this processing request are complete!")
+				subject = 'Lightserv automated email: Processing done for your sample'
+				body = ('The processing for your sample:\n\n'
+						f'request_name: {request_name}\n'
+						f'sample_name: {sample_name}\n\n'
+						'is now complete. \n\n'
+						f'The processed products are available here: {output_directory}')
+				send_email(subject=subject,body=body)
+				dj.Table._update(processing_request_contents,'processing_progress','complete')
+
+			else:
+				logger.debug("Not all processing resolution requests in this "
+							 "processing request are completely converted to "
+							 "precomputed format")
+
 		job_insert_list.append(job_insert_dict)
 
 	logger.debug("Insert list:")
@@ -780,27 +992,38 @@ def check_for_spock_jobs_ready_for_making_precomputed_tiled_data():
 		         'with stitching_method="terastitcher" and a COMPLETED step 1:')
 	logger.debug(processing_pipeline_jobids_step3)
 	logger.debug("")
+	
 	""" For each of these jobs, figure out the ones for which the
 	tiled precomputed pipeline has not already been started """
+	
 	for processing_pipeline_jobid_step3 in processing_pipeline_jobids_step3:
 		logger.debug(f"Checking out jobid: {processing_pipeline_jobid_step3} ")
+		
+		""" Check whether the tiled precomputed pipeline has been started for this 
+		processing resolution request """
+
 		tiled_precomputed_spock_job_contents = db_spockadmin.TiledPrecomputedSpockJob() & \
 			f'processing_pipeline_jobid_step3="{processing_pipeline_jobid_step3}"'
 		if len(tiled_precomputed_spock_job_contents) > 0:
 			logger.info("Precomputed pipeline already started for this job")
 			continue
+
 		""" Kick off a tiled precomputed spock job 
-		First need to get the kwarg dictionary for request.
+		First need to get the kwarg dictionary for 
+		this processing resolution request.
 		To get that need to cross-reference the
 		ProcessingResolutionRequest()
 		table"""
+		
 		this_processing_resolution_request = db_lightsheet.Request.ProcessingResolutionRequest() & \
 			f'spock_jobid={processing_pipeline_jobid_step3}'
 		""" Now find all of the ProcessingChannel() entries 
 		corresponding to this processing resolution request """
+		
 		joined_processing_channel_contents = this_processing_resolution_request * \
 			db_lightsheet.Request.ProcessingChannel() * \
 			db_lightsheet.Request.ImagingChannel()
+		
 		for this_processing_channel_contents in joined_processing_channel_contents:
 			username=this_processing_channel_contents['username']
 			request_name = this_processing_channel_contents['request_name']
@@ -831,12 +1054,15 @@ def check_for_spock_jobs_ready_for_making_precomputed_tiled_data():
 							 f"imaging_request_{imaging_request_number}/viz/"
 							 f"processing_request_{processing_request_number}/"
 							 f"stitched_raw")
+			mymkdir(stitched_viz_dir)
+			logger.debug(f"Created directory {stitched_viz_dir}")
 			channel_viz_dir = os.path.join(stitched_viz_dir,f'channel_{channel_name}')
 			mymkdir(channel_viz_dir)
 			logger.debug(f"Created directory {channel_viz_dir}")
 			if left_lightsheet_used:
 				this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
 				mymkdir(this_viz_dir)
+				logger.debug(f"Created directory {this_viz_dir}")
 				precomputed_kwargs['lightsheet'] = 'left'
 				precomputed_kwargs['viz_dir'] = this_viz_dir
 				make_precomputed_tiled_data_poststitching.delay(**precomputed_kwargs)
@@ -844,6 +1070,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_tiled_data():
 			if right_lightsheet_used:
 				this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
 				mymkdir(this_viz_dir)
+				logger.debug(f"Created directory {this_viz_dir}")
 				precomputed_kwargs['lightsheet'] = 'right'
 				precomputed_kwargs['viz_dir'] = this_viz_dir
 				make_precomputed_tiled_data_poststitching.delay(**precomputed_kwargs)
@@ -880,7 +1107,7 @@ def tiled_precomputed_job_status_checker():
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
 	port = 22
-	username = 'ahoag'
+	username = 'lightserv-test'
 	hostname = 'spock.pni.princeton.edu'
 
 	client = paramiko.SSHClient()
@@ -1058,3 +1285,309 @@ def tiled_precomputed_job_status_checker():
 
 	return "Checked tiled precomptued job statuses"
 
+@cel.task()
+def check_for_spock_jobs_ready_for_making_precomputed_blended_data():
+	""" 
+	A celery task that will be run in a schedule
+
+	Checks for spock jobs for the light sheet pipeline 
+	for which step 1 (specifically the blending) is complete AND
+	whose precomputed pipeline for visualizing the blended
+	data products is not yet started.
+
+	For each spock job that satisfies those criteria,
+	start the precomputed pipeline for blended data 
+	corresponding to that imaging resolution request
+	"""
+   
+	""" First get all rows from the light sheet 
+	pipeline where status_step1='COMPLETED', finding the entries 
+	with the latest timestamps """
+	job_contents = db_spockadmin.ProcessingPipelineSpockJob() & \
+		'status_step1="COMPLETED"'
+	unique_contents = dj.U('jobid_step3','username',).aggr(
+		job_contents,timestamp='max(timestamp)')*job_contents
+
+	processing_pipeline_jobids_step3 = unique_contents.fetch('jobid_step3')	
+	logger.debug('These are the step 3 jobids of the processing pipeline '
+		         'with a COMPLETED step 1:')
+	logger.debug(processing_pipeline_jobids_step3)
+	logger.debug("")
+	
+	""" For each of these jobs, figure out the ones for which the
+	blended precomputed pipeline has not already been started """
+	
+	for processing_pipeline_jobid_step3 in processing_pipeline_jobids_step3:
+		logger.debug(f"Checking out jobid: {processing_pipeline_jobid_step3} ")
+		
+		""" Check whether the blended precomputed pipeline has been started for this 
+		processing resolution request """
+		
+		blended_precomputed_spock_job_contents = db_spockadmin.BlendedPrecomputedSpockJob() & \
+			f'processing_pipeline_jobid_step3="{processing_pipeline_jobid_step3}"'
+		if len(blended_precomputed_spock_job_contents) > 0:
+			logger.info("Precomputed pipeline already started for this job")
+			continue
+
+		""" Kick off a blended precomputed spock job 
+		First need to get the kwarg dictionary for 
+		this processing resolution request.
+		To get that need to cross-reference the
+		ProcessingResolutionRequest()
+		table"""
+		
+		this_processing_resolution_request = db_lightsheet.Request.ProcessingResolutionRequest() & \
+			f'spock_jobid={processing_pipeline_jobid_step3}'
+		
+		""" Now find all of the ProcessingChannel() entries 
+		corresponding to this processing resolution request """
+		
+		joined_processing_channel_contents = this_processing_resolution_request * \
+			db_lightsheet.Request.ProcessingChannel() * \
+			db_lightsheet.Request.ImagingChannel()
+		
+		for this_processing_channel_contents in joined_processing_channel_contents:
+			username=this_processing_channel_contents['username']
+			request_name = this_processing_channel_contents['request_name']
+			sample_name = this_processing_channel_contents['sample_name']
+			imaging_request_number = this_processing_channel_contents['imaging_request_number']
+			processing_request_number = this_processing_channel_contents['processing_request_number']
+			image_resolution = this_processing_channel_contents['image_resolution']
+			channel_name = this_processing_channel_contents['channel_name']
+			channel_index = this_processing_channel_contents['imspector_channel_index']
+			rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder']
+			data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
+			channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
+			blended_data_path = os.path.join(data_bucket_rootpath,username,
+							 request_name,sample_name,
+							 f"imaging_request_{imaging_request_number}",
+							 "output",
+							 f"processing_request_{processing_request_number}",
+							 f"resolution_{image_resolution}",
+							 "full_sizedatafld",
+							 f"{rawdata_subfolder}_ch{channel_index_padded}")
+
+			# rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder']
+			z_step = this_processing_channel_contents['z_step'] # not altered during blending
+			""" number of z planes could be altered in the case of tiling due to terastitcher 
+			so we will calculate it on the fly when doing the precomputed steps """
+			precomputed_kwargs = dict(
+				username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number,
+				processing_request_number=processing_request_number,
+				image_resolution=image_resolution,channel_name=channel_name,
+				channel_index=channel_index,
+				processing_pipeline_jobid_step3=processing_pipeline_jobid_step3,
+				z_step=z_step,blended_data_path=blended_data_path)
+			blended_viz_dir = os.path.join(data_bucket_rootpath,username,
+							 request_name,sample_name,
+							 f"imaging_request_{imaging_request_number}",
+							 "viz",
+							 f"processing_request_{processing_request_number}",
+							 "blended")
+			mymkdir(blended_viz_dir)
+			logger.debug(f"Created directory {blended_viz_dir}")
+			channel_viz_dir = os.path.join(blended_viz_dir,f'channel_{channel_name}')
+			mymkdir(channel_viz_dir)
+			logger.debug(f"Created directory {channel_viz_dir}")
+			precomputed_kwargs['viz_dir'] = channel_viz_dir
+			make_precomputed_blended_data.delay(**precomputed_kwargs)
+			logger.info("Sent precomputed task for tiling blended data")
+
+	return "Checked for light sheet pipeline jobs whose data have been blended"
+
+@cel.task()
+def blended_precomputed_job_status_checker():
+	""" 
+	A celery task that will be run in a schedule
+
+	Checks all outstanding job statuses on spock
+	for the precomputed tiled (stitched) pipeline
+	and updates their status in the TiledPrecomputedSpockJob()
+	in db_spockadmin
+	and ProcessingChannel() in db_lightsheet 
+
+	"""
+   
+	""" First get all rows with latest timestamps """
+	job_contents = db_spockadmin.BlendedPrecomputedSpockJob()
+	unique_contents = dj.U('jobid_step2','username',).aggr(
+		job_contents,timestamp='max(timestamp)')*job_contents
+	
+	""" Get a list of all jobs we need to check up on, i.e.
+	those that could conceivably change. """
+
+	ongoing_codes = ('SUBMITTED','RUNNING','PENDING','REQUEUED','RESIZING','SUSPENDED')
+	incomplete_contents = unique_contents & f'status_step2 in {ongoing_codes}'
+	jobids = list(incomplete_contents.fetch('jobid_step2'))
+	if jobids == []:
+		return "No jobs to check"
+	jobids_str = ','.join(str(jobid) for jobid in jobids)
+	logger.debug(f"Outstanding job ids are: {jobids}")
+	port = 22
+	username = 'lightserv-test'
+	hostname = 'spock.pni.princeton.edu'
+
+	client = paramiko.SSHClient()
+	client.load_system_host_keys()
+	client.set_missing_host_key_policy(paramiko.WarningPolicy)
+	try:
+		client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+	except:
+		logger.debug("Something went wrong connecting to spock.")
+		client.close()
+		return "Error connecting to spock"
+	logger.debug("connected to spock")
+	try:
+		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
+		stdin, stdout, stderr = client.exec_command(command)
+
+		stdout_str = stdout.read().decode("utf-8")
+		logger.debug("The response from spock is:")
+		logger.debug(stdout_str)
+		response_lines = stdout_str.strip('\n').split('\n')
+		jobids_received = [x.split('|')[0].split('_')[0] for x in response_lines] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
+		status_codes_received = [x.split('|')[1] for x in response_lines]
+		logger.debug("Job ids received")
+		logger.debug(jobids_received)
+		logger.debug("Status codes received")
+		logger.debug(status_codes_received)
+		job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
+		job_insert_list = []
+	except:
+		logger.debug("Something went wrong fetching job statuses from spock.")
+		client.close()
+		return "Error fetching job statuses from spock"
+
+	""" Loop through the jobids and determine 
+	their status from the list of statuses for each of their array jobs"""
+	for jobid,indices_list in job_status_indices_dict.items():
+		logger.debug(f"Working on jobid={jobid}")
+		job_insert_dict = {'jobid_step2':jobid}
+		status_codes = [status_codes_received[ii] for ii in indices_list]
+		status_step2 = determine_status_code(status_codes)
+		logger.debug(f"Status code for this job is: {status_step2}")
+		job_insert_dict['status_step2'] = status_step2
+		""" Find the username, other jobids associated with this jobid """
+		username_thisjob,processing_pipeline_jobid_step3_thisjob,jobid_step0,jobid_step1 = (
+			unique_contents & f'jobid_step2={jobid}').fetch1(
+			'username','processing_pipeline_jobid_step3','jobid_step0','jobid_step1')
+		job_insert_dict['username']=username_thisjob
+		job_insert_dict['processing_pipeline_jobid_step3']=processing_pipeline_jobid_step3_thisjob
+		job_insert_dict['jobid_step0']=jobid_step0
+		job_insert_dict['jobid_step1']=jobid_step1
+		
+		jobid_step_dict = {'step0':jobid_step0,'step1':jobid_step1}
+		""" Similarly, figure out the status codes for the earlier dependency jobs """
+		this_run_earlier_jobids_str = ','.join([jobid_step0,jobid_step1])
+		try:
+			command_earlier_steps = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(this_run_earlier_jobids_str)
+			stdin_earlier_steps, stdout_earlier_steps, stderr_earlier_steps = client.exec_command(command_earlier_steps)
+		except:
+			logger.debug("Something went wrong fetching steps 0-1 job statuses from spock.")
+			client.close()
+			return "Error fetching steps 0-1 job statuses from spock"
+		stdout_str_earlier_steps = stdout_earlier_steps.read().decode("utf-8")
+		try:
+			response_lines_earlier_steps = stdout_str_earlier_steps.strip('\n').split('\n')
+			jobids_received_earlier_steps = [x.split('|')[0].split('_')[0] for x in response_lines_earlier_steps] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
+			status_codes_received_earlier_steps = [x.split('|')[1] for x in response_lines_earlier_steps]
+		except:
+			logger.debug("Something went wrong parsing output of sacct query for steps 0-2 on spock")
+			client.close()
+			return "Error parsing sacct query of jobids for steps 0-2 on spock"
+
+		job_status_indices_dict_earlier_steps = {jobid:[i for i, x in enumerate(jobids_received_earlier_steps) \
+			if x == jobid] for jobid in set(jobids_received_earlier_steps)} 
+		
+		""" Loop through the jobids from the earlier steps
+		and figure out their statuses from their array job statuses"""
+		for step_counter in range(2):
+			step = f'step{step_counter}'
+			jobid_earlier_step = jobid_step_dict[step]
+			indices_list_earlier_step = job_status_indices_dict_earlier_steps[jobid_earlier_step]
+			status_codes_earlier_step = [status_codes_received_earlier_steps[ii] for ii in indices_list_earlier_step]
+			status = determine_status_code(status_codes_earlier_step)
+			status_step_str = f'status_step{step_counter}'
+			job_insert_dict[status_step_str] = status
+			step_counter +=1 
+
+		job_insert_list.append(job_insert_dict)
+
+		""" Get the processing channel entry associated with this jobid
+		and update the progress """
+		restrict_dict = dict(blended_precomputed_spock_jobid=jobid)
+		replace_key = 'blended_precomputed_spock_job_progress'
+		this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict
+		logger.debug("this processing channel content:")
+		logger.debug(this_processing_channel_content)
+		dj.Table._update(this_processing_channel_content,replace_key,status_step2)
+		logger.debug(f"Updated {replace_key} in ProcessingChannel() table ")
+
+		""" If this pipeline run is now 100 percent complete,
+		figure out if all of the other blended precomputed
+		pipelines that exist in this same processing request
+		and see if they are also complete.
+		If so, then email the user that their blended images
+		are ready to be visualized"""
+
+		if status_step2 == 'COMPLETED':
+			""" Find all processing channels from this same processing request """
+			username,request_name,sample_name,imaging_request_number,processing_request_number = this_processing_channel_content.fetch1(
+				'username','request_name','sample_name','imaging_request_number','processing_request_number')
+			restrict_dict_imaging = dict(username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number)
+			imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict_imaging
+			restrict_dict_processing = dict(username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number,
+				processing_request_number=processing_request_number)
+			processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & restrict_dict_processing
+			# logger.debug(processing_channel_contents)
+			""" Loop through and pool all of the job statuses """
+			processing_request_job_statuses = []
+			for processing_channel_dict in processing_channel_contents:
+				""" get the imaging channel contents for this channel
+				so that I can figure out which light sheets were used """
+				channel_name = processing_channel_dict['channel_name']
+				this_imaging_channel_contents = imaging_channel_contents & f'channel_name="{channel_name}"'
+				job_status = processing_channel_dict['blended_precomputed_spock_job_progress']
+				processing_request_job_statuses.append(job_status)
+			logger.debug("job statuses for this processing request:")
+			# print(username,)
+			logger.debug(username)
+			logger.debug(request_name)
+			logger.debug(sample_name)
+			logger.debug(imaging_request_number)
+			logger.debug(processing_request_number)
+			
+			if all(x=='COMPLETED' for x in processing_request_job_statuses):
+				neuroglancer_form_relative_url = os.path.join(
+					'/neuroglancer',
+					'blended_data_setup',
+					username,
+					request_name,
+					sample_name,
+					str(imaging_request_number),
+					str(processing_request_number)
+					)
+				neuroglancer_form_full_url = 'https://' + os.environ['HOSTURL'] + neuroglancer_form_relative_url
+				logger.debug("all blended channel data in this processing request"
+							 " completely converted to precomputed format!")
+				subject = 'Lightserv automated email: Blended data ready to be visualized'
+				body = ('Your blended data for sample:\n\n'
+						f'request_name: {request_name}\n'
+						f'sample_name: {sample_name}\n\n'
+						'are now ready to be visualized. '
+						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
+				send_email(subject=subject,body=body)
+			else:
+				logger.debug("Not all blended channels in this request"
+							 " are completely converted to precomputed format")
+	logger.debug("Insert list:")
+	logger.debug(job_insert_list)
+	db_spockadmin.BlendedPrecomputedSpockJob.insert(job_insert_list)
+	logger.debug("Entry in BlendedPrecomputedSpockJob() spockadmin table with latest status")
+
+	client.close()
+
+	return "Checked blended precomptued job statuses"

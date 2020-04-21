@@ -23,9 +23,9 @@ class ChannelForm(FlaskForm):
 	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',default='1x1')
 	tiling_overlap = DecimalField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
 		places=2,validators=[Optional()],default=0.15) 
-	z_step = DecimalField('Z resolution (microns)',validators=[InputRequired()],default=10)
+	z_step = DecimalField('Z resolution (microns)',validators=[InputRequired()],default=5.0)
 	number_of_z_planes = IntegerField('Number of z planes',
-		widget=html5.NumberInput(),validators=[InputRequired()],default=683)
+		widget=html5.NumberInput(),validators=[InputRequired()],default=1258)
 	rawdata_subfolder = TextAreaField('channel subfolder',validators=[InputRequired()])
 
 	def validate_tiling_overlap(self,tiling_overlap):

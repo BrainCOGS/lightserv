@@ -57,3 +57,34 @@ class StitchedDataSetupForm(FlaskForm):
 								  " You must choose at least one in order to proceed.")
 
 
+class BlendedChannelForm(FlaskForm):
+	""" A sub-form for each channel in an ImageResolutionForm """
+	channel_name = HiddenField('Channel Name')
+	viz = BooleanField("Visualize?",default=1)
+
+class BlendedImageResolutionForm(FlaskForm):
+	""" A sub-form for each image resolution in RawDataSetupForm """
+	image_resolution = HiddenField('image resolution')
+	channel_forms = FieldList(FormField(BlendedChannelForm),min_entries=0,max_entries=4)
+
+class BlendedDataSetupForm(FlaskForm):
+	""" A form for setting up how user wants to visualize
+	their stitched (but still raw) data for a given imaging request in Neuroglancer.
+	"""
+	image_resolution_forms = FieldList(
+		FormField(BlendedImageResolutionForm),min_entries=0,max_entries=4)
+	submit = SubmitField('Submit') # renders a new resolution table
+	
+	def validate_image_resolution_forms(self,image_resolution_forms):
+		""" Check to make sure at least one checkbox was checked """
+		any_checked = False
+		for image_resolution_dict in self.image_resolution_forms.data:
+			for channel_dict in image_resolution_dict['channel_forms']:
+				if channel_dict['viz']:
+					any_checked=True
+		if not any_checked:
+			raise ValidationError("No channels were chosen for display."
+								  " You must choose at least one in order to proceed.")
+
+
+

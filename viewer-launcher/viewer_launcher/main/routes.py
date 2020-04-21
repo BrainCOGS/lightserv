@@ -15,6 +15,8 @@ def base():
 
 @main.route("/cvlauncher",methods=['POST']) 
 def cvlauncher(): 
+	logging.debug("POST request to /cvlauncher in viewer-launcher")
+
 	client = docker.DockerClient(base_url='unix://var/run/docker.sock')
 	cv_dict = request.json
 	cv_name = cv_dict['cv_name'] # the name of the layer in Neuroglancer
@@ -30,7 +32,7 @@ def cvlauncher():
 			},
 	}
 
-	cv_container = client.containers.run('cloudv',
+	cv_container = client.containers.run('cloudv_viewer',
 								  volumes=cv_mounts,
 								  network='lightserv',
 								  name=cv_container_name,
@@ -39,6 +41,7 @@ def cvlauncher():
 
 @main.route("/nglauncher",methods=['POST']) 
 def nglauncher(): 
+	logging.debug("POST request to /nglauncher in viewer-launcher")
 	client = docker.DockerClient(base_url='unix://var/run/docker.sock')
 	ng_dict = request.json
 	ng_container_name = ng_dict['ng_container_name'] # the name of the layer in Neuroglancer
@@ -50,7 +53,7 @@ def nglauncher():
     }
 
 
-	ng_container = client.containers.run('nglancer',
+	ng_container = client.containers.run('nglancer_viewer',
                                   environment=ng_environment,
                                   network='lightserv',
                                   name=ng_container_name,
