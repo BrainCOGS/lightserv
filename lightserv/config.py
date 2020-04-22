@@ -41,10 +41,10 @@ class BaseConfig(object):
 class Config(BaseConfig):
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	CELERYBEAT_SCHEDULE = {
-		# 'processsing_job_status_checker': {
-		# 'task': 'lightserv.processing.tasks.processing_job_status_checker',
-		# 'schedule': timedelta(seconds=4)
-		# },
+		'processing_job_status_checker': {
+		'task': 'lightserv.processing.tasks.processing_job_status_checker',
+		'schedule': timedelta(seconds=10)
+		},
 		# 'tiledprecomp_job_ready_checker': {
 		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_tiled_data',
 		# 'schedule': timedelta(seconds=6)
@@ -53,13 +53,37 @@ class Config(BaseConfig):
 		# 'task': 'lightserv.processing.tasks.tiled_precomputed_job_status_checker',
 		# 'schedule': timedelta(seconds=10)
 		# },
-		# 'ng_viewer_cleanser': {
-		# 'task': 'lightserv.neuroglancer.routes.ng_viewer_checker',
-		# 'schedule': timedelta(seconds=15)
+		# # 'ng_viewer_cleanser': {
+		# # 'task': 'lightserv.neuroglancer.routes.ng_viewer_checker',
+		# # 'schedule': timedelta(seconds=15)
+		# # },
+		# 'rawprecomp_job_status_checker': {
+		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
+		# 'schedule': timedelta(seconds=10)
 		# },
-		'rawprecomp_job_status_checker': {
-		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
-		'schedule': timedelta(seconds=5)
+		# 'blendedprecomp_job_ready_checker': {
+		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
+		# 'schedule': timedelta(seconds=5)
+		# },
+		# 'blendedprecomp_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
+		# 'schedule': timedelta(seconds=5)
+		# },
+		# 'registeredprecomp_job_ready_checker': {
+		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_registered_data',
+		# 'schedule': timedelta(seconds=5)
+		# },
+		# 'registeredprecomp_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
+		# 'schedule': timedelta(seconds=8)
+		# },
+		'downsizedprecomp_job_ready_checker': {
+		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
+		'schedule': timedelta(seconds=4)
+		},
+		'downsizedprecomp_job_status_checker': {
+		'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
+		'schedule': timedelta(seconds=7)
 		},
 	}
 	

@@ -84,3 +84,28 @@ class BlendedPrecomputedSpockJob(dj.Manual):
     status_step1 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
     status_step2 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
     """
+@schema 
+class DownsizedPrecomputedSpockJob(dj.Manual):
+    definition = """    # Spock job management table for keeping track of spock jobs for making precomputed data from the blended data products 
+    jobid_step1  : varchar(16) # the jobid on spock of step1 (volume uploading) in the precomputed pipeline. Used as primary key so that the progress of the precomputed pipeline can be probed.
+    timestamp = CURRENT_TIMESTAMP : timestamp
+    ---
+    processing_pipeline_jobid_step3 : varchar(16) # the spock processing pipline job that this is linked to
+    jobid_step0  : varchar(16)
+    username     : varchar(32)
+    status_step0 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+    status_step1 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+    """
+
+@schema 
+class RegisteredPrecomputedSpockJob(dj.Manual):
+    definition = """    # Spock job management table for keeping track of spock jobs for making precomputed data from the blended data products 
+    jobid_step1  : varchar(16) # the jobid on spock of step1 (volume uploading) in the precomputed pipeline. Used as primary key so that the progress of the precomputed pipeline can be probed.
+    timestamp = CURRENT_TIMESTAMP : timestamp
+    ---
+    processing_pipeline_jobid_step3 : varchar(16) # the spock processing pipline job that this is linked to
+    jobid_step0  : varchar(16)
+    username     : varchar(32)
+    status_step0 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+    status_step1 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+    """

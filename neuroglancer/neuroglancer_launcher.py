@@ -52,11 +52,16 @@ shader_code = """void main() {
 """
 
 cv_count = int(session_dict['cv_count']) # number of cloudvolumes
-cv_names = []
+layer_dict = {}
 for ii in range(cv_count):
 	cv_number = ii+1
 	cv_name = session_dict[f'cv{cv_number}_name']
-	cv_names.append(cv_name)
+	channel_name = cv_name.split('_')[0]
+	if channel_name not in layer_dict.keys():
+		layer_dict[channel_name] = [cv_name]
+	else:
+		layer_dict[channel_name].append(cv_name)
+	# cv_names.append(cv_name)
 	layer_type = session_dict[f'layer{cv_number}_type']
 	with viewer.txn() as s:
 		logging.debug("Loading in source: ")
@@ -73,11 +78,13 @@ for ii in range(cv_count):
 		    )
 with viewer.txn() as s:
 	s.navigation.zoomFactor = 40000
-row_layout_list = [neuroglancer.LayerGroupViewer(layers=[x]) for x in cv_names]
+
+""" Make the row layout such that each layer 
+with the same channel prefix (e.g. ch488_registered and ch488_atlas)
+is in the same groupviewer """
+row_layout = [neuroglancer.LayerGroupViewer(layers=x) for x in layer_dict.values()]
 with viewer.txn() as s:	
-    s.layout = neuroglancer.row_layout(
-        row_layout_list
-    )
+    s.layout = neuroglancer.row_layout(row_layout)
 ## need to retool this so it shows the correct link, the container's internal FQDN is not useful
 logging.info("viewer at: {}".format(viewer))
 

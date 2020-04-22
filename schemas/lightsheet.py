@@ -161,19 +161,23 @@ class Request(dj.Manual):
         definition = """ # Processing parameters for a channel. There can be more than one purpose for a single channel, hence why lightsheet_channel_str is a primary key
         -> master.ImagingChannel
         -> master.ProcessingResolutionRequest
-        lightsheet_channel_str                    :   enum("regch","injch","cellch","gench")
+        lightsheet_channel_str                                        :   enum("regch","injch","cellch","gench")
         ----
-        imspector_version = ''                    :   varchar(128)
-        datetime_processing_started               :   datetime
-        datetime_processing_completed = NULL      :   datetime
-        intensity_correction = 1                  :   boolean
-        metadata_xml_string = NULL                :   mediumblob # The entire metadata xml string. Sometimes it is not available so those times it will be NULL
-        blended_precomputed_spock_jobid = NULL       : varchar(32)
-        blended_precomputed_spock_job_progress = NULL    : enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+        imspector_version = ''                                        :   varchar(128)
+        datetime_processing_started                                   :   datetime
+        datetime_processing_completed = NULL                          :   datetime
+        intensity_correction = 1                                      :   boolean
+        metadata_xml_string = NULL                                    :   mediumblob # The entire metadata xml string. Sometimes it is not available so those times it will be NULL
         left_lightsheet_tiled_precomputed_spock_jobid = NULL          :   varchar(32)
         left_lightsheet_tiled_precomputed_spock_job_progress = NULL   :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
         right_lightsheet_tiled_precomputed_spock_jobid = NULL         :   varchar(32)
         right_lightsheet_tiled_precomputed_spock_job_progress = NULL  :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+        blended_precomputed_spock_jobid = NULL                        : varchar(32)
+        blended_precomputed_spock_job_progress = NULL                 : enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+        downsized_precomputed_spock_jobid = NULL                      : varchar(32)
+        downsized_precomputed_spock_job_progress = NULL               : enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+        registered_precomputed_spock_jobid = NULL                     : varchar(32)
+        registered_precomputed_spock_job_progress = NULL              : enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
         """ 
                 
     class IdiscoPlusClearing(dj.Part): # 

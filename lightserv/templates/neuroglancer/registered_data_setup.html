@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+{% block content %}
+	<h1 class="mb-2" align="center">Registered Data Visualization Setup Form</h1>
+
+	<hr class='class-2'>
+	<div align="center">
+	<h3>Request overview:</h3>
+		{{ processing_request_table }}
+	</div>
+	<hr class='class-2'>
+	<div class="content-section">
+		<form method="POST" action="">
+			{{ form.hidden_tag() }}
+			<fieldset class="form-group">
+				<h3 class='border-bottom mb-4'>Setup</h3>
+				<p>Below are all of the channels in your request </p>
+				<p> Select all channels you wish to display in Neuroglancer. 
+					Selecting an atlas for a given channel will overlay it 
+					on top of your data for that channel. </p>
+		        <!-- Loop through all image resolution forms and make a table for each -->
+				{% for ii in range(form.image_resolution_forms|length) %}
+					{% set image_resolution_form = form.image_resolution_forms[ii] %}
+					<!-- render the hidden field -->
+					{{ image_resolution_form.image_resolution() }}
+					{% set image_resolution = image_resolution_form.image_resolution.data %}
+					<table class="table table-bordered table-striped text-center mb-4">
+				        <tr>
+				            <th>Image resolution </th>
+				            <th>Channel wavelength(nm)</th>
+				            <th>Visualize?</th>
+				            <th>Overlay Atlas?</th>
+				        </tr>
+
+						{% for jj in range(image_resolution_form.channel_forms|length) %}
+							{% set channel_form = image_resolution_form.channel_forms[jj] %}
+							<!-- render the hidden field -->
+							{{ channel_form.channel_name() }}
+							{% set channel_name = channel_form.channel_name.data %}
+
+							<tr>   
+							    <td>{{image_resolution}}</td>
+							    <td>{{channel_name}}</td>
+							    <td> 
+							    	{{ channel_form.viz }}
+								</td>
+								<td> 
+							    	{{ channel_form.viz_atlas }}
+								</td>
+							</tr>
+					    {% endfor %} <!-- Loop over channel forms resolution forms -->
+					</table>
+				{% endfor %} <!-- Loop over image resolution forms -->
+
+				
+			</fieldset>
+			<!-- Final submit button -->
+			<hr class='class-3'>
+			<div class="form-group">
+				{{ form.submit(class="btn btn-success mt-2") }}
+			</div>
+		</form>
+
+	</div>
+
+
+{% endblock content %}
