@@ -22,11 +22,11 @@ class BaseConfig(object):
 	ATLAS_NAME_FILE_DICTIONARY = {
 	'allen_2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/average_template_25_sagittal_forDVscans.tif',
 	'allen_pre2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/average_template_25_sagittal_forDVscans.tif',
-	'princeton_mouse_atlas:':'/jukebox/LightSheetTransfer/atlas/sagittal_atlas_20um_iso.tif'}
+	'princeton_mouse_atlas':'/jukebox/LightSheetTransfer/atlas/sagittal_atlas_20um_iso.tif'}
 	ATLAS_ANNOTATION_FILE_DICTIONARY = {
 	'allen_2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/annotation_2017_25um_sagittal_forDVscans_16bit.tif',
 	'allen_pre2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/annotation_template_25_sagittal_forDVscans.tif',
-	'princeton_mouse_atlas:':'/jukebox/LightSheetTransfer/atlas/annotation_sagittal_atlas_20um_iso_16bit.tif'
+	'princeton_mouse_atlas':'/jukebox/LightSheetTransfer/atlas/annotation_sagittal_atlas_20um_iso_16bit.tif'
 	}
 	PROCESSING_CODE_DIR = '/jukebox/wang/ahoag/lightsheet_py3'
 	# CLEARING_CALENDAR_ID = '8kvbhcbo0smdg394f79eh45gfc@group.calendar.google.com' # the real clearing calendar
@@ -41,10 +41,10 @@ class BaseConfig(object):
 class Config(BaseConfig):
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	CELERYBEAT_SCHEDULE = {
-		'processing_job_status_checker': {
-		'task': 'lightserv.processing.tasks.processing_job_status_checker',
-		'schedule': timedelta(seconds=10)
-		},
+		# 'processing_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.processing_job_status_checker',
+		# 'schedule': timedelta(seconds=10)
+		# },
 		# 'tiledprecomp_job_ready_checker': {
 		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_tiled_data',
 		# 'schedule': timedelta(seconds=6)
@@ -63,11 +63,11 @@ class Config(BaseConfig):
 		# },
 		# 'blendedprecomp_job_ready_checker': {
 		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
-		# 'schedule': timedelta(seconds=5)
+		# 'schedule': timedelta(seconds=4)
 		# },
 		# 'blendedprecomp_job_status_checker': {
 		# 'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
-		# 'schedule': timedelta(seconds=5)
+		# 'schedule': timedelta(seconds=10)
 		# },
 		# 'registeredprecomp_job_ready_checker': {
 		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_registered_data',
@@ -77,14 +77,14 @@ class Config(BaseConfig):
 		# 'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
 		# 'schedule': timedelta(seconds=8)
 		# },
-		'downsizedprecomp_job_ready_checker': {
-		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
-		'schedule': timedelta(seconds=4)
-		},
-		'downsizedprecomp_job_status_checker': {
-		'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
-		'schedule': timedelta(seconds=7)
-		},
+		# 'downsizedprecomp_job_ready_checker': {
+		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
+		# 'schedule': timedelta(seconds=4)
+		# },
+		# 'downsizedprecomp_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
+		# 'schedule': timedelta(seconds=7)
+		# },
 	}
 	
 class TestConfig(BaseConfig):

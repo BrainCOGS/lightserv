@@ -110,7 +110,7 @@ def create_dynamic_processing_overview_table(contents,table_id,ignore_columns=[]
     # table_class.add_column('tiling_scheme',Col('tiling scheme'))
     table_class.add_column('processor',Col('processor'))
     table_class.add_column('processing_progress',ProgressCol('processing progress'))
-    table_class.add_column('spock_jobid',Col('spock jobid'))
+    table_class.add_column('lightsheet_pipeline_spock_jobid',Col('spock jobid'))
 
     table = table_class(contents)
     

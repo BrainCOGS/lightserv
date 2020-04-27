@@ -52,16 +52,15 @@ shader_code = """void main() {
 """
 
 cv_count = int(session_dict['cv_count']) # number of cloudvolumes
-layer_dict = {}
+cv_names_nonatlas = []
+
 for ii in range(cv_count):
 	cv_number = ii+1
 	cv_name = session_dict[f'cv{cv_number}_name']
-	channel_name = cv_name.split('_')[0]
-	if channel_name not in layer_dict.keys():
-		layer_dict[channel_name] = [cv_name]
+	if 'atlas' in cv_name.lower():
+		atlas_cv_name = cv_name
 	else:
-		layer_dict[channel_name].append(cv_name)
-	# cv_names.append(cv_name)
+		cv_names_nonatlas.append(cv_name)
 	layer_type = session_dict[f'layer{cv_number}_type']
 	with viewer.txn() as s:
 		logging.debug("Loading in source: ")
@@ -79,10 +78,18 @@ for ii in range(cv_count):
 with viewer.txn() as s:
 	s.navigation.zoomFactor = 40000
 
-""" Make the row layout such that each layer 
-with the same channel prefix (e.g. ch488_registered and ch488_atlas)
-is in the same groupviewer """
-row_layout = [neuroglancer.LayerGroupViewer(layers=x) for x in layer_dict.values()]
+""" Make the layout such that each
+channel is a separate column and has the atlas
+overlaid if requested """
+cvs_need_atlas_str = session_dict['cvs_need_atlas']
+cvs_need_atlas_list = cvs_need_atlas_str.split(',')
+row_layout = []
+for cv_name in cv_names_nonatlas:
+	layers = [cv_name]
+	if cv_name in cvs_need_atlas_list:
+		layers.append(atlas_cv_name)
+	row_layout.append(neuroglancer.LayerGroupViewer(layers=layers))
+
 with viewer.txn() as s:	
     s.layout = neuroglancer.row_layout(row_layout)
 ## need to retool this so it shows the correct link, the container's internal FQDN is not useful

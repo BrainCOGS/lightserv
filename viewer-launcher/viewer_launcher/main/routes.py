@@ -60,6 +60,27 @@ def nglauncher():
                                   detach=True) 
 	return "success"
 
+@main.route("/ng_reg_launcher",methods=['POST']) 
+def ng_reg_launcher(): 
+	logging.debug("POST request to /ng_reg_launcher in viewer-launcher")
+	client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+	ng_dict = request.json
+	ng_container_name = ng_dict['ng_container_name'] # the name of the layer in Neuroglancer
+	session_name = ng_dict['session_name']
+	hosturl = ng_dict['hosturl']
+	ng_environment = {
+        'HOSTURL':hosturl,
+        'SESSION_NAME':session_name
+    }
+
+
+	ng_container = client.containers.run('nglancer_registration_viewer',
+                                  environment=ng_environment,
+                                  network='lightserv',
+                                  name=ng_container_name,
+                                  detach=True) 
+	return "success"
+
 @main.route("/dest",methods=['POST'])
 def dest():
 	logging.debug("")
