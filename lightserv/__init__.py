@@ -60,6 +60,18 @@ them to a single app in the create_app() function below '''
 
 
 def set_schema():
+	if os.environ['FLASK_MODE'] == 'PROD':
+		dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+		dj.config['database.user'] = os.environ['DJ_DB_USER']
+		dj.config['database.password'] = os.environ['DJ_DB_PASS']
+		db_lightsheet = dj.create_virtual_module('lightsheet','u19lightserv_lightsheet',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
+		db_admin = dj.create_virtual_module('admin','u19lightserv_appcore',create_schema=True)
+		db_spockadmin = dj.create_virtual_module('spockadmin','ahoag_spockadmin_demo',create_schema=True)
+		db_microscope = dj.create_virtual_module('microscope_demo','ahoag_microscope_demo',create_schema=True)
+		db_subject = dj.create_virtual_module('subject','u19_subject',create_schema=False)
+		# db_microscope = None
+		# db_admin = dj.create_virtual_module('admin','u19lightserv_appcore',create_schema=True)
+		# db_logger = Log(dj.conn(), database='ahoag_lightsheet_demo') # Initialize logger
 	if os.environ['FLASK_MODE'] == 'DEV':
 		dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
 		dj.config['database.user'] = os.environ['DJ_DB_USER']

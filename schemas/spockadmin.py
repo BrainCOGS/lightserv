@@ -8,19 +8,20 @@ if os.environ.get('FLASK_MODE') == 'TEST':
     dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']
     print("setting up test spockadmin schema")
     schema = dj.schema('ahoag_spockadmin_test')
-    # is_worker = os.environ.get('IS_WORKER')
-    # if is_worker is not None:
-    #     print("Worker; not dropping db")
-    # else:    
-    #     schema.drop(force=True)
-    #     schema = dj.schema('ahoag_admin_test')
-else:
+elif os.environ.get('FLASK_MODE') == 'DEV':
     dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
     dj.config['database.port'] = 3306
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']
     print("setting up real spockadmin schema")
     schema = dj.schema('ahoag_spockadmin_demo')
+elif os.environ.get('FLASK_MODE') == 'PROD':
+    dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+    dj.config['database.port'] = 3306
+    dj.config['database.user'] = os.environ['DJ_DB_USER']
+    dj.config['database.password'] = os.environ['DJ_DB_PASS']
+    print("setting up real spockadmin schema")
+    schema = dj.schema('u19lightserv_appcore')
 
 @schema 
 class ProcessingPipelineSpockJob(dj.Manual):
