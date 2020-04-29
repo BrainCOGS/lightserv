@@ -414,32 +414,20 @@ def new_request():
                             # image_resolution_form.channels.append_entry()
                             channel_name = current_app.config['IMAGING_CHANNELS'][x]
                             image_resolution_form.channel_forms[x].channel_name.data = channel_name
-                            # Make the default for channel 488 to be 1.3x imaging with registration checked
-                            # if form.species.data != 'mouse':
-                            #   logger.info("Species != mouse! Disabling registration/detection options")
-                            #   image_resolution_form.channel_forms[x].registration.render_kw = {'disabled':'disabled'}
-                            #   image_resolution_form.channel_forms[x].injection_detection.render_kw = {'disabled':'disabled'}
-                            #   image_resolution_form.channel_forms[x].probe_detection.render_kw = {'disabled':'disabled'}
-                            #   image_resolution_form.channel_forms[x].cell_detection.render_kw = {'disabled':'disabled'}
-                            # elif image_resolution_forsetup == '2x':
-                            #   logger.info("Using 2x image resolution. Disabling registration/detection options")
-                            #   image_resolution_form.channel_forms[x].registration.render_kw = {'disabled':'disabled'}
-                            #   image_resolution_form.channel_forms[x].injection_detection.render_kw = {'disabled':'disabled'}
-                            #   image_resolution_form.channel_forms[x].probe_detection.render_kw = {'disabled':'disabled'}
-                            #   image_resolution_form.channel_forms[x].cell_detection.render_kw = {'disabled':'disabled'}
+                            
                             if form.species.data == 'mouse' and channel_name == '488' and image_resolution_forsetup == "1.3x":
                                 image_resolution_form.channel_forms[x].registration.data = 1
                             if form.species.data == 'mouse' and channel_name == '555' and image_resolution_forsetup == "1.3x":
                                 image_resolution_form.channel_forms[x].injection_detection.data = 1
                                 
                         logger.info(f"Column name is: {column_name}")
+            
             """ Handle all of the different "*submit*" buttons pressed """
             if submit_key == 'sample_submit_button': # The sample setup button
                 logger.info("sample submit")
                 nsamples = form.number_of_samples.data
 
-                """ Render all of the clearing and imaging fields """
-                # make nsamples sets of sample fields
+                """ Make nsamples sets of sample fields and render them """
                 for ii in range(nsamples):
                     form.clearing_samples.append_entry()
                     form.clearing_samples[ii].sample_name.data = form.request_name.data + '-' + f'{ii+1}'.zfill(3)
@@ -514,9 +502,9 @@ def new_request():
                 logger.debug("Final submission")
 
                 """ Start a transaction for doing the inserts.
-                    This is done to avoid inserting only into Experiment
-                    table but not Sample and ImagingChannel tables if there is an error 
-                    at any point during any of the inserts """
+                    This is done to avoid inserting only into Request()
+                    table but not any of the dependent tables if there is an error 
+                    at any point during any of the code block """
                 connection = db_lightsheet.Request.connection
                 with connection.transaction:
                     """ If someone else's username is entered, then
@@ -555,7 +543,6 @@ def new_request():
 
                     db_lightsheet.Request().insert1(request_insert_dict)
 
-                    
                     ''' Sample section '''
                     clearing_samples = form.clearing_samples.data
                     imaging_samples = form.imaging_samples.data
