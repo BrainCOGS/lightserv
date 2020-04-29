@@ -42,7 +42,7 @@ def test_setup_samples_mouse(test_client,test_login):
 	renders the rest of the form (clearing and imaging/processing sections) 
 
 	Does not actually enter any data into the db 
-	 """
+	"""
 
 	# Simulate pressing the "Setup samples" button
 	data = dict(

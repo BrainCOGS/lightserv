@@ -1,29 +1,11 @@
 version: "3.4"
 
 services:
-  confproxy:
-    env_file: .dockerenv
-    image: jupyterhub/configurable-http-proxy:3.1.1
-    # expose the proxy to the world
-    ports:
-      - "8002:8000"
-      - "8003:8001"
-    command: ['configurable-http-proxy',
-              '--auto-rewrite',
-              '--no-include-prefix',
-              '--no-prepend-path',
-              '--log-level', 'debug',
-              '--api-ip', '0.0.0.0']
-    restart: always
   redis:
     image: redis
     expose:
       - 6379
-    # restart: always
-  # rabbit:
-  #   image: rabbitmq:3.8.3-rc.2
-  #   expose:
-  #     - 5672
+    restart: always
   flask:
     env_file: .dockerenv
     hostname: docker_lightserv
@@ -36,9 +18,7 @@ services:
       - ./lib:/opt/libraries # for progproxy api
     ports:
       - '5000:5000'
-    # restart: always
-    # extra_hosts:
-    #   - "dockerhost:$DOCKERHOST"
+    restart: always
   viewer-launcher:
     env_file: .dockerenv
     build:
@@ -50,8 +30,7 @@ services:
       - /jukebox/LightSheetData:/jukebox/LightSheetData
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - '5003:5005'
-    # restart: always
+      - '5004:5005'
   worker:
     env_file: .dockerenv
     image: flaskcelery:latest
@@ -67,9 +46,8 @@ services:
       - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
-      # - rabbit
       - redis
-    # restart: always
+    restart: always
   scheduler:
     env_file: .dockerenv
     image: flaskcelery:latest
@@ -86,8 +64,8 @@ services:
     depends_on:
       - redis
       - worker
-    # restart: always
+    restart: always
 networks:
   default:
     external:
-      name: lightserv
+      name: lightserv-prod
