@@ -46,9 +46,10 @@ def set_celery_db():
 	if os.environ['FLASK_MODE'] == 'DEV':
 		cel = Celery(__name__,broker='redis://redis:6379/0',
 			backend='redis://redis:6379/0')
-		# cel = Celery(__name__,broker='amqp://dockerhost',
-		# 	backend='redis://redis:6379/0')
 	elif os.environ['FLASK_MODE'] == 'TEST':
+		cel = Celery(__name__,broker='redis://redis:6379/0',
+			backend='redis://redis:6379/0')
+	elif os.environ['FLASK_MODE'] == 'PROD':
 		cel = Celery(__name__,broker='redis://redis:6379/0',
 			backend='redis://redis:6379/0')
 	return cel
