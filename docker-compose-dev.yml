@@ -30,7 +30,7 @@ services:
       - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
       - ./lib:/opt/libraries # for progproxy api
     ports:
-      - '8080:5000'
+      - '5000:5000'
     # restart: always
   viewer-launcher:
     env_file: .dockerenv

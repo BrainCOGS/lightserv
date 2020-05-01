@@ -2,6 +2,28 @@
 {% block content %}
 <h1 align="center" class="mb-4">FAQ</h1>
 <hr class='class-1'>
+
+<h4 align="center"> Q: What is stitching/tiling?</h4>
+	<p>
+		<b>A:</b> Sometimes your sample is too large (in x,y) to fit into the
+		field of view of the microscope. This is true for rat brains imaged at any resolution 
+		and true for mouse brains imaged at >1.3x (x,y) resolution. When this happens, the 
+		imager moves the sample in a tile pattern and re-images the sample until the entire 
+		desired volume is imaged. Included in our processing
+		pipeline is a program called terastitcher that combines ("stitches") the volumes obtained
+		from each grid cell into a single 3d volume. Below is an illustration of this process. 
+	</p>
+	<div align="center" class='mb-2 mt-4'>
+		<img src="{{ url_for('static',filename='FAQ/mouse_sagittal_tiled.png') }}">	
+		</br> 
+		<b>Fig. 1.1</b>: A raw 3x2 tiled dataset is stitched into a single volume. 
+		The top dataset was originally 6 volumes that were imaged separately.
+		Stitching is performed automatically for tiled datasets as part of the automated 
+		whole-brain processing pipeline. 
+	</div>
+
+<hr class='class-1'>
+
 <h4 align="center"> Q: How do I fix the connection to my account on spock?</h4>
 	<p>
 		<b>A:</b> Most likely the ssh key that was emailed to you was either not copied or incorrectly copied to your account on spock. This key allows lightserv to ssh into your account on spock so it can run jobs as you. Check your email for a message from lightservhelper@gmail.com with the contents "ssh key". Follow the instructions at the bottom of the email closely. If you still experience issues connecting, you may need to alter the permissions of the ssh public key file and its directory. To change the permissions log onto your account on spock and issue the following commands: 
@@ -42,19 +64,19 @@
 	<div align="center" class='mb-2'>
 		<img src="{{ url_for('static',filename='FAQ/simple_request_structure_graph.png') }}">	
 		</br>
-		<b>Fig 1.1</b>: The original request structure when you submit a request via the "New Request Form". In this example the request has two samples. Each sample has a single imaging request, and each imaging request has a single processing request.
+		<b>Fig 1.2</b>: The original request structure when you submit a request via the "New Request Form". In this example the request has two samples. Each sample has a single imaging request, and each imaging request has a single processing request.
 	</div>
 	<hr class='class-2'>
 	<div align="center" class='mb-2 mt-4'>
 		<img src="{{ url_for('static',filename='FAQ/two_imaging_request_structure_graph.png') }}">	
 		</br>
-		<b>Fig 1.2</b>: A request structure with two samples, where Sample 1 has two imaging requests. In this example, the user requested additional imaging for Sample 1, but Sample 2 has the original request structure. Each imaging request has a single processing request (this is the default). To learn how to make an additional imaging request for a single sample, see: <a href="{{ url_for('main.FAQ',_anchor='new_imaging_request') }}">Q: How do I request additional imaging for a sample I already submitted?</a>
+		<b>Fig 1.3</b>: A request structure with two samples, where Sample 1 has two imaging requests. In this example, the user requested additional imaging for Sample 1, but Sample 2 has the original request structure. Each imaging request has a single processing request (this is the default). To learn how to make an additional imaging request for a single sample, see: <a href="{{ url_for('main.FAQ',_anchor='new_imaging_request') }}">Q: How do I request additional imaging for a sample I already submitted?</a>
 	</div>
 
 	<div align="center" class='mb-2 mt-4'>
 		<img src="{{ url_for('static',filename='FAQ/two_processing_request_structure_graph.png') }}">	
 		</br>
-		<b>Fig 1.3</b>: A request structure with two samples, where Sample 1 has two imaging requests and Imaging Request 2 for this sample has two processing requests. In this example, the user requested additional imaging for Sample 1 and then additional processing for this additional batch of images. Their original set of images are unchanged. Sample 2 has the original request structure. To learn how to make an additional processing request for a set of images, see: <a href="{{ url_for('main.FAQ',_anchor='new_processing_request') }}">Q: How do I request additional processing for a set of images?</a>
+		<b>Fig 1.4</b>: A request structure with two samples, where Sample 1 has two imaging requests and Imaging Request 2 for this sample has two processing requests. In this example, the user requested additional imaging for Sample 1 and then additional processing for this additional batch of images. Their original set of images are unchanged. Sample 2 has the original request structure. To learn how to make an additional processing request for a set of images, see: <a href="{{ url_for('main.FAQ',_anchor='new_processing_request') }}">Q: How do I request additional processing for a set of images?</a>
 	</div>
 </div>
 
