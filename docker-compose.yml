@@ -30,8 +30,8 @@ services:
       - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
       - ./lib:/opt/libraries # for progproxy api
     ports:
-      - '5000:5000'
-    restart: always
+      - '8080:5000'
+    # restart: always
   viewer-launcher:
     env_file: .dockerenv
     build:
@@ -43,7 +43,7 @@ services:
       - /jukebox/LightSheetData:/jukebox/LightSheetData
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - '5004:5005'
+      - '5003:5005'
   worker:
     env_file: .dockerenv
     image: flaskcelery:latest
@@ -60,7 +60,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - redis
-    restart: always
+    # restart: always
   scheduler:
     env_file: .dockerenv
     image: flaskcelery:latest
@@ -77,7 +77,7 @@ services:
     depends_on:
       - redis
       - worker
-    restart: always
+    # restart: always
 networks:
   default:
     external:

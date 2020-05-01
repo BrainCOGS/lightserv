@@ -15,7 +15,7 @@ if os.environ.get('FLASK_MODE') == 'TEST':
     # else:
     #     schema.drop(force=True)
     #     schema = dj.schema('ahoag_lightsheet_test')
-else:
+elif os.environ.get('FLASK_MODE') == 'DEV':
     dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
     dj.config['database.port'] = 3306
 
@@ -27,7 +27,15 @@ else:
     # schema.drop()
     # schema = dj.schema('u19lightserv_lightsheet')
     schema = dj.schema('ahoag_lightsheet_demo')
-from . import spockadmin
+elif os.environ.get('FLASK_MODE') == 'PROD':
+    dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+    dj.config['database.port'] = 3306
+    dj.config['database.user'] = os.environ['DJ_DB_USER']
+    dj.config['database.password'] = os.environ['DJ_DB_PASS']
+    print("setting up u19lightserv_lightsheet schema")
+    schema = dj.schema('u19lightserv_lightsheet')
+
+# from . import spockadmin
 
 @schema
 class User(dj.Lookup):

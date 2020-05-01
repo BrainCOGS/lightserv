@@ -1,33 +1,20 @@
 # import datajoint as dj
 import os 
 import datajoint as dj
+
+os.environ['FLASK_MODE'] = 'PROD'
+
 dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
 dj.config['database.port'] = 3306
 
 dj.config['database.user'] = os.environ['DJ_DB_USER']
 dj.config['database.password'] = os.environ['DJ_DB_PASS']
 
-os.environ['FLASK_MODE'] = 'DEV'
-
-spockadmin_schema = dj.schema('ahoag_spockadmin_demo')
-lightsheet_schema = dj.schema('ahoag_lightsheet_demo')
-admin_schema = dj.schema('ahoag_admin_demo')
-microscope_schema = dj.schema('ahoag_microscope_demo')
-
-drop_lightsheet_admin = input("Drop light sheet, admin and spockadmin schemas? (yes or No): ")
-if drop_lightsheet_admin == 'yes':
-	# You have to drop the schemas that use the other schemas first
-	# because if you try to drop a parent schema but a dependent schema
-	# still exists then you will get a foreign key error
-	admin_schema.drop(force=True)
-	lightsheet_schema.drop(force=True)
-	spockadmin_schema.drop(force=True)
+spockadmin_schema = dj.schema('u19lightserv_appcore')
+lightsheet_schema = dj.schema('u19lightserv_lightsheet')
+# admin_schema = dj.schema('u19lightserv_appcore')
+# microscope_schema = dj.schema('ahoag_microscope_demo')
 
 from schemas import spockadmin 
 from schemas import lightsheet 
-from schemas import admin
-# drop_microscope = input("Drop microscope database? (yes or No): ")
-# if drop_microscope == 'yes':
-# 	microscope_schema.drop(force=True)
-	
-from schemas import microscope
+from schemas import admin	
