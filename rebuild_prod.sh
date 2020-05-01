@@ -6,13 +6,13 @@
 docker build -f ./flaskcelery.Dockerfile -t flaskcelery:latest .
 
 # Build docker-compose services
-docker-compose build 
+docker-compose -f docker-compose-prod.yml build 
 
 ## cleanup network to make sure a good fresh one exists
 
-docker network rm lightserv-dev
+docker network rm lightserv-prod
 
-docker network create --attachable lightserv-dev
+docker network create --attachable lightserv-prod
 
 ## build cloud volume latest tag
 cd ./cloudvolume
