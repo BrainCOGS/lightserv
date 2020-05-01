@@ -57,7 +57,7 @@ cv_names_nonatlas = []
 for ii in range(cv_count):
 	cv_number = ii+1
 	cv_name = session_dict[f'cv{cv_number}_name']
-	if 'atlas' in cv_name.lower():
+	if 'princeton' in cv_name.lower() or 'allen' in cv_name.lower():
 		atlas_cv_name = cv_name
 	else:
 		cv_names_nonatlas.append(cv_name)
