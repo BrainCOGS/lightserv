@@ -1,10 +1,10 @@
 import os
-os.environ['FLASK_MODE']='DEV'
 hosturl = os.environ.get('HOSTURL')
 from lightserv import create_app
 import socket
 
 app = create_app()
+flask_mode = os.environ['FLASK_MODE']
 
 if __name__ == '__main__':
 	import logging
@@ -22,9 +22,10 @@ if __name__ == '__main__':
 
 	logger.addHandler(stream_handler)
 	logger.addHandler(file_handler)
-
-	if hosturl == 'braincogs00-dev.pni.princeton.edu':
+	if flask_mode == 'DEV':
 		app.run(host='0.0.0.0',port='5000',debug=True) # 5000 inside the container
-	# still need PROD params
+	elif flask_mode == 'PROD':
+		app.run(host='0.0.0.0',port='5000') # 5000 inside the container
+
 
 	
