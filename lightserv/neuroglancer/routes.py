@@ -825,7 +825,8 @@ def registered_data_setup(username,request_name,sample_name,
                 this_processing_resolution_request_contents = processing_resolution_request_contents & \
                     f'image_resolution="{image_resolution}"'
                 atlas_name = this_processing_resolution_request_contents.fetch1('atlas_name')
-               
+                logger.debug("Atlas being used here is:")
+                logger.debug(atlas_name)
                 """ Only want to generate a single cloudvolume container for the 
                 atlas since it is the same atlas for each channel that requests
                 it as an overlay. In the loop over channels, set this flag to True
@@ -892,6 +893,8 @@ def registered_data_setup(username,request_name,sample_name,
                     cv_number += 1 
                     cv_container_name = f'{session_name}_atlas'
                     cv_name = atlas_name # what shows up as the layer name in neuroglancer
+                    logger.debug("Cloudvolume name is:")
+                    logger.debug(cv_name)
                     if 'allen' in atlas_name.lower():
                         cv_path = os.path.join('/jukebox','LightSheetData',
                             'atlas','neuroglancer','atlas','allenatlas_2017')

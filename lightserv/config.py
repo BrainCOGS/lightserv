@@ -45,6 +45,10 @@ class Config(BaseConfig):
 		# 'task': 'lightserv.processing.tasks.processing_job_status_checker',
 		# 'schedule': timedelta(seconds=10)
 		# },
+		# 'processing_job_status_checker_noreg': {
+		# 'task': 'lightserv.processing.tasks.processing_job_status_checker_noreg',
+		# 'schedule': timedelta(seconds=5)
+		# },
 		# 'tiledprecomp_job_ready_checker': {
 		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_tiled_data',
 		# 'schedule': timedelta(seconds=6)
@@ -63,10 +67,18 @@ class Config(BaseConfig):
 		# },
 		# 'blendedprecomp_job_ready_checker': {
 		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
-		# 'schedule': timedelta(seconds=4)
+		# 'schedule': timedelta(seconds=5)
 		# },
 		# 'blendedprecomp_job_status_checker': {
 		# 'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
+		# 'schedule': timedelta(seconds=10)
+		# },
+		# 'downsizedprecomp_job_ready_checker': {
+		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
+		# 'schedule': timedelta(seconds=5)
+		# },
+		# 'downsizedprecomp_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
 		# 'schedule': timedelta(seconds=10)
 		# },
 		# 'registeredprecomp_job_ready_checker': {
@@ -75,16 +87,9 @@ class Config(BaseConfig):
 		# },
 		# 'registeredprecomp_job_status_checker': {
 		# 'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
-		# 'schedule': timedelta(seconds=8)
+		# 'schedule': timedelta(seconds=10)
 		# },
-		# 'downsizedprecomp_job_ready_checker': {
-		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
-		# 'schedule': timedelta(seconds=4)
-		# },
-		# 'downsizedprecomp_job_status_checker': {
-		# 'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
-		# 'schedule': timedelta(seconds=7)
-		# },
+		
 	}
 	
 class TestConfig(BaseConfig):

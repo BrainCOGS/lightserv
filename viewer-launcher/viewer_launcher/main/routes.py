@@ -4,6 +4,10 @@ import redis, docker
 import secrets
 import logging
 
+if os.environ.get("FLASK_MODE") == 'DEV':
+	network = 'lightserv-dev'
+elif os.environ.get("FLASK_MODE") == 'PROD':
+	network = 'lightserv-prod'
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -34,7 +38,7 @@ def cvlauncher():
 
 	cv_container = client.containers.run('cloudv_viewer',
 								  volumes=cv_mounts,
-								  network='lightserv',
+								  network=network,
 								  name=cv_container_name,
 								  detach=True)
 	return "success"
@@ -55,7 +59,7 @@ def nglauncher():
 
 	ng_container = client.containers.run('nglancer_viewer',
                                   environment=ng_environment,
-                                  network='lightserv',
+                                  network=network,
                                   name=ng_container_name,
                                   detach=True) 
 	return "success"
@@ -76,7 +80,7 @@ def ng_reg_launcher():
 
 	ng_container = client.containers.run('nglancer_registration_viewer',
                                   environment=ng_environment,
-                                  network='lightserv',
+                                  network=network,
                                   name=ng_container_name,
                                   detach=True) 
 	return "success"

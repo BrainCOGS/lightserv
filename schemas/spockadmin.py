@@ -25,18 +25,18 @@ else:
 @schema 
 class ProcessingPipelineSpockJob(dj.Manual):
     definition = """    # Spock job management table for the entire light sheet pipeline
-    jobid_step3                   : varchar(16) # the jobid on spock for the final step in the pipeline. Status column refers to this jobid
+    jobid_step0                   : varchar(16) # the jobid on spock for the first step in the pipeline.
     timestamp = CURRENT_TIMESTAMP : timestamp
     ---    
     username                      : varchar(32)
     stitching_method              : enum("terastitcher","blending") # to keep track of whether terastitcher was run on tiled data
-    jobid_step0                   : varchar(16)
     jobid_step1                   : varchar(16)
     jobid_step2                   : varchar(16)
-    status_step0                  : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
-    status_step1                  : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
-    status_step2                  : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
-    status_step3                  : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # of jobid_step3
+    jobid_step3 = NULL            : varchar(16) # nullable because we dont always run step 3, e.g. if no registration is needed
+    status_step0                  : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # 
+    status_step1                  : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # 
+    status_step2                  : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # 
+    status_step3 = NULL           : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED") # nullable because we dont always run step 3, e.g. if no registration is needed
     """
 
 @schema 
@@ -60,7 +60,7 @@ class TiledPrecomputedSpockJob(dj.Manual):
     jobid_step2  : varchar(16) # the jobid on spock of step2 (downsampling) in the precomputed pipeline. Used as primary key so that the progress of the precomputed pipeline can be probed.
     timestamp = CURRENT_TIMESTAMP : timestamp
     ---
-    processing_pipeline_jobid_step3 : varchar(16) # the spock processing pipline job that this is linked to
+    processing_pipeline_jobid_step0 : varchar(16) 
     lightsheet   : varchar(8) # left or right
     jobid_step0  : varchar(16)
     jobid_step1  : varchar(16)
@@ -76,7 +76,7 @@ class BlendedPrecomputedSpockJob(dj.Manual):
     jobid_step2  : varchar(16) # the jobid on spock of step2 (downsampling) in the precomputed pipeline. Used as primary key so that the progress of the precomputed pipeline can be probed.
     timestamp = CURRENT_TIMESTAMP : timestamp
     ---
-    processing_pipeline_jobid_step3 : varchar(16) # the spock processing pipline job that this is linked to
+    processing_pipeline_jobid_step0 : varchar(16) 
     jobid_step0  : varchar(16)
     jobid_step1  : varchar(16)
     username     : varchar(32)
@@ -90,7 +90,7 @@ class DownsizedPrecomputedSpockJob(dj.Manual):
     jobid_step1  : varchar(16) # the jobid on spock of step1 (volume uploading) in the precomputed pipeline. Used as primary key so that the progress of the precomputed pipeline can be probed.
     timestamp = CURRENT_TIMESTAMP : timestamp
     ---
-    processing_pipeline_jobid_step3 : varchar(16) # the spock processing pipline job that this is linked to
+    processing_pipeline_jobid_step0 : varchar(16) 
     jobid_step0  : varchar(16)
     username     : varchar(32)
     status_step0 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
@@ -103,7 +103,7 @@ class RegisteredPrecomputedSpockJob(dj.Manual):
     jobid_step1  : varchar(16) # the jobid on spock of step1 (volume uploading) in the precomputed pipeline. Used as primary key so that the progress of the precomputed pipeline can be probed.
     timestamp = CURRENT_TIMESTAMP : timestamp
     ---
-    processing_pipeline_jobid_step3 : varchar(16) # the spock processing pipline job that this is linked to
+    processing_pipeline_jobid_step0 : varchar(16) 
     jobid_step0  : varchar(16)
     username     : varchar(32)
     status_step0 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
