@@ -94,8 +94,10 @@ class ImagingForm(FlaskForm):
 		of files given the number of z planes, tiling scheme and number of 
 		lightsheets reported by the user.
 
-		Also make sure that every channel within the same rawdata subfolder 
-		has the same imaging parameters
+		Also make sure that every channel at the same resolution
+		has the same tiling parameters, i.e. tiling scheme, tiling overlap
+		Number of z planes can differ because the code does not actually
+		use this information and we store it correctly in the db.
 		"""
 
 		for image_resolution_dict in self.image_resolution_forms.data:
@@ -146,15 +148,26 @@ class ImagingForm(FlaskForm):
 			common_key_list = ['image_orientation','left_lightsheet_used',
 				'right_lightsheet_used','tiling_scheme','tiling_overlap',
 				'z_step','number_of_z_planes']
+			all_tiling_schemes = []
+			all_tiling_overlaps = []
 			for subfolder in subfolder_dict.keys():
 				channel_dict_list = subfolder_dict[subfolder]
+				for d in channel_dict_list:
+					all_tiling_schemes.append(d['tiling_scheme'])
+					all_tiling_overlaps.append(d['tiling_overlap'])
 				if not all([list(map(d.get,common_key_list)) == \
 					list(map(channel_dict_list[0].get,common_key_list)) \
 						for d in channel_dict_list]):
+					
 					raise ValidationError(f"Subfolder: {subfolder}. "
 										  "Tiling and imaging parameters must be identical"
 										  " for all channels in the same subfolder. Check your entries.")
-				image_resolution = HiddenField('Image resolution')
+
+			""" Now make sure tiling parameters are same for all channels at each resolution """
+			if (not all([x==all_tiling_overlaps[0] for x in all_tiling_overlaps]) 
+			or all([x==all_tiling_schemes[0] for x in all_tiling_schemes])):
+				raise ValidationError("All tiling parameters must be the same for each channel of a given resolution")
+
 
 
 """ For new imaging requests """
