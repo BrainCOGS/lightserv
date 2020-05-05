@@ -66,7 +66,6 @@ class AllRequestTable(Table):
 class ClearingTableLinkCol(LinkCol):
 	
 	def td_contents(self, item, attr_list):
-		print(item)
 		if item['clearing_progress'] == 'complete':
 			if item['is_archival']:
 				return '<a href="{url}">{text}</a>'.format(
@@ -292,6 +291,11 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 			url_kwargs=processing_request_url_kwargs))
 	processing_requests_subtable_class.add_column('processor',Col('processor'))
 	processing_requests_subtable_class.add_column('processing_progress',Col('processing progress'))
+	processing_requests_subtable_class.add_column('visualization',
+		LinkCol('Viz', 'neuroglancer.general_data_setup',
+			url_kwargs=processing_request_url_kwargs,
+			allow_sort=False)
+)
 	processing_url_kwargs = {'username':'username','request_name':'request_name',
 	'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
 	new_processing_request_tooltip_text = ('Not available for archival requests. '

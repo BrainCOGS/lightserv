@@ -173,15 +173,18 @@ def request_overview(username,request_name):
             total_processing_requests='IF(n_processed is NULL,0,total_processing_requests)', 
             )
 
-    # all_contents_dict_list = combined_contents.fetch(as_dict=True)
     all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
-
-    # logger.debug(all_contents_dict_list)
+    logger.debug(all_contents_dict_list)
 
     keep_keys = ['username','request_name','sample_name','species',
                  'clearing_protocol','antibody1','antibody2','clearing_progress',
                  'clearing_batch_number','datetime_submitted','is_archival',
                  'link_to_clearing_spreadsheet']
+    
+    """ Go through all samples in this request and for each of its 
+    imaging and processing requests assemble a dictionary to feed to
+    the table maker """
+
     final_dict_list = []
 
     for d in all_contents_dict_list:
@@ -232,6 +235,7 @@ def request_overview(username,request_name):
                 existing_imaging_request_dict['processing_requests'].append(processing_request_dict)
     # logger.debug(final_dict_list)
     # The first time page is loaded, sort, reverse, table_id are all not set so they become their default
+    # logger.
     sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
     reverse = (request.args.get('direction', 'asc') == 'desc')
     samples_table_id = 'horizontal_samples_table'

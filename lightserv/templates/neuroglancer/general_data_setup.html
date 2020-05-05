@@ -1,0 +1,178 @@
+{% extends "layout.html" %}
+{% block content %}
+	<h1 class="mb-2" align="center">Data Visualization Setup Form</h1>
+
+	<hr class='class-2'>
+	<div align="center">
+	<h3>Processing request overview:</h3>
+		{{ processing_request_table }}
+	</div>
+	<hr class='class-2'>
+	<div class="content-section">
+		<form method="POST" action="">
+			{{ form.hidden_tag() }}
+			<fieldset class="form-group">
+				<div class='border-bottom mb-4'>
+					<h2>Setup</h2>
+					<p >Select all data products you would like to visualize</p>
+				</div>
+		        <!-- Loop through all image resolution forms and make a table for each -->
+				{% for ii in range(form.image_resolution_forms|length) %}
+					{% set image_resolution_form = form.image_resolution_forms[ii] %}
+					<!-- render the hidden field -->
+					{{ image_resolution_form.image_resolution() }}
+					{% set image_resolution = image_resolution_form.image_resolution.data %}
+
+					{# Raw or stitched data #}
+					{% if image_resolution_form.raw_channel_forms|length > 0 %}
+						<h4> Raw Data </h4>
+						{% set rawdata=true %}
+					{% elif image_resolution_form.stitched_channel_forms|length > 0 %}
+						<h4> Stitched Data </h4>
+					{% endif %}
+					<table class="table table-bordered table-striped text-center mb-4">
+				        <tr>
+				            <th>Image resolution </th>
+				            <th>Channel wavelength(nm)</th>
+				            <th>Visualize Left lightsheet?</th>
+				            <th>Visualize Right lightsheet? </th>
+				        </tr>
+
+						{% for jj in range(image_resolution_form.raw_channel_forms|length) %}
+							{% if rawdata==true %}
+								{% set channel_form = image_resolution_form.raw_channel_forms[jj] %}
+							{% else %}
+								{% set channel_form = image_resolution_form.stitched_channel_forms[jj] %}
+							{% endif %}
+							{% set this_channel_content = channel_contents_lists[ii][jj] %}
+							{% set left_lightsheet_used = this_channel_content['left_lightsheet_used'] %}
+							{% set right_lightsheet_used = this_channel_content['right_lightsheet_used'] %}
+							<!-- render the hidden field -->
+							{{ channel_form.channel_name() }}
+							{% set channel_name = channel_form.channel_name.data %}
+
+							<tr>   
+							    <td>{{image_resolution}}</td>
+							    <td>{{channel_name}}</td>
+							    <td> 
+							    	{% if left_lightsheet_used %}
+							    		<div>							    		
+							    			{{ channel_form.viz_left_lightsheet }}
+							    		</div>
+							    	{% else %}
+							    		<div>N/A</div>
+							    	{% endif %}
+								</td>
+								<td>
+									{% if right_lightsheet_used %}
+							    		<div>							    		
+							    			{{ channel_form.viz_right_lightsheet }}
+							    		</div>
+							    	{% else %}
+							    		<div>N/A</div>
+							    	{% endif %}
+								</td>
+							</tr>
+					    {% endfor %} <!-- Loop over channel forms  -->
+					</table>
+
+					{# Blended data #}
+					{% if image_resolution_form.blended_channel_forms|length > 0 %}
+						<h4> Blended Data </h4>
+						<table class="table table-bordered table-striped text-center mb-4">
+					        <tr>
+					            <th>Image resolution </th>
+					            <th>Channel wavelength(nm)</th>
+					            <th>Visualize?</th>
+					        </tr>
+
+							{% for jj in range(image_resolution_form.blended_channel_forms|length) %}
+								{% set channel_form = image_resolution_form.blended_channel_forms[jj] %}
+								{% set this_channel_content = channel_contents_lists[ii][jj] %}
+								<!-- render the hidden field -->
+								{{ channel_form.channel_name() }}
+								{% set channel_name = channel_form.channel_name.data %}
+
+								<tr>   
+								    <td>{{image_resolution}}</td>
+								    <td>{{channel_name}}</td>
+								    <td> 
+								    	{{ channel_form.viz }}
+									</td>
+								</tr>
+						    {% endfor %} <!-- Loop over channel forms  -->
+						</table>
+					{% endif %}
+
+					{# Downsized data #}
+					{% if image_resolution_form.downsized_channel_forms|length > 0 %}
+						<h4> Downsized Data </h4>
+						<table class="table table-bordered table-striped text-center mb-4">
+					        <tr>
+					            <th>Image resolution </th>
+					            <th>Channel wavelength(nm)</th>
+					            <th>Visualize?</th>
+					        </tr>
+
+							{% for jj in range(image_resolution_form.downsized_channel_forms|length) %}
+								{% set channel_form = image_resolution_form.downsized_channel_forms[jj] %}
+								{% set this_channel_content = channel_contents_lists[ii][jj] %}
+								<!-- render the hidden field -->
+								{{ channel_form.channel_name() }}
+								{% set channel_name = channel_form.channel_name.data %}
+
+								<tr>   
+								    <td>{{image_resolution}}</td>
+								    <td>{{channel_name}}</td>
+								    <td> 
+								    	{{ channel_form.viz }}
+									</td>
+								</tr>
+						    {% endfor %} <!-- Loop over channel forms  -->
+						</table>
+					{% endif %}
+
+					{# Registered data #}
+					{% if image_resolution_form.registered_channel_forms|length > 0 %}
+						<h4> Registered Data </h4>
+						<table class="table table-bordered table-striped text-center mb-4">
+					        <tr>
+					            <th>Image resolution </th>
+					            <th>Channel wavelength(nm)</th>
+					            <th>Visualize?</th>
+					            <th>Overlay Atlas?</th>
+					        </tr>
+
+							{% for jj in range(image_resolution_form.registered_channel_forms|length) %}
+								{% set channel_form = image_resolution_form.registered_channel_forms[jj] %}
+								<!-- render the hidden field -->
+								{{ channel_form.channel_name() }}
+								{% set channel_name = channel_form.channel_name.data %}
+								<tr>   
+								    <td>{{image_resolution}}</td>
+								    <td>{{channel_name}}</td>
+								    <td> 
+								    	{{ channel_form.viz }}
+									</td>
+									<td> 
+								    	{{ channel_form.viz_atlas }}
+									</td>
+								</tr>
+						    {% endfor %} <!-- Loop over channel forms resolution forms -->
+						</table>
+					{% endif %}
+				{% endfor %} <!-- Loop over image resolution forms -->
+
+				
+			</fieldset>
+			<!-- Final submit button -->
+			<hr class='class-3'>
+			<div class="form-group">
+				{{ form.submit(class="btn btn-success mt-2") }}
+			</div>
+		</form>
+
+	</div>
+
+
+{% endblock content %}

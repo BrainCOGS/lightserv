@@ -70,7 +70,8 @@ def run_lightsheet_pipeline(username,request_name,
 	raw_basepath = os.path.join(sample_basepath,'rawdata')
 
 	""" Loop through the image resolutions requested since 
-	we run the pipeline separately for each image resolution requested.
+	we run the pipeline separately for each image resolution
+	requested.
 	"""
 
 	all_imaging_modes = current_app.config['IMAGING_MODES']
@@ -79,10 +80,7 @@ def run_lightsheet_pipeline(username,request_name,
 		unique_image_resolutions = sorted(list(set(all_channel_contents.fetch('image_resolution'))))
 		for image_resolution in unique_image_resolutions:
 			logger.debug("Setting up param dicts for Image resolution: {}".format(image_resolution))
-			"""figure out how many different spock jobs we will need to launch.
-			This is equivalent to how many parameter dictionaries we have 
-			to construct. If all imaging used the same tiling and same 
-			z_step then we only need one job """
+			
 			this_image_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & \
 			 f'request_name="{request_name}"' & f'username="{username}"' & \
 			 f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & \
