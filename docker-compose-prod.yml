@@ -30,7 +30,7 @@ services:
       - /jukebox/LightSheetData:/jukebox/LightSheetData
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - '5003:5005'
+      - '5004:5005'
   worker:
     env_file: .dockerenv
     image: flaskcelery:latest
@@ -71,6 +71,7 @@ services:
   #     dockerfile: nglancerstatic_prod.Dockerfile
   #   ports:
   #     - '8082:8080'
+
 networks:
   default:
     external:

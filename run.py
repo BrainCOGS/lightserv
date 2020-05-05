@@ -1,10 +1,15 @@
 import os
 hosturl = os.environ.get('HOSTURL')
 from lightserv import create_app
+from lightserv.config import Config,ProdConfig
 import socket
 
-app = create_app()
+
 flask_mode = os.environ['FLASK_MODE']
+if flask_mode == 'PROD':
+	app = create_app(ProdConfig)
+elif flask_mode == 'DEV':
+	app = create_app(Config)
 
 if __name__ == '__main__':
 	import logging

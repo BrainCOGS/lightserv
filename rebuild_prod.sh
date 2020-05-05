@@ -28,6 +28,3 @@ docker build -f ./neuroglancer.Dockerfile -t nglancer_viewer:latest .
 cd ../neuroglancer-registration
 
 docker build -f ./neuroglancer.Dockerfile -t nglancer_registration_viewer:latest .
-
-
-

@@ -37,13 +37,12 @@ class BaseConfig(object):
 	# BROKER_USE_SSL = True
 	
 
-# The default config
 class Config(BaseConfig):
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	CELERYBEAT_SCHEDULE = {
 		# 'processing_job_status_checker': {
 		# 'task': 'lightserv.processing.tasks.processing_job_status_checker',
-		# 'schedule': timedelta(seconds=10)
+		# 'schedule': timedelta(seconds=2)
 		# },
 		# 'processing_job_status_checker_noreg': {
 		# 'task': 'lightserv.processing.tasks.processing_job_status_checker_noreg',
@@ -92,6 +91,59 @@ class Config(BaseConfig):
 		
 	}
 	
+class ProdConfig(BaseConfig):
+	SECRET_KEY = os.environ.get('SECRET_KEY')
+	CELERYBEAT_SCHEDULE = {
+		'processing_job_status_checker': {
+		'task': 'lightserv.processing.tasks.processing_job_status_checker',
+		'schedule': timedelta(seconds=100)
+		},
+		'processing_job_status_checker_noreg': {
+		'task': 'lightserv.processing.tasks.processing_job_status_checker_noreg',
+		'schedule': timedelta(seconds=120)
+		},
+		'tiledprecomp_job_ready_checker': {
+		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_tiled_data',
+		'schedule': timedelta(seconds=180)
+		},
+		'tiledprecomp_job_status_checker': {
+		'task': 'lightserv.processing.tasks.tiled_precomputed_job_status_checker',
+		'schedule': timedelta(seconds=150)
+		},
+		# 'ng_viewer_cleanser': {
+		# 'task': 'lightserv.neuroglancer.routes.ng_viewer_checker',
+		# 'schedule': timedelta(seconds=15)
+		# },
+		'rawprecomp_job_status_checker': {
+		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
+		'schedule': timedelta(seconds=125)
+		},
+		'blendedprecomp_job_ready_checker': {
+		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
+		'schedule': timedelta(seconds=200)
+		},
+		'blendedprecomp_job_status_checker': {
+		'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
+		'schedule': timedelta(seconds=150)
+		},
+		'downsizedprecomp_job_ready_checker': {
+		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
+		'schedule': timedelta(seconds=200)
+		},
+		'downsizedprecomp_job_status_checker': {
+		'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
+		'schedule': timedelta(seconds=150)
+		},
+		'registeredprecomp_job_ready_checker': {
+		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_registered_data',
+		'schedule': timedelta(seconds=200)
+		},
+		'registeredprecomp_job_status_checker': {
+		'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
+		'schedule': timedelta(seconds=150)
+		},
+		
+	}
 class TestConfig(BaseConfig):
 	TESTING = True
 	WTF_CSRF_ENABLED = False # disables the csrf token validation in forms
