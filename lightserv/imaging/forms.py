@@ -165,9 +165,8 @@ class ImagingForm(FlaskForm):
 
 			""" Now make sure tiling parameters are same for all channels at each resolution """
 			if (not all([x==all_tiling_overlaps[0] for x in all_tiling_overlaps]) 
-			or all([x==all_tiling_schemes[0] for x in all_tiling_schemes])):
+			or (not all([x==all_tiling_schemes[0] for x in all_tiling_schemes]))):
 				raise ValidationError("All tiling parameters must be the same for each channel of a given resolution")
-
 
 
 """ For new imaging requests """
