@@ -9,7 +9,7 @@ import datajoint as dj
 
 from lightserv import cel, db_spockadmin, db_lightsheet, smtp_connect
 from lightserv.processing.utils import determine_status_code
-from lightserv.taskmanager.tasks import send_email
+from lightserv.taskmanager.tasks import send_email,send_admin_email
 from email.message import EmailMessage
 
 logger = logging.getLogger(__name__)
@@ -85,7 +85,8 @@ def make_precomputed_rawdata(**kwargs):
 	# command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "
 	# 		   "/jukebox/wang/ahoag/precomputed/raw_pipeline/precomputed_pipeline_raw.sh {} {} {}").format(
 	# 	n_array_jobs_step1,n_array_jobs_step2,viz_dir)
-	command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+	command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_fail_pipeline.sh "
 
 	hostname = 'spock.pni.princeton.edu'
 	port=22
@@ -299,6 +300,19 @@ def check_raw_precomputed_statuses():
 				send_email(subject=subject,body=body)
 			else:
 				logger.debug("Not all imaging channels in this request are completed")
+		elif status_step2 == 'CANCELLED' or status_step2 == 'FAILED':
+			logger.debug('Raw precomputed pipeline failed. Alerting user and admins')
+			username,request_name,sample_name, = this_imaging_channel_content.fetch1(
+				'username','request_name','sample_name')
+			subject = 'Lightserv automated email: Raw data ready to be visualized'
+			body = ('The visualization of your raw data for sample:\n\n'
+					f'request_name: {request_name}\n'
+					f'sample_name: {sample_name}\n\n'
+					'failed. We are investigating why this happened and will contact you shortly. '
+					f'If you have any questions or know why this might have happened, '
+					'feel free to respond to this email.')
+			send_admin_email(subject=subject,body=body)
+
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.RawPrecomputedSpockJob.insert(job_insert_list)

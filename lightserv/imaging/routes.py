@@ -228,6 +228,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 							precomputed_kwargs['lightsheet'] = 'right'
 							precomputed_kwargs['viz_dir'] = this_viz_dir
 							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
+
 					else:
 						logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
 									 "Not creating precomputed data for neuroglancer visualization.")
@@ -242,13 +243,13 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			hosturl = os.environ['HOSTURL']
 
 			processing_manager_url = f'https://{hosturl}' + url_for('processing.processing_manager')
+
 			message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
 						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 						'The raw data for your request:\n'
 						f'request_name: "{request_name}"\n'
 						f'sample_name: "{sample_name}"\n'
 						f'are now available on bucket here: {path_to_data}\n\n'
-						 'Your raw data will be viewable in Neuroglancer shortly.\n\n'
 						 'To start processing your data, '
 						f'go to the processing management GUI: {processing_manager_url} '
 						'and find your sample to process.\n\n'
