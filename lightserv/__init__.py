@@ -1,7 +1,6 @@
 import os,sys
 from flask import Flask, session, flash, request, redirect, url_for, render_template
 from flask_wtf.csrf import CSRFProtect
-from lightserv.config import Config
 import datajoint as dj
 from datajoint.table import Log
 import socket
@@ -103,8 +102,11 @@ def set_schema():
 
 db_lightsheet,db_microscope,db_admin,db_spockadmin,db_subject = set_schema()
 
-def create_app(config_class=Config):
-	""" Create the flask app instance"""
+def create_app(config_class):
+	""" Create the flask app instance.
+	---INPUT---
+	config_class      the class in config.py containing the type of config,
+					  e.g. DevConfig, ProdConfig ..."""
 	app = Flask(__name__)
 	
 	# Initialize external libs
