@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block content %}
+	<h1 class="mb-2" align="center">Links to view your data in neuroglancer:</h1>
+	{% for key in url_dict %}
+		<h3> Image resolution: {{ key }} </h3>
+		{% set neuroglancerurl = url_dict[key] %}
+		<a href={{neuroglancerurl}} target="_blank"> Open Neuroglancer </a>
+		
+	{% endfor %}
+	
+
+{% endblock content %}
