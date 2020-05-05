@@ -10,7 +10,7 @@ from lightserv import cel,db_lightsheet, smtp_connect
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
     check_clearing_completed,check_imaging_completed,log_http_requests,
     request_exists,mymkdir)
-from lightserv.taskmanager.tasks import send_email
+from lightserv.main.tasks import send_email
 
 import datajoint as dj
 
@@ -805,7 +805,9 @@ def new_request():
                         'run spock jobs as you, and as a result your spock karma will be affected as if you ran the job yourself. '
                         'Please respond to this message if you have any questions about this or any other issue regarding your request.\n\n'
                         'Thanks,\nThe Histology and Brain Registration Core Facility.')
-                    send_email.delay(subject=subject,body=message_body)
+                correspondence_email = form.correspondence_email.data
+                recipients = [correspondence_email]
+                send_email.delay(subject=subject,body=message_body,recipients=recipients)
 
                     return redirect(url_for('requests.all_requests'))
             
@@ -855,7 +857,7 @@ def new_request():
         form=form,legend='New Request',column_name=column_name) 
 
 
-@requests.route("/requests/reminder")
+@requests.route("/requests/reminder/")
 @log_http_requests
 @logged_in
 def reminder(): 
@@ -866,6 +868,6 @@ def reminder():
     logger.debug("Sending reminder email at 15 seconds in the future")
     future_time = datetime.utcnow() + timedelta(seconds=15)
     send_email.apply_async(kwargs={
-        'subject':subject,'body':body},eta=future_time)
+        'subject':subject,'body':body,},eta=future_time)
     return "Sent reminder!"
 

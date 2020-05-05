@@ -4,7 +4,7 @@ from flask import (render_template, url_for, flash,
 from lightserv.main.utils import mymkdir
 from lightserv.processing.utils import determine_status_code
 from lightserv import cel, db_lightsheet, db_spockadmin
-from lightserv.taskmanager.tasks import send_email, send_admin_email
+from lightserv.main.tasks import send_email, send_admin_email
 
 import datajoint as dj
 from datetime import datetime
@@ -1765,8 +1765,12 @@ def tiled_precomputed_job_status_checker():
 					f'processing_request_number: {processing_request_number}\n'
 					f'channel_name: {channel_name}\n\n'
 					'failed. Email sent to user. ')
-			send_email(subject=subject,body=body)
-			send_admin_email(subject=subject,body=admin_body)
+			request_contents = db_lightsheet.Request() & \
+								{'username':username,'request_name':request_name}
+			correspondence_email = request_contents.fetch1('correspondence_email')
+			recipients = [correspondence_email]
+			send_email.delay(subject=subject,body=message_body,recipients=recipients)
+			send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.TiledPrecomputedSpockJob.insert(job_insert_list)
@@ -2082,7 +2086,11 @@ def blended_precomputed_job_status_checker():
 						f'sample_name: {sample_name}\n\n'
 						'are now ready to be visualized. '
 						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
-				send_email(subject=subject,body=body)
+				request_contents = db_lightsheet.Request() & \
+								{'username':username,'request_name':request_name}
+				correspondence_email = request_contents.fetch1('correspondence_email')
+				recipients = [correspondence_email]
+				send_email.delay(subject=subject,body=message_body,recipients=recipients)
 			else:
 				logger.debug("Not all blended channels in this request"
 							 " are completely converted to precomputed format")
@@ -2111,8 +2119,12 @@ def blended_precomputed_job_status_checker():
 					f'processing_request_number: {processing_request_number}\n'
 					f'channel_name: {channel_name}\n\n'
 					'failed. Email sent to user.')
-			send_email(subject=subject,body=body)
-			send_admin_email(subject=subject,body=admin_body)
+			request_contents = db_lightsheet.Request() & \
+								{'username':username,'request_name':request_name}
+			correspondence_email = request_contents.fetch1('correspondence_email')
+			recipients = [correspondence_email]
+			send_email.delay(subject=subject,body=message_body,recipients=recipients)
+			send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.BlendedPrecomputedSpockJob.insert(job_insert_list)
@@ -2433,7 +2445,11 @@ def downsized_precomputed_job_status_checker():
 						f'sample_name: {sample_name}\n\n'
 						'are now ready to be visualized. '
 						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
-				send_email(subject=subject,body=body)
+				request_contents = db_lightsheet.Request() & \
+								{'username':username,'request_name':request_name}
+				correspondence_email = request_contents.fetch1('correspondence_email')
+				recipients = [correspondence_email]
+				send_email.delay(subject=subject,body=message_body,recipients=recipients)
 			else:
 				logger.debug("Not all downsized channels in this request"
 							 " are completely converted to precomputed format")
@@ -2461,8 +2477,12 @@ def downsized_precomputed_job_status_checker():
 					f'processing_request_number: {processing_request_number}\n'
 					f'channel_name: {channel_name}\n\n'
 					'failed. Email sent to user.')
-			send_email(subject=subject,body=body)
-			send_admin_email(subject=subject,body=admin_body)
+			request_contents = db_lightsheet.Request() & \
+								{'username':username,'request_name':request_name}
+			correspondence_email = request_contents.fetch1('correspondence_email')
+			recipients = [correspondence_email]
+			send_email.delay(subject=subject,body=message_body,recipients=recipients)
+			send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.DownsizedPrecomputedSpockJob.insert(job_insert_list)
@@ -2787,7 +2807,11 @@ def registered_precomputed_job_status_checker():
 						f'sample_name: {sample_name}\n\n'
 						'are now ready to be visualized. '
 						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
-				send_email(subject=subject,body=body)
+				request_contents = db_lightsheet.Request() & \
+								{'username':username,'request_name':request_name}
+				correspondence_email = request_contents.fetch1('correspondence_email')
+				recipients = [correspondence_email]
+				send_email.delay(subject=subject,body=message_body,recipients=recipients)
 			else:
 				logger.debug("Not all registered channels in this request"
 							 " are completely converted to precomputed format")
@@ -2815,8 +2839,12 @@ def registered_precomputed_job_status_checker():
 					f'processing_request_number: {processing_request_number}\n'
 					f'channel_name: {channel_name}\n\n'
 					'failed. Email sent to user.')
-			send_email(subject=subject,body=body)
-			send_admin_email(subject=subject,body=admin_body)
+			request_contents = db_lightsheet.Request() & \
+								{'username':username,'request_name':request_name}
+			correspondence_email = request_contents.fetch1('correspondence_email')
+			recipients = [correspondence_email]
+			send_email.delay(subject=subject,body=message_body,recipients=recipients)
+			send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.RegisteredPrecomputedSpockJob.insert(job_insert_list)

@@ -10,7 +10,7 @@ from lightserv.imaging.tables import (ImagingTable, dynamic_imaging_management_t
 	SampleTable, ExistingImagingTable, ImagingChannelTable)
 from .forms import ImagingForm, NewImagingRequestForm
 from . import tasks
-from lightserv.taskmanager.tasks import send_email
+from lightserv.main.tasks import send_email
 import numpy as np
 import datajoint as dj
 import re
@@ -254,7 +254,11 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 						f'go to the processing management GUI: {processing_manager_url} '
 						'and find your sample to process.\n\n'
 						 'Thanks,\n\nThe Core Facility')
-			send_email.delay(subject=subject,body=message_body)
+			request_contents = db_lightsheet.Request() & \
+								{'username':username,'request_name':request_name}
+			correspondence_email = request_contents.fetch1('correspondence_email')
+			recipients = [correspondence_email]
+			send_email.delay(subject=subject,body=message_body,recipients=recipients)
 			flash(f"""Imaging is complete. An email has been sent to {correspondence_email} 
 				informing them that their raw data is now available on bucket.
 				The processing pipeline is now ready to run. ""","success")
@@ -285,11 +289,17 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 						'and find your sample to process.\n\n'
 						'Thanks,\nThe Brain Registration and Histology Core Facility')    
 				logger.debug("Sending reminder email 4 days in the future")
+				request_contents = db_lightsheet.Request() & \
+								{'username':username,'request_name':request_name}
+				correspondence_email = request_contents.fetch1('correspondence_email')
+				recipients = [correspondence_email]
 				future_time = datetime.utcnow() + timedelta(days=4)
 				reminder_email_kwargs = restrict_dict.copy()
 				reminder_email_kwargs['subject'] = subject
 				reminder_email_kwargs['body'] = body
-				tasks.send_processing_reminder_email.apply_async(kwargs=reminder_email_kwargs,eta=future_time)
+				reminder_email_kwargs['recipients'] = recipients
+				tasks.send_processing_reminder_email.apply_async(
+					kwargs=reminder_email_kwargs,eta=future_time)
 				logger.debug("Sent celery task for reminder email.")
 			return redirect(url_for('imaging.imaging_manager'))
 		else:

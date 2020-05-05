@@ -9,7 +9,7 @@ import datajoint as dj
 
 from lightserv import cel, db_spockadmin, db_lightsheet, smtp_connect
 from lightserv.processing.utils import determine_status_code
-from lightserv.taskmanager.tasks import send_email,send_admin_email
+from lightserv.main.tasks import send_email,send_admin_email
 from email.message import EmailMessage
 
 logger = logging.getLogger(__name__)
@@ -298,7 +298,11 @@ def check_raw_precomputed_statuses():
 						f'imaging_request_number: {imaging_request_number}\n\n'
 						'are now ready to be visualized. '
 						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
-				send_email(subject=subject,body=body)
+				request_contents = db_lightsheet.Request() & \
+								{'username':username,'request_name':request_name}
+				correspondence_email = request_contents.fetch1('correspondence_email')
+				recipients = [correspondence_email]
+				send_email.delay(subject=subject,body=message_body,recipients=recipients)
 			else:
 				logger.debug("Not all imaging channels in this request are completed")
 		elif status_step2 == 'CANCELLED' or status_step2 == 'FAILED':
@@ -322,8 +326,12 @@ def check_raw_precomputed_statuses():
 					f'imaging_request_number: {imaging_request_number}\n'
 					f'channel_name: {channel_name}\n\n'
 					'failed. Email sent to user. ')
-			send_email(subject=subject,body=body)
-			send_admin_email(subject=subject,body=admin_body)
+			request_contents = db_lightsheet.Request() & \
+								{'username':username,'request_name':request_name}
+			correspondence_email = request_contents.fetch1('correspondence_email')
+			recipients = [correspondence_email]
+			send_email.delay(subject=subject,body=message_body,recipients=recipients)
+			send_admin_email.delay(subject=subject,body=admin_body)
 
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
@@ -341,6 +349,7 @@ def send_processing_reminder_email(**reminder_email_kwargs):
 		return "Email not sent because are in TEST mode"
 	subject = reminder_email_kwargs['subject']
 	body = reminder_email_kwargs['body']
+	recipients = reminder_email_kwargs['recipients']
 	username = reminder_email_kwargs['username']
 	request_name = reminder_email_kwargs['request_name']
 	sample_name = reminder_email_kwargs['sample_name']
@@ -364,7 +373,10 @@ def send_processing_reminder_email(**reminder_email_kwargs):
 	msg = EmailMessage()
 	msg['Subject'] = subject
 	msg['From'] = sender_email
-	msg['To'] = 'ahoag@princeton.edu' # to me while in DEV phase
+	if os.environ['FLASK_MODE'] == 'DEV':
+		msg['To'] = 'ahoag@princeton.edu' # to me while in DEV phase
+	elif os.environ['FLASK_MODE'] == 'PROD':
+		msg['To'] = ','.join(recipients)
 	msg.set_content(body)                    
 	smtp_server = smtp_connect()
 	smtp_server.send_message(msg)

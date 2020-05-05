@@ -122,7 +122,6 @@ def create_app(config_class):
 	from lightserv.clearing.routes import clearing
 	from lightserv.imaging.routes import imaging
 	from lightserv.processing.routes import processing
-	from lightserv.taskmanager.routes import taskmanager
 	from lightserv.microscope.routes import microscope
 	from lightserv.neuroglancer.routes import neuroglancer
 	from lightserv.errors.handlers import errors
@@ -132,7 +131,6 @@ def create_app(config_class):
 	app.register_blueprint(clearing)
 	app.register_blueprint(imaging)
 	app.register_blueprint(processing)
-	app.register_blueprint(taskmanager)
 	app.register_blueprint(neuroglancer)
 	app.register_blueprint(microscope)
 	app.register_blueprint(errors)

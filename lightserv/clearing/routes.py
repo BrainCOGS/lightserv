@@ -9,7 +9,7 @@ from .utils import (determine_clearing_form, add_clearing_calendar_entry,
 				   determine_clearing_dbtable, determine_clearing_table) 
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 	 logged_in_as_clearing_manager, log_http_requests)
-from lightserv.taskmanager.tasks import send_email
+from lightserv.main.tasks import send_email
 import numpy as np
 import datajoint as dj
 import re, os, datetime
@@ -200,7 +200,11 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 								'Otherwise, the imaging will be handled by the Core Facility, and you will receive '
 								'emails when the imaging for each of your samples is complete.\n\n'
 								'Thanks,\nThe Histology and Brain Registration Core Facility.')
-							send_email.delay(subject=subject,body=message_body)
+							request_contents = db_lightsheet.Request() & \
+								{'username':username,'request_name':request_name}
+							correspondence_email = request_contents.fetch1('correspondence_email')
+							recipients = [correspondence_email]
+							send_email.delay(subject=subject,body=message_body,recipients=recipients)
 
 							# """ Admin emails """
 							# imaging_admin_email_addresses = [netid + '@princeton.edu' for netid in current_app.config['IMAGING_ADMINS']]

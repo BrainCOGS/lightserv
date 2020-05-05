@@ -22,7 +22,7 @@ logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
 
 ''' Make the file handler to deal with logging to file '''
-file_handler = logging.FileHandler('logs/taskmanager_tasks.log')
+file_handler = logging.FileHandler('logs/main_tasks.log')
 file_handler.setFormatter(formatter)
 
 stream_handler = logging.StreamHandler() # level already set at debug from logger.setLevel() above
@@ -32,14 +32,6 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
-
-@cel.task()
-def hello():
-    return "hello world"
-
-@cel.task()
-def goodbye():
-    return "goodbye world"    
 
 @cel.task()
 def send_email(subject,body,sender_email='lightservhelper@gmail.com',recipients=['ahoag@princeton.edu']):
@@ -53,14 +45,15 @@ def send_email(subject,body,sender_email='lightservhelper@gmail.com',recipients=
 	if os.environ['FLASK_MODE'] == 'TEST':
 		print("Not sending email since this is a test.")
 		return "Email not sent because are in TEST mode"
+	if os.environ['FLASK_MODE'] == 'DEV':
+		print("Sending email only to ahoag@princeton.edu since we are in DEV mode")
+		recipients = ['ahoag@princeton.edu']
 	""" Asynchronous task to send an email """
 	msg = EmailMessage()
 	msg['Subject'] = subject
 	msg['From'] = sender_email
-	# msg['To'] = ','.join(recipients) 
-	msg['To'] = ','.join(recipients) # to me while in DEV phase
+	msg['To'] = ','.join(recipients) 
 	msg.set_content(body)                    
-	print(msg['To'])
 	smtp_server = smtp_connect()
 	smtp_server.send_message(msg)
 	return "Email sent!"
