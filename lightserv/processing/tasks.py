@@ -4,7 +4,7 @@ from flask import (render_template, url_for, flash,
 from lightserv.main.utils import mymkdir
 from lightserv.processing.utils import determine_status_code
 from lightserv import cel, db_lightsheet, db_spockadmin
-from lightserv.taskmanager.tasks import send_email
+from lightserv.taskmanager.tasks import send_email, send_admin_email
 
 import datajoint as dj
 from datetime import datetime
@@ -1732,13 +1732,41 @@ def tiled_precomputed_job_status_checker():
 				subject = 'Lightserv automated email: Stitched data ready to be visualized'
 				body = ('Your stitched data for sample:\n\n'
 						f'request_name: {request_name}\n'
-						f'sample_name: {sample_name}\n\n'
+						f'sample_name: {sample_name}\n'
+						f'imaging_request_number: {imaging_request_number}\n'
+						f'processing_request_number: {processing_request_number}\n\n'
 						'are now ready to be visualized. '
 						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
 				send_email(subject=subject,body=body)
 			else:
 				logger.debug("Not all processing channels in this request"
 							 " are completely converted to precomputed format")
+		elif status_step2 == 'CANCELLED' or status_step2 == 'FAILED':
+			logger.debug('Tiled precomputed pipeline failed. Alerting user and admins')
+			(username,request_name,sample_name,imaging_request_number,
+				processing_request_number,channel_name) = this_processing_channel_content.fetch1(
+				'username','request_name','sample_name',
+				'imaging_request_number','processing_request_number',
+				'channel_name')
+			subject = 'Lightserv automated email: Raw data visualization FAILED'
+			body = ('The visualization of your stitched data for sample:\n\n'
+					f'request_name: {request_name}\n'
+					f'sample_name: {sample_name}\n\n'
+					f'imaging_request_number: {imaging_request_number}\n'
+					f'processing_request_number: {processing_request_number}\n'
+					f'channel_name: {channel_name}\n\n'
+					'failed. We are investigating why this happened and will contact you shortly. '
+					f'If you have any questions or know why this might have happened, '
+					'feel free to respond to this email.')
+			admin_body = ('The visualization of the stitched data for sample:\n\n'
+					f'request_name: {request_name}\n'
+					f'sample_name: {sample_name}\n'
+					f'imaging_request_number: {imaging_request_number}\n'
+					f'processing_request_number: {processing_request_number}\n'
+					f'channel_name: {channel_name}\n\n'
+					'failed. Email sent to user. ')
+			send_email(subject=subject,body=body)
+			send_admin_email(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.TiledPrecomputedSpockJob.insert(job_insert_list)
@@ -2058,6 +2086,33 @@ def blended_precomputed_job_status_checker():
 			else:
 				logger.debug("Not all blended channels in this request"
 							 " are completely converted to precomputed format")
+
+		elif status_step2 == 'CANCELLED' or status_step2 == 'FAILED':
+			logger.debug('Blended precomputed pipeline failed. Alerting user and admins')
+			(username,request_name,sample_name,imaging_request_number,
+				processing_request_number,channel_name) = this_processing_channel_content.fetch1(
+				'username','request_name','sample_name',
+				'imaging_request_number','processing_request_number',
+				'channel_name')
+			subject = 'Lightserv automated email: Blended data visualization FAILED'
+			body = ('The visualization of your blended data for sample:\n\n'
+					f'request_name: {request_name}\n'
+					f'sample_name: {sample_name}\n\n'
+					f'imaging_request_number: {imaging_request_number}\n'
+					f'processing_request_number: {processing_request_number}\n'
+					f'channel_name: {channel_name}\n\n'
+					'failed. We are investigating why this happened and will contact you shortly. '
+					f'If you have any questions or know why this might have happened, '
+					'feel free to respond to this email.')
+			admin_body = ('The visualization of the blended data for sample:\n\n'
+					f'request_name: {request_name}\n'
+					f'sample_name: {sample_name}\n'
+					f'imaging_request_number: {imaging_request_number}\n'
+					f'processing_request_number: {processing_request_number}\n'
+					f'channel_name: {channel_name}\n\n'
+					'failed. Email sent to user.')
+			send_email(subject=subject,body=body)
+			send_admin_email(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.BlendedPrecomputedSpockJob.insert(job_insert_list)
@@ -2382,6 +2437,32 @@ def downsized_precomputed_job_status_checker():
 			else:
 				logger.debug("Not all downsized channels in this request"
 							 " are completely converted to precomputed format")
+		elif status_step1 == 'CANCELLED' or status_step1 == 'FAILED':
+			logger.debug('Downsized precomputed pipeline failed. Alerting user and admins')
+			(username,request_name,sample_name,imaging_request_number,
+				processing_request_number,channel_name) = this_processing_channel_content.fetch1(
+				'username','request_name','sample_name',
+				'imaging_request_number','processing_request_number',
+				'channel_name')
+			subject = 'Lightserv automated email: Downsized data visualization FAILED'
+			body = ('The visualization of your downsized data for sample:\n\n'
+					f'request_name: {request_name}\n'
+					f'sample_name: {sample_name}\n\n'
+					f'imaging_request_number: {imaging_request_number}\n'
+					f'processing_request_number: {processing_request_number}\n'
+					f'channel_name: {channel_name}\n\n'
+					'failed. We are investigating why this happened and will contact you shortly. '
+					f'If you have any questions or know why this might have happened, '
+					'feel free to respond to this email.')
+			admin_body = ('The visualization of the downsized data for sample:\n\n'
+					f'request_name: {request_name}\n'
+					f'sample_name: {sample_name}\n'
+					f'imaging_request_number: {imaging_request_number}\n'
+					f'processing_request_number: {processing_request_number}\n'
+					f'channel_name: {channel_name}\n\n'
+					'failed. Email sent to user.')
+			send_email(subject=subject,body=body)
+			send_admin_email(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.DownsizedPrecomputedSpockJob.insert(job_insert_list)
@@ -2710,6 +2791,32 @@ def registered_precomputed_job_status_checker():
 			else:
 				logger.debug("Not all registered channels in this request"
 							 " are completely converted to precomputed format")
+		elif status_step1 == 'CANCELLED' or status_step1 == 'FAILED':
+			logger.debug('Registered precomputed pipeline failed. Alerting user and admins')
+			(username,request_name,sample_name,imaging_request_number,
+				processing_request_number,channel_name) = this_processing_channel_content.fetch1(
+				'username','request_name','sample_name',
+				'imaging_request_number','processing_request_number',
+				'channel_name')
+			subject = 'Lightserv automated email: Registered data visualization FAILED'
+			body = ('The visualization of your registered data for:\n\n'
+					f'request_name: {request_name}\n'
+					f'sample_name: {sample_name}\n\n'
+					f'imaging_request_number: {imaging_request_number}\n'
+					f'processing_request_number: {processing_request_number}\n'
+					f'channel_name: {channel_name}\n\n'
+					'failed. We are investigating why this happened and will contact you shortly. '
+					f'If you have any questions or know why this might have happened, '
+					'feel free to respond to this email.')
+			admin_body = ('The visualization of the registered data for sample:\n\n'
+					f'request_name: {request_name}\n'
+					f'sample_name: {sample_name}\n'
+					f'imaging_request_number: {imaging_request_number}\n'
+					f'processing_request_number: {processing_request_number}\n'
+					f'channel_name: {channel_name}\n\n'
+					'failed. Email sent to user.')
+			send_email(subject=subject,body=body)
+			send_admin_email(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.RegisteredPrecomputedSpockJob.insert(job_insert_list)
