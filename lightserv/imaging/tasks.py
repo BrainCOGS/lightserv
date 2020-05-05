@@ -280,7 +280,7 @@ def check_raw_precomputed_statuses():
 					imaging_request_job_statuses.append(job_status)
 			logger.debug("job statuses for this imaging request:")
 			logger.debug(imaging_request_job_statuses)
-			neuroglancer_form_relative_url =os.path.join(
+			neuroglancer_form_relative_url = os.path.join(
 				'/neuroglancer',
 				'raw_data_setup',
 				username,
@@ -294,7 +294,8 @@ def check_raw_precomputed_statuses():
 				subject = 'Lightserv automated email: Raw data ready to be visualized'
 				body = ('Your raw data for sample:\n\n'
 						f'request_name: {request_name}\n'
-						f'sample_name: {sample_name}\n\n'
+						f'sample_name: {sample_name}\n'
+						f'imaging_request_number: {imaging_request_number}\n\n'
 						'are now ready to be visualized. '
 						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
 				send_email(subject=subject,body=body)
@@ -302,16 +303,27 @@ def check_raw_precomputed_statuses():
 				logger.debug("Not all imaging channels in this request are completed")
 		elif status_step2 == 'CANCELLED' or status_step2 == 'FAILED':
 			logger.debug('Raw precomputed pipeline failed. Alerting user and admins')
-			username,request_name,sample_name, = this_imaging_channel_content.fetch1(
-				'username','request_name','sample_name')
-			subject = 'Lightserv automated email: Raw data ready to be visualized'
+			(username,request_name,sample_name,
+				imaging_request_number,channel_name) = this_imaging_channel_content.fetch1(
+				'username','request_name','sample_name',
+				'imaging_request_number','channel_name')
+			subject = 'Lightserv automated email: Raw data visualized FAILED'
 			body = ('The visualization of your raw data for sample:\n\n'
 					f'request_name: {request_name}\n'
-					f'sample_name: {sample_name}\n\n'
+					f'sample_name: {sample_name}\n'
+					f'imaging_request_number: {imaging_request_number}\n'
+					f'channel_name: {channel_name}\n\n'
 					'failed. We are investigating why this happened and will contact you shortly. '
 					f'If you have any questions or know why this might have happened, '
 					'feel free to respond to this email.')
-			send_admin_email(subject=subject,body=body)
+			admin_body = ('The visualization of the raw data for sample:\n\n'
+					f'request_name: {request_name}\n'
+					f'sample_name: {sample_name}\n'
+					f'imaging_request_number: {imaging_request_number}\n'
+					f'channel_name: {channel_name}\n\n'
+					'failed. Email sent to user. ')
+			send_email(subject=subject,body=body)
+			send_admin_email(subject=subject,body=admin_body)
 
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)

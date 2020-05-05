@@ -57,6 +57,7 @@ def send_email(subject,body,sender_email='lightservhelper@gmail.com',recipients=
 	msg = EmailMessage()
 	msg['Subject'] = subject
 	msg['From'] = sender_email
+	# msg['To'] = ','.join(recipients) 
 	msg['To'] = ','.join(recipients) # to me while in DEV phase
 	msg.set_content(body)                    
 	print(msg['To'])
@@ -75,6 +76,7 @@ def send_admin_email(subject,body,sender_email='lightservhelper@gmail.com'):
 	if os.environ['FLASK_MODE'] == 'TEST':
 		print("Not sending email since this is a test.")
 		return "Email not sent because are in TEST mode"
+
 	""" Asynchronous task to send an email """
 	msg = EmailMessage()
 	msg['Subject'] = subject
