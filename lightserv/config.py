@@ -8,14 +8,11 @@ from datetime import timedelta
 
 # Base class which I will inherit for use with DEV and TEST configs
 class BaseConfig(object):
-	DEBUG = True
 	SECRET_KEY = os.environ.get('SECRET_KEY')
-	# SQLALCHEMY_DATABASE_URI = 'db+mysql+pymysql://ahoag:gaoha@localhost:3306/ahoag_lightsheet_admin'
 	IMAGING_ADMINS = ['ahoag','jduva','zmd']
 	PROCESSING_ADMINS = ['ahoag','jduva','zmd']
 	CLEARING_ADMINS = ['ahoag','ll3','jduva','zmd']
 	IMAGING_MODES = ['registration','injection_detection','probe_detection','cell_detection','generic_imaging']
-	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_testing'
 	IMAGING_CHANNELS = ['488','555','647','790']
 	WTF_CSRF_TIME_LIMIT = 24*3600 # seconds (24 hours)
 	# WTF_CSRF_TIME_LIMIT = 1 #
@@ -29,16 +26,15 @@ class BaseConfig(object):
 	'princeton_mouse_atlas':'/jukebox/LightSheetTransfer/atlas/annotation_sagittal_atlas_20um_iso_16bit.tif'
 	}
 	PROCESSING_CODE_DIR = '/jukebox/wang/ahoag/lightsheet_py3'
-	# CLEARING_CALENDAR_ID = '8kvbhcbo0smdg394f79eh45gfc@group.calendar.google.com' # the real clearing calendar
-	CLEARING_CALENDAR_ID = 'skq68osl830f13tfgv6i0kq750@group.calendar.google.com' # the test calendar for the time being
 	dj.config['safemode'] = True 
-	# CELERY_BROKER_URL='amqp://localhost//',
-	# CELERY_RESULT_BACKEND=f'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test'
-	# BROKER_USE_SSL = True
 	
 
-class Config(BaseConfig):
+class DevConfig(BaseConfig):
+	DEBUG = True
+	CLEARING_CALENDAR_ID = 'skq68osl830f13tfgv6i0kq750@group.calendar.google.com' # the test calendar for the time being
 	SECRET_KEY = os.environ.get('SECRET_KEY')
+	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_testing'
+	
 	CELERYBEAT_SCHEDULE = {
 		# 'processing_job_status_checker': {
 		# 'task': 'lightserv.processing.tasks.processing_job_status_checker',
@@ -92,7 +88,11 @@ class Config(BaseConfig):
 	}
 	
 class ProdConfig(BaseConfig):
+	DEBUG = False
+	CLEARING_CALENDAR_ID = '8kvbhcbo0smdg394f79eh45gfc@group.calendar.google.com' # the real clearing calendar
 	SECRET_KEY = os.environ.get('SECRET_KEY')
+	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv'
+
 	CELERYBEAT_SCHEDULE = {
 		'processing_job_status_checker': {
 		'task': 'lightserv.processing.tasks.processing_job_status_checker',
