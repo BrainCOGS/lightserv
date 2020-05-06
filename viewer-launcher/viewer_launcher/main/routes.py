@@ -53,7 +53,8 @@ def nglauncher():
 	hosturl = ng_dict['hosturl']
 	ng_environment = {
         'HOSTURL':hosturl,
-        'SESSION_NAME':session_name
+        'SESSION_NAME':session_name,
+        'FLASK_MODE':os.environ['FLASK_MODE']
     }
 
 
@@ -73,8 +74,8 @@ def ng_reg_launcher():
 	session_name = ng_dict['session_name']
 	hosturl = ng_dict['hosturl']
 	ng_environment = {
-        'HOSTURL':hosturl,
-        'SESSION_NAME':session_name
+        'SESSION_NAME':session_name,
+        'FLASK_MODE':os.environ['FLASK_MODE']
     }
 
 
