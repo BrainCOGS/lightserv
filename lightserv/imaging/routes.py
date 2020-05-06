@@ -221,14 +221,21 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 							mymkdir(this_viz_dir)
 							precomputed_kwargs['lightsheet'] = 'left'
 							precomputed_kwargs['viz_dir'] = this_viz_dir
+							layer_name = f'channel{channel_name}_raw_left_lightsheet'
+							precomputed_kwargs['layer_name'] = layer_name
+							layer_dir = os.path.join(this_viz_dir,layer_name)
+							mymkdir(layer_dir)
 							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 						if right_lightsheet_used:
 							this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
 							mymkdir(this_viz_dir)
 							precomputed_kwargs['lightsheet'] = 'right'
 							precomputed_kwargs['viz_dir'] = this_viz_dir
+							layer_name = f'channel{channel_name}_raw_right_lightsheet'
+							precomputed_kwargs['layer_name'] = layer_name
+							layer_dir = os.path.join(this_viz_dir,layer_name)
+							mymkdir(layer_dir)
 							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
-
 					else:
 						logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
 									 "Not creating precomputed data for neuroglancer visualization.")

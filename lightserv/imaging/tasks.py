@@ -67,7 +67,6 @@ def make_precomputed_rawdata(**kwargs):
 								 f"{rawdata_subfolder}")
 
 	kwargs['rawdata_path'] = rawdata_path
-	kwargs['layer_name'] = f'channel{channel_name}_raw_{lightsheet}_lightsheet'
 	slurmjobfactor = 20 # the number of processes run per core
 	n_array_jobs_step1 = math.ceil(number_of_z_planes/float(slurmjobfactor)) # how many array jobs we need for step 1
 	n_array_jobs_step2 = 5 # how many array jobs we need for step 2
@@ -83,10 +82,10 @@ def make_precomputed_rawdata(**kwargs):
 	""" Now set up the connection to spock """
 
 	
-	# command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "
-	# 		   "/jukebox/wang/ahoag/precomputed/raw_pipeline/precomputed_pipeline_raw.sh {} {} {}").format(
-	# 	n_array_jobs_step1,n_array_jobs_step2,viz_dir)
-	command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+	command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "
+			   "/jukebox/wang/ahoag/precomputed/raw_pipeline/precomputed_pipeline_raw.sh {} {} {}").format(
+		n_array_jobs_step1,n_array_jobs_step2,viz_dir)
+	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_fail_pipeline.sh "
 
 	hostname = 'spock.pni.princeton.edu'
@@ -382,8 +381,3 @@ def send_processing_reminder_email(**reminder_email_kwargs):
 	smtp_server = smtp_connect()
 	smtp_server.send_message(msg)
 	return "Processing reminder email sent!"
-
-@cel.task()
-def test_task():
-	logger.info("This is a test task!")
-	return "Done"
