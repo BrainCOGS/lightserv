@@ -710,11 +710,11 @@ def make_precomputed_downsized_data(**kwargs):
 
 	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
 	
-	command = ("cd /jukebox/wang/ahoag/precomputed/downsized_pipeline; "
-			   "/jukebox/wang/ahoag/precomputed/downsized_pipeline/precomputed_pipeline_downsized.sh {}").format(
-		viz_dir)
+	# command = ("cd /jukebox/wang/ahoag/precomputed/downsized_pipeline; "
+	# 		   "/jukebox/wang/ahoag/precomputed/downsized_pipeline/precomputed_pipeline_downsized.sh {}").format(
+	# 	viz_dir)
 
-	# command = "cd /jukebox/wang/ahoag/precomputed/downsized_pipeline/testing; ./test_pipeline.sh "
+	command = "cd /jukebox/wang/ahoag/precomputed/downsized_pipeline/testing; ./test_pipeline.sh "
 	logger.debug("command:")
 	logger.debug(command)
 	hostname = 'spock.pni.princeton.edu'
@@ -1769,7 +1769,7 @@ def tiled_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
-			send_email.delay(subject=subject,body=message_body,recipients=recipients)
+			send_email.delay(subject=subject,body=body,recipients=recipients)
 			send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
@@ -2090,7 +2090,7 @@ def blended_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
-				send_email.delay(subject=subject,body=message_body,recipients=recipients)
+				send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all blended channels in this request"
 							 " are completely converted to precomputed format")
@@ -2123,7 +2123,7 @@ def blended_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
-			send_email.delay(subject=subject,body=message_body,recipients=recipients)
+			send_email.delay(subject=subject,body=body,recipients=recipients)
 			send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
@@ -2449,7 +2449,7 @@ def downsized_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
-				send_email.delay(subject=subject,body=message_body,recipients=recipients)
+				send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all downsized channels in this request"
 							 " are completely converted to precomputed format")
@@ -2481,7 +2481,7 @@ def downsized_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
-			send_email.delay(subject=subject,body=message_body,recipients=recipients)
+			send_email.delay(subject=subject,body=body,recipients=recipients)
 			send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
@@ -2811,7 +2811,7 @@ def registered_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
-				send_email.delay(subject=subject,body=message_body,recipients=recipients)
+				send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all registered channels in this request"
 							 " are completely converted to precomputed format")
@@ -2843,7 +2843,7 @@ def registered_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
-			send_email.delay(subject=subject,body=message_body,recipients=recipients)
+			send_email.delay(subject=subject,body=body,recipients=recipients)
 			send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)

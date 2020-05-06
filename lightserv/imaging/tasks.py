@@ -86,8 +86,8 @@ def make_precomputed_rawdata(**kwargs):
 	# command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "
 	# 		   "/jukebox/wang/ahoag/precomputed/raw_pipeline/precomputed_pipeline_raw.sh {} {} {}").format(
 	# 	n_array_jobs_step1,n_array_jobs_step2,viz_dir)
-	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
-	command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_fail_pipeline.sh "
+	command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_fail_pipeline.sh "
 
 	hostname = 'spock.pni.princeton.edu'
 	port=22
@@ -303,7 +303,7 @@ def check_raw_precomputed_statuses():
 								{'username':username,'request_name':request_name}
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
-				send_email.delay(subject=subject,body=message_body,recipients=recipients)
+				send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all imaging channels in this request are completed")
 		elif status_step2 == 'CANCELLED' or status_step2 == 'FAILED':
@@ -331,7 +331,7 @@ def check_raw_precomputed_statuses():
 								{'username':username,'request_name':request_name}
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
-			send_email.delay(subject=subject,body=message_body,recipients=recipients)
+			send_email.delay(subject=subject,body=body,recipients=recipients)
 			send_admin_email.delay(subject=subject,body=admin_body)
 
 	logger.debug("Insert list:")
