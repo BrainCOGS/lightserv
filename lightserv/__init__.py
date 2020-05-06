@@ -111,8 +111,6 @@ def create_app(config_class):
 	
 	# Initialize external libs
 	csrf = CSRFProtect(app)
-	print("Configuring app with config class:")
-	print(config_class)
 	app.config.from_object(config_class)
 	cel.conf.update(app.config)
 

@@ -809,7 +809,7 @@ def new_request():
                 recipients = [correspondence_email]
                 send_email.delay(subject=subject,body=message_body,recipients=recipients)
 
-                    return redirect(url_for('requests.all_requests'))
+                return redirect(url_for('requests.all_requests'))
             
         else: # post request but not validated. Need to handle some errors
 
