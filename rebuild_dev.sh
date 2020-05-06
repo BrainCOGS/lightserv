@@ -6,7 +6,7 @@
 docker build -f ./flaskcelery.Dockerfile -t flaskcelery:latest .
 
 # Build docker-compose services
-docker-compose build 
+docker-compose -f docker-compose-dev.yml build 
 
 ## cleanup network to make sure a good fresh one exists
 
