@@ -95,3 +95,19 @@ def ng_reg_launcher():
                                   name=ng_container_name,
                                   detach=True) 
 	return "success"
+
+@main.route("/container_killer",methods=['POST']) 
+def container_killer(): 
+	logging.debug("POST request to /container_killer in viewer-launcher")
+	client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+	container_dict = request.json
+	container_names_to_kill = container_dict['list_of_container_names'] # the name of the layer in Neuroglancer
+	logging.debug("Received container names to kill:")
+	logging.debug(container_names_to_kill)
+	for container_name in container_names_to_kill:
+		container = client.containers.get(container_name)
+		logging.debug(f"Killing docker container: {container_name}")
+		container.kill()           
+		logging.debug(f"Killed the container")
+	
+	return "success"

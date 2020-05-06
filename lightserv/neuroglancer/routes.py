@@ -17,7 +17,7 @@ from .tables import (ImagingRequestTable, ProcessingRequestTable)
 from lightserv import cel, db_lightsheet
 from lightserv.main.utils import (check_imaging_completed,
     check_imaging_request_precomputed,log_http_requests)
-
+from .tasks import ng_viewer_checker
 import progproxy as pp
 
 logger = logging.getLogger(__name__)
@@ -1665,74 +1665,3 @@ def general_data_setup(username,request_name,sample_name,
     return render_template('neuroglancer/general_data_setup.html',form=form,
         channel_contents_lists=channel_contents_lists,processing_request_table=processing_request_table)
 
-
-@cel.task() 
-def ng_viewer_checker():
-    """ A celery task to check the activity timestamp
-    for all open viewers.
-    If it has been more than 30 seconds since last activity,
-    then shuts down the viewer and its cloudvolumes and removes them from
-    the proxy table. """
-    
-    client = docker.DockerClient(base_url='unix://var/run/docker.sock')
-    proxy_h = pp.progproxy(target_hname='confproxy')
-    """ Make the timestamp against which we will compare the viewer timestamps """
-    timeout_timestamp_iso = (datetime.utcnow() - timedelta(seconds=2)).isoformat()
-    response = proxy_h.getroutes(inactive_since=timeout_timestamp_iso)
-    proxy_dict = json.loads(response.text)
-    # proxy_viewer_dict = {key:proxy_dict[key] for key in proxy_dict.keys() if 'viewer' in key}
-    expired_session_names = [key.split('/')[-1] for key in proxy_dict.keys() if 'viewer' in key]
-    """ Now figure out the session names of each of the expired viewers """   
-    # session_names = [key.split('/')[-1] for key in proxy_viewer_dict.keys()]
-    logger.debug('')
-    logger.debug("Expired session names:")
-    logger.debug(expired_session_names)
-    """ Now delete the proxy routes for the viewers and cloudvolumes"""
-    for expired_session_name in expired_session_names:
-        # first ng viewers
-        ng_proxypath = f'/viewers/{expired_session_name}'
-        proxy_h.deleteroute(ng_proxypath)
-        # now find any cloudvolumes with this session name
-        cv_proxypaths = [key for key in proxy_dict.keys() if f'cloudvols/{expired_session_name}' in key]
-        logger.debug("expired cloudvolume proxypaths:")
-        logger.debug(cv_proxypaths)
-        for cv_proxypath in cv_proxypaths:
-            proxy_h.deleteroute(cv_proxypath)
-
-    """ Now use the session names to take down the cloudvolume containers 
-        and the neuroglancer container that were launched for each session """
-    # logger.debug("removing cloudvolume/neuroglancer containers linked to expired viewers")
-    kv = redis.Redis(host="redis", decode_responses=True)
-    for session_name in expired_session_names:
-        # logger.debug(f"in loop for {session_name}")
-        session_dict = kv.hgetall(session_name)
-        # Cloudvolume containers
-        cv_count = int(session_dict['cv_count'])
-        for i in range(cv_count):
-            # logger.debug(f"in loop over cloudvolume counts")
-            cv_container_name = session_dict['cv%i_container_name' % (i+1)]
-            # logger.debug(f"Looking up cv container name: {cv_container_name}")
-            cv_container = client.containers.get(cv_container_name)
-            # logger.debug("Got the cloudvolume container")
-            logger.debug(f"Killing cloudvolume container: {cv_container_name}")
-            cv_container.kill()           
-            logger.debug("killed the cloudvolume container")
-        # Neuroglancer container
-        ng_container_name = session_dict['ng_container_name']
-        # logger.debug(f"Killing ng container: {ng_container_name}")
-        ng_container = client.containers.get(ng_container_name)
-        # logger.debug("Got the neuroglancer container")
-        logger.debug(f"Killing neuroglancer container: {ng_container_name}")
-        ng_container.kill()           
-        logger.debug(f"Killed the neuroglancer container")
-    
-    # final_timeout_timestamp_iso = (datetime.utcnow() - timedelta(seconds=5)).isoformat()
-    current_routes_response = proxy_h.getroutes()
-    logger.info('Proxy routes are now:')
-    logger.info(current_routes_response.text)
-    return "success"
-
-@neuroglancer.route('/viewer_health_check') 
-def ng_health_checker():
-    ng_viewer_checker.delay()
-    return "Success"
