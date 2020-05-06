@@ -9,30 +9,22 @@ if os.environ.get('FLASK_MODE') == 'TEST':
     dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']
     print("setting up test light sheet schema")
     schema = dj.schema('ahoag_lightsheet_test')
-    # is_worker = os.environ.get('IS_WORKER')
-    # if is_worker is not None:
-    #     print("Worker; not dropping db")
-    # else:
-    #     schema.drop(force=True)
-    #     schema = dj.schema('ahoag_lightsheet_test')
+    
 elif os.environ.get('FLASK_MODE') == 'DEV':
     dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
     dj.config['database.port'] = 3306
 
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']
-    print("setting up real light sheet schema")
-    # schema = dj.schema('u19lightserv_lightsheet')
-    # schema = dj.schema('ahoag_lightsheet_demo')
-    # schema.drop()
-    # schema = dj.schema('u19lightserv_lightsheet')
+    print("setting up DEV: ahoag_lightsheet_demo schema")
+
     schema = dj.schema('ahoag_lightsheet_demo')
 elif os.environ.get('FLASK_MODE') == 'PROD':
     dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
     dj.config['database.port'] = 3306
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']
-    print("setting up u19lightserv_lightsheet schema")
+    print("setting up PROD: u19lightserv_lightsheet schema")
     schema = dj.schema('u19lightserv_lightsheet')
 
 # from . import spockadmin

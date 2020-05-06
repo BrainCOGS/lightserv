@@ -13,14 +13,14 @@ elif os.environ.get('FLASK_MODE') == 'DEV':
     dj.config['database.port'] = 3306
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']
-    print("setting up real spockadmin schema")
+    print("setting up DEV: ahoag_spockadmin_demo schema")
     schema = dj.schema('ahoag_spockadmin_demo')
 elif os.environ.get('FLASK_MODE') == 'PROD':
     dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
     dj.config['database.port'] = 3306
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']
-    print("setting up real spockadmin schema")
+    print("setting up PROD: u19lightserv_appcore schema")
     schema = dj.schema('u19lightserv_appcore')
 
 @schema 

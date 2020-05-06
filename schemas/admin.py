@@ -9,27 +9,20 @@ if os.environ.get('FLASK_MODE') == 'TEST':
     dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']
     print("setting up test admin schema")
     schema = dj.schema('ahoag_admin_test')
-    # is_worker = os.environ.get('IS_WORKER')
-    # if is_worker is not None:
-    #     print("Worker; not dropping db")
-    # else:    
-    #     schema.drop(force=True)
-    #     schema = dj.schema('ahoag_admin_test')
+
 elif os.environ.get('FLASK_MODE') == 'DEV':
     dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
     dj.config['database.port'] = 3306
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']
-    print("setting up real admin schema")
-    # schema = dj.schema('ahoag_admin_demo')
-    # schema.drop()
+    print("setting up DEV: ahoag_admin_demo schema")
     schema = dj.schema('ahoag_admin_demo')
 elif os.environ.get('FLASK_MODE') == 'PROD':
     dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
     dj.config['database.port'] = 3306
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']
-    print("setting up u19lightserv_appcore schema")
+    print("setting up PROD: u19lightserv_appcore schema")
     schema = dj.schema('u19lightserv_appcore')
 from . import lightsheet
 
