@@ -4,9 +4,10 @@ import redis, docker
 import secrets
 import logging
 
-if os.environ.get("FLASK_MODE") == 'DEV':
+flask_mode = os.environ.get("FLASK_MODE")
+if flask_mode == 'DEV':
 	network = 'lightserv-dev'
-elif os.environ.get("FLASK_MODE") == 'PROD':
+elif flask_mode == 'PROD':
 	network = 'lightserv-prod'
 
 logging.basicConfig(level=logging.DEBUG)
@@ -35,8 +36,11 @@ def cvlauncher():
 			'mode':'ro'
 			},
 	}
-
-	cv_container = client.containers.run('cloudv_viewer',
+	if flask_mode == 'DEV':
+		cv_image = 'cloudv_viewer:latest'
+	elif flask_mode == 'PROD':
+		cv_image = 'cloudv_viewer:prod'
+	cv_container = client.containers.run(cv_image,
 								  volumes=cv_mounts,
 								  network=network,
 								  name=cv_container_name,
@@ -57,8 +61,11 @@ def nglauncher():
         'FLASK_MODE':os.environ['FLASK_MODE']
     }
 
-
-	ng_container = client.containers.run('nglancer_viewer',
+	if flask_mode == 'DEV':
+		ng_image = 'nglancer_viewer:latest'
+	elif flask_mode == 'PROD':
+		ng_image = 'nglancer_viewer:prod'
+	ng_container = client.containers.run(ng_image,
                                   environment=ng_environment,
                                   network=network,
                                   name=ng_container_name,
@@ -78,18 +85,13 @@ def ng_reg_launcher():
         'FLASK_MODE':os.environ['FLASK_MODE']
     }
 
-
-	ng_container = client.containers.run('nglancer_registration_viewer',
+	if flask_mode == 'DEV':
+		ng_reg_image = 'nglancer_viewer:latest'
+	elif flask_mode == 'PROD':
+		ng_reg_image = 'nglancer_viewer:prod'
+	ng_container = client.containers.run(ng_reg_image,
                                   environment=ng_environment,
                                   network=network,
                                   name=ng_container_name,
                                   detach=True) 
 	return "success"
-
-@main.route("/dest",methods=['POST'])
-def dest():
-	logging.debug("")
-	logging.debug("Here!")
-	if request.method == 'POST':
-		logging.debug(request.json)
-		return "Got the data!"

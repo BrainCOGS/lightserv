@@ -22,6 +22,7 @@ import progproxy as pp
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+logger.propagate=False
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
 

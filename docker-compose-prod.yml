@@ -1,6 +1,20 @@
 version: "3.4"
 
 services:
+  confproxy:
+    env_file: .dockerenv
+    image: jupyterhub/configurable-http-proxy:3.1.1
+    # expose the proxy to the world
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    command: ['configurable-http-proxy',
+              '--auto-rewrite',
+              '--no-include-prefix',
+              '--no-prepend-path',
+              '--log-level', 'debug',
+              '--api-ip', '0.0.0.0']
+
   redis:
     image: redis
     expose:
@@ -9,7 +23,7 @@ services:
   flask:
     env_file: .dockerenv
     hostname: docker_lightserv
-    image: flaskcelery:latest
+    image: flaskcelery:prod
     command: ["python", "run.py"]
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
@@ -33,7 +47,7 @@ services:
       - '5004:5005'
   worker:
     env_file: .dockerenv
-    image: flaskcelery:latest
+    image: flaskcelery:prod
     command: ["celery",
               "worker",
               "-A",
@@ -50,7 +64,7 @@ services:
     # restart: always
   scheduler:
     env_file: .dockerenv
-    image: flaskcelery:latest
+    image: flaskcelery:prod
     command: ["celery",
               "beat",
               "-A",
@@ -65,12 +79,12 @@ services:
       - redis
       - worker
     # restart: always
-  # nglancerstatic-prod:
-  #   build:
-  #     context: ./nglancerstatic_prod
-  #     dockerfile: nglancerstatic_prod.Dockerfile
-  #   ports:
-  #     - '8082:8080'
+  nglancerstatic-prod:
+    build:
+      context: ./nglancerstatic_prod
+      dockerfile: nglancerstatic_prod.Dockerfile
+    ports:
+      - '8082:8080'
 
 networks:
   default:
