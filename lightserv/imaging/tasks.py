@@ -14,6 +14,7 @@ from email.message import EmailMessage
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+logger.propagate = False
 
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
 
@@ -381,3 +382,8 @@ def send_processing_reminder_email(**reminder_email_kwargs):
 	smtp_server = smtp_connect()
 	smtp_server.send_message(msg)
 	return "Processing reminder email sent!"
+
+@cel.task()
+def test_task():
+	logger.info("This is a test task!")
+	return "Done"

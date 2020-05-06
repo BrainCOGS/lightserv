@@ -20,7 +20,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-
+logger.propagate = False
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
 
 ''' Make the file handler to deal with logging to file '''
