@@ -1,11 +1,20 @@
 {% extends "layout.html" %}
 {% block content %}
-	<h1 class="mb-2" align="center">Links to view your data in neuroglancer:</h1>
-	{% for key in url_dict %}
-		<h3> Image resolution: {{ key }} </h3>
-		{% set neuroglancerurl = url_dict[key] %}
-		<a href={{neuroglancerurl}} target="_blank"> Open Neuroglancer </a>
-		
+	<h1 class="mb-2" align="center">Links to view your {{datatype}} data in neuroglancer:</h1>
+	{% for image_resolution in url_dict %}
+		{% set neuroglancerurl = url_dict[image_resolution] %}
+		<h3> Image resolution: {{ image_resolution }} </h3>
+		<div mb-2>
+			<a href={{neuroglancerurl}} target="_blank"> Open Neuroglancer </a>
+		</div>
+		<div mb-2>
+			<h6> Contents of the layers displayed at the above link: </h6>
+			
+			{% set cv_table = cv_table_dict[image_resolution] %}
+			<div style="max-height: 400px; overflow: auto;">
+				{{ cv_table }}
+			</div>
+		</div>
 	{% endfor %}
 	
 

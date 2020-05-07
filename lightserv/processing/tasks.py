@@ -276,9 +276,7 @@ def run_lightsheet_pipeline(username,request_name,
 					inputdictionary[rawdata_fullpath].append(
 						[lightsheet_channel_str,str(channel_index).zfill(2)])
 					
-					processing_channel_insert_dict['lightsheet_channel_str'] = lightsheet_channel_str
-					now = datetime.now()
-					processing_channel_insert_dict['datetime_processing_started'] = now
+					processing_channel_insert_dict['lightsheet_channel_str'] = lightsheet_channel_str			
 					logger.info("Inserting into ProcessingChannel()")
 					logger.info(processing_channel_insert_dict)
 					db_lightsheet.Request.ProcessingChannel().insert1(processing_channel_insert_dict,replace=True)
@@ -299,10 +297,10 @@ def run_lightsheet_pipeline(username,request_name,
 			logger.info(f"wrote pickle file: {pickle_fullpath}")
 			logger.debug("Permissions on pickle file are originally:")
 			logger.debug(st.st_mode)
-			os.chmod(pickle_fullpath,st.st_mode | stat.S_IWOTH)
-			st_now = os.stat(pickle_fullpath)
-			logger.debug("Permissions on pickle file are now:")
-			logger.debug(st_now.st_mode)
+			# os.chmod(pickle_fullpath,st.st_mode | stat.S_IWOTH)
+			# st_now = os.stat(pickle_fullpath)
+			# logger.debug("Permissions on pickle file are now:")
+			# logger.debug(st_now.st_mode)
 
 			""" Now run the spock pipeline via paramiko """
 
@@ -322,53 +320,57 @@ def run_lightsheet_pipeline(username,request_name,
 			if n_channels_reg == 0:
 				no_registration_channels = 1
 
+			""" Figure out how many channels there are total in this request """
+			n_channels_total = sum([len(channel_list) for channel_list in inputdictionary.values()])
+			""" Now figure out based on whether we have registration channel how
+			we are going to run the code """
 			if no_registration_channels:
 				logger.debug("No registration channel. Running only steps 0-2 of the pipeline")
 				if stitching_method == 'blending':
 					logger.debug("Running light sheet pipeline with no stitching (single tile)")
 					pipeline_shell_script = 'lightsheet_pipeline_no_stitching_no_reg.sh'
+					n_array_jobs_step1 = math.ceil(max_number_of_z_planes/float(slurmjobfactor)) # how many array jobs we need for step 1
 				elif stitching_method == 'terastitcher':
 					logger.debug("Running light sheet pipeline with stitching (terastitcher)")
 					pipeline_shell_script = 'lightsheet_pipeline_stitching_no_reg.sh'
+					n_array_jobs_step1 = n_channels_total
 			else:
 				logger.debug("Have at least one registration channel. Running full pipeline (steps 0-3)")
 				if stitching_method == 'blending':
 					logger.debug("Running light sheet pipeline with no stitching (single tile)")
 					pipeline_shell_script = 'lightsheet_pipeline_no_stitching.sh'
+					n_array_jobs_step1 = math.ceil(max_number_of_z_planes/float(slurmjobfactor)) # how many array jobs we need for step 1
+
 				elif stitching_method == 'terastitcher':
 					logger.debug("Running light sheet pipeline with stitching (terastitcher)")
 					pipeline_shell_script = 'lightsheet_pipeline_stitching.sh'
+					n_array_jobs_step1 = n_channels_total
 				
-			""" figure out how many array jobs we will need for step 1"""
-			n_array_jobs_step1 = math.ceil(max_number_of_z_planes/float(slurmjobfactor)) # how many array jobs we need for step 1
 			processing_code_dir = current_app.config['PROCESSING_CODE_DIR']
 			
-			""" Figure out how many channels there are total in this request """
-			n_channels_total = sum([len(channel_list) for channel_list in inputdictionary.values()])
-
 			""" Set up the communication with spock """
 
-			# command = """cd %s;%s/%s %s %s %s""" % \
-			# 	(processing_code_dir,
-			# 		processing_code_dir,
-			# 		pipeline_shell_script,
-			# 		output_directory,
-			# 		n_array_jobs_step1,
-			# 		n_channels_total
-			# 	)
+			command = """cd %s;%s/%s %s %s %s""" % \
+				(processing_code_dir,
+					processing_code_dir,
+					pipeline_shell_script,
+					output_directory,
+					n_array_jobs_step1,
+					n_channels_total
+				)
 			
-			if n_channels_reg > 0:
-				command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline.sh"""
-			else:	
-				command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline_noreg.sh"""
-
+			# if n_channels_reg > 0:
+			# 	command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline.sh"""
+			# else:	
+			# 	command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline_noreg.sh"""
+			spock_username = 'pnilsadmin'
 			port = 22
 
 			client = paramiko.SSHClient()
 			client.load_system_host_keys()
 			client.set_missing_host_key_policy(paramiko.WarningPolicy)
 			try:
-				client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+				client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
 			except paramiko.ssh_exception.AuthenticationException:
 				logger.info(f"Failed to connect to spock to start job. ")
 				dj.Table._update(this_image_resolution_content,'lightsheet_pipeline_spock_job_progress','NOT_SUBMITTED')	
@@ -432,7 +434,7 @@ def run_lightsheet_pipeline(username,request_name,
 	return "SUBMITTED spock job"
 
 @cel.task()
-def make_precomputed_stitched_data_poststitching(**kwargs):
+def make_precomputed_stitched_data(**kwargs):
 	""" Celery task for making precomputed dataset
 	(i.e. one that can be read by cloudvolume) from 
 	stitched image data after it has been stitched.  
@@ -519,7 +521,7 @@ def make_precomputed_stitched_data_poststitching(**kwargs):
 	command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	hostname = 'spock.pni.princeton.edu'
 	port=22
-	spock_username = 'lightserv-test' # Use the service account for this step - if it gets overloaded we can switch to user accounts
+	spock_username = 'pnilsadmin' # Use the service account for this step - if it gets overloaded we can switch to user accounts
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
@@ -625,13 +627,13 @@ def make_precomputed_blended_data(**kwargs):
 
 	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
 	
-	# command = ("cd /jukebox/wang/ahoag/precomputed/blended_pipeline; "
-	# 		   "/jukebox/wang/ahoag/precomputed/blended_pipeline/precomputed_pipeline_blended.sh {} {} {}").format(
-	# 	n_array_jobs_step1,n_array_jobs_step2,viz_dir)
-	command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+	command = ("cd /jukebox/wang/ahoag/precomputed/blended_pipeline; "
+			   "/jukebox/wang/ahoag/precomputed/blended_pipeline/precomputed_pipeline_blended.sh {} {} {}").format(
+		n_array_jobs_step1,n_array_jobs_step2,viz_dir)
+	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	hostname = 'spock.pni.princeton.edu'
 	port=22
-	spock_username = 'lightserv-test' # Use the service account for this step - if it gets overloaded we can switch to user accounts
+	spock_username = 'pnilsadmin' # Use the service account for this step - if it gets overloaded we can switch to user accounts
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
@@ -712,16 +714,16 @@ def make_precomputed_downsized_data(**kwargs):
 
 	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
 	
-	# command = ("cd /jukebox/wang/ahoag/precomputed/downsized_pipeline; "
-	# 		   "/jukebox/wang/ahoag/precomputed/downsized_pipeline/precomputed_pipeline_downsized.sh {}").format(
-	# 	viz_dir)
+	command = ("cd /jukebox/wang/ahoag/precomputed/downsized_pipeline; "
+			   "/jukebox/wang/ahoag/precomputed/downsized_pipeline/precomputed_pipeline_downsized.sh {}").format(
+		viz_dir)
 
-	command = "cd /jukebox/wang/ahoag/precomputed/downsized_pipeline/testing; ./test_pipeline.sh "
+	# command = "cd /jukebox/wang/ahoag/precomputed/downsized_pipeline/testing; ./test_pipeline.sh "
 	logger.debug("command:")
 	logger.debug(command)
 	hostname = 'spock.pni.princeton.edu'
 	port=22
-	spock_username = 'lightserv-test' # Use the service account for this step - if it gets overloaded we can switch to user accounts
+	spock_username = 'pnilsadmin' # Use the service account for this step - if it gets overloaded we can switch to user accounts
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
@@ -760,7 +762,6 @@ def make_precomputed_downsized_data(**kwargs):
 	except:
 		logger.info("Unable to update ProcessingChannel() table")
 	return "Finished task submitting precomputed pipeline for downsized data"
-
 
 @cel.task()
 def make_precomputed_registered_data(**kwargs):
@@ -802,16 +803,16 @@ def make_precomputed_registered_data(**kwargs):
 
 	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
 	
-	# command = ("cd /jukebox/wang/ahoag/precomputed/registered_pipeline; "
-	# 		   "/jukebox/wang/ahoag/precomputed/registered_pipeline/precomputed_pipeline_registered.sh {}").format(
-	# 	viz_dir)
+	command = ("cd /jukebox/wang/ahoag/precomputed/registered_pipeline; "
+			   "/jukebox/wang/ahoag/precomputed/registered_pipeline/precomputed_pipeline_registered.sh {}").format(
+		viz_dir)
 	
-	command = "cd /jukebox/wang/ahoag/precomputed/registered_pipeline/testing; ./test_pipeline.sh "
+	# command = "cd /jukebox/wang/ahoag/precomputed/registered_pipeline/testing; ./test_pipeline.sh "
 	logger.debug("command:")
 	logger.debug(command)
 	hostname = 'spock.pni.princeton.edu'
 	port=22
-	spock_username = 'lightserv-test' # Use the service account for this step - if it gets overloaded we can switch to user accounts
+	spock_username = 'pnilsadmin' # Use the service account for this step - if it gets overloaded we can switch to user accounts
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
@@ -895,14 +896,14 @@ def processing_job_status_checker():
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
 	port = 22
-	username = 'lightserv-test'
+	spock_username = 'pnilsadmin'
 	hostname = 'spock.pni.princeton.edu'
 
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
 	try:
-		client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
 	except:
 		logger.debug("Something went wrong connecting to spock.")
 		client.close()
@@ -946,7 +947,7 @@ def processing_job_status_checker():
 		job_insert_dict['jobid_step2']=jobid_step2
 		jobid_step_dict = {'step0':jobid_step0,'step1':jobid_step1,'step2':jobid_step2}
 
-		""" Get the imaging channel entry associated with this jobid
+		""" Get the processing resolution entry associated with this jobid
 		and update the progress """
 		this_processing_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & \
 		f'lightsheet_pipeline_spock_jobid={jobid}'
@@ -1001,10 +1002,9 @@ def processing_job_status_checker():
 			"imaging_request_number","processing_request_number",
 			"image_resolution")
 		if status_step3 == 'COMPLETED':
+			
+
 			""" Find all processing channels from this same processing request """
-			restrict_dict_imaging = dict(username=username,request_name=request_name,
-				sample_name=sample_name,imaging_request_number=imaging_request_number)
-			imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict_imaging
 			restrict_dict_processing = dict(username=username,request_name=request_name,
 				sample_name=sample_name,imaging_request_number=imaging_request_number,
 				processing_request_number=processing_request_number)
@@ -1013,12 +1013,23 @@ def processing_job_status_checker():
 			logger.debug(processing_request_contents)
 			processing_resolution_contents = db_lightsheet.Request.ProcessingResolutionRequest() & \
 				restrict_dict_processing
+			processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
+				restrict_dict_processing
+			""" First update that the processing is complete for each entry """
+			now = datetime.now()
+			for processing_channel_dict in processing_channel_contents:
+				channel_name = processing_channel_dict['channel_name']
+				this_processing_channel_content = processing_channel_contents & \
+					f'channel_name="{channel_name}"'
+				dj.Table._update(this_processing_channel_content,
+					'datetime_processing_completed',now)
 			# logger.debug(processing_channel_contents)
 			""" Loop through and pool all of the job statuses """
 			processing_request_job_statuses = []
 			for processing_resolution_dict in processing_resolution_contents:
 				job_status = processing_resolution_dict['lightsheet_pipeline_spock_job_progress']
 				processing_request_job_statuses.append(job_status)
+
 			logger.debug("job statuses for this processing request:")
 			# print(username,)
 			# logger.debug(processing_request_job_statuses)
@@ -1246,14 +1257,14 @@ def processing_job_status_checker_noreg():
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
 	port = 22
-	username = 'lightserv-test'
+	spock_username = 'pnilsadmin'
 	hostname = 'spock.pni.princeton.edu'
 
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
 	try:
-		client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
 	except:
 		logger.debug("Something went wrong connecting to spock.")
 		client.close()
@@ -1457,7 +1468,6 @@ def check_for_spock_jobs_ready_for_making_precomputed_stitched_data():
 		if len(stitched_precomputed_spock_job_contents) > 0:
 			logger.info("Precomputed pipeline already started for this job")
 			continue
-
 		""" Kick off a stitched precomputed spock job 
 		First need to get the kwarg dictionary for 
 		this processing resolution request.
@@ -1468,17 +1478,19 @@ def check_for_spock_jobs_ready_for_making_precomputed_stitched_data():
 		""" First figure out if this is a spock job that ran steps 0-2 
 		or 0-3 (i.e. used registration) """
 		processing_pipeline_db_contents = unique_contents & \
-			f'processing_pipeline_jobid_step0="{processing_pipeline_jobid_step0}"'
+			f'jobid_step0="{processing_pipeline_jobid_step0}"'
 		(processing_pipeline_jobid_step2,
-			processing_pipeline_jobid_step3) = processing_pipeline_db_contents.fetch(
+			processing_pipeline_jobid_step3) = processing_pipeline_db_contents.fetch1(
 			'jobid_step2','jobid_step3')
+
 		if processing_pipeline_jobid_step3:
+			logger.debug("Only steps 0-2 were run in this pipeline")
 			this_processing_resolution_request = db_lightsheet.Request.ProcessingResolutionRequest() & \
-				f'lightsheet_pipeline_spock_jobid={processing_pipeline_jobid_step3}'
+				f'lightsheet_pipeline_spock_jobid="{processing_pipeline_jobid_step3}"'
 		else:
+			logger.debug("Steps 0-3 were run in this pipeline")
 			this_processing_resolution_request = db_lightsheet.Request.ProcessingResolutionRequest() & \
-				f'lightsheet_pipeline_spock_jobid={processing_pipeline_jobid_step2}'
-		
+				f'lightsheet_pipeline_spock_jobid="{processing_pipeline_jobid_step2}"'
 		""" Now find all of the ProcessingChannel() entries 
 		corresponding to this processing resolution request """
 		
@@ -1509,7 +1521,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_stitched_data():
 				rawdata_subfolder=rawdata_subfolder,
 				left_lightsheet_used=left_lightsheet_used,
 				right_lightsheet_used=right_lightsheet_used,
-				processing_pipeline_jobid_step3=processing_pipeline_jobid_step3,
+				processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
 				z_step=z_step)
 			stitched_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
 							 f"{request_name}/{sample_name}/"
@@ -1527,7 +1539,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_stitched_data():
 				logger.debug(f"Created directory {this_viz_dir}")
 				precomputed_kwargs['lightsheet'] = 'left'
 				precomputed_kwargs['viz_dir'] = this_viz_dir
-				make_precomputed_stitched_data_poststitching.delay(**precomputed_kwargs)
+				make_precomputed_stitched_data.delay(**precomputed_kwargs)
 				logger.info("Sent precomputed task for tiling left lightsheet")
 			if right_lightsheet_used:
 				this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
@@ -1535,7 +1547,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_stitched_data():
 				logger.debug(f"Created directory {this_viz_dir}")
 				precomputed_kwargs['lightsheet'] = 'right'
 				precomputed_kwargs['viz_dir'] = this_viz_dir
-				make_precomputed_stitched_data_poststitching.delay(**precomputed_kwargs)
+				make_precomputed_stitched_data.delay(**precomputed_kwargs)
 				logger.info("Sent precomputed task for tiling right lightsheet")
 
 	return "Checked for light sheet pipeline jobs whose data have been stitched"
@@ -1569,14 +1581,14 @@ def stitched_precomputed_job_status_checker():
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
 	port = 22
-	username = 'lightserv-test'
+	spock_username = 'pnilsadmin'
 	hostname = 'spock.pni.princeton.edu'
 
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
 	try:
-		client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
 	except:
 		logger.debug("Something went wrong connecting to spock.")
 		client.close()
@@ -1933,14 +1945,14 @@ def blended_precomputed_job_status_checker():
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
 	port = 22
-	username = 'lightserv-test'
+	spock_username = 'pnilsadmin'
 	hostname = 'spock.pni.princeton.edu'
 
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
 	try:
-		client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
 	except:
 		logger.debug("Something went wrong connecting to spock.")
 		client.close()
@@ -2290,14 +2302,14 @@ def downsized_precomputed_job_status_checker():
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
 	port = 22
-	username = 'lightserv-test'
+	spock_username = 'pnilsadmin'
 	hostname = 'spock.pni.princeton.edu'
 
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
 	try:
-		client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
 	except:
 		logger.debug("Something went wrong connecting to spock.")
 		client.close()
@@ -2652,14 +2664,14 @@ def registered_precomputed_job_status_checker():
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
 	port = 22
-	username = 'lightserv-test'
+	spock_username = 'pnilsadmin'
 	hostname = 'spock.pni.princeton.edu'
 
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
 	try:
-		client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
 	except:
 		logger.debug("Something went wrong connecting to spock.")
 		client.close()
