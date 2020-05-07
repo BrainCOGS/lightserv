@@ -8,16 +8,17 @@
 		<b>A:</b> Sometimes your sample is too large (in x,y) to fit into the
 		field of view of the microscope. This is true for rat brains imaged at any resolution 
 		and true for mouse brains imaged at >1.3x (x,y) resolution. When this happens, the 
-		imager moves the sample in a tile pattern and re-images the sample until the entire 
-		desired volume is imaged. Included in our processing
-		pipeline is a program called terastitcher that combines ("stitches") the volumes obtained
-		from each grid cell into a single 3d volume. Below is an illustration of this process. 
+		imager has to move the sample in a grid pattern and re-image it at each tile in the grid
+		until the entire desired volume is imaged.  Included in the processing
+		pipeline is a program called terastitcher that combines ("stitches") the scans 
+		from each tile in the grid into a single 3d volume. Below is an illustration of this process. 
 	</p>
 	<div align="center" class='mb-2 mt-4'>
-		<img src="{{ url_for('static',filename='FAQ/mouse_sagittal_tiled.png') }}">	
+		<img src="{{ url_for('static',filename='FAQ/mouse_sagittal_stitching.png') }}">	
 		</br> 
 		<b>Fig. 1.1</b>: A raw 3x2 tiled dataset is stitched into a single volume. 
-		The top dataset was originally 6 volumes that were imaged separately.
+		The top dataset was originally 6 volumes that were imaged separately because the 
+		brain was too large to fit into a single tile.
 		Stitching is performed automatically for tiled datasets as part of the automated 
 		whole-brain processing pipeline. 
 	</div>
