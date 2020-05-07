@@ -168,10 +168,10 @@ class Request(dj.Manual):
         datetime_processing_completed = NULL                          :   datetime
         intensity_correction = 1                                      :   boolean
         metadata_xml_string = NULL                                    :   mediumblob # The entire metadata xml string. Sometimes it is not available so those times it will be NULL
-        left_lightsheet_tiled_precomputed_spock_jobid = NULL          :   varchar(32)
-        left_lightsheet_tiled_precomputed_spock_job_progress = NULL   :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
-        right_lightsheet_tiled_precomputed_spock_jobid = NULL         :   varchar(32)
-        right_lightsheet_tiled_precomputed_spock_job_progress = NULL  :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+        left_lightsheet_stitched_precomputed_spock_jobid = NULL          :   varchar(32)
+        left_lightsheet_stitched_precomputed_spock_job_progress = NULL   :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
+        right_lightsheet_stitched_precomputed_spock_jobid = NULL         :   varchar(32)
+        right_lightsheet_stitched_precomputed_spock_job_progress = NULL  :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
         blended_precomputed_spock_jobid = NULL                        : varchar(32)
         blended_precomputed_spock_job_progress = NULL                 : enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED")
         downsized_precomputed_spock_jobid = NULL                      : varchar(32)

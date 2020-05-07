@@ -56,7 +56,7 @@ class RawPrecomputedSpockJob(dj.Manual):
     """
 
 @schema 
-class TiledPrecomputedSpockJob(dj.Manual):
+class StitchedPrecomputedSpockJob(dj.Manual):
     definition = """    # Spock job management table for keeping track of spock jobs for making precomputed data from the stitched multi-tile data
     jobid_step2  : varchar(16) # the jobid on spock of step2 (downsampling) in the precomputed pipeline. Used as primary key so that the progress of the precomputed pipeline can be probed.
     timestamp = CURRENT_TIMESTAMP : timestamp

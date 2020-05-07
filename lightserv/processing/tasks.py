@@ -207,6 +207,8 @@ def run_lightsheet_pipeline(username,request_name,
 					'image_resolution':image_resolution,'channel_name':channel_name,
 					'intensity_correction':True,'datetime_processing_started':now}
 
+					""" Figure out which imaging modes were selected for this channel, 
+					e.g. registration, injection detection """
 					channel_imaging_modes = [key for key in all_imaging_modes if channel_dict[key] == True]
 					this_channel_content = all_channel_contents & f'channel_name="{channel_name}"'
 		
@@ -430,10 +432,10 @@ def run_lightsheet_pipeline(username,request_name,
 	return "SUBMITTED spock job"
 
 @cel.task()
-def make_precomputed_tiled_data_poststitching(**kwargs):
+def make_precomputed_stitched_data_poststitching(**kwargs):
 	""" Celery task for making precomputed dataset
 	(i.e. one that can be read by cloudvolume) from 
-	tiled image data after it has been stitched.  
+	stitched image data after it has been stitched.  
 
 	Spawns a series of spock jobs for handling
 	the actual computation
@@ -472,7 +474,7 @@ def make_precomputed_tiled_data_poststitching(**kwargs):
 	logger.debug("TERASTITCHER OUTPUT DIRECTORY:")
 	logger.debug(terastitcher_output_parent_dir)
 	""" Find the deepest directory in the terastitcher output folder hierarchy.
-	That directory contains the tiled tif files at each z plane """
+	That directory contains the stitched tif files at each z plane """
 	all_terastitcher_subpaths = [x[0] for x in os.walk(terastitcher_output_parent_dir)]
 	terastitcher_output_dir = max(all_terastitcher_subpaths,key = lambda path: path.count('/'))
 	""" Find the number of tif files, which will be the number of z planes
@@ -542,11 +544,11 @@ def make_precomputed_tiled_data_poststitching(**kwargs):
 				'status_step1':status_step1,'status_step2':status_step2,
 				'processing_pipeline_jobid_step0':processing_pipeline_jobid_step0
 				}
-	logger.debug("Inserting into TiledPrecomputedSpockJob():")
+	logger.debug("Inserting into StitchedPrecomputedSpockJob():")
 	logger.debug(entry_dict)
-	db_spockadmin.TiledPrecomputedSpockJob.insert1(entry_dict)    
-	logger.info(f"Precomputed (Tiled data) job inserted into TiledPrecomputedSpockJob() table: {entry_dict}")
-	logger.info(f"Precomputed (Tiled data) job successfully submitted to spock, jobid_step2: {jobid_step2}")
+	db_spockadmin.StitchedPrecomputedSpockJob.insert1(entry_dict)    
+	logger.info(f"Precomputed (stitched data) job inserted into StitchedPrecomputedSpockJob() table: {entry_dict}")
+	logger.info(f"Precomputed (stitched data) job successfully submitted to spock, jobid_step2: {jobid_step2}")
 	# logger.debug(type(jobid_step2))
 	restrict_dict = dict(
 		username=username,request_name=request_name,
@@ -556,11 +558,11 @@ def make_precomputed_tiled_data_poststitching(**kwargs):
 	this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict 
 	try:
 		if lightsheet == 'left':
-			dj.Table._update(this_processing_channel_content,'left_lightsheet_tiled_precomputed_spock_jobid',str(jobid_step2))
-			dj.Table._update(this_processing_channel_content,'left_lightsheet_tiled_precomputed_spock_job_progress','SUBMITTED')
+			dj.Table._update(this_processing_channel_content,'left_lightsheet_stitched_precomputed_spock_jobid',str(jobid_step2))
+			dj.Table._update(this_processing_channel_content,'left_lightsheet_stitched_precomputed_spock_job_progress','SUBMITTED')
 		else:
-			dj.Table._update(this_processing_channel_content,'right_lightsheet_tiled_precomputed_spock_jobid',str(jobid_step2))
-			dj.Table._update(this_processing_channel_content,'right_lightsheet_tiled_precomputed_spock_job_progress','SUBMITTED')
+			dj.Table._update(this_processing_channel_content,'right_lightsheet_stitched_precomputed_spock_jobid',str(jobid_step2))
+			dj.Table._update(this_processing_channel_content,'right_lightsheet_stitched_precomputed_spock_job_progress','SUBMITTED')
 	except:
 		logger.info("Unable to update ProcessingChannel() table")
 	return "Finished task submitting precomputed pipeline for stitched data"
@@ -1411,18 +1413,18 @@ def processing_job_status_checker_noreg():
 """ Stitched precomputed pipeline """
 
 @cel.task()
-def check_for_spock_jobs_ready_for_making_precomputed_tiled_data():
+def check_for_spock_jobs_ready_for_making_precomputed_stitched_data():
 	""" 
 	A celery task that will be run in a schedule
 
 	Checks for spock jobs for the light sheet pipeline 
-	that use stitching_method='terastitcher' (i.e. tiled)
+	that use stitching_method='terastitcher' (i.e. stitched)
 	for which step 1 (the stitching) is complete AND
 	whose precomputed pipeline for visualizing the stitched
 	data products is not yet started.
 
 	For each spock job that satisfies those criteria,
-	start the precomputed pipeline for tiled data 
+	start the precomputed pipeline for stitched data 
 	corresponding to that imaging resolution request
 	"""
    
@@ -1442,21 +1444,21 @@ def check_for_spock_jobs_ready_for_making_precomputed_tiled_data():
 	logger.debug("")
 	
 	""" For each of these jobs, figure out the ones for which the
-	tiled precomputed pipeline has not already been started """
+	stitched precomputed pipeline has not already been started """
 	
 	for processing_pipeline_jobid_step0 in processing_pipeline_jobids_step0:
 		logger.debug(f"Checking out jobid: {processing_pipeline_jobid_step0} ")
 		
-		""" Check whether the tiled precomputed pipeline has been started for this 
+		""" Check whether the stitched precomputed pipeline has been started for this 
 		processing resolution request """
 
-		tiled_precomputed_spock_job_contents = db_spockadmin.TiledPrecomputedSpockJob() & \
+		stitched_precomputed_spock_job_contents = db_spockadmin.StitchedPrecomputedSpockJob() & \
 			f'processing_pipeline_jobid_step0="{processing_pipeline_jobid_step0}"'
-		if len(tiled_precomputed_spock_job_contents) > 0:
+		if len(stitched_precomputed_spock_job_contents) > 0:
 			logger.info("Precomputed pipeline already started for this job")
 			continue
 
-		""" Kick off a tiled precomputed spock job 
+		""" Kick off a stitched precomputed spock job 
 		First need to get the kwarg dictionary for 
 		this processing resolution request.
 		To get that need to cross-reference the
@@ -1525,7 +1527,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_tiled_data():
 				logger.debug(f"Created directory {this_viz_dir}")
 				precomputed_kwargs['lightsheet'] = 'left'
 				precomputed_kwargs['viz_dir'] = this_viz_dir
-				make_precomputed_tiled_data_poststitching.delay(**precomputed_kwargs)
+				make_precomputed_stitched_data_poststitching.delay(**precomputed_kwargs)
 				logger.info("Sent precomputed task for tiling left lightsheet")
 			if right_lightsheet_used:
 				this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
@@ -1533,26 +1535,26 @@ def check_for_spock_jobs_ready_for_making_precomputed_tiled_data():
 				logger.debug(f"Created directory {this_viz_dir}")
 				precomputed_kwargs['lightsheet'] = 'right'
 				precomputed_kwargs['viz_dir'] = this_viz_dir
-				make_precomputed_tiled_data_poststitching.delay(**precomputed_kwargs)
+				make_precomputed_stitched_data_poststitching.delay(**precomputed_kwargs)
 				logger.info("Sent precomputed task for tiling right lightsheet")
 
-	return "Checked for light sheet pipeline jobs whose data have been tiled"
+	return "Checked for light sheet pipeline jobs whose data have been stitched"
 
 @cel.task()
-def tiled_precomputed_job_status_checker():
+def stitched_precomputed_job_status_checker():
 	""" 
 	A celery task that will be run in a schedule
 
 	Checks all outstanding job statuses on spock
-	for the precomputed tiled (stitched) pipeline
-	and updates their status in the TiledPrecomputedSpockJob()
+	for the precomputed stitched (stitched) pipeline
+	and updates their status in the StitchedPrecomputedSpockJob()
 	in db_spockadmin
 	and ProcessingChannel() in db_lightsheet 
 
 	"""
    
 	""" First get all rows with latest timestamps """
-	job_contents = db_spockadmin.TiledPrecomputedSpockJob()
+	job_contents = db_spockadmin.StitchedPrecomputedSpockJob()
 	unique_contents = dj.U('jobid_step2','username',).aggr(
 		job_contents,timestamp='max(timestamp)')*job_contents
 	
@@ -1663,22 +1665,22 @@ def tiled_precomputed_job_status_checker():
 		""" Get the processing channel entry associated with this jobid
 		and update the progress """
 		if lightsheet_thisjob == 'left':
-			restrict_dict = dict(left_lightsheet_tiled_precomputed_spock_jobid=jobid)
-			replace_key = 'left_lightsheet_tiled_precomputed_g'
+			restrict_dict = dict(left_lightsheet_stitched_precomputed_spock_jobid=jobid)
+			replace_key = 'left_lightsheet_stitched_precomputed_spock_job_progress'
 		elif lightsheet_thisjob == 'right':
-			restrict_dict = dict(right_lightsheet_tiled_precomputed_spock_jobid=jobid)
-			replace_key = 'right_lightsheet_tiled_precomputed_spock_job_progress'
+			restrict_dict = dict(right_lightsheet_stitched_precomputed_spock_jobid=jobid)
+			replace_key = 'right_lightsheet_stitched_precomputed_spock_job_progress'
 		this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict
 		logger.debug("this processing channel content:")
 		logger.debug(this_processing_channel_content)
 		dj.Table._update(this_processing_channel_content,replace_key,status_step2)
-		logger.debug("Updated *lightsheet_tiled_spock_job_progress in ProcessingChannel() table ")
+		logger.debug(f"Updated {replace_key} in ProcessingChannel() table ")
 
 		""" If this pipeline run is now 100 percent complete,
-		figure out if all of the other tiled precomputed
+		figure out if all of the other stitched precomputed
 		pipelines that exist in this same processing request
 		and see if they are also complete.
-		If so, then email the user that their tiled images
+		If so, then email the user that their stitched images
 		are ready to be visualized"""
 
 		if status_step2 == 'COMPLETED':
@@ -1703,10 +1705,10 @@ def tiled_precomputed_job_status_checker():
 				left_lightsheet_used = this_imaging_channel_contents.fetch1('left_lightsheet_used')
 				right_lightsheet_used = this_imaging_channel_contents.fetch1('right_lightsheet_used')
 				if left_lightsheet_used:
-					job_status = processing_channel_dict['left_lightsheet_tiled_precomputed_spock_job_progress']
+					job_status = processing_channel_dict['left_lightsheet_stitched_precomputed_spock_job_progress']
 					processing_request_job_statuses.append(job_status)
 				if right_lightsheet_used:
-					job_status = processing_channel_dict['right_lightsheet_tiled_precomputed_spock_job_progress']
+					job_status = processing_channel_dict['right_lightsheet_stitched_precomputed_spock_job_progress']
 					processing_request_job_statuses.append(job_status)
 			logger.debug("job statuses for this processing request:")
 			# print(username,)
@@ -1742,7 +1744,7 @@ def tiled_precomputed_job_status_checker():
 				logger.debug("Not all processing channels in this request"
 							 " are completely converted to precomputed format")
 		elif status_step2 == 'CANCELLED' or status_step2 == 'FAILED':
-			logger.debug('Tiled precomputed pipeline failed. Alerting user and admins')
+			logger.debug('stitched precomputed pipeline failed. Alerting user and admins')
 			(username,request_name,sample_name,imaging_request_number,
 				processing_request_number,channel_name) = this_processing_channel_content.fetch1(
 				'username','request_name','sample_name',
@@ -1773,12 +1775,12 @@ def tiled_precomputed_job_status_checker():
 			send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
-	db_spockadmin.TiledPrecomputedSpockJob.insert(job_insert_list)
-	logger.debug("Entry in TiledPrecomputedSpockJob() spockadmin table with latest status")
+	db_spockadmin.StitchedPrecomputedSpockJob.insert(job_insert_list)
+	logger.debug("Entry in StitchedPrecomputedSpockJob() spockadmin table with latest status")
 
 	client.close()
 
-	return "Checked tiled precomptued job statuses"
+	return "Checked stitched precomptued job statuses"
 
 """ Blended precomputed pipeline """
 
@@ -1908,8 +1910,8 @@ def blended_precomputed_job_status_checker():
 	A celery task that will be run in a schedule
 
 	Checks all outstanding job statuses on spock
-	for the precomputed tiled (stitched) pipeline
-	and updates their status in the TiledPrecomputedSpockJob()
+	for the precomputed blended pipeline
+	and updates their status in the BlendedPrecomputedSpockJob()
 	in db_spockadmin
 	and ProcessingChannel() in db_lightsheet 
 
@@ -2266,7 +2268,7 @@ def downsized_precomputed_job_status_checker():
 	A celery task that will be run in a schedule
 
 	Checks all outstanding job statuses on spock
-	for the precomputed tiled (stitched) pipeline
+	for the precomputed downsized pipeline
 	and updates their status in the DownsizedPrecomputedSpockJob()
 	in db_spockadmin
 	and ProcessingChannel() in db_lightsheet 
@@ -2629,7 +2631,7 @@ def registered_precomputed_job_status_checker():
 	A celery task that will be run in a schedule
 
 	Checks all outstanding job statuses on spock
-	for the precomputed tiled (stitched) pipeline
+	for the precomputed registered pipeline
 	and updates their status in the RegisteredPrecomputedSpockJob()
 	in db_spockadmin
 	and ProcessingChannel() in db_lightsheet 
