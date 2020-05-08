@@ -34,7 +34,7 @@ class DevConfig(BaseConfig):
 	CLEARING_CALENDAR_ID = 'skq68osl830f13tfgv6i0kq750@group.calendar.google.com' # the test calendar for the time being
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_pnilsadmin_testing'
-	NG_VIEWER_EXPIRE_SECONDS = 3600 # time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
+	NG_VIEWER_EXPIRE_SECONDS = 60 # seconds (1 minute) time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
 	CELERYBEAT_SCHEDULE = {
 		# 'processing_job_status_checker': {
 		# 'task': 'lightserv.processing.tasks.processing_job_status_checker',
@@ -54,7 +54,7 @@ class DevConfig(BaseConfig):
 		# },
 		'ng_viewer_cleanser': {
 		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
-		'schedule': timedelta(seconds=100)
+		'schedule': timedelta(seconds=15)
 		},
 		# 'rawprecomp_job_status_checker': {
 		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',

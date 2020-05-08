@@ -1852,4 +1852,5 @@ def blank_viewer():
     # logger.debug(proxy_contents)
     
     neuroglancerurl = f"http://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
-    return redirect(neuroglancerurl)
+    return render_template('neuroglancer/blank_viewer_link.html',
+                neuroglancerurl=neuroglancerurl)

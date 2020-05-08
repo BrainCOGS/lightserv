@@ -71,7 +71,10 @@ def ng_viewer_checker():
         logger.debug(f"in loop for {session_name}")
         session_dict = kv.hgetall(session_name)
         # Cloudvolume containers
-        cv_count = int(session_dict['cv_count'])
+        try: # there might not always be cloudvolumes
+            cv_count = int(session_dict['cv_count'])
+        except:
+            cv_count = 0
         for i in range(cv_count):
             # logger.debug(f"in loop over cloudvolume counts")
             cv_container_name = session_dict['cv%i_container_name' % (i+1)]
