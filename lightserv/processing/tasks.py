@@ -791,7 +791,6 @@ def make_precomputed_registered_data(**kwargs):
 	logger.debug("registered data path is:")
 	logger.debug(registered_data_path)
 	
-	kwargs['layer_name'] = f'channel{channel_name}_registered'
 	
 	slurmjobfactor = 20 # the number of processes to run per core
 
@@ -2632,6 +2631,11 @@ def check_for_spock_jobs_ready_for_making_precomputed_registered_data():
 			mymkdir(channel_viz_dir)
 			logger.debug(f"Created directory {channel_viz_dir}")
 			precomputed_kwargs['viz_dir'] = channel_viz_dir
+			layer_name = f'channel{channel_name}_registered'
+			layer_dir = os.path.join(channel_viz_dir,layer_name)
+			mymkdir(layer_dir)
+			logger.debug(f"Created directory {layer_dir}")
+			kwargs['layer_name'] = layer_name
 			make_precomputed_registered_data.delay(**precomputed_kwargs)
 			logger.info("Sent precomputed task for tiling registered data")
 
