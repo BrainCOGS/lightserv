@@ -34,7 +34,7 @@ class DevConfig(BaseConfig):
 	CLEARING_CALENDAR_ID = 'skq68osl830f13tfgv6i0kq750@group.calendar.google.com' # the test calendar for the time being
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_pnilsadmin_testing'
-	
+	NG_VIEWER_EXPIRE_SECONDS = 3600 # time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
 	CELERYBEAT_SCHEDULE = {
 		# 'processing_job_status_checker': {
 		# 'task': 'lightserv.processing.tasks.processing_job_status_checker',
@@ -92,6 +92,7 @@ class ProdConfig(BaseConfig):
 	CLEARING_CALENDAR_ID = '8kvbhcbo0smdg394f79eh45gfc@group.calendar.google.com' # the real clearing calendar
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv'
+	NG_VIEWER_EXPIRE_SECONDS = 21600 # 6 hours - time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
 
 	CELERYBEAT_SCHEDULE = {
 		# 'processing_job_status_checker': {

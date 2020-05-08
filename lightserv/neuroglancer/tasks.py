@@ -1,7 +1,8 @@
+from flask import current_app
 import redis
 import progproxy as pp
 from lightserv import cel
-
+import os
 import logging
 from datetime import datetime, timedelta
 import json, requests
@@ -38,7 +39,8 @@ def ng_viewer_checker():
     proxy_dict_all = json.loads(response_all.text)
     logger.debug("PROXY DICT (ALL ROUTES):")
     logger.debug(proxy_dict_all)
-    timeout_timestamp_iso = (datetime.utcnow() - timedelta(seconds=8)).isoformat()
+    expire_seconds = current_app.config['NG_VIEWER_EXPIRE_SECONDS']
+    timeout_timestamp_iso = (datetime.utcnow() - timedelta(seconds=expire_seconds)).isoformat()
     response = proxy_h.getroutes(inactive_since=timeout_timestamp_iso)
     proxy_dict = json.loads(response.text)
     # proxy_viewer_dict = {key:proxy_dict[key] for key in proxy_dict.keys() if 'viewer' in key}
