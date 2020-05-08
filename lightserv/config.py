@@ -33,32 +33,32 @@ class DevConfig(BaseConfig):
 	DEBUG = True
 	CLEARING_CALENDAR_ID = 'skq68osl830f13tfgv6i0kq750@group.calendar.google.com' # the test calendar for the time being
 	SECRET_KEY = os.environ.get('SECRET_KEY')
-	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_testing'
+	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_pnilsadmin_testing'
 	
 	CELERYBEAT_SCHEDULE = {
 		# 'processing_job_status_checker': {
 		# 'task': 'lightserv.processing.tasks.processing_job_status_checker',
-		# 'schedule': timedelta(seconds=2)
+		# 'schedule': timedelta(seconds=30)
 		# },
 		# 'processing_job_status_checker_noreg': {
 		# 'task': 'lightserv.processing.tasks.processing_job_status_checker_noreg',
+		# 'schedule': timedelta(seconds=15)
+		# },
+		# 'stitchedprecomp_job_ready_checker': {
+		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_stitched_data',
 		# 'schedule': timedelta(seconds=5)
 		# },
-		# 'tiledprecomp_job_ready_checker': {
-		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_tiled_data',
-		# 'schedule': timedelta(seconds=6)
-		# },
-		# 'tiledprecomp_job_status_checker': {
-		# 'task': 'lightserv.processing.tasks.tiled_precomputed_job_status_checker',
-		# 'schedule': timedelta(seconds=10)
+		# 'stitchedprecomp_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.stitched_precomputed_job_status_checker',
+		# 'schedule': timedelta(seconds=7)
 		# },
 		'ng_viewer_cleanser': {
 		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
-		'schedule': timedelta(seconds=5)
+		'schedule': timedelta(seconds=100)
 		},
 		# 'rawprecomp_job_status_checker': {
 		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
-		# 'schedule': timedelta(seconds=10)
+		# 'schedule': timedelta(seconds=7)
 		# },
 		# 'blendedprecomp_job_ready_checker': {
 		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
@@ -66,7 +66,7 @@ class DevConfig(BaseConfig):
 		# },
 		# 'blendedprecomp_job_status_checker': {
 		# 'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
-		# 'schedule': timedelta(seconds=10)
+		# 'schedule': timedelta(seconds=15)
 		# },
 		# 'downsizedprecomp_job_ready_checker': {
 		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
@@ -94,54 +94,54 @@ class ProdConfig(BaseConfig):
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv'
 
 	CELERYBEAT_SCHEDULE = {
-		'processing_job_status_checker': {
-		'task': 'lightserv.processing.tasks.processing_job_status_checker',
-		'schedule': timedelta(seconds=100)
-		},
-		'processing_job_status_checker_noreg': {
-		'task': 'lightserv.processing.tasks.processing_job_status_checker_noreg',
-		'schedule': timedelta(seconds=120)
-		},
-		'tiledprecomp_job_ready_checker': {
-		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_tiled_data',
-		'schedule': timedelta(seconds=180)
-		},
-		'tiledprecomp_job_status_checker': {
-		'task': 'lightserv.processing.tasks.tiled_precomputed_job_status_checker',
-		'schedule': timedelta(seconds=150)
-		},
-		# 'ng_viewer_cleanser': {
-		# 'task': 'lightserv.neuroglancer.routes.ng_viewer_checker',
-		# 'schedule': timedelta(seconds=15)
+		# 'processing_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.processing_job_status_checker',
+		# 'schedule': timedelta(minutes=2)
 		# },
-		'rawprecomp_job_status_checker': {
-		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
-		'schedule': timedelta(seconds=125)
+		# 'processing_job_status_checker_noreg': {
+		# 'task': 'lightserv.processing.tasks.processing_job_status_checker_noreg',
+		# 'schedule': timedelta(minutes=3)
+		# },
+		# 'stitchedprecomp_job_ready_checker': {
+		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_stitched_data',
+		# 'schedule': timedelta(minutes=5)
+		# },
+		# 'stitchedprecomp_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.stitched_precomputed_job_status_checker',
+		# 'schedule': timedelta(minutes=3)
+		# },
+		'ng_viewer_cleanser': {
+		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
+		'schedule': timedelta(minutes=5)
 		},
-		'blendedprecomp_job_ready_checker': {
-		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
-		'schedule': timedelta(seconds=200)
-		},
-		'blendedprecomp_job_status_checker': {
-		'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
-		'schedule': timedelta(seconds=150)
-		},
-		'downsizedprecomp_job_ready_checker': {
-		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
-		'schedule': timedelta(seconds=200)
-		},
-		'downsizedprecomp_job_status_checker': {
-		'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
-		'schedule': timedelta(seconds=150)
-		},
-		'registeredprecomp_job_ready_checker': {
-		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_registered_data',
-		'schedule': timedelta(seconds=200)
-		},
-		'registeredprecomp_job_status_checker': {
-		'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
-		'schedule': timedelta(seconds=150)
-		},
+		# 'rawprecomp_job_status_checker': {
+		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
+		# 'schedule': timedelta(minutes=3)
+		# },
+		# 'blendedprecomp_job_ready_checker': {
+		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
+		# 'schedule': timedelta(minutes=5)
+		# },
+		# 'blendedprecomp_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
+		# 'schedule': timedelta(minutes=3)
+		# },
+		# 'downsizedprecomp_job_ready_checker': {
+		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
+		# 'schedule': timedelta(minutes=5)
+		# },
+		# 'downsizedprecomp_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
+		# 'schedule': timedelta(minutes=3)
+		# },
+		# 'registeredprecomp_job_ready_checker': {
+		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_registered_data',
+		# 'schedule': timedelta(minutes=5)
+		# },
+		# 'registeredprecomp_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
+		# 'schedule': timedelta(minutes=3)
+		# },
 		
 	}
 class TestConfig(BaseConfig):
