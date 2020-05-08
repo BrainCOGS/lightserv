@@ -1800,3 +1800,56 @@ def general_data_setup(username,request_name,sample_name,
     return render_template('neuroglancer/general_data_setup.html',form=form,
         channel_contents_lists=channel_contents_lists,processing_request_table=processing_request_table)
 
+@neuroglancer.route("/nglancer_viewer")
+def blank_viewer():
+    """ A route for a routing someone to a blank viewer
+    in the BRAIN CoGS neuroglancer client.
+    This is a temporary fix while we work on getting 
+    a static version of the neuroglancer client running on braincogs00
+    """
+    hosturl = os.environ['HOSTURL'] # via dockerenv
+
+    # Redis setup for this session
+    kv = redis.Redis(host="redis", decode_responses=True)
+
+    session_name = secrets.token_hex(6)
+    
+    proxy_h = pp.progproxy(target_hname='confproxy')
+
+    # Run the ng container which adds the viewer info to redis
+
+    ng_container_name = '{}_ng_container'.format(session_name)
+
+    ng_dict = {}
+    ng_dict['hosturl'] = hosturl
+    ng_dict['ng_container_name'] = ng_container_name
+    ng_dict['session_name'] = session_name
+    """ send the data to the viewer-launcher
+    to launch the ng viewer """                       
+    requests.post('http://viewer-launcher:5005/nglauncher',json=ng_dict)
+
+    # Add the ng container name to redis session key level
+    kv.hmset(session_name, {"ng_container_name": ng_container_name})
+    # Add ng viewer url to config proxy so it can be seen from outside of the nglancer network eventually
+    proxy_h.addroute(proxypath=f'viewers/{session_name}', proxytarget=f"http://{ng_container_name}:8080/")
+
+    
+    # Spin until the neuroglancer viewer token from redis becomes available (may be waiting on the neuroglancer container to finish writing to redis)
+    # time.sleep(1.5      )
+    while True:
+        session_dict = kv.hgetall(session_name)
+        if 'viewer' in session_dict.keys():
+            break
+        else:
+            logging.debug("Still spinning; waiting for redis entry for neuoglancer viewer")
+            time.sleep(0.25)
+    viewer_json_str = kv.hgetall(session_name)['viewer']
+    viewer_dict = json.loads(viewer_json_str)
+    logging.debug(f"Redis contents for viewer")
+    logging.debug(viewer_dict)
+    proxy_h.getroutes()
+    # logger.debug("Proxy contents:")
+    # logger.debug(proxy_contents)
+    
+    neuroglancerurl = f"http://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
+    return redirect(neuroglancerurl)

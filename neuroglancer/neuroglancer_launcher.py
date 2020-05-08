@@ -56,8 +56,11 @@ shader_code = """void main() {
   emitGrayscale(toNormalized(getDataValue())*45.0);
 }
 """
-
-cv_count = int(session_dict['cv_count']) # number of cloudvolumes
+try:
+	cv_count = int(session_dict['cv_count']) # number of cloudvolumes
+except:
+	logging.debug("No cloudvolumes to view")
+	cv_count = 0
 layer_dict = {}
 for ii in range(cv_count):
 	cv_number = ii+1
@@ -88,9 +91,10 @@ with viewer.txn() as s:
 """ Make the row layout such that each layer 
 with the same channel prefix (e.g. ch488_registered and ch488_atlas)
 is in the same groupviewer """
-row_layout = [neuroglancer.LayerGroupViewer(layers=x) for x in layer_dict.values()]
-with viewer.txn() as s:	
-    s.layout = neuroglancer.row_layout(row_layout)
+if cv_count > 0:
+	row_layout = [neuroglancer.LayerGroupViewer(layers=x) for x in layer_dict.values()]
+	with viewer.txn() as s:	
+	    s.layout = neuroglancer.row_layout(row_layout)
 ## need to retool this so it shows the correct link, the container's internal FQDN is not useful
 logging.info("viewer at: {}".format(viewer))
 
