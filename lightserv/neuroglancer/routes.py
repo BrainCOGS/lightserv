@@ -1724,8 +1724,8 @@ def general_data_setup(username,request_name,sample_name,
             logger.debug(form.errors)
 
     """Loop through all imaging resolutions and render a 
-    a sub-form for each"""
-    unique_image_resolutions = sorted(set(processing_channel_contents.fetch('image_resolution')))
+    a sub-form for each, where appropriate"""
+    unique_image_resolutions = sorted(set(imaging_channel_contents.fetch('image_resolution')))
     channel_contents_lists = []
     """ First clear out any existing subforms from previous http requests """
     while len(form.image_resolution_forms) > 0:
@@ -1742,10 +1742,10 @@ def general_data_setup(username,request_name,sample_name,
         """ Gather all imaging channels at this image resolution """
         imaging_channel_contents_this_resolution = (imaging_channel_contents & \
             f'image_resolution="{image_resolution}"')
-        # logger.debug(imaging_channel_contents_this_resolution)
+        logger.debug(imaging_channel_contents_this_resolution)
         processing_channel_contents_this_resolution = (processing_channel_contents & \
             f'image_resolution="{image_resolution}"')
-        imaging_channels_this_resolution = processing_channel_contents_this_resolution.fetch('channel_name')
+        imaging_channels_this_resolution = imaging_channel_contents_this_resolution.fetch('channel_name')
         """ Loop through all channels at this resolution and render 
         a sub-sub-form for each """
         channel_contents_lists.append([])
@@ -1755,22 +1755,47 @@ def general_data_setup(username,request_name,sample_name,
             """ Figure out if data was stitched or not """
             this_imaging_channel_content_dict = (imaging_channel_contents_this_resolution & \
                 f'channel_name="{channel_name}"').fetch1()
-            tiling_scheme = this_imaging_channel_content_dict['tiling_scheme']
-            if tiling_scheme == "1x1":
-                # there is raw data and it is not stitched            
-                this_image_resolution_form.raw_channel_forms.append_entry()
-                this_raw_channel_form = this_image_resolution_form.raw_channel_forms[jj]
-                this_raw_channel_form.channel_name.data = channel_name
+            this_processing_channel_content = (processing_channel_contents_this_resolution & \
+                    f'channel_name="{channel_name}"')
+            if len(this_processing_channel_content) > 0:
+                this_processing_channel_content_dict = this_processing_channel_content.fetch1()
             else:
-                this_image_resolution_form.stitched_channel_forms.append_entry()
-                this_stitched_channel_form = this_image_resolution_form.stitched_channel_forms[jj]
-                this_stitched_channel_form.channel_name.data = channel_name           
-           
+                this_processing_channel_content_dict = {}
+            tiling_scheme = this_imaging_channel_content_dict['tiling_scheme']
+
+            if tiling_scheme == "1x1":
+                # there is raw data and it is not stitched 
+                """ Check to see if either light sheet has precomputed data yet """
+                left_lightsheet_precomputed_spock_job_progress = this_imaging_channel_content_dict[
+                    'left_lightsheet_precomputed_spock_job_progress']
+                right_lightsheet_precomputed_spock_job_progress = this_imaging_channel_content_dict[
+                    'right_lightsheet_precomputed_spock_job_progress']
+                logger.debug(left_lightsheet_precomputed_spock_job_progress)
+                logger.debug(right_lightsheet_precomputed_spock_job_progress)
+                if (left_lightsheet_precomputed_spock_job_progress == 'COMPLETED' 
+                    or right_lightsheet_precomputed_spock_job_progress == 'COMPLETED'):
+                    this_image_resolution_form.raw_channel_forms.append_entry()
+                    this_raw_channel_form = this_image_resolution_form.raw_channel_forms[jj]
+                    this_raw_channel_form.channel_name.data = channel_name
+            else:
+                # stitched data
+                
+                left_lightsheet_stitched_precomputed_spock_job_progress = \
+                    this_processing_channel_content_dict.get(
+                        'left_lightsheet_stitched_precomputed_spock_job_progress')
+                right_lightsheet_stitched_precomputed_spock_job_progress = \
+                    this_processing_channel_content_dict.get(
+                        'right_lightsheet_stitched_precomputed_spock_job_progress')
+                if (left_lightsheet_stitched_precomputed_spock_job_progress == 'COMPLETED' 
+                    or right_lightsheet_stitched_precomputed_spock_job_progress == 'COMPLETED'):
+                    this_image_resolution_form.stitched_channel_forms.append_entry()
+                    this_stitched_channel_form = this_image_resolution_form.stitched_channel_forms[jj]
+                    this_stitched_channel_form.channel_name.data = channel_name           
+
             """ Figure out if we have blended data """
             
-            this_processing_channel_content_dict = (processing_channel_contents_this_resolution & \
-                f'channel_name="{channel_name}"').fetch1()
-            blended_precomputed_spock_job_progress = this_processing_channel_content_dict['blended_precomputed_spock_job_progress']
+            blended_precomputed_spock_job_progress = this_processing_channel_content_dict.get(
+                'blended_precomputed_spock_job_progress')
             if blended_precomputed_spock_job_progress == 'COMPLETED':
                 this_image_resolution_form.blended_channel_forms.append_entry()
                 this_blended_channel_form = this_image_resolution_form.blended_channel_forms[jj]
@@ -1779,7 +1804,8 @@ def general_data_setup(username,request_name,sample_name,
             
             """ Figure out if we have downsized data """
             
-            downsized_precomputed_spock_job_progress = this_processing_channel_content_dict['downsized_precomputed_spock_job_progress']
+            downsized_precomputed_spock_job_progress = this_processing_channel_content_dict.get(
+                'downsized_precomputed_spock_job_progress')
             if downsized_precomputed_spock_job_progress == 'COMPLETED':
                 this_image_resolution_form.downsized_channel_forms.append_entry()
                 this_downsized_channel_form = this_image_resolution_form.downsized_channel_forms[jj]
@@ -1787,7 +1813,8 @@ def general_data_setup(username,request_name,sample_name,
 
             """ Figure out if we have registered data """
             
-            registered_precomputed_spock_job_progress = this_processing_channel_content_dict['registered_precomputed_spock_job_progress']
+            registered_precomputed_spock_job_progress = this_processing_channel_content_dict.get(
+                'registered_precomputed_spock_job_progress')
             if registered_precomputed_spock_job_progress == 'COMPLETED':
                 this_image_resolution_form.registered_channel_forms.append_entry()
                 this_registered_channel_form = this_image_resolution_form.registered_channel_forms[jj]
