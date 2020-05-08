@@ -87,9 +87,9 @@ def ng_reg_launcher():
     }
 
 	if flask_mode == 'DEV':
-		ng_reg_image = 'nglancer_viewer:latest'
+		ng_reg_image = 'nglancer_registration_viewer:latest'
 	elif flask_mode == 'PROD':
-		ng_reg_image = 'nglancer_viewer:prod'
+		ng_reg_image = 'nglancer_registration_viewer:prod'
 	ng_container = client.containers.run(ng_reg_image,
                                   environment=ng_environment,
                                   network=network,

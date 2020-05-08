@@ -57,6 +57,9 @@ cv_names_nonatlas = []
 for ii in range(cv_count):
 	cv_number = ii+1
 	cv_name = session_dict[f'cv{cv_number}_name']
+	logging.debug("cv_name:")
+	logging.debug(cv_name)
+
 	if 'princeton' in cv_name.lower() or 'allen' in cv_name.lower():
 		atlas_cv_name = cv_name
 	else:
@@ -82,6 +85,8 @@ with viewer.txn() as s:
 channel is a separate column and has the atlas
 overlaid if requested """
 cvs_need_atlas_str = session_dict['cvs_need_atlas']
+logging.debug("CVS need atlas:")
+logging.debug(cvs_need_atlas_str)
 cvs_need_atlas_list = cvs_need_atlas_str.split(',')
 row_layout = []
 for cv_name in cv_names_nonatlas:
