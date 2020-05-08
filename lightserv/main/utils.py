@@ -375,6 +375,71 @@ def check_imaging_completed(f):
 			return f(*args, **kwargs)
 	return decorated_function
 
+def check_some_precomputed_pipelines_completed(f):
+	""" Given a processing request check whether
+	at least one of the precomputed pipelines 
+	is complete """
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		request_name = kwargs['request_name']
+		sample_name = kwargs['sample_name']
+		username = kwargs['username']
+		imaging_request_number = kwargs['imaging_request_number']
+		processing_request_number = kwargs['processing_request_number']
+		imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
+		 	f'request_name="{request_name}"' & \
+		 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
+		 	f'imaging_request_number="{imaging_request_number}"'
+		processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
+		 	f'request_name="{request_name}"' & \
+		 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
+		 	f'imaging_request_number="{imaging_request_number}"' & \
+		 	f'processing_request_number="{processing_request_number}"' 
+		""" check for any of the channels whether left or right light sheet 
+		raw precomputed pipeline has been run """
+		left_raw_precomputed_array = \
+			imaging_channel_contents.fetch('left_lightsheet_precomputed_spock_job_progress')
+		right_raw_precomputed_array = \
+			imaging_channel_contents.fetch('right_lightsheet_precomputed_spock_job_progress')
+		logger.debug(left_raw_precomputed_array)
+		logger.debug(right_raw_precomputed_array)
+		any_left_raw_precomputed_complete = any([x=='COMPLETED' for x in left_raw_precomputed_array])
+		any_right_raw_precomputed_complete = any([x=='COMPLETED' for x in right_raw_precomputed_array])
+		if any_left_raw_precomputed_complete or any_right_raw_precomputed_complete:
+			return f(*args, **kwargs)
+		
+		""" check for any of the channels whether left or right light sheet
+		stitched precomputed pipeline has been run """
+		left_stitched_precomputed_array = \
+			processing_channel_contents.fetch('left_lightsheet_stitched_precomputed_spock_job_progress')
+		right_stitched_precomputed_array = \
+			processing_channel_contents.fetch('right_lightsheet_stitched_precomputed_spock_job_progress')
+		any_left_stitched_precomputed_complete = any([x=='COMPLETED' for x in left_stitched_precomputed_array])
+		any_right_stitched_precomputed_complete = any([x=='COMPLETED' for x in right_stitched_precomputed_array])
+		if any_left_stitched_precomputed_complete or any_right_stitched_precomputed_complete:
+			return f(*args, **kwargs)
+
+		""" check for any of the channels whether blended
+		precomputed pipeline has been run """
+		blended_precomputed_array,downsized_precomputed_array,registered_precomputed_array = \
+			processing_channel_contents.fetch(
+				'blended_precomputed_spock_job_progress',
+				'downsized_precomputed_spock_job_progress',
+				'registered_precomputed_spock_job_progress',
+				)
+		any_blended_precomputed_complete = any([x=='COMPLETED' for x in blended_precomputed_array])
+		any_downsized_precomputed_complete = any([x=='COMPLETED' for x in downsized_precomputed_array])
+		any_registered_precomputed_complete = any([x=='COMPLETED' for x in registered_precomputed_array])
+		if (any_blended_precomputed_complete or 
+			any_downsized_precomputed_complete or  
+			any_registered_precomputed_complete):
+			return f(*args, **kwargs)
+
+		flash('No data ready to be visualized for this request at this time.','danger')
+		return redirect(url_for('requests.request_overview',
+			username=username,request_name=request_name))
+		
+	return decorated_function
 def toabs(path):
 	""" Convert relative path to absolute path. From Cloudvolume.lib """
 	path = os.path.expanduser(path)

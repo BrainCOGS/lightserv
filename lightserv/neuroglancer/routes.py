@@ -17,7 +17,8 @@ from .tables import (ImagingRequestTable, ProcessingRequestTable,
     CloudVolumeLayerTable,MultiLightSheetCloudVolumeLayerTable)
 from lightserv import cel, db_lightsheet
 from lightserv.main.utils import (check_imaging_completed,
-    check_imaging_request_precomputed,log_http_requests)
+    check_imaging_request_precomputed,log_http_requests,
+    check_some_precomputed_pipelines_completed)
 from .tasks import ng_viewer_checker
 import progproxy as pp
 
@@ -1165,7 +1166,8 @@ def registered_data_setup(username,request_name,sample_name,
                     "<username>/<request_name>/<sample_name>/"
                     "<imaging_request_number>/<processing_request_number>",
     methods=['GET','POST'])
-@check_imaging_completed
+# @check_imaging_completed
+@check_some_precomputed_pipelines_completed
 @log_http_requests
 def general_data_setup(username,request_name,sample_name,
     imaging_request_number,processing_request_number): # don't change the url 
