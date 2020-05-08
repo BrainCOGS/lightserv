@@ -768,21 +768,20 @@ def new_request():
                     
                     flash("Request submitted successfully. You will receive an email at "
                           f"{form.correspondence_email.data} with further instructions " 
-                          "for setting up your spock account in order for this "
-                          "portal to run your jobs.","success")
-                    flash("If you elected to clear any of your tubes "
-                         "then head to Task Management -> All Clearing Tasks in the Menu Bar"
-                         " to start the clearing entry form when ready. "
-                         "If not, your tubes will be cleared by the Core Facility and "
+                          "for handing off your sample, if necessary.","success")
+                    flash("If you elected to clear or image any of your samples yourself "
+                         "then head to Task Management -> All Clearing Tasks in the top Menu Bar "
+                         "to start the clearing entry form when ready. "
+                         "If not, your tubes will be cleared and imaged by the Core Facility and "
                          "you will receive an email once they are cleared. You can check the "
                          "status of your samples at your request page (see table below).", "success")
                     # Email
                     subject = 'Lightserv automated email: Request received'
-                    with open('/home/lightservuser/.ssh/id_rsa.pub','r') as keyfile: 
-                        keyfile_contents = keyfile.readlines() 
-                    ssh_key_text = keyfile_contents[0].strip('\n')
+                    # with open('/home/lightservuser/.ssh/id_rsa.pub','r') as keyfile: 
+                    #     keyfile_contents = keyfile.readlines() 
+                    # ssh_key_text = keyfile_contents[0].strip('\n')
                     hosturl = os.environ['HOSTURL']
-                    spock_test_link = f'https://{hosturl}' + url_for('main.spock_connection_test')
+                    # spock_test_link = f'https://{hosturl}' + url_for('main.spock_connection_test')
                     pre_handoff_link = f'https://{hosturl}' + url_for('main.pre_handoff')
                     message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
                         'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
@@ -790,20 +789,20 @@ def new_request():
                         f'request_name: "{form.request_name.data}"\n'
                         'was successfully submitted.\n\n'
                         f'Please see the pre-handoff instructions here: {pre_handoff_link}\n\n'
-                        'In order for us to eventually process your data, '
-                        'you will need to copy the following ssh public key into the following file on spock.pni.princeton.edu: '
-                        f'/home/{username}/.ssh/authorized_keys\n\n'
-                        'If this file does not already exist, log in to spock and create it using the command: '
-                        f'mkdir /home/{username}/.ssh; touch /home/{username}/.ssh/authorized_keys\n\n'
-                        'If you have never logged in to spock before, please see the documentation:  '
-                        f'https://npcdocs.princeton.edu/index.php/Spock#Accessing_spock\n'
-                        'If you are unable to log in to to spock and make the file, '
-                        'please contact pnihelp@princeton.edu\n\n'
-                        f'The ssh key you need to copy into the file is: \n{ssh_key_text}\n\n'
-                        f'When you have copied over the key, test your connection to spock at: {spock_test_link}\n\n'
-                        'DISCLAIMER: By copying this key over to your account on spock, you are authorizing the Core Facility to '
-                        'run spock jobs as you, and as a result your spock karma will be affected as if you ran the job yourself. '
-                        'Please respond to this message if you have any questions about this or any other issue regarding your request.\n\n'
+                        # 'In order for us to eventually process your data, '
+                        # 'you will need to copy the following ssh public key into the following file on spock.pni.princeton.edu: '
+                        # f'/home/{username}/.ssh/authorized_keys\n\n'
+                        # 'If this file does not already exist, log in to spock and create it using the command: '
+                        # f'mkdir /home/{username}/.ssh; touch /home/{username}/.ssh/authorized_keys\n\n'
+                        # 'If you have never logged in to spock before, please see the documentation:  '
+                        # f'https://npcdocs.princeton.edu/index.php/Spock#Accessing_spock\n'
+                        # 'If you are unable to log in to to spock and make the file, '
+                        # 'please contact pnihelp@princeton.edu\n\n'
+                        # f'The ssh key you need to copy into the file is: \n{ssh_key_text}\n\n'
+                        # f'When you have copied over the key, test your connection to spock at: {spock_test_link}\n\n'
+                        # 'DISCLAIMER: By copying this key over to your account on spock, you are authorizing the Core Facility to '
+                        # 'run spock jobs as you, and as a result your spock karma will be affected as if you ran the job yourself. '
+                        # 'Please respond to this message if you have any questions about this or any other issue regarding your request.\n\n'
                         'Thanks,\nThe Histology and Brain Registration Core Facility.')
                 correspondence_email = form.correspondence_email.data
                 recipients = [correspondence_email]
