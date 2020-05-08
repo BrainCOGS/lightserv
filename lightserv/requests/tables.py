@@ -164,6 +164,11 @@ class AllSamplesTable(Table):
 			url_kwargs=processing_request_url_kwargs))
 	processing_requests_subtable_class.add_column('processor',Col('processor'))
 	processing_requests_subtable_class.add_column('processing_progress',Col('processing progress'))
+	processing_requests_subtable_class.add_column('visualization',
+		LinkCol('Viz', 'neuroglancer.general_data_setup',
+			url_kwargs=processing_request_url_kwargs,
+			allow_sort=False)
+)
 	
 	imaging_requests_subtable_class.add_column('processing_requests',
 		NestedTableCol('Processing Requests',processing_requests_subtable_class,allow_sort=False))
