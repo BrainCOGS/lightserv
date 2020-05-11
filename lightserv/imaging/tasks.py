@@ -90,7 +90,7 @@ def make_precomputed_rawdata(**kwargs):
 
 	hostname = 'spock.pni.princeton.edu'
 	port=22
-	spock_username = 'lightserv-test' # Use the service account for this step - if it gets overloaded we can switch to user accounts
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)

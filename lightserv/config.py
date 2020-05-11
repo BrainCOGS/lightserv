@@ -35,11 +35,12 @@ class DevConfig(BaseConfig):
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_pnilsadmin_testing'
 	NG_VIEWER_EXPIRE_SECONDS = 60 # seconds (1 minute) time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
+	SPOCK_LSADMIN_USERNAME = 'lightserv-test'
 	CELERYBEAT_SCHEDULE = {
-		# 'processing_job_status_checker': {
-		# 'task': 'lightserv.processing.tasks.processing_job_status_checker',
-		# 'schedule': timedelta(seconds=30)
-		# },
+		'processing_job_status_checker': {
+		'task': 'lightserv.processing.tasks.processing_job_status_checker',
+		'schedule': timedelta(minutes=2)
+		},
 		# 'processing_job_status_checker_noreg': {
 		# 'task': 'lightserv.processing.tasks.processing_job_status_checker_noreg',
 		# 'schedule': timedelta(seconds=15)
@@ -54,36 +55,36 @@ class DevConfig(BaseConfig):
 		# },
 		'ng_viewer_cleanser': {
 		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
-		'schedule': timedelta(seconds=15)
+		'schedule': timedelta(minutes=2)
 		},
-		# 'rawprecomp_job_status_checker': {
-		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
-		# 'schedule': timedelta(seconds=7)
-		# },
-		# 'blendedprecomp_job_ready_checker': {
-		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
-		# 'schedule': timedelta(seconds=5)
-		# },
-		# 'blendedprecomp_job_status_checker': {
-		# 'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
-		# 'schedule': timedelta(seconds=15)
-		# },
-		# 'downsizedprecomp_job_ready_checker': {
-		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
-		# 'schedule': timedelta(seconds=5)
-		# },
-		# 'downsizedprecomp_job_status_checker': {
-		# 'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
-		# 'schedule': timedelta(seconds=10)
-		# },
-		# 'registeredprecomp_job_ready_checker': {
-		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_registered_data',
-		# 'schedule': timedelta(seconds=5)
-		# },
-		# 'registeredprecomp_job_status_checker': {
-		# 'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
-		# 'schedule': timedelta(seconds=10)
-		# },
+		'rawprecomp_job_status_checker': {
+		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
+		'schedule': timedelta(minutes=1)
+		},
+		'blendedprecomp_job_ready_checker': {
+		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
+		'schedule': timedelta(seconds=30)
+		},
+		'blendedprecomp_job_status_checker': {
+		'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
+		'schedule': timedelta(minutes=1)
+		},
+		'downsizedprecomp_job_ready_checker': {
+		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
+		'schedule': timedelta(seconds=35)
+		},
+		'downsizedprecomp_job_status_checker': {
+		'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
+		'schedule': timedelta(minutes=1)
+		},
+		'registeredprecomp_job_ready_checker': {
+		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_registered_data',
+		'schedule': timedelta(seconds=45)
+		},
+		'registeredprecomp_job_status_checker': {
+		'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
+		'schedule': timedelta(minutes=2)
+		},
 		
 	}
 	
@@ -93,6 +94,7 @@ class ProdConfig(BaseConfig):
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv'
 	NG_VIEWER_EXPIRE_SECONDS = 21600 # 6 hours - time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
+	SPOCK_LSADMIN_USERNAME = 'lightserv-test'
 
 	CELERYBEAT_SCHEDULE = {
 		# 'processing_job_status_checker': {
