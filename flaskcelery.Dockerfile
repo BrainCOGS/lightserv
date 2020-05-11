@@ -1,6 +1,6 @@
 FROM python:3.7.6-slim-buster
 
-RUN apt-get update && apt-get install -y openssh-server
+RUN apt-get update && apt-get install -y openssh-server graphviz
 
 # Copy requirements over first so that they can be cached if they are not changed
 COPY requirements.txt /app/requirements.txt

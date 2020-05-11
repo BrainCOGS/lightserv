@@ -122,6 +122,7 @@ def create_app(config_class):
 	from lightserv.processing.routes import processing
 	from lightserv.microscope.routes import microscope
 	from lightserv.neuroglancer.routes import neuroglancer
+	from lightserv.ontology.routes import ontology
 	from lightserv.errors.handlers import errors
 
 	app.register_blueprint(requests)
@@ -130,6 +131,7 @@ def create_app(config_class):
 	app.register_blueprint(imaging)
 	app.register_blueprint(processing)
 	app.register_blueprint(neuroglancer)
+	app.register_blueprint(ontology)
 	app.register_blueprint(microscope)
 	app.register_blueprint(errors)
 
