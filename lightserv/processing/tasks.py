@@ -2635,7 +2635,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_registered_data():
 			layer_dir = os.path.join(channel_viz_dir,layer_name)
 			mymkdir(layer_dir)
 			logger.debug(f"Created directory {layer_dir}")
-			kwargs['layer_name'] = layer_name
+			precomputed_kwargs['layer_name'] = layer_name
 			make_precomputed_registered_data.delay(**precomputed_kwargs)
 			logger.info("Sent precomputed task for tiling registered data")
 
