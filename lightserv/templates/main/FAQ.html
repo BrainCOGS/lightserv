@@ -3,27 +3,51 @@
 <h1 align="center" class="mb-4">FAQ</h1>
 <hr class='class-1'>
 
-<h4 align="center"> Q: What is stitching/tiling?</h4>
-	<p>
-		<b>A:</b> Sometimes your sample is too large (in x,y) to fit into the
-		field of view of the microscope. This is true for rat brains imaged at any resolution 
-		and true for mouse brains imaged at >1.3x (x,y) resolution. When this happens, the 
-		imager has to move the sample in a grid pattern and re-image it at each tile in the grid
-		until the entire desired volume is imaged.  Included in the processing
-		pipeline is a program called terastitcher that combines ("stitches") the scans 
-		from each tile in the grid into a single 3d volume. Below is an illustration of this process. 
+<div id="stitching">
+	<h4 align="center"> Q: What is stitching/tiling?</h4>
+		<p>
+			<b>A:</b> Sometimes your sample is too large (in x,y) to fit into the
+			field of view of the microscope. This is true for rat brains imaged at any resolution 
+			and true for mouse brains imaged at >1.3x (x,y) resolution. When this happens, the 
+			imager has to move the sample in a grid pattern and re-image it at each tile in the grid
+			until the entire desired volume is imaged.  Included in the processing
+			pipeline is a program called terastitcher that combines ("stitches") the scans 
+			from each tile in the grid into a single 3d volume. Below is an illustration of this process. 
+		</p>
+		<div align="center" class='mb-2 mt-4'>
+			<img src="{{ url_for('static',filename='FAQ/mouse_sagittal_stitching.png') }}">	
+			</br> 
+			<b>Fig. 1.1</b>: A raw 3x2 tiled dataset is stitched into a single volume. 
+			The top dataset was originally 6 volumes that were imaged separately because the 
+			brain was too large to fit into a single tile.
+			Stitching is performed automatically for tiled datasets as part of the automated 
+			whole-brain processing pipeline. 
+		</div>
+</div>
+ 
+<hr class='class-1'>
+
+<div>
+	<h4 align="center"> Q: How to change the contrast of image layers in Neuroglancer/why are my
+	images showing up in all black?</h4>
+	<p> 
+		<b>A:</b> For image layers, the default color contrast that Neuroglancer uses is often 
+		too dark for light sheet volumes. Fortunately, the contrast is adjustable. The video below 
+		walks through how to change the color contrast to suit your needs. In the video, the code
+		that is copied from the jupyter notebook is:
 	</p>
-	<div align="center" class='mb-2 mt-4'>
-		<img src="{{ url_for('static',filename='FAQ/mouse_sagittal_stitching.png') }}">	
-		</br> 
-		<b>Fig. 1.1</b>: A raw 3x2 tiled dataset is stitched into a single volume. 
-		The top dataset was originally 6 volumes that were imaged separately because the 
-		brain was too large to fit into a single tile.
-		Stitching is performed automatically for tiled datasets as part of the automated 
-		whole-brain processing pipeline. 
-	</div>
+	<p style="color: #080808; background-color: #C0CEDD;font-size: 14px; ">
+	void main() { </br>
+	  emitGrayscale(toNormalized(getDataValue())*25.); </br>
+	}
+	</p>
+    <video width="800" controls>
+        <source src="{{ url_for("static",filename="FAQ/ng_change_color_contrast.mp4") }}" type="video/mp4">
+    </video>
+</div>
 
 <hr class='class-1'>
+
 
 <h4 align="center"> Q: How do I fix the connection to my account on spock?</h4>
 	<p>
