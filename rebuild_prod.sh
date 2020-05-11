@@ -1,7 +1,7 @@
 # remove all running and stopped containers from this docker-compose file,
 # including any neuroglancer or cloudvolume containers that were spawned
 # by the app
-docker rm -f $(docker ps -a | grep "lightservprod\|nglancer_viewer:prod\|cloudv_viewer:prod" | awk '{print $1}')
+docker rm -f $(docker ps -a | grep "lightservprod\|nglancer_viewer:prod\|nglancer_registration_viewer:prod\|cloudv_viewer:prod" | awk '{print $1}')
 
 # Make the common image that will be used by flask and celery
 docker build -f ./flaskcelery.Dockerfile -t flaskcelery:prod .
