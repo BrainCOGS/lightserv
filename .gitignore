@@ -19,3 +19,4 @@ scripts
 sshconfig
 .dockerenv
 .testdockerenv
+checkroutes.sh
