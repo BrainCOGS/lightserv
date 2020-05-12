@@ -1003,8 +1003,6 @@ def processing_job_status_checker():
 			"imaging_request_number","processing_request_number",
 			"image_resolution")
 		if status_step3 == 'COMPLETED':
-			
-
 			""" Find all processing channels from this same processing request """
 			restrict_dict_processing = dict(username=username,request_name=request_name,
 				sample_name=sample_name,imaging_request_number=imaging_request_number,
@@ -1052,7 +1050,11 @@ def processing_job_status_checker():
 						f'sample_name: {sample_name}\n\n'
 						'is now complete. \n\n'
 						f'The processed products are available here: {output_directory}')
-				send_email(subject=subject,body=body)
+				restrict_dict_request = {'username':username,'request_name':request_name}
+				request_contents = db_lightsheet.Request() & restrict_dict_request
+				correspondence_email = request_contents.fetch1('correspondence_email')
+				recipients = [correspondence_email]
+				send_email.delay(subject=subject,body=body,recipients=recipients)
 				dj.Table._update(processing_request_contents,'processing_progress','complete')
 
 			else:
@@ -1403,7 +1405,11 @@ def processing_job_status_checker_noreg():
 						f'sample_name: {sample_name}\n\n'
 						'is now complete. \n\n'
 						f'The processed products are available here: {output_directory}')
-				send_email(subject=subject,body=body)
+				restrict_dict_request = {'username':username,'request_name':request_name}
+				request_contents = db_lightsheet.Request() & restrict_dict_request
+				correspondence_email = request_contents.fetch1('correspondence_email')
+				recipients = [correspondence_email]
+				send_email.delay(subject=subject,body=body,recipients=recipients)
 				dj.Table._update(processing_request_contents,'processing_progress','complete')
 
 			else:
@@ -1754,7 +1760,11 @@ def stitched_precomputed_job_status_checker():
 						f'processing_request_number: {processing_request_number}\n\n'
 						'are now ready to be visualized. '
 						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
-				send_email(subject=subject,body=body)
+				restrict_dict_request = {'username':username,'request_name':request_name}
+				request_contents = db_lightsheet.Request() & restrict_dict_request
+				correspondence_email = request_contents.fetch1('correspondence_email')
+				recipients = [correspondence_email]
+				send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all processing channels in this request"
 							 " are completely converted to precomputed format")
