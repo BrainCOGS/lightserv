@@ -20,3 +20,4 @@ sshconfig
 .dockerenv
 .testdockerenv
 checkroutes.sh
+.vscode
