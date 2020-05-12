@@ -1,6 +1,6 @@
 # remove all running and stopped containers from this docker-compose file
 # docker rm -f $(docker ps -a | grep "lightserv\|cloudv_viewer\|nglancer_viewer\|nglancer_registration_viewer" | awk '{print $1}')
-
+docker rm -f $(docker ps -a | grep "lightserv_viewer-launcher\|lightserv_confproxy\|lightserv_redis\|flaskcelery:latest\|nglancer_viewer:latest\|nglancer_registration_viewer:latest\|cloudv_viewer:latest" | awk '{print $1}')
 
 # Make the common image that will be used by flask and celery
 docker build -f ./flaskcelery.Dockerfile -t flaskcelery:latest .

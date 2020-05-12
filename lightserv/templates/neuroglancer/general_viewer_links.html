@@ -10,9 +10,15 @@
 			<ul>
 			{% for image_resolution in data_type_dict %}
 				{% set neuroglancerurl = data_type_dict[image_resolution] %}
-				<ul>
-				<li> <a href={{neuroglancerurl}} target="_blank"> Image resolution: {{ image_resolution }} </a> </li>
-				</ul>
+				{% set cv_table = cv_table_dict[data_type][image_resolution] %}
+				<h5 class='border-bottom'> Image resolution: {{ image_resolution }} </h5>
+				<div mb-2>
+					<a href={{neuroglancerurl}} target="_blank"> Open Neuroglancer </a>
+				</div>
+				<h6> Contents of the layers displayed at the above link: </h6>
+				<div style="max-height: 400px; overflow: auto;">
+					{{ cv_table }}
+				</div>
 			{% endfor %}
 		{% endif %}
 		</ul>
