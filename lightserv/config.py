@@ -31,7 +31,7 @@ class BaseConfig(object):
 
 class DevConfig(BaseConfig):
 	DEBUG = True
-	CLEARING_CALENDAR_ID = 'skq68osl830f13tfgv6i0kq750@group.calendar.google.com' # the test calendar for the time being
+	CLEARING_CALENDAR_ID = os.environ.get("TEST_CALENDAR_URL") # the test calendar for the time being
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_pnilsadmin_testing'
 	NG_VIEWER_EXPIRE_SECONDS = 60 # seconds (1 minute) time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
@@ -39,7 +39,7 @@ class DevConfig(BaseConfig):
 	CELERYBEAT_SCHEDULE = {
 		'processing_job_status_checker': {
 		'task': 'lightserv.processing.tasks.processing_job_status_checker',
-		'schedule': timedelta(minutes=2)
+		'schedule': timedelta(seconds=5)
 		},
 		# 'processing_job_status_checker_noreg': {
 		# 'task': 'lightserv.processing.tasks.processing_job_status_checker_noreg',
@@ -53,44 +53,45 @@ class DevConfig(BaseConfig):
 		# 'task': 'lightserv.processing.tasks.stitched_precomputed_job_status_checker',
 		# 'schedule': timedelta(seconds=7)
 		# },
-		'ng_viewer_cleanser': {
-		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
-		'schedule': timedelta(minutes=2)
-		},
-		'rawprecomp_job_status_checker': {
-		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
-		'schedule': timedelta(minutes=1)
-		},
-		'blendedprecomp_job_ready_checker': {
-		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
-		'schedule': timedelta(seconds=30)
-		},
-		'blendedprecomp_job_status_checker': {
-		'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
-		'schedule': timedelta(minutes=1)
-		},
-		'downsizedprecomp_job_ready_checker': {
-		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
-		'schedule': timedelta(seconds=35)
-		},
-		'downsizedprecomp_job_status_checker': {
-		'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
-		'schedule': timedelta(minutes=1)
-		},
-		'registeredprecomp_job_ready_checker': {
-		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_registered_data',
-		'schedule': timedelta(seconds=45)
-		},
-		'registeredprecomp_job_status_checker': {
-		'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
-		'schedule': timedelta(minutes=2)
-		},
+		# 'ng_viewer_cleanser': {
+		# 'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
+		# 'schedule': timedelta(minutes=2)
+		# },
+		# 'rawprecomp_job_status_checker': {
+		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
+		# 'schedule': timedelta(minutes=1)
+		# },
+		# 'blendedprecomp_job_ready_checker': {
+		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
+		# 'schedule': timedelta(seconds=30)
+		# },
+		# 'blendedprecomp_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
+		# 'schedule': timedelta(minutes=1)
+		# },
+		# 'downsizedprecomp_job_ready_checker': {
+		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
+		# 'schedule': timedelta(seconds=35)
+		# },
+		# 'downsizedprecomp_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
+		# 'schedule': timedelta(minutes=1)
+		# },
+		# 'registeredprecomp_job_ready_checker': {
+		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_registered_data',
+		# 'schedule': timedelta(seconds=45)
+		# },
+		# 'registeredprecomp_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
+		# 'schedule': timedelta(minutes=2)
+		# },
 		
 	}
 	
 class ProdConfig(BaseConfig):
 	DEBUG = False
-	CLEARING_CALENDAR_ID = '8kvbhcbo0smdg394f79eh45gfc@group.calendar.google.com' # the real clearing calendar
+	# CLEARING_CALENDAR_ID = '8kvbhcbo0smdg394f79eh45gfc@group.calendar.google.com' # the real clearing calendar
+	CLEARING_CALENDAR_ID = os.environ.get("CLEARING_CALENDAR_URL") # the test calendar for the time being
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv'
 	NG_VIEWER_EXPIRE_SECONDS = 21600 # 6 hours - time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
