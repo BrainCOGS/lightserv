@@ -938,12 +938,14 @@ def processing_job_status_checker():
 		logger.debug(f"Status code for this job is: {status_step3}")
 		job_insert_dict['status_step3'] = status_step3
 		""" Find the username, other jobids associated with this jobid """
-		username_thisjob,jobid_step0,jobid_step1,jobid_step2 = (unique_contents & f'jobid_step3={jobid}').fetch1(
-			'username','jobid_step0','jobid_step1','jobid_step2')
+		(username_thisjob,jobid_step0,jobid_step1,
+			jobid_step2,stitching_method) = (unique_contents & f'jobid_step3={jobid}').fetch1(
+			'username','jobid_step0','jobid_step1','jobid_step2','stitching_method')
 		job_insert_dict['username']=username_thisjob
 		job_insert_dict['jobid_step0']=jobid_step0
 		job_insert_dict['jobid_step1']=jobid_step1
 		job_insert_dict['jobid_step2']=jobid_step2
+		job_insert_dict['stitching_method']=stitching_method
 		jobid_step_dict = {'step0':jobid_step0,'step1':jobid_step1,'step2':jobid_step2}
 
 		""" Get the processing resolution entry associated with this jobid
@@ -1299,11 +1301,13 @@ def processing_job_status_checker_noreg():
 		logger.debug(f"Status code for this job is: {status_step2}")
 		job_insert_dict['status_step2'] = status_step2
 		""" Find the username, other jobids associated with this jobid """
-		username_thisjob,jobid_step0,jobid_step1 = (unique_contents & f'jobid_step2={jobid}').fetch1(
-			'username','jobid_step0','jobid_step1')
+		(username_thisjob,jobid_step0,
+			jobid_step1,stitching_method) = (unique_contents & f'jobid_step2={jobid}').fetch1(
+			'username','jobid_step0','jobid_step1','stitching_method')
 		job_insert_dict['username']=username_thisjob
 		job_insert_dict['jobid_step0']=jobid_step0
 		job_insert_dict['jobid_step1']=jobid_step1
+		job_insert_dict['stitching_method']=stitching_method
 		
 		jobid_step_dict = {'step0':jobid_step0,'step1':jobid_step1}
 
