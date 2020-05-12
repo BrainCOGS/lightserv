@@ -363,7 +363,7 @@ def run_lightsheet_pipeline(username,request_name,
 			# 	command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline.sh"""
 			# else:	
 			# 	command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline_noreg.sh"""
-			spock_username = 'pnilsadmin'
+			spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
 			port = 22
 
 			client = paramiko.SSHClient()
@@ -521,7 +521,7 @@ def make_precomputed_stitched_data(**kwargs):
 	command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	hostname = 'spock.pni.princeton.edu'
 	port=22
-	spock_username = 'pnilsadmin' # Use the service account for this step - if it gets overloaded we can switch to user accounts
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
@@ -633,7 +633,7 @@ def make_precomputed_blended_data(**kwargs):
 	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	hostname = 'spock.pni.princeton.edu'
 	port=22
-	spock_username = 'pnilsadmin' # Use the service account for this step - if it gets overloaded we can switch to user accounts
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
@@ -723,7 +723,7 @@ def make_precomputed_downsized_data(**kwargs):
 	logger.debug(command)
 	hostname = 'spock.pni.princeton.edu'
 	port=22
-	spock_username = 'pnilsadmin' # Use the service account for this step - if it gets overloaded we can switch to user accounts
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
@@ -811,7 +811,7 @@ def make_precomputed_registered_data(**kwargs):
 	logger.debug(command)
 	hostname = 'spock.pni.princeton.edu'
 	port=22
-	spock_username = 'pnilsadmin' # Use the service account for this step - if it gets overloaded we can switch to user accounts
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
 	client = paramiko.SSHClient()
 	client.load_system_host_keys()
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
@@ -895,7 +895,7 @@ def processing_job_status_checker():
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
 	port = 22
-	spock_username = 'pnilsadmin'
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
 	hostname = 'spock.pni.princeton.edu'
 
 	client = paramiko.SSHClient()
@@ -1260,7 +1260,7 @@ def processing_job_status_checker_noreg():
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
 	port = 22
-	spock_username = 'pnilsadmin'
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
 	hostname = 'spock.pni.princeton.edu'
 
 	client = paramiko.SSHClient()
@@ -1590,7 +1590,7 @@ def stitched_precomputed_job_status_checker():
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
 	port = 22
-	spock_username = 'pnilsadmin'
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
 	hostname = 'spock.pni.princeton.edu'
 
 	client = paramiko.SSHClient()
@@ -1958,7 +1958,7 @@ def blended_precomputed_job_status_checker():
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
 	port = 22
-	spock_username = 'pnilsadmin'
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
 	hostname = 'spock.pni.princeton.edu'
 
 	client = paramiko.SSHClient()
@@ -2315,7 +2315,7 @@ def downsized_precomputed_job_status_checker():
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
 	port = 22
-	spock_username = 'pnilsadmin'
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
 	hostname = 'spock.pni.princeton.edu'
 
 	client = paramiko.SSHClient()
@@ -2682,7 +2682,7 @@ def registered_precomputed_job_status_checker():
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
 	port = 22
-	spock_username = 'pnilsadmin'
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
 	hostname = 'spock.pni.princeton.edu'
 
 	client = paramiko.SSHClient()
