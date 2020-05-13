@@ -297,10 +297,10 @@ def run_lightsheet_pipeline(username,request_name,
 			logger.info(f"wrote pickle file: {pickle_fullpath}")
 			logger.debug("Permissions on pickle file are originally:")
 			logger.debug(st.st_mode)
-			# os.chmod(pickle_fullpath,st.st_mode | stat.S_IWOTH)
-			# st_now = os.stat(pickle_fullpath)
-			# logger.debug("Permissions on pickle file are now:")
-			# logger.debug(st_now.st_mode)
+			os.chmod(pickle_fullpath,st.st_mode | stat.S_IWGRP)
+			st_now = os.stat(pickle_fullpath)
+			logger.debug("Group should have write permissions to the pickle file now")
+			logger.debug(st_now.st_mode)
 
 			""" Now run the spock pipeline via paramiko """
 

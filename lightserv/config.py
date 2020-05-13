@@ -25,7 +25,7 @@ class BaseConfig(object):
 	'allen_pre2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/annotation_template_25_sagittal_forDVscans.tif',
 	'princeton_mouse_atlas':'/jukebox/LightSheetTransfer/atlas/annotation_sagittal_atlas_20um_iso_16bit.tif'
 	}
-	PROCESSING_CODE_DIR = '/jukebox/wang/ahoag/lightsheet_py3'
+	PROCESSING_CODE_DIR = '/jukebox/wang/ahoag/brainpipe'
 	dj.config['safemode'] = True 
 	
 
@@ -39,7 +39,7 @@ class DevConfig(BaseConfig):
 	CELERYBEAT_SCHEDULE = {
 		'processing_job_status_checker': {
 		'task': 'lightserv.processing.tasks.processing_job_status_checker',
-		'schedule': timedelta(seconds=5)
+		'schedule': timedelta(seconds=30)
 		},
 		# 'processing_job_status_checker_noreg': {
 		# 'task': 'lightserv.processing.tasks.processing_job_status_checker_noreg',
@@ -53,14 +53,14 @@ class DevConfig(BaseConfig):
 		# 'task': 'lightserv.processing.tasks.stitched_precomputed_job_status_checker',
 		# 'schedule': timedelta(seconds=7)
 		# },
-		# 'ng_viewer_cleanser': {
-		# 'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
-		# 'schedule': timedelta(minutes=2)
-		# },
-		# 'rawprecomp_job_status_checker': {
-		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
-		# 'schedule': timedelta(minutes=1)
-		# },
+		'ng_viewer_cleanser': {
+		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
+		'schedule': timedelta(minutes=2)
+		},
+		'rawprecomp_job_status_checker': {
+		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
+		'schedule': timedelta(seconds=20)
+		},
 		# 'blendedprecomp_job_ready_checker': {
 		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
 		# 'schedule': timedelta(seconds=30)
