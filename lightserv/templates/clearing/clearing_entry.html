@@ -45,6 +45,7 @@
 						{% if thisday != lastday_dict['lastday'] %}
 							{{ form[thisday_date].label(class="border-bottom font-weight-bold mt-4",id='larger')}}
 							{{ form[thisday_date](class='datepicker') }}
+							<button type="button" class="btn btn-sm btn-primary" onclick="autoFillDate(key='{{thisday_date}}')">Autofill with current date</button>
 							{{ form[thisday_date_submit](class="btn btn-sm btn-danger") }}
 							{% set new_counter = current_counter + 1 %}
 							<!-- Update the dictionary to store the new day and counter.
@@ -102,9 +103,17 @@
 
 	<script> 
 		function autoFill(key) { 
-			console.log(key)
 			var d = new Date();
 			var datestring = d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2) + "T" + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+			document.getElementById(key).value = datestring;
+		}
+	</script>
+
+	<script> 
+		function autoFillDate(key) { 
+			console.log(key)
+			var d = new Date();
+			var datestring = d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
 			document.getElementById(key).value = datestring;
 		}
 	</script>
