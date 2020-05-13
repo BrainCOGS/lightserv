@@ -95,13 +95,14 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
                 """ Loop through channels and spawn a cloudvolume 
                 within this session for each light sheet used """
                 for jj in range(len(image_resolution_form.channel_forms)):
-                    cv_contents_dict_this_channel = {}
+                    
                     channel_form = image_resolution_form.channel_forms[jj]
                     channel_name = channel_form.channel_name.data
                     viz_left_lightsheet = channel_form.viz_left_lightsheet.data
                     viz_right_lightsheet = channel_form.viz_right_lightsheet.data
                     
                     for lightsheet in ['left','right']:
+                        cv_contents_dict_this_lightsheet = {}
                         if lightsheet == 'left':
                             if not viz_left_lightsheet:
                                 continue
@@ -125,11 +126,11 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
                              request_name,sample_name,
                              f"imaging_request_{imaging_request_number}",
                              "raw",rawdata_subfolder)
-                        cv_contents_dict_this_channel['image_resolution'] = image_resolution
-                        cv_contents_dict_this_channel['lightsheet'] = lightsheet
-                        cv_contents_dict_this_channel['cv_name'] = cv_name
-                        cv_contents_dict_this_channel['cv_path'] = cv_path
-                        cv_contents_dict_this_channel['data_path'] = raw_data_path
+                        cv_contents_dict_this_lightsheet['image_resolution'] = image_resolution
+                        cv_contents_dict_this_lightsheet['lightsheet'] = lightsheet
+                        cv_contents_dict_this_lightsheet['cv_name'] = cv_name
+                        cv_contents_dict_this_lightsheet['cv_path'] = cv_path
+                        cv_contents_dict_this_lightsheet['data_path'] = raw_data_path
                         """ send the data to the viewer-launcher
                         to launch the cloudvolume """                       
                         cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
@@ -148,7 +149,7 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
                         proxy_h = pp.progproxy(target_hname='confproxy')
                         proxypath = os.path.join('cloudvols',session_name,cv_name)
                         proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
-                        cv_contents_dict_list_this_resolution.append(cv_contents_dict_this_channel)
+                        cv_contents_dict_list_this_resolution.append(cv_contents_dict_this_lightsheet)
                 cv_table = MultiLightSheetCloudVolumeLayerTable(cv_contents_dict_list_this_resolution)
                 cv_table_dict[image_resolution] = cv_table
                 """ Now spawn a neuroglancer container which will make
