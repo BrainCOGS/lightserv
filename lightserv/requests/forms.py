@@ -24,7 +24,8 @@ class ClearingForm(FlaskForm):
 		[('iDISCO abbreviated clearing','iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
 		 ('iDISCO abbreviated clearing (rat)','Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
 	     ('iDISCO+_immuno','iDISCO+ (immunostaining)'),
-	     ('uDISCO','uDISCO'),('iDISCO_EdU','Wang Lab iDISCO Protocol-EdU')],validators=[InputRequired()]) 
+	     ('uDISCO','uDISCO'),('iDISCO_EdU','Wang Lab iDISCO Protocol-EdU'),
+	     ('experimental','experimental')],validators=[InputRequired()]) 
 	antibody1 = TextAreaField('Primary antibody and concentrations desired (if doing immunostaining)',
 		validators=[Length(max=100)])
 	antibody2 = TextAreaField('Secondary antibody and concentrations desired (if doing immunostaining)',
@@ -179,7 +180,7 @@ class NewRequestForm(FlaskForm):
 			if clearing_protocol_sample == 'iDISCO abbreviated clearing (rat)' and self.species.data != 'rat':
 				raise ValidationError(f"Sample_name: {sample_name}. Clearing protocol: {clearing_protocol_sample} "
 					                  f"can only be used with rat subjects. You specified species={self.species.data}")
-			if clearing_protocol_sample != 'iDISCO abbreviated clearing (rat)' and self.species.data == 'rat':
+			if (clearing_protocol_sample not in ['iDISCO abbreviated clearing (rat)','experimental'])  and self.species.data == 'rat':
 				raise ValidationError(f"Sample_name: {sample_name}. The clearing protocol you selected: {clearing_protocol_sample} "
 				                        "is not valid for species=rat. The only clearing protocol currently available for rat subjects is: " 
 				  						"Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)")

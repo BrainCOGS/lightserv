@@ -60,7 +60,7 @@ class Request(dj.Manual):
     class ClearingBatch(dj.Part):
         definition = """ # Samples from a particular request
         -> Request
-        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU","iDISCO+_rat")
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU","experimental")
         antibody1 = ''               :   varchar(100)
         antibody2 = ''               :   varchar(100)
         clearing_batch_number        :   tinyint
@@ -500,4 +500,9 @@ class Request(dj.Manual):
         clearing_notes = ""                                      : varchar(500)
         """
 
-
+    class ExperimentalClearing(dj.Part): 
+        definition = """ # Experimental clearing table
+        -> master.ClearingBatch              
+        ----
+        link_to_clearing_spreadsheet = NULL : varchar(256)
+        """

@@ -12,7 +12,26 @@
 		<form method="POST" action="">
 			{{ form.hidden_tag() }}
 			{% set day_dictionary = {'dehydr':'Dehydration','rehydr':'Rehydration','blocking':'Blocking','antibody1':'Primary Antibody','antibody2':'Secondary Antibody','clearing':'Clearing','wash1':'Wash','wash2':'Wash'} %}
-			<fieldset class="form-group">
+
+			{% if clearing_protocol == 'experimental' %}
+				<fieldset class="form-group">
+					{{ form.link_to_clearing_spreadsheet.label(id='larger')}}
+					{% if form.link_to_clearing_spreadsheet.errors %}
+						{{ form.link_to_clearing_spreadsheet(class="form-control form-control-lg is-invalid") }}
+						<div class="invalid-feedback">
+							{% for error in form.link_to_clearing_spreadsheet.errors %}
+								<span>{{ error }}</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						{{ form.link_to_clearing_spreadsheet(class="form-control form-control-lg") }}
+					{% endif %}
+					
+					<div class="form-group mt-2">
+						{{ form.submit(class="btn btn-success") }}
+					</div>
+				</fieldset>
+			{% else %} {# clearing protocol is not experimental  #}
 				<div>
 					{{ form.exp_notes.label(id='larger')}}
 					{% if form.exp_notes.errors %}
@@ -90,17 +109,18 @@
 					</div>
 					{% endif %}
 				{% endfor %}
-			</fieldset>
-			<h5 class="mt-2">Clearing Core notes: If anything unusual happened during clearing, please note it here. </h5>
+				<h5 class="mt-2">Clearing Core notes: If anything unusual happened during clearing, please note it here. </h5>
 
-			{{ form.clearing_notes(class="form-control form-control-lg") }}
-			{{ form.clearing_notes_submit(class="btn btn-sm btn-info mt-2") }}
-			<div class="form-group">
-				<button onclick="myvar=calcBlankFields()" type="button" class="btn btn-danger mt-4" data-toggle="modal" data-target="#submitModal">Submit Entry</button>				
-			</div>
-		
+				{{ form.clearing_notes(class="form-control form-control-lg") }}
+				{{ form.clearing_notes_submit(class="btn btn-sm btn-info mt-2") }}
+		</div>
+
+	<div class="form-group">
+		<button onclick="myvar=calcBlankFields()" type="button" class="btn btn-danger mt-4" data-toggle="modal" data-target="#submitModal">Submit Entry</button>				
 	</div>
-	
+	</fieldset>
+	{% endif %} {# check whether clearing protocol is experimental #}	
+
 	<!-- Modal -->
 	  <div class="modal fade" id="submitModal" tabindex="-1" role="dialog" aria-labelledby="submitModalLabel" aria-hidden="true">
 	    <div class="modal-dialog" role="document">
@@ -115,12 +135,9 @@
 				<h5 id="testH1"></h5>
 			</div>
 	        <div class="modal-footer">
-	          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-	          {{ form.submit(class="btn btn-success") }}
-	          {# {{ var.submit }} #}
-	            
-	          </form>
-	        </div>
+	        	<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>           
+				{{ form.submit(class="btn btn-success") }}
+			</div>
 	      </div>
 	    </div>
 	  </div>

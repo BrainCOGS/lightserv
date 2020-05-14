@@ -1,6 +1,7 @@
 from flask import redirect, url_for
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
-									  iDiscoAbbreviatedRatForm, uDiscoForm, iDiscoEduForm )
+									  iDiscoAbbreviatedRatForm, uDiscoForm, iDiscoEduForm,
+									  experimentalForm)
 from lightserv.clearing.tables import (IdiscoPlusTable,IdiscoAbbreviatedTable,
 							  IdiscoAbbreviatedRatTable,UdiscoTable,
 							  IdiscoEdUTable)
@@ -24,6 +25,8 @@ def determine_clearing_form(clearing_protocol,existing_form):
 		form = iDiscoPlusImmunoForm(existing_form)
 	elif clearing_protocol == 'iDISCO_EdU':
 		form = iDiscoEduForm()
+	elif clearing_protocol == 'experimental':
+		form = experimentalForm()
 
 	return form
 
@@ -38,6 +41,8 @@ def determine_clearing_dbtable(clearing_protocol):
 		dbtable = db_lightsheet.Request.UdiscoClearing
 	elif clearing_protocol == 'iDISCO_EdU':
 		dbtable = db_lightsheet.Request.IdiscoEdUClearing
+	elif clearing_protocol == 'experimental':
+		dbtable = db_lightsheet.Request.ExperimentalClearing
 
 	return dbtable
 

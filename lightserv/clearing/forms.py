@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, TextAreaField
-from wtforms.fields.html5 import DateField, DateTimeLocalField
+from wtforms import SubmitField, TextAreaField, StringField
+from wtforms.fields.html5 import (DateField,
+	DateTimeLocalField)
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Optional
 
 datetimeformat='%Y-%m-%dT%H:%M' # To get form.field.data to work. Does not work with the default (bug)
@@ -701,4 +702,10 @@ class iDiscoEduForm(FlaskForm):
 	clearing_notes = TextAreaField('Clearing Notes',validators=[Length(max=500)])
 	clearing_notes_submit = SubmitField('Update')
 
+	submit = SubmitField('Submit')
+
+class experimentalForm(FlaskForm):
+	""" The form for the experimental clearing """
+	title = 'experimental'
+	link_to_clearing_spreadsheet = StringField('Link to clearing spreadsheet:',validators=[DataRequired(),Length(max=500)])
 	submit = SubmitField('Submit')
