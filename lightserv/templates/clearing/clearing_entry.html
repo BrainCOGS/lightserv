@@ -96,10 +96,36 @@
 			{{ form.clearing_notes(class="form-control form-control-lg") }}
 			{{ form.clearing_notes_submit(class="btn btn-sm btn-info mt-2") }}
 			<div class="form-group">
-				{{ form.submit(class="btn btn-success mt-4") }}
+				<button onclick="myvar=calcBlankFields()" type="button" class="btn btn-danger mt-4" data-toggle="modal" data-target="#submitModal">Submit Entry</button>				
 			</div>
-		</form>
+		
 	</div>
+	
+	<!-- Modal -->
+	  <div class="modal fade" id="submitModal" tabindex="-1" role="dialog" aria-labelledby="submitModalLabel" aria-hidden="true">
+	    <div class="modal-dialog" role="document">
+	      <div class="modal-content">
+	        <div class="modal-header">
+	          <h5 class="modal-title" id="submitModalLabel">Are you sure you want to submit? </h5>
+	          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	            <span aria-hidden="true">&times;</span>
+	          </button>
+	        </div>
+			<div class="modal-body">
+				<h5 id="testH1"></h5>
+			</div>
+	        <div class="modal-footer">
+	          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+	          {{ form.submit(class="btn btn-success") }}
+	          {# {{ var.submit }} #}
+	            
+	          </form>
+	        </div>
+	      </div>
+	    </div>
+	  </div>
+
+	</form>
 
 	<script> 
 		function autoFill(key) { 
@@ -111,11 +137,62 @@
 
 	<script> 
 		function autoFillDate(key) { 
-			console.log(key)
+			{# console.log(key) #}
 			var d = new Date();
 			var datestring = d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
 			document.getElementById(key).value = datestring;
 		}
+	</script>
+
+	<script> 
+		function calcBlankFields() {
+			{# First loop through and assign a "label" attribute to everything that has it #}
+
+			var labels = document.getElementsByTagName('label');
+			for (var i = 0; i < labels.length; i++) {
+			    if (labels[i].htmlFor != '') {
+			         var elem = document.getElementById(labels[i].htmlFor);
+			         if (elem)
+			            elem.label = labels[i];         
+			    }
+			}
+
+			var elements = document.querySelector("form").elements;
+
+			var n_datetime_entries_skipped = 0;
+			console.log("Before loop we have:");
+			console.log(n_datetime_entries_skipped);
+			var missing_entry_names = '' 
+			for (var i = 0, element; element = elements[i++];) {
+			    if ((element.type === "datetime-local" || element.type == "date") && element.value === "") {
+			        n_datetime_entries_skipped += 1;
+			        if (element.type === "datetime-local") {
+			        	type_str = "timestamp";
+					}
+					else {
+						type_str = "date";
+					}
+			        missing_entry_names += element.label.innerHTML + " - " + type_str + "<br />"
+			        console.log(element.name);
+				    }
+				}
+			console.log("After loop we have:");
+			console.log(n_datetime_entries_skipped);
+			if (n_datetime_entries_skipped > 0) {
+				if (n_datetime_entries_skipped == 1) {
+				var warn_text = "There is " + n_datetime_entries_skipped + " blank entry: <br />"  + missing_entry_names;
+
+				}
+				else {
+				var warn_text = "There are " + n_datetime_entries_skipped + " blank entries: <br />"  + missing_entry_names;
+				}
+				document.getElementById('testH1').innerHTML=warn_text;
+			}
+			else {
+				document.getElementById('testH1').innerHTML="There are no blank entries.";
+			}
+			return 
+			}
 	</script>
 {% if column_name %}
 	<script>
@@ -124,6 +201,5 @@
 	};
 	</script>
 {% endif %}
-
 
 {% endblock content %}
