@@ -255,7 +255,7 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	clearing_notes = TextAreaField('Clearing Notes',validators=[Length(max=500)])
 	clearing_notes_submit = SubmitField('Update')
 
-	submit = SubmitField('Clearing complete (submits all entered data) (submits all entered data)')
+	submit = SubmitField('Submit')
 
 class iDiscoAbbreviatedForm(FlaskForm):
 	""" The form for entering clearing information """
@@ -328,7 +328,7 @@ class iDiscoAbbreviatedForm(FlaskForm):
 	clearing_notes = TextAreaField('Clearing Notes',validators=[Length(max=500)])
 	clearing_notes_submit = SubmitField('Update')
 
-	submit = SubmitField('Clearing complete (submits all entered data)')
+	submit = SubmitField('Submit')
 
 class iDiscoAbbreviatedRatForm(FlaskForm):
 	""" The form for entering clearing information """
@@ -436,7 +436,7 @@ class iDiscoAbbreviatedRatForm(FlaskForm):
 	clearing_notes = TextAreaField('Clearing Notes',validators=[Length(max=500)])
 	clearing_notes_submit = SubmitField('Update')
 
-	submit = SubmitField('Clearing complete (submits all entered data)')
+	submit = SubmitField('Submit')
 
 class uDiscoForm(FlaskForm):
 	""" The form for requesting a new experiment/dataset """
@@ -503,7 +503,7 @@ class uDiscoForm(FlaskForm):
 	clearing_notes = TextAreaField('Clearing Notes',validators=[Length(max=500)])
 	clearing_notes_submit = SubmitField('Update Notes')
 
-	submit = SubmitField('Clearing complete (submits all entered data)')
+	submit = SubmitField('Submit')
 
 class iDiscoEduForm(FlaskForm):
 	""" The form for entering clearing information """
@@ -701,4 +701,4 @@ class iDiscoEduForm(FlaskForm):
 	clearing_notes = TextAreaField('Clearing Notes',validators=[Length(max=500)])
 	clearing_notes_submit = SubmitField('Update')
 
-	submit = SubmitField('Clearing complete (submits all entered data)')
+	submit = SubmitField('Submit')
