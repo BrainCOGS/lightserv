@@ -68,11 +68,7 @@ def make_precomputed_rawdata(**kwargs):
 
 	kwargs['rawdata_path'] = rawdata_path
 	slurmjobfactor = 20 # the number of processes run per core
-	n_array_jobs_step1 = math.ceil(number_of_z_planes/float(slurmjobfactor)) # how many array jobs we need for step 1
-	n_array_jobs_step2 = 5 # how many array jobs we need for step 2
 	kwargs['slurmjobfactor'] = slurmjobfactor
-	kwargs['n_array_jobs_step1'] = n_array_jobs_step1
-	kwargs['n_array_jobs_step2'] = n_array_jobs_step2
 	
 	pickle_fullpath = viz_dir + '/precomputed_params.p'
 	with open(pickle_fullpath,'wb') as pkl_file:
@@ -80,11 +76,9 @@ def make_precomputed_rawdata(**kwargs):
 	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
 
 	""" Now set up the connection to spock """
-
 	
 	command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "
-			   "/jukebox/wang/ahoag/precomputed/raw_pipeline/precomputed_pipeline_raw.sh {} {} {}").format(
-		n_array_jobs_step1,n_array_jobs_step2,viz_dir)
+			   f"/jukebox/wang/ahoag/precomputed/raw_pipeline/precomputed_pipeline_raw.sh {viz_dir}")
 	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_fail_pipeline.sh "
 
@@ -97,7 +91,7 @@ def make_precomputed_rawdata(**kwargs):
 
 	client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
 	stdin, stdout, stderr = client.exec_command(command)
-	# jobid_final_step = str(stdout.read().decode("utf-8").strip('\n'))
+
 	try:
 		response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
 		logger.debug(response)
