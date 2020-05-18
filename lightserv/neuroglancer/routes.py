@@ -311,6 +311,7 @@ def stitched_data_setup(username,request_name,sample_name,
                     viz_right_lightsheet = channel_form.viz_right_lightsheet.data
                     
                     for lightsheet in ['left','right']:
+                        cv_contents_dict_this_lightsheet = {}
                         if lightsheet == 'left':
                             if not viz_left_lightsheet:
                                 continue
@@ -338,11 +339,11 @@ def stitched_data_setup(username,request_name,sample_name,
                              "raw",rawdata_subfolder)
                         stitched_data_path = os.path.join(raw_data_path,
                             f'{rawdata_subfolder}_ch{channel_index_padded}_{lightsheet}_lightsheet_ts_out')
-                        cv_contents_dict_this_channel['image_resolution'] = image_resolution
-                        cv_contents_dict_this_channel['lightsheet'] = lightsheet
-                        cv_contents_dict_this_channel['cv_name'] = cv_name
-                        cv_contents_dict_this_channel['cv_path'] = cv_path
-                        cv_contents_dict_this_channel['data_path'] = blended_data_path
+                        cv_contents_dict_this_lightsheet['image_resolution'] = image_resolution
+                        cv_contents_dict_this_lightsheet['lightsheet'] = lightsheet
+                        cv_contents_dict_this_lightsheet['cv_name'] = cv_name
+                        cv_contents_dict_this_lightsheet['cv_path'] = cv_path
+                        cv_contents_dict_this_lightsheet['data_path'] = blended_data_path
                         layer_type = "image"
                         """ send the data to the viewer-launcher
                         to launch the cloudvolume """                       
@@ -362,7 +363,7 @@ def stitched_data_setup(username,request_name,sample_name,
                         proxy_h = pp.progproxy(target_hname='confproxy')
                         proxypath = os.path.join('cloudvols',session_name,cv_name)
                         proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
-                        cv_contents_dict_list_this_resolution.append(cv_contents_dict_this_channel)
+                        cv_contents_dict_list_this_resolution.append(cv_contents_dict_this_lightsheet)
                 cv_table = MultiLightSheetCloudVolumeLayerTable(cv_contents_dict_list_this_resolution)
                 cv_table_dict[image_resolution] = cv_table
                 """ Now spawn a neuroglancer container which will make
