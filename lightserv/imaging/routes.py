@@ -18,6 +18,7 @@ from datetime import datetime, timedelta
 import logging
 import glob
 import os
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -213,9 +214,13 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 						raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
 								 f"{request_name}/{sample_name}/"
 								 f"imaging_request_{imaging_request_number}/viz/raw")
+
 						mymkdir(raw_viz_dir)
 						channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
 						mymkdir(channel_viz_dir)
+						raw_data_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
+								 f"{request_name}/{sample_name}/"
+								 f"imaging_request_{imaging_request_number}/rawdata/{rawdata_subfolder}")
 						if left_lightsheet_used:
 							this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
 							mymkdir(this_viz_dir)
@@ -225,6 +230,14 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 							precomputed_kwargs['layer_name'] = layer_name
 							layer_dir = os.path.join(this_viz_dir,layer_name)
 							mymkdir(layer_dir)
+							# Figure out what x and y dimensions are
+							all_slices = glob.glob(f"{raw_data_dir}/*RawDataStack[00 x 00*C00*Filter000{channel_index}*tif")
+							first_slice = all_slices[0]
+							first_im = Image.open(first_slice)
+							x_dim,y_dim = first_im.size
+							precomputed_kwargs['x_dim'] = x_dim
+							precomputed_kwargs['y_dim'] = y_dim
+							first_im.close() 
 							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 						if right_lightsheet_used:
 							this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
@@ -235,6 +248,14 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 							precomputed_kwargs['layer_name'] = layer_name
 							layer_dir = os.path.join(this_viz_dir,layer_name)
 							mymkdir(layer_dir)
+							# Figure out what x and y dimensions are
+							all_slices = glob.glob(f"{raw_data_dir}/*RawDataStack[00 x 00*C01*Filter000{channel_index}*tif")
+							first_slice = all_slices[0]
+							first_im = Image.open(first_slice)
+							x_dim,y_dim = first_im.size
+							precomputed_kwargs['x_dim'] = x_dim
+							precomputed_kwargs['y_dim'] = y_dim
+							first_im.close() 
 							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 					else:
 						logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
