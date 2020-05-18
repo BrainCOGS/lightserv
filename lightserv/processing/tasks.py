@@ -502,11 +502,7 @@ def make_precomputed_stitched_data(**kwargs):
 	logger.debug("Visualization directory:")
 	logger.debug(viz_dir)
 	slurmjobfactor = 20 # the number of processes to run per core
-	n_array_jobs_step1 = math.ceil(number_of_z_planes/float(slurmjobfactor)) # how many array jobs we need for step 1
-	n_array_jobs_step2 = 5 # how many array jobs we need for step 2
 	kwargs['slurmjobfactor'] = slurmjobfactor
-	kwargs['n_array_jobs_step1'] = n_array_jobs_step1
-	kwargs['n_array_jobs_step2'] = n_array_jobs_step2
 	
 	pickle_fullpath = viz_dir + '/precomputed_params.p'
 	with open(pickle_fullpath,'wb') as pkl_file:
@@ -515,10 +511,9 @@ def make_precomputed_stitched_data(**kwargs):
 
 	# """ Now set up the connection to spock """
 	
-	# command = ("cd /jukebox/wang/ahoag/precomputed/stitched_pipeline; "
-	# 		   "/jukebox/wang/ahoag/precomputed/stitched_pipeline/precomputed_pipeline_stitched.sh {} {} {}").format(
-	# 	n_array_jobs_step1,n_array_jobs_step2,viz_dir)
-	command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+	command = ("cd /jukebox/wang/ahoag/precomputed/stitched_pipeline; "
+			   f"/jukebox/wang/ahoag/precomputed/stitched_pipeline/precomputed_pipeline_stitched.sh {viz_dir}")
+	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	hostname = 'spock.pni.princeton.edu'
 	port=22
 	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
@@ -615,12 +610,7 @@ def make_precomputed_blended_data(**kwargs):
 	kwargs['layer_name'] = f'channel{channel_name}_blended'
 	
 	slurmjobfactor = 20 # the number of processes to run per core
-	n_array_jobs_step1 = math.ceil(number_of_z_planes/float(slurmjobfactor)) # how many array jobs we need for step 1
-	n_array_jobs_step2 = 5 # how many array jobs we need for step 2
 	kwargs['slurmjobfactor'] = slurmjobfactor
-	kwargs['n_array_jobs_step1'] = n_array_jobs_step1
-	kwargs['n_array_jobs_step2'] = n_array_jobs_step2
-	
 	pickle_fullpath = viz_dir + '/precomputed_params.p'
 	with open(pickle_fullpath,'wb') as pkl_file:
 		pickle.dump(kwargs,pkl_file)
@@ -628,9 +618,7 @@ def make_precomputed_blended_data(**kwargs):
 	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
 	
 	command = ("cd /jukebox/wang/ahoag/precomputed/blended_pipeline; "
-			   "/jukebox/wang/ahoag/precomputed/blended_pipeline/precomputed_pipeline_blended.sh {} {} {}").format(
-		n_array_jobs_step1,n_array_jobs_step2,viz_dir)
-	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+			   f"/jukebox/wang/ahoag/precomputed/blended_pipeline/precomputed_pipeline_blended.sh {viz_dir}")	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	hostname = 'spock.pni.princeton.edu'
 	port=22
 	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
