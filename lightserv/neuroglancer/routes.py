@@ -334,7 +334,7 @@ def stitched_data_setup(username,request_name,sample_name,
                         channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
                         raw_data_path = os.path.join(data_bucket_rootpath,username,
                              request_name,sample_name,
-                             f"imaging_request_{imagisng_request_number}",
+                             f"imaging_request_{imaging_request_number}",
                              "raw",rawdata_subfolder)
                         stitched_data_path = os.path.join(raw_data_path,
                             f'{rawdata_subfolder}_ch{channel_index_padded}_{lightsheet}_lightsheet_ts_out')
