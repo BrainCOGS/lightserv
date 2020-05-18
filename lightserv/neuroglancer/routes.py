@@ -332,7 +332,11 @@ def stitched_data_setup(username,request_name,sample_name,
                         rawdata_subfolder = this_processing_channel_contents.fetch1('rawdata_subfolder')
                         channel_index = this_processing_channel_contents.fetch1('imspector_channel_index')
                         channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
-                        stitched_data_path = os.path.join(rawdata_path,
+                        raw_data_path = os.path.join(data_bucket_rootpath,username,
+                             request_name,sample_name,
+                             f"imaging_request_{imagisng_request_number}",
+                             "raw",rawdata_subfolder)
+                        stitched_data_path = os.path.join(raw_data_path,
                             f'{rawdata_subfolder}_ch{channel_index_padded}_{lightsheet}_lightsheet_ts_out')
                         cv_contents_dict_this_channel['image_resolution'] = image_resolution
                         cv_contents_dict_this_channel['lightsheet'] = lightsheet
@@ -1838,7 +1842,7 @@ def general_data_setup(username,request_name,sample_name,
                     neuroglancerurl = f"https://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
                     neuroglancer_url_dict['Registered'][image_resolution] = neuroglancerurl
        
-
+            logger.debug(cv_table_dict)
             return render_template('neuroglancer/general_viewer_links.html',
                 url_dict=neuroglancer_url_dict,cv_table_dict=cv_table_dict)
 
