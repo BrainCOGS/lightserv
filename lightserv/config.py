@@ -14,6 +14,7 @@ class BaseConfig(object):
 	CLEARING_ADMINS = ['ahoag','ll3','jduva','zmd']
 	IMAGING_MODES = ['registration','injection_detection','probe_detection','cell_detection','generic_imaging']
 	IMAGING_CHANNELS = ['488','555','647','790']
+	ADMINS_TO_EMAIL = ['ahoag'] # for problems with requests/spock jobs
 	WTF_CSRF_TIME_LIMIT = 24*3600 # seconds (24 hours)
 	# WTF_CSRF_TIME_LIMIT = 1 #
 	ATLAS_NAME_FILE_DICTIONARY = {
@@ -59,7 +60,7 @@ class DevConfig(BaseConfig):
 		},
 		'rawprecomp_job_status_checker': {
 		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
-		'schedule': timedelta(seconds=20)
+		'schedule': timedelta(seconds=15)
 		},
 		# 'blendedprecomp_job_ready_checker': {
 		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
@@ -114,10 +115,10 @@ class ProdConfig(BaseConfig):
 		# 'task': 'lightserv.processing.tasks.stitched_precomputed_job_status_checker',
 		# 'schedule': timedelta(minutes=3)
 		# },
-		'ng_viewer_cleanser': {
-		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
-		'schedule': timedelta(minutes=5)
-		},
+		# 'ng_viewer_cleanser': {
+		# 'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
+		# 'schedule': timedelta(minutes=5)
+		# },
 		# 'rawprecomp_job_status_checker': {
 		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
 		# 'schedule': timedelta(minutes=3)
