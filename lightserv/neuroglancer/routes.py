@@ -343,7 +343,7 @@ def stitched_data_setup(username,request_name,sample_name,
                         cv_contents_dict_this_lightsheet['lightsheet'] = lightsheet
                         cv_contents_dict_this_lightsheet['cv_name'] = cv_name
                         cv_contents_dict_this_lightsheet['cv_path'] = cv_path
-                        cv_contents_dict_this_lightsheet['data_path'] = blended_data_path
+                        cv_contents_dict_this_lightsheet['data_path'] = stitched_data_path
                         layer_type = "image"
                         """ send the data to the viewer-launcher
                         to launch the cloudvolume """                       
