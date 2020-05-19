@@ -175,7 +175,8 @@ def test_uniform_clearing_button_works(test_client,test_login,):
 	sample2_clearing_protocol = select_tag.find('option', selected=True)['value']
 	assert sample2_clearing_protocol == 'iDISCO+_immuno'
 	sample2_antibody1 = parsed_html.body.find('textarea', attrs={'id':'clearing_samples-1-antibody1'}).text
-	assert sample2_antibody1 == 'test_antibody'
+	print(parsed_html.body.find('textarea', attrs={'id':'clearing_samples-1-antibody1'}))
+	assert sample2_antibody1.strip() == 'test_antibody'
 
 def test_uniform_imaging_button_works(test_client,test_login,):
 	""" Ensure that hitting the "Apply these imaging/processing parameters to all samples"
