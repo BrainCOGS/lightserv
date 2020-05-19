@@ -452,7 +452,6 @@ def test_clearing_entry_not_validated(test_client,test_single_sample_request_non
 	)
 	assert b'Field cannot be longer than 250 characters.' in response.data
 
-
 """ Test clearing_table() """
 
 def test_mouse_clearing_tables_have_db_content(test_client,test_cleared_all_mouse_clearing_protocols_ahoag):

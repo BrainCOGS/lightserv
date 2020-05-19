@@ -978,7 +978,6 @@ def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_reques
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 
-
 @pytest.fixture(scope='function') 
 def test_imaged_4x_request_nonadmin(test_client,test_cleared_request_4x_nonadmin,
 	test_delete_request_db_contents,test_login_zmd):
@@ -998,7 +997,7 @@ def test_imaged_4x_request_nonadmin(test_client,test_cleared_request_4x_nonadmin
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.15,
 		'image_resolution_forms-0-channel_forms-0-z_step':2,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':682,
-		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'200221_20180220_jg_09_4x_647_008na_1hfds_z2um_100msec_15povlp_14-16-13'
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test647'
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
 			username='lightserv-test',request_name='test2',sample_name='test2-001',
@@ -1009,7 +1008,6 @@ def test_imaged_4x_request_nonadmin(test_client,test_cleared_request_4x_nonadmin
 		sess['user'] = 'lightserv-test'
 	yield test_client
 	print('----------Teardown test_4x_imaging_request_nonadmin fixture ----------')
-
 
 @pytest.fixture(scope='function') 
 def imaged_request_lightserv_test(test_client,test_cleared_request_nonadmin,
@@ -1042,7 +1040,6 @@ def imaged_request_lightserv_test(test_client,test_cleared_request_nonadmin,
 		sess['user'] = 'lightserv-test'
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
-
 
 @pytest.fixture(scope='function') 
 def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel_request_ahoag,
@@ -1080,7 +1077,6 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
-
 
 """ Fixtures for follow-up imaging and processing requests """
 
@@ -1132,7 +1128,6 @@ def test_new_processing_request_ahoag(test_client,test_single_sample_request_aho
 		)
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_new_processing_request fixture --------')
-
 
 """ Fixtures for celery testing """
 

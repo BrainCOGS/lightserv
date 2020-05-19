@@ -43,9 +43,6 @@ def send_email(subject,body,sender_email='lightservhelper@gmail.com',recipients=
 	sender_email   email string
 	recipients     list of email address strings
 	"""
-	if os.environ['FLASK_MODE'] == 'TEST':
-		print("Not sending email since this is a test.")
-		return "Email not sent because are in TEST mode"
 	if os.environ['FLASK_MODE'] == 'DEV':
 		print("Sending email only to ahoag@princeton.edu since we are in DEV mode")
 		recipients = ['ahoag@princeton.edu']
@@ -67,9 +64,6 @@ def send_admin_email(subject,body,sender_email='lightservhelper@gmail.com'):
 	body		   string
 	sender_email   email string
 	"""
-	if os.environ['FLASK_MODE'] == 'TEST':
-		print("Not sending email since this is a test.")
-		return "Email not sent because are in TEST mode"
 
 	""" Asynchronous task to send an email """
 	msg = EmailMessage()

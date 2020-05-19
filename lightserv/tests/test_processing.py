@@ -160,8 +160,8 @@ def test_multichannel_processing_entry_form_submits(test_client,test_imaged_mult
 	# assert imaging_progress == 'complete'
 
 def test_processing_admin_access_processing_entry_for_nonadmin(test_client,test_imaged_request_nonadmin,):
-	""" Test that lightserv-test can access the processing entry form
-	for his request"""
+	""" Test that zmd cannot  access the processing entry form
+	for lightserv-test request"""
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'zmd'
 	response = test_client.get(url_for('processing.processing_entry',
@@ -169,14 +169,14 @@ def test_processing_admin_access_processing_entry_for_nonadmin(test_client,test_
 		imaging_request_number=1,processing_request_number=1)
 		, follow_redirects=True)
 	print(db_lightsheet.Request.ProcessingRequest())
-	assert b'Processing Entry Form' in response.data
-	assert b'nonadmin_request' in response.data 
+	assert b'The processor has already been assigned for this entry and you are not them' in response.data
+	assert b'Welcome to the Brain Registration and Histology Core Facility' in response.data 
 
 def test_processing_admin_submit_processing_entry_for_nonadmin(test_client,test_imaged_request_nonadmin,):
 	""" Test that lightserv-test can access the processing entry form
 	for his request"""
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'zmd'
+		sess['user'] = 'lightserv-test'
 
 
 	data = {
@@ -212,7 +212,7 @@ def test_submit_processing_entry_generic_imaging_nonadmin(test_client,test_image
 	""" Test that lightserv-test can access the processing entry form
 	for his request"""
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'zmd'
+		sess['user'] = 'lightserv-test'
 
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
@@ -245,7 +245,8 @@ def test_submit_processing_entry_generic_imaging_nonadmin(test_client,test_image
 
 def test_submit_processing_entry_4x_nonadmin(test_client,test_imaged_4x_request_nonadmin):
 	""" Test that lightserv-test can submit their 4x processing request"""
-
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
 	data = {
 		'image_resolution_forms-0-image_resolution':'4x',
 		'image_resolution_forms-0-channel_forms-0-channel_name':'647',

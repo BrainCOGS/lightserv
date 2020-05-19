@@ -238,7 +238,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 							precomputed_kwargs['x_dim'] = x_dim
 							precomputed_kwargs['y_dim'] = y_dim
 							first_im.close() 
-							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
+							if not os.environ['FLASK_MODE'] == 'TEST':
+								tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 						if right_lightsheet_used:
 							this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
 							mymkdir(this_viz_dir)
@@ -255,8 +256,9 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 							x_dim,y_dim = first_im.size
 							precomputed_kwargs['x_dim'] = x_dim
 							precomputed_kwargs['y_dim'] = y_dim
-							first_im.close() 
-							tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
+							first_im.close()
+							if not os.environ['FLASK_MODE'] == 'TEST': 
+								tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
 					else:
 						logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
 									 "Not creating precomputed data for neuroglancer visualization.")
@@ -286,7 +288,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 								{'username':username,'request_name':request_name}
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
-			send_email.delay(subject=subject,body=message_body,recipients=recipients)
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				send_email.delay(subject=subject,body=message_body,recipients=recipients)
 			flash(f"""Imaging is complete. An email has been sent to {correspondence_email} 
 				informing them that their raw data is now available on bucket.
 				The processing pipeline is now ready to run. ""","success")
@@ -326,9 +329,10 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				reminder_email_kwargs['subject'] = subject
 				reminder_email_kwargs['body'] = body
 				reminder_email_kwargs['recipients'] = recipients
-				tasks.send_processing_reminder_email.apply_async(
-					kwargs=reminder_email_kwargs,eta=future_time)
-				logger.debug("Sent celery task for reminder email.")
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					tasks.send_processing_reminder_email.apply_async(
+						kwargs=reminder_email_kwargs,eta=future_time)
+					logger.debug("Sent celery task for reminder email.")
 			return redirect(url_for('imaging.imaging_manager'))
 		else:
 			logger.info("Not validated")

@@ -359,10 +359,10 @@ def run_lightsheet_pipeline(username,request_name,
 					n_channels_total
 				)
 			
-			# if n_channels_reg > 0:
-			# 	command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline.sh"""
-			# else:	
-			# 	command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline_noreg.sh"""
+			if n_channels_reg > 0:
+				command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline.sh"""
+			else:	
+				command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline_noreg.sh"""
 			spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
 			port = 22
 
@@ -425,9 +425,6 @@ def run_lightsheet_pipeline(username,request_name,
 			logger.debug("Updated spock jobid in ProcessingResolutionRequest() table")
 			dj.Table._update(this_image_resolution_content,'lightsheet_pipeline_spock_job_progress','SUBMITTED')
 			logger.debug("Updated spock job progress in ProcessingResolutionRequest() table")
-
-			dj.Table._update(processing_request_contents,'processing_progress','running')
-			logger.debug("Updated processing_progress in ProcessingRequest() table")
 
 			# finally:
 			client.close()
@@ -1042,7 +1039,8 @@ def processing_job_status_checker():
 				request_contents = db_lightsheet.Request() & restrict_dict_request
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
-				send_email.delay(subject=subject,body=body,recipients=recipients)
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					send_email.delay(subject=subject,body=body,recipients=recipients)
 				dj.Table._update(processing_request_contents,'processing_progress','complete')
 
 			else:
@@ -1397,7 +1395,8 @@ def processing_job_status_checker_noreg():
 				request_contents = db_lightsheet.Request() & restrict_dict_request
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
-				send_email.delay(subject=subject,body=body,recipients=recipients)
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					send_email.delay(subject=subject,body=body,recipients=recipients)
 				dj.Table._update(processing_request_contents,'processing_progress','complete')
 
 			else:
@@ -1536,16 +1535,18 @@ def check_for_spock_jobs_ready_for_making_precomputed_stitched_data():
 				logger.debug(f"Created directory {this_viz_dir}")
 				precomputed_kwargs['lightsheet'] = 'left'
 				precomputed_kwargs['viz_dir'] = this_viz_dir
-				make_precomputed_stitched_data.delay(**precomputed_kwargs)
-				logger.info("Sent precomputed task for tiling left lightsheet")
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					make_precomputed_stitched_data.delay(**precomputed_kwargs)
+					logger.info("Sent precomputed task for tiling left lightsheet")
 			if right_lightsheet_used:
 				this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
 				mymkdir(this_viz_dir)
 				logger.debug(f"Created directory {this_viz_dir}")
 				precomputed_kwargs['lightsheet'] = 'right'
 				precomputed_kwargs['viz_dir'] = this_viz_dir
-				make_precomputed_stitched_data.delay(**precomputed_kwargs)
-				logger.info("Sent precomputed task for tiling right lightsheet")
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					make_precomputed_stitched_data.delay(**precomputed_kwargs)
+					logger.info("Sent precomputed task for tiling right lightsheet")
 
 	return "Checked for light sheet pipeline jobs whose data have been stitched"
 
@@ -1752,7 +1753,8 @@ def stitched_precomputed_job_status_checker():
 				request_contents = db_lightsheet.Request() & restrict_dict_request
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
-				send_email.delay(subject=subject,body=body,recipients=recipients)
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all processing channels in this request"
 							 " are completely converted to precomputed format")
@@ -1784,8 +1786,9 @@ def stitched_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
-			send_email.delay(subject=subject,body=body,recipients=recipients)
-			send_admin_email.delay(subject=subject,body=admin_body)
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				send_email.delay(subject=subject,body=body,recipients=recipients)
+				send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.StitchedPrecomputedSpockJob.insert(job_insert_list)
@@ -1912,8 +1915,9 @@ def check_for_spock_jobs_ready_for_making_precomputed_blended_data():
 			mymkdir(channel_viz_dir)
 			logger.debug(f"Created directory {channel_viz_dir}")
 			precomputed_kwargs['viz_dir'] = channel_viz_dir
-			make_precomputed_blended_data.delay(**precomputed_kwargs)
-			logger.info("Sent precomputed task for tiling blended data")
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				make_precomputed_blended_data.delay(**precomputed_kwargs)
+				logger.info("Sent precomputed task for tiling blended data")
 
 	return "Checked for light sheet pipeline jobs whose data have been blended"
 
@@ -2105,7 +2109,8 @@ def blended_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
-				send_email.delay(subject=subject,body=body,recipients=recipients)
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all blended channels in this request"
 							 " are completely converted to precomputed format")
@@ -2138,8 +2143,9 @@ def blended_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
-			send_email.delay(subject=subject,body=body,recipients=recipients)
-			send_admin_email.delay(subject=subject,body=admin_body)
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				send_email.delay(subject=subject,body=body,recipients=recipients)
+				send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.BlendedPrecomputedSpockJob.insert(job_insert_list)
@@ -2270,8 +2276,9 @@ def check_for_spock_jobs_ready_for_making_precomputed_downsized_data():
 			mymkdir(channel_viz_dir)
 			logger.debug(f"Created directory {channel_viz_dir}")
 			precomputed_kwargs['viz_dir'] = channel_viz_dir
-			make_precomputed_downsized_data.delay(**precomputed_kwargs)
-			logger.info("Sent precomputed task for tiling downsized data")
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				make_precomputed_downsized_data.delay(**precomputed_kwargs)
+				logger.info("Sent precomputed task for tiling downsized data")
 
 	return "Checked for light sheet pipeline jobs whose data have been downsized"
 
@@ -2464,7 +2471,8 @@ def downsized_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
-				send_email.delay(subject=subject,body=body,recipients=recipients)
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all downsized channels in this request"
 							 " are completely converted to precomputed format")
@@ -2496,8 +2504,9 @@ def downsized_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
-			send_email.delay(subject=subject,body=body,recipients=recipients)
-			send_admin_email.delay(subject=subject,body=admin_body)
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				send_email.delay(subject=subject,body=body,recipients=recipients)
+				send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.DownsizedPrecomputedSpockJob.insert(job_insert_list)
@@ -2638,8 +2647,9 @@ def check_for_spock_jobs_ready_for_making_precomputed_registered_data():
 			mymkdir(layer_dir)
 			logger.debug(f"Created directory {layer_dir}")
 			precomputed_kwargs['layer_name'] = layer_name
-			make_precomputed_registered_data.delay(**precomputed_kwargs)
-			logger.info("Sent precomputed task for tiling registered data")
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				make_precomputed_registered_data.delay(**precomputed_kwargs)
+				logger.info("Sent precomputed task for tiling registered data")
 
 	return "Checked for light sheet pipeline jobs whose data have been registered"
 
@@ -2831,7 +2841,8 @@ def registered_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
-				send_email.delay(subject=subject,body=body,recipients=recipients)
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all registered channels in this request"
 							 " are completely converted to precomputed format")
@@ -2863,8 +2874,9 @@ def registered_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
-			send_email.delay(subject=subject,body=body,recipients=recipients)
-			send_admin_email.delay(subject=subject,body=admin_body)
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				send_email.delay(subject=subject,body=body,recipients=recipients)
+				send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
 	db_spockadmin.RegisteredPrecomputedSpockJob.insert(job_insert_list)

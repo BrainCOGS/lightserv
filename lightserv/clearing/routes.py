@@ -204,7 +204,8 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 								{'username':username,'request_name':request_name}
 							correspondence_email = request_contents.fetch1('correspondence_email')
 							recipients = [correspondence_email]
-							send_email.delay(subject=subject,body=message_body,recipients=recipients)
+							if not os.environ['FLASK_MODE'] == 'TEST':
+								send_email.delay(subject=subject,body=message_body,recipients=recipients)
 
 							# """ Admin emails """
 							# imaging_admin_email_addresses = [netid + '@princeton.edu' for netid in current_app.config['IMAGING_ADMINS']]

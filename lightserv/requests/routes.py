@@ -806,7 +806,8 @@ def new_request():
                         'Thanks,\nThe Histology and Brain Registration Core Facility.')
                 correspondence_email = form.correspondence_email.data
                 recipients = [correspondence_email]
-                send_email.delay(subject=subject,body=message_body,recipients=recipients)
+                if not os.environ['FLASK_MODE'] == 'TEST':
+                    send_email.delay(subject=subject,body=message_body,recipients=recipients)
 
                 return redirect(url_for('requests.all_requests'))
             
@@ -866,7 +867,8 @@ def reminder():
             'Thanks,\nThe Brain Registration and Histology Core Facility')    
     logger.debug("Sending reminder email at 15 seconds in the future")
     future_time = datetime.utcnow() + timedelta(seconds=15)
-    send_email.apply_async(kwargs={
-        'subject':subject,'body':body,},eta=future_time)
+    if not os.environ['FLASK_MODE'] == 'TEST':
+        send_email.apply_async(kwargs={
+            'subject':subject,'body':body,},eta=future_time)
     return "Sent reminder!"
 

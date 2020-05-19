@@ -1,0 +1,49 @@
+version: "3.4"
+
+services:
+  testredis:
+    image: redis
+    expose:
+      - 6379
+    restart: always
+  # confproxy:
+  #   env_file: .dockerenv
+  #   image: jupyterhub/configurable-http-proxy:3.1.1
+  #   # expose the proxy to the world
+  #   ports:
+  #     - "8002:8000"
+  #     - "8003:8001"
+  #   command: ['configurable-http-proxy',
+  #             '--auto-rewrite',
+  #             '--no-include-prefix',
+  #             '--no-prepend-path',
+  #             '--log-level', 'debug',
+  #             '--api-ip', '0.0.0.0']
+  testflask:
+    env_file: .testdockerenv
+    image: flaskcelery:test
+    command: "pytest -vs lightserv/tests/test_processing.py::test_processing_admin_access_processing_entry_for_nonadmin"
+    volumes:
+      - .:/app # so changes made to the app are propagated to the container without having to rebuild
+      - /jukebox/LightSheetData:/jukebox/LightSheetData
+      - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
+      - ./lib:/opt/libraries # for progproxy api
+    ports:
+      - '5010:5000'
+  # testworker:
+  #   env_file: .testworkerdockerenv
+  #   image: flaskcelery:latest
+  #   command: bash -c "sleep 3 && celery worker -A celery_worker.cel --loglevel=info" # sleep to wait for testflask to make the dbs
+  #   volumes:
+  #     - .:/app
+  #     - ./lib:/opt/libraries
+  #     - /jukebox/LightSheetData:/jukebox/LightSheetData
+  #     - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   depends_on:
+  #     - redis
+  #   # restart: always
+networks:
+  default:
+    external:
+      name: lightserv-test

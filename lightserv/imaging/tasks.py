@@ -94,14 +94,14 @@ def make_precomputed_rawdata(**kwargs):
 
 	try:
 		response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
-		logger.debug(response)
+		# logger.debug(response)
 		jobid_step0, jobid_step1, jobid_step2 = response.split('\n')
 	except:
 		if lightsheet == 'left':
 			dj.Table._update(this_imaging_channel_content,'left_lightsheet_precomputed_spock_job_progress','FAILED')
 		else:
 			dj.Table._update(this_imaging_channel_content,'right_lightsheet_precomputed_spock_job_progress','FAILED')
-		logger.debug("Error getting response from spock. ")
+		# logger.debug("Error getting response from spock. ")
 
 		return "Error getting response from spock."
 	status_step0 = 'SUBMITTED'
@@ -119,7 +119,6 @@ def make_precomputed_rawdata(**kwargs):
 	db_spockadmin.RawPrecomputedSpockJob.insert1(entry_dict)    
 	logger.info(f"Precomputed (Raw data) job inserted into RawPrecomputedSpockJob() table: {entry_dict}")
 	logger.info(f"Precomputed (Raw data) job successfully submitted to spock, jobid_step2: {jobid_step2}")
-	# logger.debug(type(jobid_step2))
 	try:
 		if lightsheet == 'left':
 			dj.Table._update(this_imaging_channel_content,'left_lightsheet_precomputed_spock_jobid',str(jobid_step2))
@@ -179,7 +178,7 @@ def check_raw_precomputed_statuses():
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
 	
 	client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
-	logger.debug("connected to spock")
+	# logger.debug("connected to spock")
 	command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
 	stdin, stdout, stderr = client.exec_command(command)
 	stdout_str = stdout.read().decode("utf-8")
@@ -191,12 +190,12 @@ def check_raw_precomputed_statuses():
 		logger.debug("Something went wrong parsing output of precomputed sacct query on spock")
 		client.close()
 		return "Error parsing sacct query of precomputed jobid on spock"
-	logger.debug("jobids_received:")
-	logger.debug(jobids_received)
+	# logger.debug("jobids_received:")
+	# logger.debug(jobids_received)
 	job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
 	job_insert_list = []
 	for jobid,indices_list in job_status_indices_dict.items():
-		logger.debug(f"In loop for jobid: {jobid}")
+		# logger.debug(f"In loop for jobid: {jobid}")
 		job_insert_dict = {'jobid_step2':jobid}
 		status_codes = [status_codes_received[ii] for ii in indices_list]
 		status_step2 = determine_status_code(status_codes)
@@ -205,7 +204,7 @@ def check_raw_precomputed_statuses():
 		username_thisjob,lightsheet_thisjob,jobid_step0,jobid_step1 = (
 			unique_contents & f'jobid_step2={jobid}').fetch1(
 			'username','lightsheet','jobid_step0','jobid_step1')
-		logger.debug(f"Lightsheet is: {lightsheet_thisjob}")
+		# logger.debug(f"Lightsheet is: {lightsheet_thisjob}")
 		job_insert_dict['username']=username_thisjob
 		job_insert_dict['jobid_step0']=jobid_step0
 		job_insert_dict['jobid_step1']=jobid_step1
@@ -221,7 +220,7 @@ def check_raw_precomputed_statuses():
 			client.close()
 			return "Error fetching steps 0,1 job statuses from spock"
 		stdout_str_earlier_steps = stdout_earlier_steps.read().decode("utf-8")
-		logger.debug(stdout_str_earlier_steps)
+		# logger.debug(stdout_str_earlier_steps)
 		try:
 			response_lines_earlier_steps = stdout_str_earlier_steps.strip('\n').split('\n')
 			jobids_received_earlier_steps = [x.split('|')[0].split('_')[0] for x in response_lines_earlier_steps] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
@@ -239,12 +238,12 @@ def check_raw_precomputed_statuses():
 			step = f'step{step_counter}'
 			jobid_earlier_step = jobid_step_dict[step]
 			indices_list_earlier_step = job_status_indices_dict_earlier_steps[jobid_earlier_step]
-			logger.debug(f'Step {step_counter} jobid: {jobid_earlier_step}')
+			# logger.debug(f'Step {step_counter} jobid: {jobid_earlier_step}')
 			status_codes_earlier_step = [status_codes_received_earlier_steps[ii] for ii in indices_list_earlier_step]
 			status_this_step = determine_status_code(status_codes_earlier_step)
 			status_step_str = f'status_step{step_counter}'
 			job_insert_dict[status_step_str] = status_this_step
-			logger.debug(f"Status for {status_step_str} is: {status_this_step}")
+			# logger.debug(f"Status for {status_step_str} is: {status_this_step}")
 		job_insert_dict['lightsheet'] = lightsheet_thisjob
 		job_insert_list.append(job_insert_dict)
 		""" Get the imaging channel entry associated with this jobid
@@ -272,8 +271,8 @@ def check_raw_precomputed_statuses():
 				if right_lightsheet_used:
 					job_status = imaging_channel_dict['right_lightsheet_precomputed_spock_job_progress']
 					imaging_request_job_statuses.append(job_status)
-			logger.debug("job statuses for this imaging request:")
-			logger.debug(imaging_request_job_statuses)
+			# logger.debug("job statuses for this imaging request:")
+			# logger.debug(imaging_request_job_statuses)
 			neuroglancer_form_relative_url = os.path.join(
 				'/neuroglancer',
 				'raw_data_setup',
@@ -284,7 +283,7 @@ def check_raw_precomputed_statuses():
 				)
 			neuroglancer_form_full_url = 'https://' + os.environ['HOSTURL'] + neuroglancer_form_relative_url
 			if all(x=='COMPLETED' for x in imaging_request_job_statuses):
-				logger.debug("all imaging channels in this request completed!")
+				# logger.debug("all imaging channels in this request completed!")
 				subject = 'Lightserv automated email: Raw data ready to be visualized'
 				body = ('Your raw data for sample:\n\n'
 						f'request_name: {request_name}\n'
@@ -296,7 +295,8 @@ def check_raw_precomputed_statuses():
 								{'username':username,'request_name':request_name}
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
-				send_email.delay(subject=subject,body=body,recipients=recipients)
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all imaging channels in this request are completed")
 		elif status_step2 == 'CANCELLED' or status_step2 == 'FAILED':
@@ -324,11 +324,12 @@ def check_raw_precomputed_statuses():
 								{'username':username,'request_name':request_name}
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
-			send_email.delay(subject=subject,body=body,recipients=recipients)
-			send_admin_email.delay(subject=subject,body=admin_body)
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				send_email.delay(subject=subject,body=body,recipients=recipients)
+				send_admin_email.delay(subject=subject,body=admin_body)
 
-	logger.debug("Insert list:")
-	logger.debug(job_insert_list)
+	# logger.debug("Insert list:")
+	# logger.debug(job_insert_list)
 	db_spockadmin.RawPrecomputedSpockJob.insert(job_insert_list)
 	client.close()
 

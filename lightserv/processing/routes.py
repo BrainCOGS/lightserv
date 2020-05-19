@@ -179,11 +179,12 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 				else:
 					logger.info("Not atlas entered in form. ")
 			logger.info(f"Starting light sheet pipeline task")
-		
-			run_lightsheet_pipeline.delay(username=username,request_name=request_name,sample_name=sample_name,
-				imaging_request_number=imaging_request_number,
-				processing_request_number=processing_request_number)
-
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				run_lightsheet_pipeline.delay(username=username,request_name=request_name,sample_name=sample_name,
+					imaging_request_number=imaging_request_number,
+					processing_request_number=processing_request_number)
+			dj.Table._update(processing_request_contents,'processing_progress','running')
+			logger.debug("Updated processing_progress in ProcessingRequest() table")
 			flash("Your data processing has begun. You will receive an email "
 				  "when it is completed.","success")
 			# except:
