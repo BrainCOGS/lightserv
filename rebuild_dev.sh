@@ -19,6 +19,11 @@ cd ./cloudvolume
 
 docker build -f ./cloudvolume.Dockerfile -t cloudv_viewer:latest .
 	
+## build neuroglancer-raw latest tag
+cd ../neuroglancer-raw
+
+docker build -f ./neuroglancer.Dockerfile -t nglancer_raw_viewer:latest .
+
 ## build neuroglancer latest tag
 cd ../neuroglancer
 

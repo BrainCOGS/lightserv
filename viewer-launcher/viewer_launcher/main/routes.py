@@ -47,6 +47,31 @@ def cvlauncher():
 								  detach=True)
 	return "success"
 
+@main.route("/ng_raw_launcher",methods=['POST']) 
+def ng_raw_launcher(): 
+	logging.debug("POST request to /ng_raw_launcher in viewer-launcher")
+	client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+	ng_dict = request.json
+	ng_container_name = ng_dict['ng_container_name'] # the name of the layer in Neuroglancer
+	session_name = ng_dict['session_name']
+	hosturl = ng_dict['hosturl']
+	ng_environment = {
+		'HOSTURL':hosturl,
+        'SESSION_NAME':session_name,
+        'FLASK_MODE':os.environ['FLASK_MODE']
+    }
+
+	if flask_mode == 'DEV':
+		ng_raw_image = 'nglancer_raw_viewer:latest'
+	elif flask_mode == 'PROD':
+		ng_raw_image = 'nglancer_raw_viewer:prod'
+	ng_container = client.containers.run(ng_raw_image,
+                                  environment=ng_environment,
+                                  network=network,
+                                  name=ng_container_name,
+                                  detach=True) 
+	return "success"
+
 @main.route("/nglauncher",methods=['POST']) 
 def nglauncher(): 
 	logging.debug("POST request to /nglauncher in viewer-launcher")
