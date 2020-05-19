@@ -162,8 +162,8 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
                 """ send the data to the viewer-launcher
                 to launch the ng viewer """                       
                 
-                requests.post('http://viewer-launcher:5005/nglauncher',json=ng_dict)
-                logger.debug("Made post request to viewer-launcher to launch ng viewer")
+                requests.post('http://viewer-launcher:5005/ng_raw_launcher',json=ng_dict)
+                logger.debug("Made post request to viewer-launcher to launch ng raw viewer")
                 
                 # Add the ng container name to redis session key level
                 kv.hmset(session_name, {"ng_container_name": ng_container_name})
@@ -376,7 +376,7 @@ def stitched_data_setup(username,request_name,sample_name,
                 """ send the data to the viewer-launcher
                 to launch the ng viewer """                       
                 
-                requests.post('http://viewer-launcher:5005/nglauncher',json=ng_dict)
+                requests.post('http://viewer-launcher:5005/ng_raw_launcher',json=ng_dict)
                 logger.debug("Made post request to viewer-launcher to launch ng viewer")
                 
                 # Add the ng container name to redis session key level
@@ -1335,7 +1335,7 @@ def general_data_setup(username,request_name,sample_name,
                     ng_dict['session_name'] = session_name
                     """ send the data to the viewer-launcher
                     to launch the ng viewer """                       
-                    requests.post('http://viewer-launcher:5005/nglauncher',json=ng_dict)                    
+                    requests.post('http://viewer-launcher:5005/ng_raw_launcher',json=ng_dict)                    
                     """ Add the ng container name to redis session key level """
                     kv.hmset(session_name, {"ng_container_name": ng_container_name})
                     """ Add ng viewer url to config proxy so it can be seen from outside of the lightserv docker network """
@@ -1417,7 +1417,7 @@ def general_data_setup(username,request_name,sample_name,
                     ng_dict['session_name'] = session_name
                     """ send the data to the viewer-launcher
                     to launch the ng viewer """                       
-                    requests.post('http://viewer-launcher:5005/nglauncher',json=ng_dict)                    
+                    requests.post('http://viewer-launcher:5005/ng_raw_launcher',json=ng_dict)                    
                     """ Add the ng container name to redis session key level """
                     kv.hmset(session_name, {"ng_container_name": ng_container_name})
                     """ Add ng viewer url to config proxy so it can be seen from outside of the lightserv docker network """
