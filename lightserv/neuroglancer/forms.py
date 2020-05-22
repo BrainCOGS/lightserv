@@ -35,7 +35,7 @@ class RawDataSetupForm(FlaskForm):
 				if channel_dict['viz_left_lightsheet'] or channel_dict['viz_right_lightsheet']:
 					any_checked=True
 		if not any_checked:
-			raise ValidationError("No light sheets were chosen for display."
+			raise ValidationError("No light sheets were chosen to display."
 								  " You must choose at least one in order to proceed.")
 
 """ Stitched data """
@@ -55,7 +55,7 @@ class StitchedDataSetupForm(FlaskForm):
 				if channel_dict['viz_left_lightsheet'] or channel_dict['viz_right_lightsheet']:
 					any_checked=True
 		if not any_checked:
-			raise ValidationError("No light sheets were chosen for display."
+			raise ValidationError("No light sheets were chosen to display."
 								  " You must choose at least one in order to proceed.")
 
 """ Blended data """
@@ -86,7 +86,7 @@ class BlendedDataSetupForm(FlaskForm):
 				if channel_dict['viz']:
 					any_checked=True
 		if not any_checked:
-			raise ValidationError("No channels were chosen for display."
+			raise ValidationError("No channels were chosen to display."
 								  " You must choose at least one in order to proceed.")
 
 """ Downsized data """
@@ -117,7 +117,7 @@ class DownsizedDataSetupForm(FlaskForm):
 				if channel_dict['viz']:
 					any_checked=True
 		if not any_checked:
-			raise ValidationError("No channels were chosen for display."
+			raise ValidationError("No channels were chosen to display."
 								  " You must choose at least one in order to proceed.")
 
 """ Registered data """
@@ -149,7 +149,7 @@ class RegisteredDataSetupForm(FlaskForm):
 				if channel_dict['viz']:
 					any_checked=True
 		if not any_checked:
-			raise ValidationError("No channels were chosen for display."
+			raise ValidationError("No channels were chosen to display."
 								  " You must choose at least one in order to proceed.")
 
 """ General visualization form """
@@ -172,7 +172,25 @@ class GeneralDataSetupForm(FlaskForm):
 	submit = SubmitField('Submit') # renders a new resolution table
 	
 	def validate_image_resolution_forms(self,image_resolution_forms):
-		""" Check to make sure at least one checkbox was checked """
-		pass
-
-
+		""" Check to make sure at least one checkbox was checked 
+		out of all types of forms"""
+		any_checked=False
+		for image_resolution_dict in self.image_resolution_forms.data:
+			for channel_dict in image_resolution_dict['raw_channel_forms']:
+				if channel_dict['viz_left_lightsheet'] or channel_dict['viz_right_lightsheet']:
+					any_checked=True
+			for channel_dict in image_resolution_dict['stitched_channel_forms']:
+				if channel_dict['viz_left_lightsheet'] or channel_dict['viz_right_lightsheet']:
+					any_checked=True
+			for channel_dict in image_resolution_dict['blended_channel_forms']:
+				if channel_dict['viz']:
+					any_checked=True
+			for channel_dict in image_resolution_dict['downsized_channel_forms']:
+				if channel_dict['viz']:
+					any_checked=True
+			for channel_dict in image_resolution_dict['registered_channel_forms']:
+				if channel_dict['viz']:
+					any_checked=True
+		if not any_checked:
+			raise ValidationError("No channels were chosen to display."
+								  " You must choose at least one in order to proceed.")
