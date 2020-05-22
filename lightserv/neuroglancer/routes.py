@@ -202,6 +202,9 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
 
         else: # form not validated
             flash("There were errors below. Correct them in order to proceed.",'danger')
+            for key in form.errors:
+                for error in form.errors[key]:
+                    flash(error,'danger')
             logger.debug(form.errors)
 
 
@@ -415,6 +418,9 @@ def stitched_data_setup(username,request_name,sample_name,
 
         else: # form not validated
             flash("There were errors below. Correct them in order to proceed.","danger")
+            for key in form.errors:
+                for error in form.errors[key]:
+                    flash(error,'danger')
             logger.debug(form.errors)
 
     """Loop through all imaging resolutions and render a 
@@ -618,6 +624,9 @@ def blended_data_setup(username,request_name,sample_name,
 
         else: # form not validated
             flash("There were errors below. Correct them in order to proceed.","danger")
+            for key in form.errors:
+                for error in form.errors[key]:
+                    flash(error,'danger')
             logger.debug(form.errors)
 
     """Loop through all imaging resolutions and render a 
@@ -839,6 +848,9 @@ def downsized_data_setup(username,request_name,sample_name,
 
         else: # form not validated
             flash("There were errors below. Correct them in order to proceed.","danger")
+            for key in form.errors:
+                for error in form.errors[key]:
+                    flash(error,'danger')
             logger.debug(form.errors)
 
     """Loop through all imaging resolutions and render a 
@@ -1124,6 +1136,9 @@ def registered_data_setup(username,request_name,sample_name,
 
         else: # form not validated
             flash("There were errors below. Correct them in order to proceed.","danger")
+            for key in form.errors:
+                for error in form.errors[key]:
+                    flash(error,'danger')
             logger.debug(form.errors)
 
     """Loop through all imaging resolutions and render a 
