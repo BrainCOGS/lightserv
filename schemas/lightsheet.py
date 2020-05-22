@@ -153,8 +153,9 @@ class Request(dj.Manual):
         final_orientation                         :   enum("sagittal","coronal","horizontal")
         notes_for_processor = ""                  :   varchar(1024)
         notes_from_processing = ""                :   varchar(1024) 
-        lightsheet_pipeline_spock_jobid = NULL                        :   varchar(16)  # the jobid from the final step in the light sheet processing pipeline
-        lightsheet_pipeline_spock_job_progress = NULL                 :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT") # the spock job status code for the final step in the light sheet processing pipeline
+        lightsheet_pipeline_spock_jobid = NULL            :   varchar(16)  # the jobid from the final step in the light sheet processing pipeline
+        lightsheet_pipeline_spock_job_progress = NULL     :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT") # the spock job status code for the final step in the light sheet processing pipeline
+        brainpipe_commit = NULL                   : char(7) # the commit that is checked out on the machine at the time the job was submitted 
         """
 
     class ProcessingChannel(dj.Part):

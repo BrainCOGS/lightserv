@@ -350,14 +350,17 @@ def run_lightsheet_pipeline(username,request_name,
 			
 			""" Set up the communication with spock """
 
-			command = """cd %s;%s/%s %s %s %s""" % \
-				(processing_code_dir,
-					processing_code_dir,
-					pipeline_shell_script,
-					output_directory,
-					n_array_jobs_step1,
-					n_channels_total
-				)
+			""" First get the git commit from brainpipe """
+			command_get_commit = f'cd {processing_code_dir}; git rev-parse --short HEAD'
+
+			# command = """cd %s;%s/%s %s %s %s""" % \
+			# 	(processing_code_dir,
+			# 		processing_code_dir,
+			# 		pipeline_shell_script,
+			# 		output_directory,
+			# 		n_array_jobs_step1,
+			# 		n_channels_total
+			# 	)
 			
 			if n_channels_reg > 0:
 				command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline.sh"""
@@ -426,7 +429,15 @@ def run_lightsheet_pipeline(username,request_name,
 			dj.Table._update(this_image_resolution_content,'lightsheet_pipeline_spock_job_progress','SUBMITTED')
 			logger.debug("Updated spock job progress in ProcessingResolutionRequest() table")
 
-			# finally:
+			""" Get the brainpipe commit and add it to processing request contents table """
+			
+			stdin_commit, stdout_commit, stderr_commit = client.exec_command(command_get_commit)
+			brainpipe_commit = str(stdout_commit.read().decode("utf-8").strip('\n'))
+			logger.debug("BRAINPIPE COMMIT")
+			logger.debug(brainpipe_commit)
+			dj.Table._update(this_image_resolution_content,'brainpipe_commit',brainpipe_commit)
+			logger.debug("Updated brainpipe_commit in ProcessingResolutionRequest() table")
+
 			client.close()
 	return "SUBMITTED spock job"
 
