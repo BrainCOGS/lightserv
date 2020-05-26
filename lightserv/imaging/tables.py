@@ -32,6 +32,7 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
         table_id = table_id,
         classes = ["table-striped","mb-4"]
         ) 
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
 
     table_class = create_table(name,options=options)
     table_class.get_tr_attrs = dynamic_get_tr_attrs
@@ -41,19 +42,29 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
-    table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted'))
-    table_class.add_column('request_name',Col('request name'))
-    table_class.add_column('sample_name',Col('sample name'))
-    table_class.add_column('username',Col('username'))    
-    table_class.add_column('imaging_request_number',Col('imaging request number'))    
+    table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('request_name',Col('request name',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('sample_name',Col('sample name',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('username',Col('username',
+        column_html_attrs=column_html_attrs))    
+    table_class.add_column('imaging_request_number',Col('imaging request number',
+        column_html_attrs=column_html_attrs))    
     
     if table_class.table_id != 'horizontal_already_imaged_table':
-        table_class.add_column('clearing_progress',Col('clearing progress'))
+        table_class.add_column('clearing_progress',Col('clearing progress',
+            column_html_attrs=column_html_attrs))
     if table_class.table_id == 'horizontal_on_deck_table':
-        table_class.add_column('clearer',DesignatedRoleCol('clearer'))
-    table_class.add_column('imaging_progress',Col('imaging progress'))
-    table_class.add_column('imager',DesignatedRoleCol('imager'))
-    table_class.add_column('species',Col('species'))    
+        table_class.add_column('clearer',DesignatedRoleCol('clearer',
+            column_html_attrs=column_html_attrs))
+    table_class.add_column('imaging_progress',Col('imaging progress',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('imager',DesignatedRoleCol('imager',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('species',Col('species',
+        column_html_attrs=column_html_attrs))    
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
     imaging_url_kwargs = {'username':'username','request_name':'request_name',
@@ -64,15 +75,18 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     if table_id == 'horizontal_ready_to_image_table':
         table_class.add_column('start_imaging_link',LinkCol('Start imaging',
          'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False))
+            anchor_attrs=anchor_attrs,allow_sort=False,
+            column_html_attrs=column_html_attrs))
     elif table_id == 'horizontal_being_imaged_table':
         table_class.add_column('continue_imaging_link',LinkCol('Continue imaging',
          'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False))
+            anchor_attrs=anchor_attrs,allow_sort=False,
+            column_html_attrs=column_html_attrs))
     elif table_id == 'horizontal_already_imaged_table':
         table_class.add_column('view_imaging_link',LinkCol('View Imaging log',
          'imaging.imaging_table',url_kwargs=imaging_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False))
+            anchor_attrs=anchor_attrs,allow_sort=False,
+            column_html_attrs=column_html_attrs))
          
     sorted_contents = sorted(contents.fetch(as_dict=True),
             key=partial(table_sorter,sort_key=sort),reverse=reverse)
@@ -86,7 +100,9 @@ class ImagingTable(Table):
     border = True
     no_items = "No Imaging Yet"
     html_attrs = {"style":'font-size:18px'} # gets assigned to table header
-    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
+
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
     request_name = Col('request name',column_html_attrs=column_html_attrs)
@@ -98,8 +114,10 @@ class ImagingTable(Table):
 class SampleTable(Table):
     border = True
     no_items = "No Sample Yet"
+
     html_attrs = {"style":'font-size:18px'} # gets assigned to table header
-    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
     request_name = Col('request name',column_html_attrs=column_html_attrs)
@@ -112,7 +130,8 @@ class ExistingImagingTable(Table):
     allow_sort=False
     no_items = "No imaging requested yet"
     html_attrs = {"style":'font-size:18px'} # gets assigned to table header
-    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     imaging_request_number = Col('imaging request number',column_html_attrs=column_html_attrs)
     image_resolution = Col('image resolution',column_html_attrs=column_html_attrs)
@@ -127,7 +146,8 @@ class ImagingChannelTable(Table):
     border = True
     no_items = "No Imaging Yet"
     html_attrs = {"style":'font-size:18px'} # gets assigned to table header
-    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
    
     image_resolution = Col('image resolution',column_html_attrs=column_html_attrs)

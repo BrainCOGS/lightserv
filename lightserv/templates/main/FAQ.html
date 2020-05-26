@@ -27,39 +27,6 @@
  
 <hr class='class-1'>
 
-<div id="ng_color_contrast">
-	<h4 align="center"> Q: How to change the contrast of image layers in Neuroglancer/why are my
-	images showing up in all black?</h4>
-	<p> 
-		<b>A:</b> For image layers, the default color contrast that Neuroglancer uses is often 
-		too dark for light sheet volumes. Fortunately, the contrast is adjustable. The video below 
-		walks through how to change the color contrast to suit your needs. In the video, the code
-		that is copied from the jupyter notebook is:
-	</p>
-	<p style="color: #080808; background-color: #C0CEDD;font-size: 14px; ">
-	void main() { </br>
-	  emitGrayscale(toNormalized(getDataValue())*25.); </br>
-	}
-	</p>
-    <video width="800" controls>
-        <source src="{{ url_for("static",filename="FAQ/ng_change_color_contrast.mp4") }}" type="video/mp4">
-    </video>
-</div>
-
-<hr class='class-1'>
-
-
-<h4 align="center"> Q: How do I fix the connection to my account on spock?</h4>
-	<p>
-		<b>A:</b> Most likely the ssh key that was emailed to you was either not copied or incorrectly copied to your account on spock. This key allows lightserv to ssh into your account on spock so it can run jobs as you. Check your email for a message from lightservhelper@gmail.com with the contents "ssh key". Follow the instructions at the bottom of the email closely. If you still experience issues connecting, you may need to alter the permissions of the ssh public key file and its directory. To change the permissions log onto your account on spock and issue the following commands: 
-	</p>
-	<p style="color: #080808; background-color: #C0CEDD;font-size: 14px;">
-    chmod 700 ~/.ssh</br>
-    chmod 640 ~/.ssh/authorized_keys
-	</p>
-	<p> You can test your connection to spock: <a href="{{url_for('main.spock_connection_test')}}">here</a>. Note that this will not run any jobs as you and therefore your spock karma will be unaffected.
-<hr class='class-1'>
-
 <div id='new_imaging_request'>
 	<h4 align="center"> Q: How do I request additional imaging for a sample I already submitted?</h4>
 	<p>
@@ -81,27 +48,27 @@
 <div id='request_structure'>
 <h4 align="center"> Q: What are imaging request numbers and processing request numbers?</h4>
 	<p>
-		<b>A:</b> When you submit a request via the "New Request" form, you provide all of the information that allows us to clear, image and process your collection of samples. Ideally, this request encompasses all of the steps you ever want done for this collection of samples. But what if you get your images back at one resolution and then decide you would like to image that sample at a different, perhaps higher resolution? Rather than having you resubmit an entire new request form, we instead have you fill out a "New Imaging Request" form. This makes it so you don't have to re-enter a bunch of information about the request, sample and clearing parameters. Since the sample is the same as in the original request, we tie this new imaging request back to same sample. We do this using the imaging request number. Your original request has imaging_request_number=1 by default. Any subsequent imaging requests are assigned an increasing integer from the highest pre-existing imaging request number. The number of imaging requests you can make for a single sample is unlimited.
+		<b>A:</b> When you submit a request via the "New Request" form, you provide all of the information that allows us to clear, image and process your collection of samples. Ideally, this request encompasses all of the steps you ever want done for this collection of samples. But what if you get your images back at one resolution and then decide you would like to image that sample at a different, perhaps higher resolution? Rather than having you resubmit an entire new request form, we instead have you fill out a "New Imaging Request" form. This makes it so you don't have to re-enter a bunch of information about the request, sample and clearing parameters. Because the sample is the same as in the original request, we can tie this new imaging request back to same sample. We do this using the imaging request number. Your original request has imaging_request_number=1 by default. Any subsequent imaging requests are assigned an increasing integer from the highest pre-existing imaging request number. The number of imaging requests you can make for a single sample is unlimited.
 	</p>
 	<p>
-		Likewise, it is possible that after we have processed your images using the processing parameters you requested in your original request, you decide that you would like to try new parameters. Or maybe you want to align to a different atlas than in your first request. Rather than have you fill out an entire new request form, we instead have you fill out a "New Processing Request" form. Since processing is done on images, processing requests tie back to an imaging request. Your original request has processing_request_number=1 by default. Any subsequent processing requests are assigned an increasing integer from the highest pre-existing processing request number. The following diagrams illustrate the hierarchy of requests, samples, imaging requests and processing requests for different scenarios.
+		Likewise, it is possible that after we have processed your images using the processing parameters you requested in your original request, you decide that you would like to try new parameters. Or maybe you want to align to a different atlas than in your first request. Rather than have you fill out an entire new request form, we instead have you fill out a "New Processing Request" form. Since processing is done on images, multiple processing requests can tie back to the imaging request. Your original request has processing_request_number=1 by default. Any subsequent processing requests are assigned an increasing integer from the highest pre-existing processing request number. The following diagrams illustrate the hierarchy of requests, samples, imaging requests and processing requests for different scenarios.
 	</p>
 	<div align="center" class='mb-2'>
 		<img src="{{ url_for('static',filename='FAQ/simple_request_structure_graph.png') }}">	
 		</br>
-		<b>Fig 1.2</b>: The original request structure when you submit a request via the "New Request Form". In this example the request has two samples. Each sample has a single imaging request, and each imaging request has a single processing request.
+		<b>Fig 2.1</b>: The original request structure when you submit a request via the "New Request Form". In this example the request has two samples. Each sample has a single imaging request, and each imaging request has a single processing request.
 	</div>
 	<hr class='class-2'>
 	<div align="center" class='mb-2 mt-4'>
 		<img src="{{ url_for('static',filename='FAQ/two_imaging_request_structure_graph.png') }}">	
 		</br>
-		<b>Fig 1.3</b>: A request structure with two samples, where Sample 1 has two imaging requests. In this example, the user requested additional imaging for Sample 1, but Sample 2 has the original request structure. Each imaging request has a single processing request (this is the default). To learn how to make an additional imaging request for a single sample, see: <a href="{{ url_for('main.FAQ',_anchor='new_imaging_request') }}">Q: How do I request additional imaging for a sample I already submitted?</a>
+		<b>Fig 2.2</b>: A request structure with two samples, where Sample 1 has two imaging requests. In this example, the user requested additional imaging for Sample 1, but Sample 2 has the original request structure. Each imaging request has a single processing request (this is the default). To learn how to make an additional imaging request for a single sample, see: <a href="{{ url_for('main.FAQ',_anchor='new_imaging_request') }}">Q: How do I request additional imaging for a sample I already submitted?</a>
 	</div>
 
 	<div align="center" class='mb-2 mt-4'>
 		<img src="{{ url_for('static',filename='FAQ/two_processing_request_structure_graph.png') }}">	
 		</br>
-		<b>Fig 1.4</b>: A request structure with two samples, where Sample 1 has two imaging requests and Imaging Request 2 for this sample has two processing requests. In this example, the user requested additional imaging for Sample 1 and then additional processing for this additional batch of images. Their original set of images are unchanged. Sample 2 has the original request structure. To learn how to make an additional processing request for a set of images, see: <a href="{{ url_for('main.FAQ',_anchor='new_processing_request') }}">Q: How do I request additional processing for a set of images?</a>
+		<b>Fig 2.3</b>: A request structure with two samples, where Sample 1 has two imaging requests and Imaging Request 2 for this sample has two processing requests. In this example, the user requested additional imaging for Sample 1 and then additional processing for this additional batch of images. Their original set of images are unchanged. Sample 2 has the original request structure. To learn how to make an additional processing request for a set of images, see: <a href="{{ url_for('main.FAQ',_anchor='new_processing_request') }}">Q: How do I request additional processing for a set of images?</a>
 	</div>
 </div>
 
