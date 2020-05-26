@@ -36,7 +36,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
         table_id = table_id,
         classes = ["mb-4"]
         ) 
-
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
     table_class = create_table(name,options=options)
     table_class.get_tr_attrs = dynamic_get_tr_attrs
     table_class.sort_url = dynamic_sort_url
@@ -48,19 +48,29 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
-    table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted'))
-    table_class.add_column('clearing_protocol',Col('clearing protocol'))
-    table_class.add_column('antibody1',Col('antibody1'))
-    table_class.add_column('antibody2',Col('antibody2'))
-    table_class.add_column('request_name',Col('request name'))
-    table_class.add_column('username',Col('username'))
-    table_class.add_column('clearer',DesignatedRoleCol('clearer'))
+    table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('clearing_protocol',Col('clearing protocol',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('antibody1',Col('antibody1',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('antibody2',Col('antibody2',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('request_name',Col('request name',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('username',Col('username',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('clearer',DesignatedRoleCol('clearer',
+        column_html_attrs=column_html_attrs))
     
     if not table_class.table_id == 'horizontal_ready_to_clear_table':
-        table_class.add_column('clearing_progress',Col('clearing progress'))
+        table_class.add_column('clearing_progress',Col('clearing progress',
+            column_html_attrs=column_html_attrs))
 
-    table_class.add_column('species',Col('species'))    
-    table_class.add_column('number_in_batch',Col('number in batch'))    
+    table_class.add_column('species',Col('species',
+        column_html_attrs=column_html_attrs))    
+    table_class.add_column('number_in_batch',Col('number in batch',
+        column_html_attrs=column_html_attrs))    
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
     clearing_url_kwargs = {'username':'username','request_name':'request_name',
@@ -70,15 +80,18 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     if table_id == 'horizontal_ready_to_clear_table':
         table_class.add_column('start_clearing_link',LinkCol('Start clearing',
          'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False))
+            anchor_attrs=anchor_attrs,allow_sort=False,
+            column_html_attrs=column_html_attrs))
     elif table_id == 'horizontal_being_cleared_table':
         table_class.add_column('continue_clearing_link',LinkCol('Continue clearing',
          'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False))
+            anchor_attrs=anchor_attrs,allow_sort=False,
+            column_html_attrs=column_html_attrs))
     elif table_id == 'horizontal_already_cleared_table':
         table_class.add_column('view_clearing_link',LinkCol('View clearing log',
          'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False))
+            anchor_attrs=anchor_attrs,allow_sort=False,
+            column_html_attrs=column_html_attrs))
          
     sorted_contents = sorted(contents.fetch(as_dict=True),
             key=partial(table_sorter,sort_key=sort),reverse=reverse)
@@ -92,7 +105,10 @@ class ClearingTable(Table):
     border = True
     no_items = "No Clearing Yet"
     html_attrs = {"style":'font-size:14px'} # gets assigned to table header
-    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
+    
+    # column_html_attrs=column_html_attrs
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
     request_name = Col('request_name',column_html_attrs=column_html_attrs)
