@@ -15,7 +15,8 @@ class AllRequestTable(Table):
 	html_attrs = {"style":'font-size:18px',} # gets assigned to table header
 	table_id = 'vert_table' # override this when you make an instance if you dont want vertical layout by default
 	# column_html_attrs = {'style':'text-align: center; min-width:10px', 'bgcolor':"#FF0000"} # gets assigned to both th and td
-	column_html_attrs = [] # javascript tableswapper does not preserve these.
+	# column_html_attrs = [] # javascript tableswapper does not preserve these.
+	column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
 	classes = [] # gets assigned to table classes. 
 	# Striped is alternating bright and dark rows for visual ease.
 	datetime_submitted = DateTimeCol('datetime submitted')
@@ -68,25 +69,26 @@ class ClearingTableLinkCol(LinkCol):
 	def td_contents(self, item, attr_list):
 		if item['clearing_progress'] == 'complete':
 			if item['is_archival']:
-				return '<a href="{url}">{text}</a>'.format(
+				return '<a href="{url}" target="_blank">{text}</a>'.format(
 					url=item['link_to_clearing_spreadsheet'],
 					text='link')
 			else:	
-				return '<a href="{url}">{text}</a>'.format(
+				return '<a href="{url}" target="_blank">{text}</a>'.format(
 					url=self.url(item),
 					text=self.td_format(self.text(item, attr_list)))
 		else:
 			return "N/A"
 
 class AllSamplesTable(Table):
-
 	border = True
 	allow_sort = True
 	no_items = "No Samples Yet"
 	html_attrs = {"style":'font-size:18px',} # gets assigned to table header
 	table_id = 'vert_table' # override this when you make an instance if you dont want vertical layout by default
 	# column_html_attrs = {'style':'text-align: center; min-width:10px', 'bgcolor':"#FF0000"} # gets assigned to both th and td
-	column_html_attrs = [] # javascript tableswapper does not preserve these.
+	# column_html_attrs = [] # javascript tableswapper does not preserve these.
+	column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
+
 	classes = ["table-striped"] # gets assigned to table classes. 
 	# Striped is alternating bright and dark rows for visual ease.
 	sample_name = Col('sample name',column_html_attrs=column_html_attrs)
@@ -179,7 +181,6 @@ class AllSamplesTable(Table):
 		imaging_requests_subtable_class,allow_sort=False)
 	
 	
-	
 	def sort_url(self, col_key, reverse=False):
 		if reverse:
 			direction = 'desc'
@@ -196,7 +197,9 @@ class RequestOverviewTable(Table):
 	html_attrs = {"style":'font-size:18px',} # gets assigned to table header
 	table_id = 'vert_table' # override this when you make an instance if you dont want vertical layout by default
 	# column_html_attrs = {'style':'text-align: center; min-width:10px', 'bgcolor':"#FF0000"} # gets assigned to both th and td
-	column_html_attrs = [] # javascript tableswapper does not preserve these.
+	# column_html_attrs = [] # javascript tableswapper does not preserve these.
+	column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
+
 	classes = ["table-striped"] # gets assigned to table classes. 
 	# Striped is alternating bright and dark rows for visual ease.
 	datetime_submitted = DateTimeCol('datetime submitted')
@@ -223,11 +226,11 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 		border = True,
 		allow_sort = True,
 		no_items = "No Samples",
-		html_attrs = {"style":'font-size:18px;'}, 
+		html_attrs = {"style":'font-size:18px;'},
 		table_id = table_id,
 		classes = ["table-striped","mb-4"]
 		) 
-
+	column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
 	table_class = create_table(name,options=options)
 	table_class.sort_url = dynamic_sort_url
 	sort = sort_kwargs.get('sort_by','sample_name')
@@ -238,12 +241,12 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 	""" Add the columns that you want to go first here.
 	It is OK if they get duplicated in the loop below -- they
 	will not be added twice """
-	table_class.add_column('sample_name',Col('sample name'))    
-	table_class.add_column('request_name',Col('request name'))
-	table_class.add_column('username',Col('username'))
-	table_class.add_column('is_archival',BooltoStringCol('archival?'))
-	table_class.add_column('clearing_protocol',Col('clearing protocol'))
-	table_class.add_column('clearing_progress',Col('clearing progress'))
+	table_class.add_column('sample_name',Col('sample name',column_html_attrs=column_html_attrs))    
+	table_class.add_column('request_name',Col('request name',column_html_attrs=column_html_attrs))
+	table_class.add_column('username',Col('username',column_html_attrs=column_html_attrs))
+	table_class.add_column('is_archival',BooltoStringCol('archival?',column_html_attrs=column_html_attrs))
+	table_class.add_column('clearing_protocol',Col('clearing protocol',column_html_attrs=column_html_attrs))
+	table_class.add_column('clearing_progress',Col('clearing progress',column_html_attrs=column_html_attrs))
 
 	clearing_url_kwargs = {'username':'username','request_name':'request_name',
 		'clearing_protocol':'clearing_protocol',
@@ -252,7 +255,7 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 	table_class.add_column('view_clearing_link',
 		 ClearingTableLinkCol('Clearing log', 
 		'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
-	   anchor_attrs=anchor_attrs,allow_sort=False))
+	   anchor_attrs=anchor_attrs,allow_sort=False,column_html_attrs=column_html_attrs))
 	
 	imaging_request_subtable_options = {
 	'table_id':f'imaging_requests',
@@ -265,9 +268,9 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 		'imaging_request_number':'imaging_request_number'}
 	imaging_requests_subtable_class.add_column('imaging_request_number',
 		ImagingRequestLinkCol('imaging request number','imaging.imaging_table',
-			url_kwargs=imaging_request_url_kwargs))
-	imaging_requests_subtable_class.add_column('imager',Col('imager'))
-	imaging_requests_subtable_class.add_column('imaging_progress',Col('imaging progress'))
+			url_kwargs=imaging_request_url_kwargs,column_html_attrs=column_html_attrs))
+	imaging_requests_subtable_class.add_column('imager',Col('imager',column_html_attrs=column_html_attrs))
+	imaging_requests_subtable_class.add_column('imaging_progress',Col('imaging progress',column_html_attrs=column_html_attrs))
 	imaging_url_kwargs = {'username':'username','request_name':'request_name','sample_name':'sample_name'}
 	new_imaging_request_tooltip_text = ('Not available for archival requests. '
 		'Please only request additional imaging for this sample '
@@ -279,12 +282,14 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 
 	table_class.add_column('new imaging request',
 		NewImagingRequestLinkCol('request additional imaging','imaging.new_imaging_request',
-			url_kwargs=imaging_url_kwargs,th_html_attrs=new_imaging_request_html_attrs,allow_sort=False))
+			url_kwargs=imaging_url_kwargs,th_html_attrs=new_imaging_request_html_attrs,
+			allow_sort=False,column_html_attrs=column_html_attrs))
 
 	processing_request_subtable_options = {
 	'table_id':f'processing_requests',
 	'border':True,
 	}
+
 	processing_requests_subtable_class = create_table('processing_request_subtable',
 		options=processing_request_subtable_options)
 	processing_request_url_kwargs = {'username':'username',
@@ -293,14 +298,17 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 		'processing_request_number':'processing_request_number'}
 	processing_requests_subtable_class.add_column('processing_request_number',
 		ProcessingRequestLinkCol('processing request number','processing.processing_table',
-			url_kwargs=processing_request_url_kwargs))
-	processing_requests_subtable_class.add_column('processor',Col('processor'))
-	processing_requests_subtable_class.add_column('processing_progress',Col('processing progress'))
+			url_kwargs=processing_request_url_kwargs,
+			column_html_attrs=column_html_attrs))
+	processing_requests_subtable_class.add_column('processor',Col('processor',
+		column_html_attrs=column_html_attrs))
+	processing_requests_subtable_class.add_column('processing_progress',Col('processing progress',
+		column_html_attrs=column_html_attrs))
 	processing_requests_subtable_class.add_column('visualization',
 		LinkCol('Viz', 'neuroglancer.general_data_setup',
 			url_kwargs=processing_request_url_kwargs,
-			allow_sort=False)
-)
+			allow_sort=False,
+			column_html_attrs=column_html_attrs))
 	processing_url_kwargs = {'username':'username','request_name':'request_name',
 	'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
 	new_processing_request_tooltip_text = ('Not available for archival requests. '
@@ -313,12 +321,14 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 	
 	imaging_requests_subtable_class.add_column('new processing request',
 		NewProcessingRequestLinkCol('request additional processing','processing.new_processing_request',
-			url_kwargs=processing_url_kwargs,th_html_attrs=new_processing_request_html_attrs))
+			url_kwargs=processing_url_kwargs,th_html_attrs=new_processing_request_html_attrs,
+			column_html_attrs=column_html_attrs))
 	imaging_requests_subtable_class.add_column('processing_requests',
 		NestedTableCol('Processing Requests',processing_requests_subtable_class))
 
 	table_class.add_column('imaging_requests',
-		NestedTableCol('Imaging Requests',imaging_requests_subtable_class,allow_sort=False))
+		NestedTableCol('Imaging Requests',imaging_requests_subtable_class,
+			allow_sort=False))
 	
 	sorted_contents = sorted(contents,
 			key=partial(table_sorter,sort_key=sort),reverse=reverse)
