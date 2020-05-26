@@ -67,11 +67,12 @@ def all_requests():
         processing_request_contents = processing_request_contents & f'username="{current_user}"'
     # logger.debug(request_contents)
     ''' Now figure out what fraction of the samples in each request are cleared/imaged/processed '''    
-    replicated_args = dict(number_of_samples='number_of_samples',description='description',
+    replicated_args = dict(is_archival='is_archival',number_of_samples='number_of_samples',description='description',
         species='species',datetime_submitted='datetime_submitted')
 
     sample_joined_contents = dj.U('username','request_name').aggr(
         request_contents * clearing_batch_contents,
+        is_archival='is_archival',
         number_of_samples='number_of_samples',
         number_in_batch='number_in_batch',
         description='description',

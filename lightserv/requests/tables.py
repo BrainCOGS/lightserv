@@ -25,6 +25,14 @@ class AllRequestTable(Table):
 	request_name = Col('request name',column_html_attrs=column_html_attrs)
 	description = AbbrevDescriptionCol('description',column_html_attrs=column_html_attrs)
 	species = Col('species',column_html_attrs=column_html_attrs)
+	archival_tooltip_text = ('An archival request is a request '
+		'that was not submitted through this web portal, '
+		'but was manually entered after the experiment '
+		 'was already done. As a result, information may be incomplete '
+		 'and not all data products or visualizations may be available.')
+	archival_html_attrs = {'class':'infolink','title':archival_tooltip_text}
+	is_archival = BooltoStringCol('archival?',column_html_attrs=column_html_attrs,
+		th_html_attrs=archival_html_attrs)
 	number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
 	fraction_cleared = Col('fraction cleared',column_html_attrs=column_html_attrs)
 	fraction_imaged = Col('fraction imaged*',column_html_attrs=column_html_attrs)
@@ -94,7 +102,14 @@ class AllSamplesTable(Table):
 	sample_name = Col('sample name',column_html_attrs=column_html_attrs)
 	request_name = Col('request name',column_html_attrs=column_html_attrs)
 	username = Col('username',column_html_attrs=column_html_attrs)
-	is_archival = BooltoStringCol('archival?',column_html_attrs=column_html_attrs)
+	archival_tooltip_text = ('An archival request is a request '
+		'that was not submitted through this web portal, '
+		'but was manually entered after the experiment '
+		 'was already done. As a result, information may be incomplete '
+		 'and not all data products or visualizations may be available.')
+	archival_html_attrs = {'class':'infolink','title':archival_tooltip_text}
+	is_archival = BooltoStringCol('archival?',column_html_attrs=column_html_attrs,
+		th_html_attrs=archival_html_attrs)
 	species = Col('species',column_html_attrs=column_html_attrs)
 	clearing_protocol = Col('clearing protocol')
 	clearing_progress = Col('clearing progress')
@@ -244,7 +259,14 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 	table_class.add_column('sample_name',Col('sample name',column_html_attrs=column_html_attrs))    
 	table_class.add_column('request_name',Col('request name',column_html_attrs=column_html_attrs))
 	table_class.add_column('username',Col('username',column_html_attrs=column_html_attrs))
-	table_class.add_column('is_archival',BooltoStringCol('archival?',column_html_attrs=column_html_attrs))
+	archival_tooltip_text = ('An archival request is a request '
+		'that was not submitted through this web portal, '
+		'but was manually entered after the experiment '
+		 'was already done. As a result, information may be incomplete '
+		 'and not all data products or visualizations may be available.')
+	archival_html_attrs = {'class':'infolink','title':archival_tooltip_text}
+	table_class.add_column('is_archival',BooltoStringCol('archival?',column_html_attrs=column_html_attrs,
+		th_html_attrs=archival_html_attrs))
 	table_class.add_column('clearing_protocol',Col('clearing protocol',column_html_attrs=column_html_attrs))
 	table_class.add_column('clearing_progress',Col('clearing progress',column_html_attrs=column_html_attrs))
 
