@@ -767,7 +767,7 @@ def test_cleared_request_nonadmin(test_client,test_single_sample_request_nonadmi
 	Uses the test_delete_request_db_contents fixture, which means that 
 	all db entries are deleted upon teardown of this fixture
 	"""
-	print('----------Setup test_cleared_request_ahoag fixture ----------')
+	print('----------Setup test_cleared_request_nonadmin fixture ----------')
 	from lightserv import db_lightsheet
 	now = datetime.now()
 	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
@@ -783,7 +783,7 @@ def test_cleared_request_nonadmin(test_client,test_single_sample_request_nonadmi
 		)	
 
 	yield test_client # this is where the testing happens
-	print('-------Teardown test_cleared_request_ahoag fixture --------')
+	print('-------Teardown test_cleared_request_nonadmin fixture --------')
 
 @pytest.fixture(scope='function') 
 def test_cleared_request_generic_imaging_nonadmin(test_client,test_request_generic_imaging_nonadmin,

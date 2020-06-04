@@ -22,7 +22,7 @@ services:
   testflask:
     env_file: .testdockerenv
     image: flaskcelery:test
-    command: "pytest -vs lightserv/tests/test_requests.py::test_nonadmin_sees_their_archival_request"
+    command: "pytest -vs lightserv/tests/test_requests.py::test_all_requests_reflects_cleared_request"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData

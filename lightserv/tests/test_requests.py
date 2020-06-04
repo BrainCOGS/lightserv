@@ -1299,6 +1299,50 @@ def test_nonadmin_sees_their_archival_request(test_client,test_archival_request_
 	# assert b'This is a demo request' not in response.data 	
 	# assert b'This is a request by lightserv-test' in response.data 	
 
+def test_archival_nonadmin_all_requests(test_client,test_archival_request_nonadmin):
+	""" Check that lightserv-test, a nonadmin cannot see their
+	archival request that was ingested outside of the usual new request form
+	in the all_requests() table 
+	"""
+
+	response = test_client.get(url_for('requests.all_requests'),
+		follow_redirects=True)
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag = parsed_html.find('table',
+		attrs={'id':'horizontal'})
+	table_row_tags = table_tag.find_all('tr')
+	header_row = table_row_tags[0].find_all('th')
+	data_row = table_row_tags[1].find_all('td')
+	for ii,col in enumerate(header_row):
+		if col.text == 'archival?':
+			archival_column_index = ii
+			break
+	is_archival = data_row[archival_column_index].text
+	assert is_archival == "yes"
+
+def test_all_requests_reflects_cleared_request(test_client,test_cleared_request_nonadmin):
+	""" Check that a cleared request shows shows fraction_cleared = 1/1
+	for a request where clearing is complete. 
+	"""
+	# print(processing_request_contents)
+	# assert len(processing_request_contents) > 0
+	response = test_client.get(url_for('requests.all_requests'),
+		follow_redirects=True)
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	# table_tags = parsed_html.find('table')
+	table_tag = parsed_html.find('table',
+		attrs={'id':'horizontal'})
+	table_row_tags = table_tag.find_all('tr')
+	header_row = table_row_tags[0].find_all('th')
+
+	data_row = table_row_tags[1].find_all('td')
+	for ii,col in enumerate(header_row):
+		if col.text == 'fraction cleared':
+			clearing_log_column_index = ii
+			print(clearing_log_column_index)
+			break
+	fraction_cleared = data_row[clearing_log_column_index].text
+	assert fraction_cleared == "1/1"
 
 """ Testing all_samples() """
 
@@ -1466,4 +1510,55 @@ def test_sort_request_overview_table(test_client,test_single_sample_request_ahoa
 		print(response.data)
 		assert b'Samples in this request:' in response.data	
 
+def test_clearing_table_link_works(test_client,test_cleared_request_nonadmin):
+	""" Check that the clearing link shows up for a request where clearing is complete. 
+	"""
+	# print(processing_request_contents)
+	# assert len(processing_request_contents) > 0
+	response = test_client.get(url_for('requests.request_overview',
+		username='lightserv-test',request_name='nonadmin_request'),
+		follow_redirects=True)
+	# print(response.data)
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	# table_tags = parsed_html.find('table')
+	table_tag = parsed_html.find('table',
+		attrs={'id':'horizontal_samples_table'})
+	table_row_tags = table_tag.find_all('tr')
+	header_row = table_row_tags[0].find_all('th')
+	data_row = table_row_tags[1].find_all('td')
+	# print(len(header_row))
+	# print(len(data_row))
+	
+	# print(data_row)
+	for ii,col in enumerate(header_row):
+		if col.text == 'Clearing log':
+			clearing_log_column_index = ii
+			print(clearing_log_column_index)
+			break
+	anchor = data_row[clearing_log_column_index].find_all('a',href=True)[0]
+	href = anchor['href']
+	assert href == "/clearing/clearing_table/lightserv-test/nonadmin_request/iDISCO%20abbreviated%20clearing/1/"
 
+def test_archival_nonadmin_request_overview(test_client,test_archival_request_nonadmin):
+	""" Check that lightserv-test, a nonadmin cannot see their
+	archival request that was ingested outside of the usual new request form
+	in the samples table in request overview route
+	"""
+
+	# print(processing_request_contents)
+	# assert len(processing_request_contents) > 0
+	response = test_client.get(url_for('requests.request_overview',
+		username='lightserv-test',request_name='test_archival_request'),
+		follow_redirects=True)
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag = parsed_html.find('table',
+		attrs={'id':'horizontal_samples_table'})
+	table_row_tags = table_tag.find_all('tr')
+	header_row = table_row_tags[0].find_all('th')
+	data_row = table_row_tags[1].find_all('td')
+	for ii,col in enumerate(header_row):
+		if col.text == 'archival?':
+			archival_column_index = ii
+			break
+	is_archival = data_row[archival_column_index].text
+	assert is_archival == "yes"

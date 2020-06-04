@@ -127,7 +127,7 @@ def all_requests():
 @request_exists
 def request_overview(username,request_name):
     """ A route for displaying a single request. """
-
+    logger.debug(f"{username} accessed request_overview")
     request_contents = db_lightsheet.Request() & f'request_name="{request_name}"' & \
             f'username="{username}"'
     request_contents = request_contents.proj('description','species','number_of_samples',
@@ -175,7 +175,6 @@ def request_overview(username,request_name):
             )
 
     all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
-    logger.debug(all_contents_dict_list)
 
     keep_keys = ['username','request_name','sample_name','species',
                  'clearing_protocol','antibody1','antibody2','clearing_progress',
@@ -514,7 +513,6 @@ def new_request():
                 with connection.transaction:
                     """ If someone else's username is entered, then
                     override the username dictionary entry to use this """
-                    logger.debug(form.data)
                     if form.other_username.data:
                         username = form.other_username.data
                         logger.info(f"Other username entered. Setting username={username}")
