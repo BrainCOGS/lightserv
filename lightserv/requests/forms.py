@@ -126,14 +126,14 @@ class NewRequestForm(FlaskForm):
 		          					   "If unchecked, your sample names will be {request_name}-sample-001, "
 		          					   "{request_name}-sample-002, ...")
 	""" Processing """
+
 	sample_submit_button = SubmitField('Setup samples')
+
+	""" Submission """
 
 	submit = SubmitField('Submit request')	
 
-	def hide_species(self,value):
-		self.species.widget = HiddenInput()
-		self.species.data = value
-		self.species._value = lambda: value
+	""" Custom validators """
 
 	def validate_submit(self,submit):
 		""" Make sure that user has filled out sample setup section """ 
@@ -240,15 +240,6 @@ class NewRequestForm(FlaskForm):
 				if image_resolution in current_image_resolutions_rendered:
 					raise ValidationError(f"You tried to make a table for image_resolution {image_resolution}"
 										  f". But that resolution was already picked for this sample: {sample_name}.")
-
-# def Directory_validator(form,field):
-# 	''' Makes sure that the raw data directories exist on jukebox  '''
-# 	if not os.path.isdir(field.data):
-# 		raise ValidationError('This is not a valid directory. Please try again')
-# 	elif field.data[0:8] != '/jukebox':
-# 		raise ValidationError('Path must start with "/jukebox" ')
-# 	elif len(glob.glob(field.data + '/*RawDataStack*ome.tif')) == 0:
-# 		raise ValidationError('No raw data files found in that directory. Try again')	
 
 class UpdateNotesForm(FlaskForm):
 	""" The form for updating notes field"""

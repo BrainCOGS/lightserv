@@ -3,6 +3,7 @@ import json
 import tempfile,webbrowser
 from bs4 import BeautifulSoup 
 from datetime import datetime, date
+from lightserv import db_lightsheet
 
 def test_requests_redirects(test_client):
 	""" Tests that the requests page returns a 302 code (i.e. a redirect signal) for a not logged in user """
@@ -411,8 +412,7 @@ def test_submit_mouse_self_clearing_request(test_client,test_login,test_delete_r
 	the Request() contents (and all dependent tables) after the test is run
 	so that other tests see blank contents 
 	""" 
-	from lightserv import db_lightsheet
-
+	
 	request_name = "Admin_self_clearing_request"
 	response = test_client.post(
 		url_for('requests.new_request'),data={
@@ -449,7 +449,7 @@ def test_submit_mouse_self_imaging_request(test_client,test_login,test_delete_re
 	the Request() contents (and all dependent tables) after the test is run
 	so that other tests see blank contents 
 	""" 
-	from lightserv import db_lightsheet
+	
 
 	request_name = "Admin_self_clearing_request"
 	response = test_client.post(
@@ -489,7 +489,7 @@ def test_submit_mouse_self_clearing_nonadmin_request(test_client,
 	the Request() contents (and all dependent tables) after the test is run
 	so that other tests see blank contents 
 	""" 
-	from lightserv import db_lightsheet
+	
 
 	request_name = "Nonadmin_self_clearing_request"
 	response = test_client.post(
@@ -517,7 +517,6 @@ def test_submit_mouse_self_clearing_nonadmin_request(test_client,
 	assert b"This is a demo request where the clearer is self-assigned" in response.data
 	assert b"New Request Form" not in response.data
 
-
 def test_idiscoplus_request_validates_antibody(test_client,test_login,test_delete_request_db_contents):
 	""" Ensure that trying to submit a request where
 	iDISCO+_immuno clearing protocol is used but 
@@ -526,7 +525,7 @@ def test_idiscoplus_request_validates_antibody(test_client,test_login,test_delet
 	DOES not enter data into the db, unless it fails, so keep the 
 	test_delete_request_db_contents fixture just in case
 	""" 
-	from lightserv import db_lightsheet
+	
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -556,7 +555,7 @@ def test_submit_empty_samples(test_client,test_login,test_delete_request_db_cont
 	Uses test_delete_request_db_contents just in case test fails and actually 
 	enters something into the db
 	""" 
-	from lightserv import db_lightsheet
+	
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -577,7 +576,7 @@ def test_submit_no_samples(test_client,test_login):
 	if number_of_samples = 0
 
 	""" 
-	from lightserv import db_lightsheet
+	
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -606,7 +605,7 @@ def test_submit_bad_mouse_clearing_protocol(test_client,test_login,test_delete_r
 	the Request() contents (and all dependent tables) after the test is run
 	so that other tests see blank contents 
 	""" 
-	from lightserv import db_lightsheet
+	
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -637,7 +636,7 @@ def test_submit_bad_rat_clearing_protocol(test_client,test_login,test_delete_req
 	the Request() contents (and all dependent tables) after the test is run
 	so that other tests see blank contents 
 	""" 
-	from lightserv import db_lightsheet
+	
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -669,7 +668,7 @@ def test_rat_request_only_generic_imaging_allowed(test_client,test_login,test_de
 	the Request() contents (and all dependent tables) after the test is run
 	so that other tests see blank contents 
 	""" 
-	from lightserv import db_lightsheet
+	
 	response1 = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -765,7 +764,7 @@ def test_setup_samples_duplicate(test_client,test_login,test_single_sample_reque
 	there is already a request in the db ahead of time
 
 	"""
-	from lightserv import db_lightsheet
+	
 
 	# Simulate pressing the "Setup samples" button
 	data = dict(
@@ -922,7 +921,7 @@ def test_duplicate_sample_names(test_client,test_login):
 
 	Does not enter data into the db 
 	""" 
-	from lightserv import db_lightsheet
+	
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -963,7 +962,7 @@ def test_detection_modes_require_registration(test_client,test_login,test_delete
 	the Request() contents (and all dependent tables) after the test is run
 	so that other tests see blank contents 
 	""" 
-	from lightserv import db_lightsheet
+	
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -994,7 +993,7 @@ def test_multiple_samples_same_clearing_batch(test_client,test_login,test_delete
 	test_delete_request_db_contents fixture to remove it 
 	after the test
 	""" 
-	from lightserv import db_lightsheet
+	
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -1031,7 +1030,7 @@ def test_multiple_samples_same_clearing_batch(test_client,test_login,test_delete
 
 def test_nonadmin_cannot_see_checkbox_to_submit_as_someone_else(test_client,
 		test_login_nonadmin):
-	""" Ensure that a nonadmin, e.g. Manuel (lightserv-test) 
+	""" Ensure that a nonadmin, e.g lightserv-test
 	cannot see the checkbox to submit the request
 	as another user
 
@@ -1080,7 +1079,7 @@ def test_submit_good_mouse_request_for_someone_else(test_client,
 		url_for('requests.new_request'),data={
 			'labname':"Tank/Brody",'correspondence_email':"test@demo.com",
 			'request_name':"Request_for_someone_else",
-			'requested_by':test_login['user'],
+			'other_username':'newuser',
 			'description':"This is a demo request",
 			'species':"mouse",'number_of_samples':1,
 			'username':'lightserv-test',
@@ -1142,6 +1141,38 @@ def test_request_name_no_spaces(test_client,
 	assert b"core facility requests" not in response.data
 	assert b"Request_name must not contain any blank spaces" in response.data
 
+def test_only_one_registration_channel_per_res(test_client,test_login):
+	""" Ensure that trying to use multiple registration channels 
+	in the same image resolution table results in an error
+	
+	Does not enter any data into the database
+	"""
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"admin_request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'username':current_user,
+			'uniform_clearing':True,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-injection_detection':True,
+			'imaging_samples-0-image_resolution_forsetup':"1.3x",
+			'imaging_samples-0-new_image_resolution_form_submit':True
+			},
+			content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b'There can only be one registration channel per image resolution' in response.data  
+
 
 """ Testing all_requests() """
 
@@ -1160,7 +1191,7 @@ def test_admin_sees_all_requests(test_client,test_single_sample_request_ahoag,te
 	assert b'This is a demo request' in response.data 	
 
 def test_nonadmin_only_sees_their_requests(test_client,test_single_sample_request_ahoag,test_single_sample_request_nonadmin):
-	""" Check that Manuel (lightserv-test, a nonadmin) cannot see the request made by ahoag
+	""" Check that lightserv-test, a nonadmin cannot see the request made by ahoag
 	on the all requests page, but they can see their request.
 
 	Uses the test_single_sample_request_ahoag fixture
@@ -1234,6 +1265,40 @@ def test_multichannel_request_works(test_client,test_multichannel_request_ahoag)
 	assert b"core facility requests" in response.data
 	assert b"admin_multichannel_request" in response.data
 
+def test_nonadmin_sees_their_archival_request(test_client,test_archival_request_nonadmin):
+	""" Check that lightserv-test, a nonadmin cannot see their
+	archival request that was ingested outside of the usual new request form. 
+
+	"""
+	# request_contents = db_lightsheet.Request() & 'request_name="test_archival_request"'
+	# clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & 'request_name="test_archival_request"'
+	# sample_contents = db_lightsheet.Request.Sample() & 'request_name="test_archival_request"'
+	# imaging_request_contents = db_lightsheet.Request.ImagingRequest() & 'request_name="test_archival_request"'
+	# imaging_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & 'request_name="test_archival_request"'
+	# processing_request_contents = db_lightsheet.Request.ProcessingRequest() & 'request_name="test_archival_request"'
+
+	# print(processing_request_contents)
+	# assert len(processing_request_contents) > 0
+	response = test_client.get(url_for('requests.all_requests'),
+		follow_redirects=True)
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag = parsed_html.find('table',
+		attrs={'id':'horizontal'})
+	table_row_tags = table_tag.find_all('tr')
+	header_row = table_row_tags[0].find_all('th')
+	data_row = table_row_tags[1].find_all('td')
+	for ii,col in enumerate(header_row):
+		if col.text == 'archival?':
+			archival_column_index = ii
+			break
+	is_archival = data_row[archival_column_index].text
+	assert is_archival == "yes"
+	# assert len(table_row_tags_forward) == 3 # 1 for header, 2 for content
+	# request_name1_forward = table_row_tags_forward[1].find_all('td')[2].text 
+	# assert request_name1_forward == 'admin_request_2'
+	# assert b'This is a demo request' not in response.data 	
+	# assert b'This is a request by lightserv-test' in response.data 	
+
 
 """ Testing all_samples() """
 
@@ -1253,7 +1318,7 @@ def test_admin_sees_all_samples(test_client,test_single_sample_request_ahoag,tes
 	assert b'sample-001' in response.data 	
 
 def test_nonadmin_only_sees_their_samples(test_client,test_single_sample_request_ahoag,test_single_sample_request_nonadmin):
-	""" Check that Manuel (lightserv-test, a nonadmin) can only see the samples from their request 
+	""" Check that lightserv-test, a nonadmin can only see the samples from their request 
 	but not the one made by ahoag on the all samples page. 
 
 	Uses the test_single_sample_request_ahoag fixture

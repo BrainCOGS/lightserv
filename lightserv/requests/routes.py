@@ -514,6 +514,7 @@ def new_request():
                 with connection.transaction:
                     """ If someone else's username is entered, then
                     override the username dictionary entry to use this """
+                    logger.debug(form.data)
                     if form.other_username.data:
                         username = form.other_username.data
                         logger.info(f"Other username entered. Setting username={username}")
@@ -698,7 +699,7 @@ def new_request():
                                     channel_insert_dict['image_resolution'] = resolution_dict['image_resolution']
                                     for key,val in imaging_channel_dict.items(): 
                                         if key == 'csrf_token': 
-                                            continue # pragma: no cover - used to exclude this line from testing
+                                            continue # pragma: no cover - used to exclude this line from calculating test coverage
                                         channel_insert_dict[key] = val
                                     channel_insert_list.append(channel_insert_dict)
                             # logger.info(channel_insert_list)
@@ -808,7 +809,7 @@ def new_request():
                 correspondence_email = form.correspondence_email.data
                 recipients = [correspondence_email]
                 if not os.environ['FLASK_MODE'] == 'TEST':
-                    send_email.delay(subject=subject,body=message_body,recipients=recipients)
+                    send_email.delay(subject=subject,body=message_body,recipients=recipients) # pragma: no cover - used to exclude this line from calculating test coverage
 
                 return redirect(url_for('requests.all_requests'))
             
@@ -856,20 +857,3 @@ def new_request():
 
     return render_template('requests/new_request.html', title='new_request',
         form=form,legend='New Request',column_name=column_name) 
-
-
-@requests.route("/requests/reminder/")
-@log_http_requests
-@logged_in
-def reminder(): 
-    subject = 'Lightserv automated email. Reminder to start processing.'
-    body = ('Hello, this is a reminder that you still have not started '
-            'the data processing pipeline for your request.\n\n'
-            'Thanks,\nThe Brain Registration and Histology Core Facility')    
-    logger.debug("Sending reminder email at 15 seconds in the future")
-    future_time = datetime.utcnow() + timedelta(seconds=15)
-    if not os.environ['FLASK_MODE'] == 'TEST':
-        send_email.apply_async(kwargs={
-            'subject':subject,'body':body,},eta=future_time)
-    return "Sent reminder!"
-
