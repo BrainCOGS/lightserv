@@ -30,6 +30,39 @@ def test_home_page(test_client,test_login):
 
 """ Testing new_request() """
 
+def test_two_sheets_request_submits(test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Test that the two_sheets request :
+	test_cleared_multichannel_request_ahoag
+	"""
+
+	today = date.today()
+	today_proper_format = today.strftime('%Y-%m-%d')
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"two_sheets",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'username':test_login_nonadmin['user'],
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'two_sheets-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'647',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"core facility requests" in response.data
+	assert b"This is a demo request" in response.data
+	assert b"New Request Form" not in response.data
+
 def test_new_request_form_renders(test_client,test_login):
 	""" Ensure that the new request form renders properly (only the top part of the form)"""
 
@@ -1343,6 +1376,34 @@ def test_all_requests_reflects_cleared_request(test_client,test_cleared_request_
 			break
 	fraction_cleared = data_row[clearing_log_column_index].text
 	assert fraction_cleared == "1/1"
+
+def test_two_sheets_request_fixture(test_client,test_both_lightsheets_nonadmin_request):
+	""" Checks that the two sheets request fixture actually submitted
+	the correct request 
+	"""
+	# print(processing_request_contents)
+	# assert len(processing_request_contents) > 0
+	response = test_client.get(url_for('requests.all_requests'),
+		follow_redirects=True)
+	assert b"two_sheets" in response.data
+
+def test_two_channels_request_fixture(test_client,test_two_channels_request_nonadmin):
+	""" Checks that the two channels request fixture actually submitted
+	the correct request.
+	"""
+	response = test_client.get(url_for('requests.all_requests'),
+		follow_redirects=True)
+	assert b"two_channels" in response.data
+
+def test_4x_multitile_request_fixture(test_client,test_4x_multitile_request_nonadmin):
+	""" Checks that the two channels request fixture actually submitted
+	the correct request.
+	"""
+	response = test_client.get(url_for('requests.all_requests'),
+		follow_redirects=True)
+	assert b"4x_647_kelly" in response.data
+
+
 
 """ Testing all_samples() """
 

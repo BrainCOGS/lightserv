@@ -148,8 +148,8 @@ class ImagingForm(FlaskForm):
 			common_key_list = ['image_orientation','left_lightsheet_used',
 				'right_lightsheet_used','tiling_scheme','tiling_overlap',
 				'z_step','number_of_z_planes']
-			all_tiling_schemes = []
-			all_tiling_overlaps = []
+			all_tiling_schemes = [] # also keep track of tiling parameters for all subfolders at this resolution
+			all_tiling_overlaps = [] # also keep track of tiling parameters for all subfolders at this resolution
 			for subfolder in subfolder_dict.keys():
 				channel_dict_list = subfolder_dict[subfolder]
 				for d in channel_dict_list:

@@ -5,7 +5,8 @@ from lightserv import db_lightsheet, cel, smtp_connect
 
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 								  logged_in_as_imager,check_clearing_completed,
-								  image_manager,log_http_requests,mymkdir)
+								  image_manager,log_http_requests,mymkdir,
+								  check_imaging_completed)
 from lightserv.imaging.tables import (ImagingTable, dynamic_imaging_management_table,
 	SampleTable, ExistingImagingTable, ImagingChannelTable)
 from .forms import ImagingForm, NewImagingRequestForm
@@ -194,8 +195,6 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 						if key in channel_content_dict.keys() and key not in ['channel_name','image_resolution','imaging_request_number']:
 							channel_insert_dict[key] = val
 					channel_insert_dict['imspector_channel_index'] = channel_index
-					logger.info("Updating db entry with channel contents:")
-					logger.info(channel_insert_dict)
 			
 					db_lightsheet.Request.ImagingChannel().insert1(channel_insert_dict,replace=True)
 					""" Kick off celery task for creating precomputed data from this
@@ -210,7 +209,6 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 												left_lightsheet_used=left_lightsheet_used,
 												right_lightsheet_used=right_lightsheet_used,
 												z_step=z_step,rawdata_subfolder=rawdata_subfolder)
-						logger.debug(precomputed_kwargs)
 						raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
 								 f"{request_name}/{sample_name}/"
 								 f"imaging_request_{imaging_request_number}/viz/raw")
@@ -238,8 +236,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 							precomputed_kwargs['x_dim'] = x_dim
 							precomputed_kwargs['y_dim'] = y_dim
 							first_im.close() 
-							if not os.environ['FLASK_MODE'] == 'TEST':
-								tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
+							if not os.environ['FLASK_MODE'] == 'TEST': 
+								tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
 						if right_lightsheet_used:
 							this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
 							mymkdir(this_viz_dir)
@@ -258,7 +256,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 							precomputed_kwargs['y_dim'] = y_dim
 							first_im.close()
 							if not os.environ['FLASK_MODE'] == 'TEST': 
-								tasks.make_precomputed_rawdata.delay(**precomputed_kwargs)
+								tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
 					else:
 						logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
 									 "Not creating precomputed data for neuroglancer visualization.")
@@ -289,7 +287,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
 			if not os.environ['FLASK_MODE'] == 'TEST':
-				send_email.delay(subject=subject,body=message_body,recipients=recipients)
+				send_email.delay(subject=subject,body=message_body,recipients=recipients) # pragma: no cover - used to exclude this line from calculating test coverage
 			flash(f"""Imaging is complete. An email has been sent to {correspondence_email} 
 				informing them that their raw data is now available on bucket.
 				The processing pipeline is now ready to run. ""","success")
@@ -329,9 +327,9 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				reminder_email_kwargs['subject'] = subject
 				reminder_email_kwargs['body'] = body
 				reminder_email_kwargs['recipients'] = recipients
-				if not os.environ['FLASK_MODE'] == 'TEST':
+				if not os.environ['FLASK_MODE'] == 'TEST': # pragma: no cover - used to exclude this line from calculating test coverage
 					tasks.send_processing_reminder_email.apply_async(
-						kwargs=reminder_email_kwargs,eta=future_time)
+						kwargs=reminder_email_kwargs,eta=future_time) 
 					logger.debug("Sent celery task for reminder email.")
 			return redirect(url_for('imaging.imaging_manager'))
 		else:
@@ -346,6 +344,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					flash(error,'danger')
 
 	elif request.method == 'GET': # get request
+		logger.debug("GET request")
 		if imaging_progress == 'complete':
 			logger.info("Imaging already complete but accessing the imaging entry page anyway.")
 			flash("Imaging is already complete for this sample. "
@@ -362,12 +361,12 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			notes_for_imager = image_resolution_request_contents.fetch1('notes_for_imager')
 			channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
 			while len(form.image_resolution_forms) > 0:
-				form.image_resolution_forms.pop_entry()
+				form.image_resolution_forms.pop_entry() # pragma: no cover - used to exclude this line from calculating test coverage
 			form.image_resolution_forms.append_entry()
 			this_resolution_form = form.image_resolution_forms[-1]
 			this_resolution_form.image_resolution.data = this_image_resolution
 			if notes_for_imager:
-				this_resolution_form.notes_for_imager.data = notes_for_imager
+				this_resolution_form.notes_for_imager.data = notes_for_imager 
 			else:
 				this_resolution_form.notes_for_imager.data = 'No special notes'
 			''' Now add the channel subforms to the image resolution form '''
@@ -508,7 +507,6 @@ def new_imaging_request(username,request_name,sample_name):
 					processing_resolution_insert_list = []
 					channel_insert_list = []
 					for resolution_dict in form.image_resolution_forms.data:
-						logger.debug(resolution_dict)
 						image_resolution = resolution_dict['image_resolution']
 						""" imaging entry first """
 						imaging_resolution_insert_dict = {}
@@ -540,7 +538,6 @@ def new_imaging_request(username,request_name,sample_name):
 
 						""" Now loop through channels and make insert dict for each """
 						for imaging_channel_dict in resolution_dict['channels']:
-							logger.debug(imaging_channel_dict)
 							""" The way to tell which channels were picked is to see 
 							which have at least one imaging mode selected """
 							used_imaging_modes = [key for key in all_imaging_modes if imaging_channel_dict[key] == True]
@@ -557,7 +554,7 @@ def new_imaging_request(username,request_name,sample_name):
 								channel_insert_dict['sample_name'] = sample_name
 								for key,val in imaging_channel_dict.items(): 
 									if key == 'csrf_token': 
-										continue # pragma: no cover - used to exclude this line from testing
+										continue # pragma: no cover - used to exclude this line from calculating test coverage
 									channel_insert_dict[key] = val
 
 								channel_insert_list.append(channel_insert_dict)
@@ -604,6 +601,7 @@ def new_imaging_request(username,request_name,sample_name):
 
 @imaging.route("/imaging/imaging_table/<username>/<request_name>/<sample_name>/<imaging_request_number>",methods=['GET','POST'])
 @check_clearing_completed
+@check_imaging_completed
 @log_http_requests
 def imaging_table(username,request_name,sample_name,imaging_request_number): 
 	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & \
@@ -613,10 +611,8 @@ def imaging_table(username,request_name,sample_name,imaging_request_number):
 
 	imaging_overview_table = ImagingTable(imaging_request_contents)
 	imaging_progress = imaging_request_contents.fetch1('imaging_progress')
-	if imaging_progress != 'complete':
-		imaging_channel_contents = []
-	else:
-		imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
+	
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
 				f'request_name="{request_name}"' & \
 				f'username="{username}"' & f'sample_name="{sample_name}"' & \
 				f'imaging_request_number="{imaging_request_number}"' 
