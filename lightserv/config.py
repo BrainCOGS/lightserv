@@ -149,6 +149,7 @@ class ProdConfig(BaseConfig):
 		},
 		
 	}
+
 class TestConfig(BaseConfig):
 	TESTING = True
 	WTF_CSRF_ENABLED = False # disables the csrf token validation in forms

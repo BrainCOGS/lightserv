@@ -207,28 +207,6 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 							if not os.environ['FLASK_MODE'] == 'TEST':
 								send_email.delay(subject=subject,body=message_body,recipients=recipients) # pragma: no cover - used to exclude this line from calculating test coverage
 
-							# """ Admin emails """
-							# imaging_admin_email_addresses = [netid + '@princeton.edu' for netid in current_app.config['IMAGING_ADMINS']]
-							# # logger.debug(imaging_admin_email_addresses)
-							# imaging_admin_email_addresses = ['ahoag@princeton.edu'] # to me while in DEV phase
-							# admin_msg = EmailMessage()
-							# admin_msg['Subject'] = 'Lightserv automated email: Clearing complete'
-							# admin_msg['From'] = 'lightservhelper@gmail.com'
-							# admin_msg['To'] = imaging_admin_email_addresses # to me while in DEV phase
-							
-							# admin_msg_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
-							# 	'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
-							# 	'The clearing for batch:\n'
-							# 	f'request_name: {request_name}\n'
-							# 	f'clearing_protocol: {clearing_protocol}\n'
-							# 	f'antibody1: {antibody1}\n'
-							# 	f'antibody2: {antibody2}\n'
-							# 	f'clearing_batch_number: {clearing_batch_number}\n'
-							# 	f'Samples: {samples_str}\n\n'
-							# 	f'is now complete. These samples should now appear in the imaging management GUI: {imaging_manager_url}\n\n'
-							# 	'Thanks,\nThe Histology and Brain Registration Core Facility.')
-
-							# smtp_server.send_message(admin_msg)
 							return redirect(url_for('clearing.clearing_manager'))
 
 					elif re.search("^(?!perfusion).*_date_submit$",key) != None: # one of the calendar date submit buttons

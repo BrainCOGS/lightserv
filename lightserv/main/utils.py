@@ -183,8 +183,10 @@ def logged_in_as_clearing_manager(f):
 def logged_in_as_imager(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
+
 		if 'user' in session: # user is logged in 
 			current_user = session['user']
+			logger.debug(f"User is logged in as: {current_user}")
 			username = kwargs['username']
 			request_name = kwargs['request_name']
 			sample_name = kwargs['sample_name']
@@ -197,6 +199,7 @@ def logged_in_as_imager(f):
 				logger.debug("No imaging request exists with those parameters. Redirecting to all requests page")
 				return redirect(url_for('requests.all_requests'))
 			imager = imaging_request_contents.fetch1('imager')
+			logger.debug(f"Imager is: {imager}")
 			''' check to see if user assigned themself as imager '''
 			if imager == None: # not yet assigned
 				logger.info("Imaging entry form accessed with imager not yet assigned. ")
@@ -213,9 +216,10 @@ def logged_in_as_imager(f):
 					return redirect(url_for('main.welcome'))
 			else: # imager is assigned 
 				if imager in current_app.config['IMAGING_ADMINS']: # one of the admins started the form
+					logger.debug("Imager is an admin")
 					if current_user in current_app.config['IMAGING_ADMINS']: # one of the admins is accessing the form
 						if current_user != imager:
-							logger.info(f"""Current user: {current_user} accessed the form of which {imager} is the imager""")
+							logger.debug(f"""Current user: {current_user} accessed the form of which {imager} is the imager""")
 							flash("While you have access to this page, "
 								  "you are not the primary imager "
 								  "so please proceed with caution.",'warning')
@@ -227,6 +231,8 @@ def logged_in_as_imager(f):
 						flash(("The imager has already been assigned for this entry "
 							  "and you are not them. Please email us at lightservhelper@gmail.com "  
 						      "if you think there has been a mistake."),'warning')
+						return redirect(url_for("requests.request_overview",
+							username=username,request_name=request_name))
 				elif imager == current_user:
 					logger.info(f"Current user: {current_user} is the rightful imager and so is allowed access")
 					return f(*args, **kwargs)

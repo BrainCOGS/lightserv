@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 
 """ Tests for Imaging Manager """
+
 def test_ahoag_access_imaging_manager(test_client,test_cleared_request_ahoag):
 	""" Test that ahoag can access the imaging task manager
 	and see the single entry s and cleared by ahoag  """
@@ -62,6 +63,29 @@ def test_admin_can_see_self_imaging_request(test_client,test_self_cleared_reques
 	assert b'Imaging management GUI' in response.data
 	assert b'self_clearing_and_imaging_request' in response.data 
 	# assert b'admin_request' not in response.data 
+
+def test_ahoag_multiple_imaging_requests_imaging_manager(test_client,test_new_imaging_request_ahoag):
+	""" Test that ahoag can access the imaging task manager
+	and see both of their imaging requests  """
+	response = test_client.get(url_for('imaging.imaging_manager')
+		, follow_redirects=True)
+	assert b'Imaging management GUI' in response.data
+	assert b'admin_request' in response.data 
+
+	# parsed_html = BeautifulSoup(response.data,features="html.parser")
+	# table_tag = parsed_html.find('table',
+	# 	attrs={'id':'horizontal_ready_to_image_table'})
+	# table_row_tags = table_tag.find_all('tr')
+	# print(table_row_tags)
+	# print(len(table_row_tags))
+	# header_row = table_row_tags[0].find_all('th')
+	# data_row = table_row_tags[1].find_all('td')
+	# for ii,col in enumerate(header_row):
+	# 	if col.text == 'archival?':
+	# 		archival_column_index = ii
+	# 		break
+	# is_archival = data_row[archival_column_index].text
+	# assert is_archival == "yes"
 
 """ Tests for imaging entry form """
 
@@ -369,6 +393,37 @@ def test_access_already_imaged_request_ahoag(test_client,test_imaged_request_aho
 			    "This page is read only and hitting submit will do nothing")
 	assert test_str.encode('utf-8') in response.data
 
+def test_access_already_imaged_request_nonadmin(test_client,test_imaged_request_nonadmin):
+	""" Test that John D'uva (jduva), an imaging admin can access the
+	imaging entry form that Zahra (zmd) has already completed.
+	"""
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'jduva'
+	response = test_client.get(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		follow_redirects=True)
+	str1 = ("Imaging is already complete for this sample. " 
+			    "This page is read only and hitting submit will do nothing")
+	assert str1.encode('utf-8') in response.data
+	str2 = ("While you have access to this page, "
+			"you are not the primary imager "
+			"so please proceed with caution")
+	assert str2.encode('utf-8') in response.data
+
+
+def test_user_attempt_to_access_imaging_entry_form_redirects(test_client,test_imaged_request_nonadmin):
+	""" Test that user cannot access their own imaging entry form
+	if someone else (zmd) has been assigned as the imager 
+	"""
+
+	response = test_client.get(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		follow_redirects=True)
+	assert b'The imager has already been assigned for this entry and you are not them.' in response.data
+	assert b'Request overview:' in response.data
+
 def test_post_request_already_imaged_request_ahoag(test_client,test_imaged_request_ahoag):
 	""" Test that trying to hit buttons in the imaging entry form 
 	that has already been completed results in a flash message
@@ -438,6 +493,32 @@ def test_no_right_lightsheet_submits(test_client,test_cleared_request_ahoag,
 			'left_lightsheet_used','right_lightsheet_used')
 	assert left_lightsheet_used == True
 	assert right_lightsheet_used == False
+
+def test_both_lightsheets_submit(test_client,test_cleared_request_both_lightsheets_nonadmin,
+	test_login_zmd):
+	""" Test that Zahra (zmd, an imaging admin) can submit the imaging entry form
+	for a test sample which use both the left lightsheet and the right light sheet """
+	from lightserv import db_lightsheet
+	print(db_lightsheet.Request.ImagingChannel())
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'647',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-right_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':683,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test647',
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='two_sheets',sample_name='two_sheets-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging management GUI' in response.data
 
 def test_no_lightsheets_validation_error(test_client,test_cleared_request_ahoag,
 	test_login_zmd):
@@ -560,6 +641,71 @@ def test_admin_cannot_access_self_imaging_request(test_client,test_self_cleared_
 		follow_redirects=True)
 	assert b'Welcome to the Brain Registration and Histology' in response.data 
 	assert b'The imager has already been assigned for this entry' in response.data
+
+def test_different_subfolders_validate_against_different_tiling(test_client,test_cleared_request_two_channels_nonadmin,
+	test_login_zmd):
+	""" Test that a validation error is raised when 
+	two channels at the same resolution but in differet
+	rawdata subfolders are entered as having different tiling parameters"""
+	from lightserv import db_lightsheet
+	# print(db_lightsheet.Request.ImagingRequest())
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':1258,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'image_resolution_forms-0-channel_forms-1-channel_name':'647',
+		'image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x',
+		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.3,
+		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-1-z_step':10,
+		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':1258,
+		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test647',
+		'submit':True
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='two_channels',sample_name='two_channels-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Request overview:' not in response.data
+	assert b'Imaging Entry Form' in response.data 
+	validation_str = 'All tiling parameters must be the same for each channel of a given resolution'
+	assert validation_str.encode('utf-8') in response.data
+
+def test_4x_multitile_request_submits(test_client,test_cleared_request_4x_multitile_nonadmin,
+	test_login_zmd):
+	""" Test that a 4x multi-tile request can be submitted """
+	from lightserv import db_lightsheet
+	data = {
+		'image_resolution_forms-0-image_resolution':'4x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'647',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'3x3',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-right_lightsheet_used':False,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-z_step':2,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':3051,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test_647',
+		'submit':True
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='4x_647_kelly',sample_name='4x_647_kelly-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging management GUI' in response.data
+	assert b'4x_647_kelly' in response.data 
+
 
 """ Tests for New imaging request """	
 
@@ -757,3 +903,32 @@ def test_new_imaging_rat_request_only_generic_imaging_allowed(test_client,test_l
 
 	assert b"Only generic imaging is currently available" in response1.data
 	assert b"New Imaging Request" in response1.data
+
+
+""" Tests for Imaging table """	
+
+def test_imaging_table_loads_nonadmin(test_client,test_imaged_request_nonadmin,
+	test_login_zmd):
+	""" Test that the imaging table page loads properly for an imaged request """
+	from lightserv import db_lightsheet
+	
+	response = test_client.get(url_for('imaging.imaging_table',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		follow_redirects=True)
+	assert b'Imaging Log' in response.data
+
+def test_imaging_table_redirects_incomplete_imaging_nonadmin(test_client,test_cleared_request_nonadmin,
+	test_login_zmd):
+	""" Test that the imaging table page redirects to request_overview
+	when imaging request is not yet complete """
+	from lightserv import db_lightsheet
+	
+	response = test_client.get(url_for('imaging.imaging_table',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		follow_redirects=True)
+	assert b'Imaging Log' not in response.data
+	assert b'Request overview:' in response.data
+
+

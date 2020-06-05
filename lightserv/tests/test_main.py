@@ -44,7 +44,7 @@ def test_FAQ(test_client,test_login):
 	response = test_client.get(url_for('main.FAQ'),
 		follow_redirects=True)
 
-	assert b'Q: How do I fix the connection to my account on spock?' in response.data 
+	assert b'Q: What is stitching/tiling?' in response.data 
 
 def test_spock_connection_page_loads(test_client,test_login):
 	""" Check that the page to test the spock loads properly (once already logged in) """

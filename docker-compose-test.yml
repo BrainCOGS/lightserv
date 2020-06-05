@@ -21,8 +21,9 @@ services:
   #             '--api-ip', '0.0.0.0']
   testflask:
     env_file: .testdockerenv
+    hostname: docker_lightserv
     image: flaskcelery:test
-    command: "pytest -vs lightserv/tests/test_clearing.py::test_clearing_entry_experimental_rat_nonadmin"
+    command: "pytest -vs lightserv/tests/test_imaging.py::test_ahoag_multiple_imaging_requests_imaging_manager"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData
@@ -32,8 +33,9 @@ services:
       - '5010:5000'
   coverage:
     env_file: .testdockerenv
-    image: flaskcelery-coverage:test
-    command: "pytest --cov=lightserv/clearing --cov-report html -vs lightserv/tests/test_clearing.py"
+    hostname: docker_lightserv
+    image: flaskcelery:test
+    command: "pytest --cov=lightserv/imaging --cov-report html -vs lightserv/tests/test_imaging.py"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData
