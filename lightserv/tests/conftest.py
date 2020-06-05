@@ -1145,6 +1145,36 @@ def test_cleared_request_4x_multitile_nonadmin(test_client,test_4x_multitile_req
 	print('-------Teardown test_cleared_request_nonadmin fixture --------')
 
 
+@pytest.fixture(scope='function') 
+def test_cleared_two_imaging_requests_ahoag(test_client,test_new_imaging_request_ahoag,
+	test_login_ll3,test_delete_request_db_contents):
+	""" Clears the the request by 'lightserv-test' (with clearer='ll3') 
+	where two imaging requests have been made 
+
+	Runs test_login_ll3 next so that 'll3' gets logged in and can do the clearing
+
+	Uses the test_delete_request_db_contents fixture, which means that 
+	all db entries are deleted upon teardown of this fixture
+	"""
+	print('----------Setup test_cleared_request_nonadmin fixture ----------')
+	now = datetime.now()
+	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		dehydr_pbs_wash1_notes='some notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="ahoag",
+			request_name="admin_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_cleared_request_nonadmin fixture --------')
+
+
+
 """ Fixtures for imaging  """
 
 @pytest.fixture(scope='function') 
@@ -1184,7 +1214,6 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'zmd'
-	# print(db_lightsheet.Request.Sample())
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',

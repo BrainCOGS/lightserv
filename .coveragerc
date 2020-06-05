@@ -1,0 +1,4 @@
+[run]
+omit = 
+	lightserv/main/tasks.py
+	lightserv/imaging/tasks.py
