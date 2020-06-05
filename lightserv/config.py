@@ -99,54 +99,54 @@ class ProdConfig(BaseConfig):
 	SPOCK_LSADMIN_USERNAME = 'lightserv-test'
 
 	CELERYBEAT_SCHEDULE = {
-		# 'processing_job_status_checker': {
-		# 'task': 'lightserv.processing.tasks.processing_job_status_checker',
-		# 'schedule': timedelta(minutes=2)
-		# },
-		# 'processing_job_status_checker_noreg': {
-		# 'task': 'lightserv.processing.tasks.processing_job_status_checker_noreg',
-		# 'schedule': timedelta(minutes=3)
-		# },
-		# 'stitchedprecomp_job_ready_checker': {
-		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_stitched_data',
-		# 'schedule': timedelta(minutes=5)
-		# },
-		# 'stitchedprecomp_job_status_checker': {
-		# 'task': 'lightserv.processing.tasks.stitched_precomputed_job_status_checker',
-		# 'schedule': timedelta(minutes=3)
-		# },
-		# 'ng_viewer_cleanser': {
-		# 'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
-		# 'schedule': timedelta(minutes=5)
-		# },
-		# 'rawprecomp_job_status_checker': {
-		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
-		# 'schedule': timedelta(minutes=3)
-		# },
-		# 'blendedprecomp_job_ready_checker': {
-		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
-		# 'schedule': timedelta(minutes=5)
-		# },
-		# 'blendedprecomp_job_status_checker': {
-		# 'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
-		# 'schedule': timedelta(minutes=3)
-		# },
-		# 'downsizedprecomp_job_ready_checker': {
-		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
-		# 'schedule': timedelta(minutes=5)
-		# },
-		# 'downsizedprecomp_job_status_checker': {
-		# 'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
-		# 'schedule': timedelta(minutes=3)
-		# },
-		# 'registeredprecomp_job_ready_checker': {
-		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_registered_data',
-		# 'schedule': timedelta(minutes=5)
-		# },
-		# 'registeredprecomp_job_status_checker': {
-		# 'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
-		# 'schedule': timedelta(minutes=3)
-		# },
+		'processing_job_status_checker': {
+		'task': 'lightserv.processing.tasks.processing_job_status_checker',
+		'schedule': timedelta(minutes=2)
+		},
+		'processing_job_status_checker_noreg': {
+		'task': 'lightserv.processing.tasks.processing_job_status_checker_noreg',
+		'schedule': timedelta(minutes=3)
+		},
+		'stitchedprecomp_job_ready_checker': {
+		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_stitched_data',
+		'schedule': timedelta(minutes=5)
+		},
+		'stitchedprecomp_job_status_checker': {
+		'task': 'lightserv.processing.tasks.stitched_precomputed_job_status_checker',
+		'schedule': timedelta(minutes=3)
+		},
+		'ng_viewer_cleanser': {
+		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
+		'schedule': timedelta(minutes=5)
+		},
+		'rawprecomp_job_status_checker': {
+		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
+		'schedule': timedelta(minutes=3)
+		},
+		'blendedprecomp_job_ready_checker': {
+		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
+		'schedule': timedelta(minutes=5)
+		},
+		'blendedprecomp_job_status_checker': {
+		'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
+		'schedule': timedelta(minutes=3)
+		},
+		'downsizedprecomp_job_ready_checker': {
+		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
+		'schedule': timedelta(minutes=5)
+		},
+		'downsizedprecomp_job_status_checker': {
+		'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
+		'schedule': timedelta(minutes=3)
+		},
+		'registeredprecomp_job_ready_checker': {
+		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_registered_data',
+		'schedule': timedelta(minutes=5)
+		},
+		'registeredprecomp_job_status_checker': {
+		'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
+		'schedule': timedelta(minutes=3)
+		},
 		
 	}
 class TestConfig(BaseConfig):
