@@ -90,7 +90,7 @@ def test_client_firefox():
 @pytest.fixture(scope='function')
 def test_login(test_client):
 
-	""" Log the user in. Requires a test_client fixture to do this. """
+	""" Log ahoag in. Requires a test_client fixture to do this. """
 	print('----------Setup login as ahoag ---------')
 	username = 'ahoag'
 	with test_client.session_transaction() as sess:
@@ -171,7 +171,9 @@ def test_login_newuser(test_client):
 	print('----------Teardown login_nonadmin response----------')
 	pass	
 
+################################
 """ General purpose fixtures """
+################################
 
 @pytest.fixture(scope='function') 
 def test_delete_request_db_contents(test_client):
@@ -259,7 +261,6 @@ def test_single_sample_request_4x_ahoag(test_client,test_login,test_delete_reque
 
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_ahoag fixture --------')
-
 
 @pytest.fixture(scope='function') 
 def test_request_4x_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
@@ -587,6 +588,86 @@ def test_self_clearing_and_imaging_request(test_client,test_login_nonadmin,test_
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_self_clearing_and_imaging_request fixture --------')
 	
+@pytest.fixture(scope='function') 
+def test_archival_request_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits an archival request with a single sample that can be used for various tests.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_single_request_ahoag fixture ----------')
+	from lightserv import db_lightsheet
+	request_insert_dict = {'username': 'lightserv-test', 'request_name': 'test_archival_request',
+	 'requested_by': 'lightserv-test', 'date_submitted': '2019-02-26',
+	  'time_submitted': '12:55:22', 'labname': 'Wang', 'subject_fullname': '',
+	   'correspondence_email': 'lightserv-test@princeton.edu',
+	    'description': 'Image c-fos in whole brains at 1.3x.',
+	     'species': 'mouse', 'number_of_samples': 1, 'is_archival': True}
+	clearing_batch_insert_dict = {
+	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'clearing_protocol': 'iDISCO abbreviated clearing',
+	'link_to_clearing_spreadsheet': 'https://docs.google.com/spreadsheets/d/1A83HVyy1bEhctqArwt4EiT637M8wBxTFodobbt1jrXI/edit#gid=895577002',
+	'antibody1': '', 'antibody2': '',
+	 'clearing_batch_number': 1, 'clearing_progress': 'complete', 'number_in_batch': 1, 'notes_for_clearer': ''}
+	sample_insert_dict = {
+	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'clearing_protocol': 'iDISCO abbreviated clearing',
+	 'antibody1': '', 'antibody2': '', 'clearing_batch_number': 1, 'sample_name': 'sample-001'}
+	imaging_request_insert_dict = {
+	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'imaging_request_number': 1,
+	 'imaging_progress': 'complete', 'imaging_request_date_submitted': '2019-02-26',
+	  'imaging_request_time_submitted': '12:55:22', 'sample_name': 'sample-001'}
+	imaging_resolution_request_insert_dict = {
+	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'imaging_request_number': 1,
+	'notes_for_imager': '', 'notes_from_imaging': 'Processed files are here: /somewhere/on/bucket',
+	'sample_name': 'sample-001', 'image_resolution': '1.3x'}
+	processing_request_insert_dict= {
+	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'imaging_request_number': 1,
+	'processing_request_number': 1, 'processor': 'lightserv-test', 'processing_request_date_submitted': '2019-02-26',
+	'processing_request_time_submitted': '12:55:22', 'processing_progress': 'complete', 'sample_name': 'sample-001'}
+	db_lightsheet.Request.insert1(request_insert_dict)
+	db_lightsheet.Request.ClearingBatch.insert1(clearing_batch_insert_dict)
+	db_lightsheet.Request.Sample.insert1(sample_insert_dict)
+	db_lightsheet.Request.ImagingRequest.insert1(imaging_request_insert_dict)
+	db_lightsheet.Request.ImagingResolutionRequest.insert1(imaging_resolution_request_insert_dict)
+	db_lightsheet.Request.ProcessingRequest.insert1(processing_request_insert_dict)
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_single_request_ahoag fixture --------')
+
+@pytest.fixture(scope='function') 
+def test_experimental_clearing_request_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits a new request as 'ahoag' with a single sample that can be used for various tests.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_single_request_ahoag fixture ----------')
+	from lightserv import db_lightsheet
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Tank/Brody",'correspondence_email':"lightserv-test@princeton.edu",
+			'request_name':"nonadmin_experimental_request",
+			'description':"This is a request by lightserv-test, a non admin",
+			'species':"rat",'number_of_samples':1,
+			'username':current_user,
+			'clearing_samples-0-clearing_protocol':'experimental',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_single_request_ahoag fixture --------')
+
+
 """ Fixtures for clearing """
 
 @pytest.fixture(scope='function') 
@@ -720,7 +801,7 @@ def test_cleared_request_nonadmin(test_client,test_single_sample_request_nonadmi
 	Uses the test_delete_request_db_contents fixture, which means that 
 	all db entries are deleted upon teardown of this fixture
 	"""
-	print('----------Setup test_cleared_request_ahoag fixture ----------')
+	print('----------Setup test_cleared_request_nonadmin fixture ----------')
 	from lightserv import db_lightsheet
 	now = datetime.now()
 	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
@@ -736,7 +817,7 @@ def test_cleared_request_nonadmin(test_client,test_single_sample_request_nonadmi
 		)	
 
 	yield test_client # this is where the testing happens
-	print('-------Teardown test_cleared_request_ahoag fixture --------')
+	print('-------Teardown test_cleared_request_nonadmin fixture --------')
 
 @pytest.fixture(scope='function') 
 def test_cleared_request_generic_imaging_nonadmin(test_client,test_request_generic_imaging_nonadmin,
@@ -859,7 +940,6 @@ def test_cleared_rat_request(test_client,
 
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_cleared_request_ahoag fixture --------')
-
 
 @pytest.fixture(scope='function') 
 def test_self_cleared_request_nonadmin(test_client,test_self_clearing_and_imaging_request):

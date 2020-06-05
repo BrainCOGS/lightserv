@@ -16,7 +16,7 @@ COPY logs /app/logs
 
 COPY run.py /app
 
-# Make lightservuser, with same UID as pnilsadmin
+# Make lightservuser, with same UID as lightservuser
 RUN useradd -r -u 2354 -d /home/lightservuser -m lightservuser
 # Make lightservuser owner of /app
 RUN chown -R lightservuser /app

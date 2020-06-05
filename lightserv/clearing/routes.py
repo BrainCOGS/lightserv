@@ -205,7 +205,7 @@ def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,c
 							correspondence_email = request_contents.fetch1('correspondence_email')
 							recipients = [correspondence_email]
 							if not os.environ['FLASK_MODE'] == 'TEST':
-								send_email.delay(subject=subject,body=message_body,recipients=recipients)
+								send_email.delay(subject=subject,body=message_body,recipients=recipients) # pragma: no cover - used to exclude this line from calculating test coverage
 
 							# """ Admin emails """
 							# imaging_admin_email_addresses = [netid + '@princeton.edu' for netid in current_app.config['IMAGING_ADMINS']]

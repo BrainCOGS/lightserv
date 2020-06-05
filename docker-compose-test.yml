@@ -1,11 +1,11 @@
 version: "3.4"
 
 services:
-  testredis:
-    image: redis
-    expose:
-      - 6379
-    restart: always
+  # testredis:
+  #   image: redis
+  #   expose:
+  #     - 6379
+  #   restart: always
   # confproxy:
   #   env_file: .dockerenv
   #   image: jupyterhub/configurable-http-proxy:3.1.1
@@ -22,7 +22,7 @@ services:
   testflask:
     env_file: .testdockerenv
     image: flaskcelery:test
-    command: "pytest -vs lightserv/tests/test_processing.py::test_processing_admin_access_processing_entry_for_nonadmin"
+    command: "pytest -vs lightserv/tests/test_clearing.py::test_clearing_entry_experimental_rat_nonadmin"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData
@@ -30,19 +30,17 @@ services:
       - ./lib:/opt/libraries # for progproxy api
     ports:
       - '5010:5000'
-  # testworker:
-  #   env_file: .testworkerdockerenv
-  #   image: flaskcelery:latest
-  #   command: bash -c "sleep 3 && celery worker -A celery_worker.cel --loglevel=info" # sleep to wait for testflask to make the dbs
-  #   volumes:
-  #     - .:/app
-  #     - ./lib:/opt/libraries
-  #     - /jukebox/LightSheetData:/jukebox/LightSheetData
-  #     - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   depends_on:
-  #     - redis
-  #   # restart: always
+  coverage:
+    env_file: .testdockerenv
+    image: flaskcelery-coverage:test
+    command: "pytest --cov=lightserv/clearing --cov-report html -vs lightserv/tests/test_clearing.py"
+    volumes:
+      - .:/app # so changes made to the app are propagated to the container without having to rebuild
+      - /jukebox/LightSheetData:/jukebox/LightSheetData
+      - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
+      - ./lib:/opt/libraries # for progproxy api
+    ports:
+      - '5010:5000'
 networks:
   default:
     external:
