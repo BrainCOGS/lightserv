@@ -452,6 +452,45 @@ def test_clearing_entry_not_validated(test_client,test_single_sample_request_non
 	)
 	assert b'Field cannot be longer than 250 characters.' in response.data
 
+def test_clearing_entry_experimental_rat_nonadmin(test_client,test_experimental_clearing_request_nonadmin,
+	test_login_ll3,test_delete_request_db_contents):
+	""" Clears the single request by 'lightserv-test' (with clearer='ll3') 
+	using the "experimental" clearing method for a rat 
+	
+	Runs test_login_ll3 next so that 'll3' gets logged in and can do the clearing
+
+	Uses the test_delete_request_db_contents fixture, which means that 
+	all db entries are deleted upon teardown of this fixture
+	"""
+	now = datetime.now()
+	data = dict(link_to_clearing_spreadsheet='https://docs.google.com/spreadsheets/d/1A83HVyy1bEhctqArwt4EiT637M8wBxTFodobbt1jrXI/edit#gid=895577002',
+		submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
+			request_name="nonadmin_experimental_request",
+			clearing_protocol="experimental",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+	assert b'Clearing management GUI' in response.data
+	
+	""" Make sure clearing_progress is now updated """
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & 'username="lightserv-test"' & \
+	'request_name="nonadmin_experimental_request"' & 'clearing_protocol="experimental"' & \
+			'antibody1=""' & 'antibody2=""'
+	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
+	assert clearing_progress == 'complete'
+	
+	# """ Make sure the clearing batch is now in the correct table in the manager """
+	# parsed_html = BeautifulSoup(response.data,features="html.parser")
+	# table_tag = parsed_html.body.find('table',attrs={'id':'horizontal_already_cleared_table'})
+	# table_row_tag = table_tag.find_all('tr')[1] # the 0th row is the headers
+	# td_tags = table_row_tag.find_all('td')
+	# assert td_tags[1].text == "iDISCO abbreviated clearing" and \
+	# td_tags[2].text == "" and td_tags[3].text == "" and td_tags[4].text == 'nonadmin_request'
+
 """ Test clearing_table() """
 
 def test_mouse_clearing_tables_have_db_content(test_client,test_cleared_all_mouse_clearing_protocols_ahoag):

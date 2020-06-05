@@ -22,7 +22,7 @@ services:
   testflask:
     env_file: .testdockerenv
     image: flaskcelery:test
-    command: "pytest -vs lightserv/tests/test_requests.py::test_all_requests_reflects_cleared_request"
+    command: "pytest -vs lightserv/tests/test_clearing.py::test_clearing_entry_experimental_rat_nonadmin"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData
@@ -33,7 +33,7 @@ services:
   coverage:
     env_file: .testdockerenv
     image: flaskcelery-coverage:test
-    command: "pytest --cov=lightserv/requests --cov-report html -vs lightserv/tests/test_requests.py"
+    command: "pytest --cov=lightserv/clearing --cov-report html -vs lightserv/tests/test_clearing.py"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData

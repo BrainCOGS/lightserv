@@ -262,7 +262,6 @@ def test_single_sample_request_4x_ahoag(test_client,test_login,test_delete_reque
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_ahoag fixture --------')
 
-
 @pytest.fixture(scope='function') 
 def test_request_4x_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
 	""" Submits a new request as 'lightserv-user' with a single sample requesting 4x resolution
@@ -634,6 +633,41 @@ def test_archival_request_nonadmin(test_client,test_login_nonadmin,test_delete_r
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_ahoag fixture --------')
 
+@pytest.fixture(scope='function') 
+def test_experimental_clearing_request_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits a new request as 'ahoag' with a single sample that can be used for various tests.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_single_request_ahoag fixture ----------')
+	from lightserv import db_lightsheet
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Tank/Brody",'correspondence_email':"lightserv-test@princeton.edu",
+			'request_name':"nonadmin_experimental_request",
+			'description':"This is a request by lightserv-test, a non admin",
+			'species':"rat",'number_of_samples':1,
+			'username':current_user,
+			'clearing_samples-0-clearing_protocol':'experimental',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_single_request_ahoag fixture --------')
+
+
 """ Fixtures for clearing """
 
 @pytest.fixture(scope='function') 
@@ -906,7 +940,6 @@ def test_cleared_rat_request(test_client,
 
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_cleared_request_ahoag fixture --------')
-
 
 @pytest.fixture(scope='function') 
 def test_self_cleared_request_nonadmin(test_client,test_self_clearing_and_imaging_request):
