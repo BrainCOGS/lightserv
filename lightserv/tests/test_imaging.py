@@ -64,29 +64,34 @@ def test_admin_can_see_self_imaging_request(test_client,test_self_cleared_reques
 	assert b'self_clearing_and_imaging_request' in response.data 
 	# assert b'admin_request' not in response.data 
 
-def test_ahoag_multiple_imaging_requests_imaging_manager(test_client,test_new_imaging_request_ahoag):
+def test_ahoag_multiple_imaging_requests_imaging_manager(test_client,test_cleared_two_imaging_requests_ahoag):
 	""" Test that ahoag can access the imaging task manager
 	and see both of their imaging requests  """
+	# First log ahoag back in
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'ahoag'
 	response = test_client.get(url_for('imaging.imaging_manager')
 		, follow_redirects=True)
 	assert b'Imaging management GUI' in response.data
 	assert b'admin_request' in response.data 
 
-	# parsed_html = BeautifulSoup(response.data,features="html.parser")
-	# table_tag = parsed_html.find('table',
-	# 	attrs={'id':'horizontal_ready_to_image_table'})
-	# table_row_tags = table_tag.find_all('tr')
-	# print(table_row_tags)
-	# print(len(table_row_tags))
-	# header_row = table_row_tags[0].find_all('th')
-	# data_row = table_row_tags[1].find_all('td')
-	# for ii,col in enumerate(header_row):
-	# 	if col.text == 'archival?':
-	# 		archival_column_index = ii
-	# 		break
-	# is_archival = data_row[archival_column_index].text
-	# assert is_archival == "yes"
-
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag = parsed_html.find('table',
+		attrs={'id':'horizontal_ready_to_image_table'})
+	table_row_tags = table_tag.find_all('tr')
+	print(table_row_tags)
+	print(len(table_row_tags))
+	header_row = table_row_tags[0].find_all('th')
+	imaging_request_1_row = table_row_tags[1].find_all('td')
+	imaging_request_2_row = table_row_tags[2].find_all('td')
+	for ii,col in enumerate(header_row):
+		if col.text == 'imaging request number':
+			request_number_column_index = ii
+			break
+	first_request_number = imaging_request_1_row[request_number_column_index].text
+	second_request_number = imaging_request_2_row[request_number_column_index].text
+	assert first_request_number == '1'
+	assert second_request_number == '2'
 """ Tests for imaging entry form """
 
 def test_imaging_entry_form_loads(test_client,test_cleared_request_ahoag,
