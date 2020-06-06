@@ -2,3 +2,4 @@
 omit = 
 	lightserv/main/tasks.py
 	lightserv/imaging/tasks.py
+	lightserv/processing/tasks.py

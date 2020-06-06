@@ -23,7 +23,7 @@ services:
     env_file: .testdockerenv
     hostname: docker_lightserv
     image: flaskcelery:test
-    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_logging.py::test_GET_log_entry_admin_user"
+    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_db.py"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData
@@ -35,7 +35,7 @@ services:
     env_file: .testdockerenv
     hostname: docker_lightserv
     image: flaskcelery:test
-    command: "pytest -p no:cacheprovider --cov=lightserv/imaging --cov-report html -vs lightserv/tests/test_imaging.py"
+    command: "pytest -p no:cacheprovider --cov=lightserv/processing --cov-report html -vs lightserv/tests/test_processing.py"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData
