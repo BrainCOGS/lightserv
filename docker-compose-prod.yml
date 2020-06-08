@@ -24,7 +24,7 @@ services:
     env_file: .dockerenv
     hostname: docker_lightserv
     image: flaskcelery:prod
-    command: ["python", "run.py"]
+    command: "gunicorn -w 5 run:app -b 0.0.0.0:5000"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData
