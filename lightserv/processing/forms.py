@@ -15,9 +15,6 @@ class ChannelProcessingForm(FlaskForm):
 	cell_detection = BooleanField('Cell Detection',default=False)
 	generic_imaging = BooleanField('Generic imaging',default=False)
 	
-	# finalorientation = SelectField('Select the desired orientation for your volumetric data products',
-	# 	choices=[('sagittal','Sagittal'),('coronal','Coronal'),('horizontal','Horizontal')],
-	# 	validators=[InputRequired()])
 
 class ImageResolutionProcessingForm(FlaskForm):
 	max_number_of_channels = 4
@@ -36,7 +33,7 @@ class StartProcessingForm(FlaskForm):
 	image_resolution_forms = FieldList(FormField(ImageResolutionProcessingForm),min_entries=0,
 		max_entries=max_number_of_resolutions)
 	notes_from_processing = TextAreaField("Note down anything additional about the processing"
-									   " that you would like recorded.")
+									   " that you would like recorded. -- max 1024 characters --",validators=[Length(max=1024)])
 	
 	submit = SubmitField('Start the processing pipeline for this sample')	
 
@@ -47,7 +44,7 @@ class NewProcessingRequestForm(FlaskForm):
 	image_resolution_forms = FieldList(FormField(ImageResolutionProcessingForm),min_entries=0,
 		max_entries=max_number_of_resolutions)
 	notes_from_processing = TextAreaField("Note down anything additional about the processing"
-									   " that you would like recorded.")
+									   " that you would like recorded.",default="",validators=[Length(max=1024)])
 	
 	submit = SubmitField('Submit new processing request')	
 

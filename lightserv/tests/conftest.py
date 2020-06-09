@@ -1174,6 +1174,35 @@ def test_cleared_two_imaging_requests_ahoag(test_client,test_new_imaging_request
 	print('-------Teardown test_cleared_request_nonadmin fixture --------')
 
 
+@pytest.fixture(scope='function') 
+def test_cleared_two_processing_requests_ahoag(test_client,test_new_processing_request_ahoag,
+	test_login_ll3,test_delete_request_db_contents):
+	""" Clears the the request by 'lightserv-test' (with clearer='ll3') 
+	where two imaging requests have been made 
+
+	Runs test_login_ll3 next so that 'll3' gets logged in and can do the clearing
+
+	Uses the test_delete_request_db_contents fixture, which means that 
+	all db entries are deleted upon teardown of this fixture
+	"""
+	print('----------Setup test_cleared_request_nonadmin fixture ----------')
+	now = datetime.now()
+	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		dehydr_pbs_wash1_notes='some notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="ahoag",
+			request_name="admin_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_cleared_request_nonadmin fixture --------')
+
+
 
 """ Fixtures for imaging  """
 
@@ -1368,7 +1397,91 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 
-""" Fixtures for follow-up imaging and processing requests """
+@pytest.fixture(scope='function') 
+def test_imaged_two_processing_requests_ahoag(test_client,test_cleared_two_processing_requests_ahoag,
+	test_login_zmd,test_delete_request_db_contents):
+	""" Images the cleared request by 'ahoag' (clearer='ahoag')
+	with imager='zmd' """
+	print('----------Setup test_imaged_request_ahoag fixture ----------')
+
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+
+	yield test_client
+	print('----------Teardown test_imaged_request_ahoag fixture ----------')
+
+@pytest.fixture(scope='function') 
+def test_imaged_first_of_two_imaging_requests_ahoag(test_client,test_cleared_two_imaging_requests_ahoag,
+	test_login_zmd,test_delete_request_db_contents):
+	""" Images the cleared request by 'ahoag' (clearer='ahoag')
+	with imager='zmd' """
+	print('----------Setup test_imaged_first_of_two_imaging_requests_ahoag fixture ----------')
+
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+
+	yield test_client
+	print('----------Teardown test_imaged_first_of_two_imaging_requests_ahoag  fixture ----------')
+
+@pytest.fixture(scope='function') 
+def test_imaged_both_imaging_requests_ahoag(test_client,test_imaged_first_of_two_imaging_requests_ahoag,
+	test_login_zmd,test_delete_request_db_contents):
+	""" Images the cleared request by 'ahoag' (clearer='ahoag')
+	with imager='zmd' """
+	print('----------Setup test_imaged_both_imaging_requests_ahoag fixture ----------')
+
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
+			imaging_request_number=2),
+		data=data,
+		follow_redirects=True)
+
+	yield test_client
+	print('----------Teardown test_imaged_both_imaging_requests_ahoag  fixture ----------')
+
+""" Fixtures for follow-up imaging and follow-up processing requests """
 
 @pytest.fixture(scope='function') 
 def test_new_imaging_request_ahoag(test_client,test_single_sample_request_ahoag):
@@ -1389,6 +1502,7 @@ def test_new_imaging_request_ahoag(test_client,test_single_sample_request_ahoag)
 			'image_resolution_forms-0-final_orientation':'sagittal',
 			'image_resolution_forsetup':'1.3x',
 			'image_resolution_forms-0-channels-0-registration':True,
+			'image_resolution_forms-0-channels-0-channel_name':488,
 			'submit':True
 		},content_type='multipart/form-data',
 		follow_redirects=True
@@ -1418,6 +1532,91 @@ def test_new_processing_request_ahoag(test_client,test_single_sample_request_aho
 		)
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_new_processing_request fixture --------')
+
+
+""" Fixtures for processing """
+
+@pytest.fixture(scope='function')
+def processing_request_ahoag(test_client,test_imaged_request_ahoag):
+	""" A fixture for having a request by ahoag that has been cleared 
+	(by zmd), imaged (by zmd) and then the processing is started (by ahoag) for reuse. """
+
+	print('----------Setup processing_request_ahoag fixture ----------')
+
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-atlas_name':'allen_2017',
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'submit':True
+		}
+
+	username = "ahoag"
+	request_name = "admin_request"
+	sample_name = "sample-001"
+	imaging_request_number = 1
+	processing_request_number = 1
+	response = test_client.post(url_for('processing.processing_entry',
+			username=username,request_name=request_name,sample_name=sample_name,
+			imaging_request_number=imaging_request_number,
+			processing_request_number=processing_request_number),
+		data=data,
+		follow_redirects=True)
+	yield test_client
+	print('----------Teardown processing_request_ahoag fixture ----------')
+
+@pytest.fixture(scope='function')
+def completed_processing_request_ahoag(test_client,processing_request_ahoag):
+	""" A fixture for having a completely cleared, imaged and processed request by ahoag """
+
+	print('----------Setup complete_processing_request_ahoag fixture ----------')
+
+
+	username = "ahoag"
+	request_name = "admin_request"
+	sample_name = "sample-001"
+	imaging_request_number = 1
+	processing_request_number = 1
+	restrict_dict = dict(username=username,
+		request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number)
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & restrict_dict
+	dj.Table._update(processing_request_contents,'processing_progress','complete')
+	yield test_client
+
+	print('----------Teardown complete_processing_request_ahoag fixture ----------')
+
+
+@pytest.fixture(scope='function')
+def processing_request_nonadmin(test_client,test_imaged_request_nonadmin):
+	""" A fixture for having a request by lightserv-test that has been cleared 
+	(by zmd), imaged (by zmd) and processed (by lightserv-test) for reuse. """
+
+	print('----------Setup processing_request_nonadmin fixture ----------')
+
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-atlas_name':'allen_2017',
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'submit':True
+		}
+
+	username = "lightserv-test"
+	request_name = "nonadmin_request"
+	sample_name = "sample-001"
+	imaging_request_number = 1
+	processing_request_number = 1
+	response = test_client.post(url_for('processing.processing_entry',
+			username=username,request_name=request_name,sample_name=sample_name,
+			imaging_request_number=imaging_request_number,
+			processing_request_number=processing_request_number),
+		data=data,
+		follow_redirects=True)
+	yield test_client
+	print('----------Teardown processing_request_nonadmin fixture ----------')
+
 
 """ Fixtures for celery testing """
 

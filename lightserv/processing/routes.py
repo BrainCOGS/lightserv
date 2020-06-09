@@ -172,14 +172,11 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 				f'image_resolution="{this_image_resolution}"'
 				# logger.debug(this_image_resolution_content)
 				atlas_name = form_resolution_dict['atlas_name']
-				if atlas_name:
-					logger.info("updating atlas and notes_from_processing in ProcessingResolutionRequest() with user's form data")
-					dj.Table._update(this_image_resolution_content,'atlas_name',atlas_name)
-					dj.Table._update(this_image_resolution_content,'notes_from_processing',form.notes_from_processing.data)
-				else:
-					logger.info("Not atlas entered in form. ")
+				logger.info("updating atlas and notes_from_processing in ProcessingResolutionRequest() with user's form data")
+				dj.Table._update(this_image_resolution_content,'atlas_name',atlas_name)
+				dj.Table._update(this_image_resolution_content,'notes_from_processing',form.notes_from_processing.data)
 			logger.info(f"Starting light sheet pipeline task")
-			if not os.environ['FLASK_MODE'] == 'TEST':
+			if not os.environ['FLASK_MODE'] == 'TEST': # pragma: no cover - used to exclude this line from calculating test coverage
 				run_lightsheet_pipeline.delay(username=username,request_name=request_name,sample_name=sample_name,
 					imaging_request_number=imaging_request_number,
 					processing_request_number=processing_request_number)
@@ -194,12 +191,12 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 			
 			return redirect(url_for('requests.all_requests'))
 		else:
-			logger.debug(form.errors)
+			logger.debug(form.errors) # pragma: no cover - used to exclude this line from calculating test coverage
 	
 	
 	channel_contents_lists = []
 	while len(form.image_resolution_forms) > 0:
-		form.image_resolution_forms.pop_entry()
+		form.image_resolution_forms.pop_entry() # pragma: no cover - used to exclude this line from calculating test coverage
 	""" Figure out the unique number of image resolutions """
 	unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
 
@@ -257,7 +254,7 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 	someone is new to using the core facility and realizes after their 
 	first imaging round that they want a different kind of imaging 
 	for the same sample.  """
-	logger.info(f"{session['user']} accessed new imaging request form")
+	logger.info(f"{session['user']} accessed new processing request form")
 	form = NewProcessingRequestForm(request.form)
 
 	all_imaging_modes = current_app.config['IMAGING_MODES']
@@ -334,6 +331,7 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 					processing_resolution_insert_dict['processing_request_number'] = new_processing_request_number
 					processing_resolution_insert_dict['image_resolution'] = this_image_resolution
 					processing_resolution_insert_dict['atlas_name'] = form_resolution_dict['atlas_name']
+					processing_resolution_insert_dict['notes_from_processing'] = form.data['notes_from_processing']
 					processing_resolution_insert_list.append(processing_resolution_insert_dict)
 					""" Make processing path on /jukebox """
 					processing_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
@@ -352,9 +350,6 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 			return redirect(url_for('processing.processing_manager'))
 			
 		else: # form not validated
-			if 'submit' in form.errors:
-				for error_str in form.errors['submit']:
-					flash(error_str,'danger')
 			
 			logger.debug("Not validated! See error dict below:")
 			logger.debug(form.errors)
@@ -363,51 +358,52 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 			flash(flash_str,'danger')
 			""" deal with errors in the image resolution subforms - those
 			do not show up in the rendered tables like normal form errors """
-			for obj in form.errors['image_resolution_forms']:
-				if isinstance(obj,dict):
-					for key,val in list(obj.items()):
-						for error_str in val:
-							flash(error_str,'danger')
-				elif isinstance(obj,str):
-					flash(obj,'danger')
+			
+			for orig_key in form.errors:
+				error_list = form.errors[orig_key]
+				for item in error_list:
+					if isinstance(item,str):
+						flash(item,'danger')
+					else:
+						for key,val in list(item.items()):
+							for error_str in val:
+								flash(error_str,'danger')
 	
-	elif request.method == 'GET': # get request
-		logger.info("GET request")
-		channel_contents_lists = []
-		while len(form.image_resolution_forms) > 0:
-			form.image_resolution_forms.pop_entry()
-		""" Figure out the unique number of image resolutions """
-		unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
-		for ii in range(len(unique_image_resolutions)):
-			this_image_resolution = unique_image_resolutions[ii]
-			image_resolution_request_content = db_lightsheet.Request.ImagingResolutionRequest() & \
-			 f'request_name="{request_name}"' & f'username="{username}"' & \
-			 f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & \
-			 f'image_resolution="{this_image_resolution}"'
+	channel_contents_lists = []
+	while len(form.image_resolution_forms) > 0:
+		form.image_resolution_forms.pop_entry() 
+	""" Figure out the unique number of image resolutions """
+	unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
+	for ii in range(len(unique_image_resolutions)):
+		this_image_resolution = unique_image_resolutions[ii]
+		image_resolution_request_content = db_lightsheet.Request.ImagingResolutionRequest() & \
+		 f'request_name="{request_name}"' & f'username="{username}"' & \
+		 f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & \
+		 f'image_resolution="{this_image_resolution}"'
 
-			channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
-			channel_contents_lists.append([])
-			form.image_resolution_forms.append_entry()
-			this_resolution_form = form.image_resolution_forms[-1]
-			this_resolution_form.image_resolution.data = this_image_resolution
-			# this_resolution_form.atlas_name.data = image_resolution_request_content.fetch1('atlas_name')
+		channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
+		channel_contents_lists.append([])
+		form.image_resolution_forms.append_entry()
+		this_resolution_form = form.image_resolution_forms[-1]
+		this_resolution_form.image_resolution.data = this_image_resolution
+		# this_resolution_form.atlas_name.data = image_resolution_request_content.fetch1('atlas_name')
 
-			''' Now go and add the channel subforms to the image resolution form '''
-			for jj in range(len(channel_contents_list_this_resolution)):
-				channel_content = channel_contents_list_this_resolution[jj]
-				channel_contents_lists[ii].append(channel_content)
-				this_resolution_form.channel_forms.append_entry()
-				this_channel_form = this_resolution_form.channel_forms[-1]
-				this_channel_form.channel_name.data = channel_content['channel_name']
+		''' Now go and add the channel subforms to the image resolution form '''
+		for jj in range(len(channel_contents_list_this_resolution)):
+			channel_content = channel_contents_list_this_resolution[jj]
+			channel_contents_lists[ii].append(channel_content)
+			this_resolution_form.channel_forms.append_entry()
+			this_channel_form = this_resolution_form.channel_forms[-1]
+			this_channel_form.channel_name.data = channel_content['channel_name']
 
-				""" figure out the channel purposes """
-				used_imaging_modes = []
-				for imaging_mode in current_app.config['IMAGING_MODES']:
-					if channel_content[imaging_mode] == True:
-						this_channel_form[imaging_mode].data = 1
-						used_imaging_modes.append(imaging_mode)
-				channel_purposes_str = ', '.join(mode for mode in used_imaging_modes)
-				this_channel_form.channel_purposes_str.data = channel_purposes_str
+			""" figure out the channel purposes """
+			used_imaging_modes = []
+			for imaging_mode in current_app.config['IMAGING_MODES']:
+				if channel_content[imaging_mode] == True:
+					this_channel_form[imaging_mode].data = 1
+					used_imaging_modes.append(imaging_mode)
+			channel_purposes_str = ', '.join(mode for mode in used_imaging_modes)
+			this_channel_form.channel_purposes_str.data = channel_purposes_str
 
 	return render_template('processing/new_processing_request.html',
 		imaging_request_number=imaging_request_number,
@@ -415,7 +411,6 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 		imaging_overview_table=imaging_overview_table,
 		existing_processing_table=existing_processing_table,
 		channel_contents_lists=channel_contents_lists,sample_dict=sample_dict)
-
 
 @processing.route("/processing/processing_table/<username>/<request_name>/<sample_name>/<imaging_request_number>/<processing_request_number>",
 	methods=['GET','POST'])
@@ -444,7 +439,7 @@ def processing_table(username,request_name,
 
 	joined_contents = sample_contents * processing_request_contents * processing_resolution_request_contents 
 	
-	overview_table_id = 'horizontal_procsesing_table'
+	overview_table_id = 'horizontal_processing_table'
 	overview_table = create_dynamic_processing_overview_table(joined_contents,table_id=overview_table_id)
 
 	processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & f'request_name="{request_name}"' & \

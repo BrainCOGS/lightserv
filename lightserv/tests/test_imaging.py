@@ -92,6 +92,7 @@ def test_ahoag_multiple_imaging_requests_imaging_manager(test_client,test_cleare
 	second_request_number = imaging_request_2_row[request_number_column_index].text
 	assert first_request_number == '1'
 	assert second_request_number == '2'
+
 """ Tests for imaging entry form """
 
 def test_imaging_entry_form_loads(test_client,test_cleared_request_ahoag,
@@ -416,7 +417,6 @@ def test_access_already_imaged_request_nonadmin(test_client,test_imaged_request_
 			"so please proceed with caution")
 	assert str2.encode('utf-8') in response.data
 
-
 def test_user_attempt_to_access_imaging_entry_form_redirects(test_client,test_imaged_request_nonadmin):
 	""" Test that user cannot access their own imaging entry form
 	if someone else (zmd) has been assigned as the imager 
@@ -711,10 +711,42 @@ def test_4x_multitile_request_submits(test_client,test_cleared_request_4x_multit
 	assert b'Imaging management GUI' in response.data
 	assert b'4x_647_kelly' in response.data 
 
+def test_imaging_entry_form_submits_for_second_imaging_request(test_client,test_imaged_first_of_two_imaging_requests_ahoag,
+	test_login_zmd):
+	""" Test that Zahra (zmd, an imaging admin) can submit the imaging entry form
+	for the second imaging request for a single sample """
+	print(db_lightsheet.Request.ImagingRequest())
+
+	# imaging_contents = db_lightsheet.Request.ImagingChannel() & 'imaging_request_number=1'
+	# print(imaging_contents.fetch1(''))
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='ahoag',request_name='admin_request',sample_name='sample-001',
+			imaging_request_number=2),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging management GUI' in response.data
+	assert b'admin_request' in response.data 
+
+	imaging_progress_request_2 = (db_lightsheet.Request.ImagingRequest() & 'request_name="admin_request"' & \
+		'username="ahoag"' & 'sample_name="sample-001"' & 'imaging_request_number=2').fetch1('imaging_progress')
+	assert imaging_progress_request_2 == 'complete'
+
 
 """ Tests for New imaging request """	
 
-def test_new_imaging_request(test_client,test_single_sample_request_ahoag):
+def test_new_imaging_request_submits(test_client,test_single_sample_request_ahoag):
 	""" Check that a new imaging request submits successfully
 
 	Uses the test_single_sample_request_ahoag fixture

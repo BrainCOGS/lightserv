@@ -4,6 +4,7 @@ import webbrowser
 from lightserv import db_lightsheet, db_admin
 from bs4 import BeautifulSoup 
 from datetime import datetime
+import lorem
 
 """ Tests for Processing Manager """
 def test_ahoag_access_processing_manager(test_client,test_imaged_request_ahoag):
@@ -62,6 +63,106 @@ def test_nonadmin_sees_their_4x_processing_request(test_client,
 	# assert b'admin_request' not in response.data 
 	assert b'test2' in response.data 
 	# assert b'lightserv-test' in response.data 
+
+def test_ahoag_multiple_processing_requests_processing_manager(test_client,test_imaged_two_processing_requests_ahoag):
+	""" Test that ahoag can access the processing task manager
+	and see both of their processing requests for the same request """
+	# First log ahoag back in
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'ahoag'
+	response = test_client.get(url_for('processing.processing_manager')
+		, follow_redirects=True)
+	assert b'Processing management GUI' in response.data
+	assert b'admin_request' in response.data 
+
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag = parsed_html.find('table',
+		attrs={'id':'horizontal_ready_to_process_table'})
+	table_row_tags = table_tag.find_all('tr')
+	print(table_row_tags)
+	print(len(table_row_tags))
+	header_row = table_row_tags[0].find_all('th')
+	imaging_request_1_row = table_row_tags[1].find_all('td')
+	imaging_request_2_row = table_row_tags[2].find_all('td')
+	for ii,col in enumerate(header_row):
+		if col.text == 'processing request number':
+			request_number_column_index = ii
+			break
+	first_request_number = imaging_request_1_row[request_number_column_index].text
+	second_request_number = imaging_request_2_row[request_number_column_index].text
+	assert first_request_number == '1'
+	assert second_request_number == '2'
+
+def test_ahoag_multiple_imaging_requests_processing_manager(test_client,test_imaged_both_imaging_requests_ahoag):
+	""" Test that ahoag can access the processing task manager
+	and see both of their imaging requests for the same base request """
+	# First log ahoag back in
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'ahoag'
+	response = test_client.get(url_for('processing.processing_manager')
+		, follow_redirects=True)
+	assert b'Processing management GUI' in response.data
+	assert b'admin_request' in response.data 
+
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag = parsed_html.find('table',
+		attrs={'id':'horizontal_ready_to_process_table'})
+	table_row_tags = table_tag.find_all('tr')
+	header_row = table_row_tags[0].find_all('th')
+	imaging_request_1_row = table_row_tags[1].find_all('td')
+	imaging_request_2_row = table_row_tags[2].find_all('td')
+	for ii,col in enumerate(header_row):
+		if col.text == 'imaging request number':
+			request_number_column_index = ii
+			break
+	first_request_number = imaging_request_1_row[request_number_column_index].text
+	second_request_number = imaging_request_2_row[request_number_column_index].text
+	assert first_request_number == '1'
+	assert second_request_number == '2'
+
+def test_ahoag_can_see_running_processing_requests(test_client,processing_request_ahoag):
+	""" Test that ahoag can see running processing request
+	in the processing manager"""
+	with test_client.session_transaction() as sess:
+		sess['user'] = "ahoag"
+	response = test_client.get(url_for('processing.processing_manager'),
+		follow_redirects=True)
+	
+	assert b"Processing management GUI" in response.data
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag = parsed_html.find('table',
+		attrs={'id':'horizontal_being_processed_table'})
+	table_row_tags = table_tag.find_all('tr')
+	header_row = table_row_tags[0].find_all('th')
+	processing_request_1_row = table_row_tags[1].find_all('td')
+	for ii,col in enumerate(header_row):
+		if col.text == 'processing progress':
+			request_number_column_index = ii
+			break
+	processing_progress = processing_request_1_row[request_number_column_index].text
+	assert processing_progress == 'running'
+	
+def test_ahoag_can_see_completed_processing_requests(test_client,completed_processing_request_ahoag):
+	""" Test that ahoag can see running processing request
+	in the processing manager"""
+	with test_client.session_transaction() as sess:
+		sess['user'] = "ahoag"
+	response = test_client.get(url_for('processing.processing_manager'),
+		follow_redirects=True)
+	
+	assert b"Processing management GUI" in response.data
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag = parsed_html.find('table',
+		attrs={'id':'horizontal_already_processed_table'})
+	table_row_tags = table_tag.find_all('tr')
+	header_row = table_row_tags[0].find_all('th')
+	processing_request_1_row = table_row_tags[1].find_all('td')
+	for ii,col in enumerate(header_row):
+		if col.text == 'processing progress':
+			request_number_column_index = ii
+			break
+	processing_progress = processing_request_1_row[request_number_column_index].text
+	assert processing_progress == 'complete'
 
 """ Tests for processing entry form """
 
@@ -274,3 +375,174 @@ def test_submit_processing_entry_4x_nonadmin(test_client,test_imaged_4x_request_
 			f'processing_request_number="{processing_request_number}"'
 	processing_progress = processing_request_contents.fetch1('processing_progress')
 	assert processing_progress == 'running'
+
+def test_processing_entry_form_shows_readonly_if_already_submitted(test_client,processing_request_nonadmin):
+	""" Test that the processing entry form shows a flash message 
+	that it is read only if the processing request has already been submitted
+	"""
+	response = test_client.get(url_for('processing.processing_entry',
+		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+		imaging_request_number=1,processing_request_number=1)
+		, follow_redirects=True)
+
+	assert b'Processing Entry Form' in response.data
+	assert b'nonadmin_request' in response.data 
+	warning_message = ("Processing is running for this sample. "
+			"This page is read only and hitting submit will do nothing")
+	assert warning_message.encode('utf-8') in response.data 
+
+def test_processing_entry_form_redirects_on_post_if_already_submitted(test_client,processing_request_nonadmin):
+	""" Test that the processing entry form redirects 
+	to the processing manager if a post request is received and the entry 
+	form has already been submitted in the past. 
+	"""
+	response = test_client.post(url_for('processing.processing_entry',
+		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+		imaging_request_number=1,processing_request_number=1),
+		data = {
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'image_resolution_forms-0-atlas_name':'allen_2017',
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'submit':True
+		}, follow_redirects=True)
+
+	assert b'Processing management GUI' in response.data
+	warning_message = ("Processing is running for this sample.  " 
+                       "It cannot be re-processed. To open a new processing request, " 
+                       "see your request page") 
+	assert warning_message.encode('utf-8') in response.data
+
+""" Tests for processing_table """
+
+def test_ahoag_access_processing_table(test_client,processing_request_ahoag):
+	""" Test that ahoag can access their processing table route
+	after request has been processed"""
+	with test_client.session_transaction() as sess:
+		sess['user'] = "ahoag"
+	username = "ahoag"
+	request_name = "admin_request"
+	sample_name = "sample-001"
+	imaging_request_number = 1
+	processing_request_number = 1
+	response = test_client.get(url_for('processing.processing_table',
+		username=username,request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number),
+		follow_redirects=True)
+	
+	assert b"Processing Log" in response.data
+	assert b"Processed channels:" in response.data
+
+
+""" Tests for new_processing_request """
+
+def test_access_new_processing_request_nonadmin(test_client,test_single_sample_request_nonadmin):
+	""" Test that the new processing request page loads OK 
+
+	Uses test_single_sample_request_nonadmin to make a single request with a single 
+	sample for setup
+
+	"""
+	response = test_client.get(url_for('processing.new_processing_request',
+			username='lightserv-test',request_name='nonadmin_request',
+			sample_name='sample-001',imaging_request_number=1),
+		follow_redirects=True
+		)
+	assert b"New Image Processing Request" in response.data
+
+def test_submit_new_processing_request_nonadmin(test_client,test_single_sample_request_nonadmin):
+	""" Test that the new processing request form submits OK
+
+	Uses test_single_sample_request_nonadmin to make a single request with a single 
+	sample for setup
+
+	"""
+
+	response = test_client.post(url_for('processing.new_processing_request',
+			username='lightserv-test',request_name='nonadmin_request',
+			sample_name='sample-001',imaging_request_number=1),
+			data={
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'image_resolution_forms-0-atlas_name':'princeton_mouse_atlas',
+			'submit':True
+		},
+		follow_redirects=True
+		)
+	assert b"New Image Processing Request" not in response.data
+	assert b"Processing request successfully submitted." in response.data
+	assert b'Processing management GUI' in response.data
+
+def test_new_processing_request_nonadmin_validates(test_client,test_single_sample_request_nonadmin):
+	""" Test that the new processing request route validates when
+	the form is submitted with bad data
+
+	Uses test_single_sample_request_nonadmin to make a single request with a single 
+	sample for setup
+
+	"""
+
+	response = test_client.post(url_for('processing.new_processing_request',
+			username='lightserv-test',request_name='nonadmin_request',
+			sample_name='sample-001',imaging_request_number=1),
+			data={
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'image_resolution_forms-0-atlas_name':'princeton_mouse_atlas',
+			'image_resolution_forms-0-notes_for_processor':lorem.text()*2,
+			'submit':True
+		},
+		follow_redirects=True
+		)
+	assert b"There were errors below. Correct them before proceeding" in response.data
+	assert b"Field cannot be longer than 1024 characters" in response.data
+	assert b"New Image Processing Request" in response.data
+
+
+	response2 = test_client.post(url_for('processing.new_processing_request',
+			username='lightserv-test',request_name='nonadmin_request',
+			sample_name='sample-001',imaging_request_number=1),
+			data={
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'image_resolution_forms-0-atlas_name':'princeton_mouse_atlas',
+			'notes_from_processing':lorem.text()*2,
+			'submit':True
+		},
+		follow_redirects=True
+		)
+	assert b"There were errors below. Correct them before proceeding" in response2.data
+	assert b"Field cannot be longer than 1024 characters" in response2.data
+	assert b"New Image Processing Request" in response2.data
+
+""" Tests for processing utils """
+
+
+def test_determine_status_code():
+	""" Test that the new processing request route validates when
+	the form is submitted with bad data
+
+	Uses test_single_sample_request_nonadmin to make a single request with a single 
+	sample for setup
+
+	"""
+	from lightserv.processing.utils import determine_status_code
+
+	# if all are same then return the one code that is duplicated
+	status_codes1 = ['COMPLETED','COMPLETED']
+	status_code1 = determine_status_code(status_codes1)
+	assert status_code1 == 'COMPLETED'
+	# if none have failed but all are not the same then status should be RUNNING
+	status_codes2 = ['PENDING','PENDING','RUNNING','COMPLETED']
+	status_code2 = determine_status_code(status_codes2)
+	assert status_code2 == 'RUNNING'
+	# if any are problematic, return failed
+	status_codes3 = ['PENDING','PENDING','RUNNING','CANCELLED']
+	status_code3 = determine_status_code(status_codes3)
+	assert status_code3 == 'FAILED'
+	# if only 1 status code then just return that value
+	status_codes4 = ['PENDING']
+	status_code4 = determine_status_code(status_codes4)
+	assert status_code4 == 'PENDING'
+	# if CANCELLED by {UID} is the status code then just return CANCELLED
+	status_codes5 = ['CANCELLED by 1234']
+	status_code5 = determine_status_code(status_codes5)
+	assert status_code5 == 'CANCELLED'

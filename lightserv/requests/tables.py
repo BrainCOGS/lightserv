@@ -8,7 +8,28 @@ from lightserv.main.tables import (DateTimeCol, ImagingRequestLinkCol,
 from lightserv import db_lightsheet
 import os
 
+
+class ClearingTableLinkCol(LinkCol):
+	""" A convenience column used to show 
+	the link to either the clearing log route
+	or to the clearing spreadsheet if the request
+	is an archival one """
+	
+	def td_contents(self, item, attr_list):
+		if item['clearing_progress'] == 'complete':
+			if item['is_archival']:
+				return '<a href="{url}" target="_blank">{text}</a>'.format(
+					url=item['link_to_clearing_spreadsheet'],
+					text='link')
+			else:	
+				return '<a href="{url}" target="_blank">{text}</a>'.format(
+					url=self.url(item),
+					text=self.td_format(self.text(item, attr_list)))
+		else:
+			return "N/A"
+
 class AllRequestTable(Table):
+	""" The table shown at the all_requests() route """
 	border = True
 	allow_sort = True
 	no_items = "No Requests Yet"
@@ -72,22 +93,8 @@ class AllRequestTable(Table):
 		next_url += f'?sort={col_key}&direction={direction}&table_id={self.table_id}'
 		return next_url
 
-class ClearingTableLinkCol(LinkCol):
-	
-	def td_contents(self, item, attr_list):
-		if item['clearing_progress'] == 'complete':
-			if item['is_archival']:
-				return '<a href="{url}" target="_blank">{text}</a>'.format(
-					url=item['link_to_clearing_spreadsheet'],
-					text='link')
-			else:	
-				return '<a href="{url}" target="_blank">{text}</a>'.format(
-					url=self.url(item),
-					text=self.td_format(self.text(item, attr_list)))
-		else:
-			return "N/A"
-
 class AllSamplesTable(Table):
+	""" The table shown at the all_samples() route """
 	border = True
 	allow_sort = True
 	no_items = "No Samples Yet"
@@ -185,7 +192,7 @@ class AllSamplesTable(Table):
 		LinkCol('Viz', 'neuroglancer.general_data_setup',
 			url_kwargs=processing_request_url_kwargs,
 			allow_sort=False)
-)
+	)
 	
 	imaging_requests_subtable_class.add_column('processing_requests',
 		NestedTableCol('Processing Requests',processing_requests_subtable_class,allow_sort=False))
@@ -206,6 +213,7 @@ class AllSamplesTable(Table):
 		return next_url
 
 class RequestOverviewTable(Table):
+	""" A table for showing a brief overview of a request """
 	border = True
 	allow_sort = False
 	no_items = "No Requests Yet"
@@ -226,7 +234,7 @@ class RequestOverviewTable(Table):
 	number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
 
 def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynamic Samples Table', **sort_kwargs):
-	""" For request overview samples table """
+	""" Table showing all samples of a given request """
 	def dynamic_sort_url(self, col_key, reverse=False):
 		if reverse:
 			direction = 'desc'

@@ -68,11 +68,11 @@ def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
         table_class.add_column('start_processing_link',LinkCol('Processing entry form',
          'processing.processing_entry',url_kwargs=processing_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))
-    elif table_id == 'horizontal_being_processing_table':
+    elif table_id == 'horizontal_being_processed_table':
         table_class.add_column('continue_processing_link',LinkCol('Continue processing',
          'processing.processing_entry',url_kwargs=processing_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))
-    elif table_id == 'horizontal_already_imaged_table':
+    elif table_id == 'horizontal_already_processed_table':
         table_class.add_column('view_processing_link',LinkCol('View processing log',
          'processing.processing_entry',url_kwargs=processing_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))
