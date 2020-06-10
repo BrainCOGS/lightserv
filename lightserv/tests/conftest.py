@@ -23,7 +23,7 @@ user_agent_str_firefox = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:72.0)
 
 """ Fixtures for different test clients (different browsers) """
 
-@pytest.fixture(scope='module') 
+@pytest.fixture(scope='session') 
 def test_client():
 	""" Create the application and the test client.
 
@@ -40,6 +40,7 @@ def test_client():
 	test client in each module in which we use it, so it is slightly slower this way."" 
 	"""
 	print('----------Setup test client----------')
+
 	app = create_app(config_class=config.TestConfig)
 	# testing_client = app.test_client()
 	testing_client = app.test_client()
@@ -772,6 +773,46 @@ def test_4x_multitile_request_nonadmin(test_client,test_login_nonadmin,test_dele
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_request_4x_nonadmin fixture --------')
 
+@pytest.fixture(scope='function') 
+def test_request_viz_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits a new request as 'lightserv-test' (a nonadmin) that has
+	raw data, and the processing pipeline and the precomputed 
+	pipelines have been run for it so it will be useful for testing out 
+	the neuroglancer blueprint.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_request_viz_nonadmin fixture ----------')
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+		print(f"Current user is {current_user}")
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Tank/Brody",'correspondence_email':"lightserv-test@princeton.edu",
+			'request_name':"viz_processed",
+			'description':"This is a request by lightserv-test, a non admin",
+			'species':"mouse",'number_of_samples':1,
+			'username':current_user,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'viz_processed-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_request_viz_nonadmin fixture --------')
+	
+
 """ Fixtures for clearing """
 
 @pytest.fixture(scope='function') 
@@ -1038,7 +1079,8 @@ def test_cleared_rat_request(test_client,
 	print('-------Teardown test_cleared_request_ahoag fixture --------')
 
 @pytest.fixture(scope='function') 
-def test_self_cleared_request_nonadmin(test_client,test_self_clearing_and_imaging_request):
+def test_self_cleared_request_nonadmin(test_client,test_self_clearing_and_imaging_request,
+	test_delete_request_db_contents):
 	""" Clears the self-clearing single request by 'lightserv-test'
 	with clearer='lightserv-test'
 
@@ -1144,7 +1186,6 @@ def test_cleared_request_4x_multitile_nonadmin(test_client,test_4x_multitile_req
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_cleared_request_nonadmin fixture --------')
 
-
 @pytest.fixture(scope='function') 
 def test_cleared_two_imaging_requests_ahoag(test_client,test_new_imaging_request_ahoag,
 	test_login_ll3,test_delete_request_db_contents):
@@ -1172,7 +1213,6 @@ def test_cleared_two_imaging_requests_ahoag(test_client,test_new_imaging_request
 
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_cleared_request_nonadmin fixture --------')
-
 
 @pytest.fixture(scope='function') 
 def test_cleared_two_processing_requests_ahoag(test_client,test_new_processing_request_ahoag,
@@ -1202,6 +1242,32 @@ def test_cleared_two_processing_requests_ahoag(test_client,test_new_processing_r
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_cleared_request_nonadmin fixture --------')
 
+@pytest.fixture(scope='function') 
+def test_cleared_request_viz_nonadmin(test_client,test_request_viz_nonadmin,
+	test_login_ll3,test_delete_request_db_contents):
+	""" Clears the viz request by 'lightserv-test' (with clearer='ll3') 
+	
+	Runs test_login_ll3 next so that 'll3' gets logged in and can do the clearing
+
+	Uses the test_delete_request_db_contents fixture, which means that 
+	all db entries are deleted upon teardown of this fixture
+	"""
+	print('----------Setup test_cleared_request_nonadmin fixture ----------')
+	now = datetime.now()
+	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		dehydr_pbs_wash1_notes='some notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
+			request_name="viz_processed",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_cleared_request_nonadmin fixture --------')
 
 
 """ Fixtures for imaging  """
@@ -1481,10 +1547,52 @@ def test_imaged_both_imaging_requests_ahoag(test_client,test_imaged_first_of_two
 	yield test_client
 	print('----------Teardown test_imaged_both_imaging_requests_ahoag  fixture ----------')
 
+@pytest.fixture(scope='function') 
+def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadmin,
+	test_delete_request_db_contents,test_login_zmd):
+	""" Images the cleared viz request by 'lightserv-test' (clearer='ll3')
+	with imager='zmd' """
+
+	print('----------Setup test_imaged_request_nonadmin fixture ----------')
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'zmd'
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':5,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':1258,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'image_resolution_forms-0-channel_forms-1-channel_name':'647',
+		'image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-1-z_step':5,
+		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':1258,
+		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test647',
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='viz_processed',sample_name='viz_processed-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
+	yield test_client
+	print('----------Teardown test_imaged_request_ahoag fixture ----------')
+
+
 """ Fixtures for follow-up imaging and follow-up processing requests """
 
 @pytest.fixture(scope='function') 
-def test_new_imaging_request_ahoag(test_client,test_single_sample_request_ahoag):
+def test_new_imaging_request_ahoag(test_client,test_single_sample_request_ahoag,
+	test_delete_request_db_contents):
 	""" A fixture to make a new imaging request for an existing request.
 	A new imaging request by default creates a new processing request. 
 
@@ -1511,7 +1619,8 @@ def test_new_imaging_request_ahoag(test_client,test_single_sample_request_ahoag)
 	print('-------Teardown test_new_imaging_request fixture --------')
 
 @pytest.fixture(scope='function') 
-def test_new_processing_request_ahoag(test_client,test_single_sample_request_ahoag):
+def test_new_processing_request_ahoag(test_client,test_single_sample_request_ahoag,
+	test_delete_request_db_contents):
 	""" A fixture to make a request with two processing requests 
 	for a single sample with a single imaging request. 
 
@@ -1537,7 +1646,8 @@ def test_new_processing_request_ahoag(test_client,test_single_sample_request_aho
 """ Fixtures for processing """
 
 @pytest.fixture(scope='function')
-def processing_request_ahoag(test_client,test_imaged_request_ahoag):
+def processing_request_ahoag(test_client,test_imaged_request_ahoag,
+	test_delete_request_db_contents):
 	""" A fixture for having a request by ahoag that has been cleared 
 	(by zmd), imaged (by zmd) and then the processing is started (by ahoag) for reuse. """
 
@@ -1566,7 +1676,8 @@ def processing_request_ahoag(test_client,test_imaged_request_ahoag):
 	print('----------Teardown processing_request_ahoag fixture ----------')
 
 @pytest.fixture(scope='function')
-def completed_processing_request_ahoag(test_client,processing_request_ahoag):
+def completed_processing_request_ahoag(test_client,processing_request_ahoag,
+	test_delete_request_db_contents):
 	""" A fixture for having a completely cleared, imaged and processed request by ahoag """
 
 	print('----------Setup complete_processing_request_ahoag fixture ----------')
@@ -1589,7 +1700,8 @@ def completed_processing_request_ahoag(test_client,processing_request_ahoag):
 
 
 @pytest.fixture(scope='function')
-def processing_request_nonadmin(test_client,test_imaged_request_nonadmin):
+def processing_request_nonadmin(test_client,test_imaged_request_nonadmin,
+	test_delete_request_db_contents):
 	""" A fixture for having a request by lightserv-test that has been cleared 
 	(by zmd), imaged (by zmd) and processed (by lightserv-test) for reuse. """
 
@@ -1617,6 +1729,57 @@ def processing_request_nonadmin(test_client,test_imaged_request_nonadmin):
 	yield test_client
 	print('----------Teardown processing_request_nonadmin fixture ----------')
 
+@pytest.fixture(scope='function')
+def processing_request_viz_nonadmin(test_client,test_imaged_request_viz_nonadmin,
+	test_delete_request_db_contents):
+	""" A fixture for having the viz request by lightserv-test that has been cleared 
+	(by zmd), imaged (by zmd) and processed (by lightserv-test) for reuse. """
+
+	print('----------Setup processing_request_nonadmin fixture ----------')
+
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-atlas_name':'allen_2017',
+		'submit':True
+		}
+
+	username = "lightserv-test"
+	request_name = "viz_processed"
+	sample_name = "viz_processed-001"
+	imaging_request_number = 1
+	processing_request_number = 1
+	response = test_client.post(url_for('processing.processing_entry',
+			username=username,request_name=request_name,sample_name=sample_name,
+			imaging_request_number=imaging_request_number,
+			processing_request_number=processing_request_number),
+		data=data,
+		follow_redirects=True)
+	yield test_client
+	print('----------Teardown processing_request_nonadmin fixture ----------')
+
+@pytest.fixture(scope='function')
+def completed_processing_request_viz_nonadmin(test_client,processing_request_viz_nonadmin,
+	test_delete_request_db_contents):
+	""" A fixture for having a completely cleared, imaged and processed viz request
+	by lightserv-test, a nonadmin """
+
+	print('----------Setup completed_processing_request_viz_nonadmin fixture ----------')
+
+
+	username = "lightserv-test"
+	request_name = "viz_processed"
+	sample_name = "viz_processed-001"
+	imaging_request_number = 1
+	processing_request_number = 1
+	restrict_dict = dict(username=username,
+		request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number)
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & restrict_dict
+	dj.Table._update(processing_request_contents,'processing_progress','complete')
+	yield test_client
+
+	print('----------Teardown completed_processing_request_viz_nonadmin fixture ----------')
 
 """ Fixtures for celery testing """
 

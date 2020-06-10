@@ -5,28 +5,50 @@ from bs4 import BeautifulSoup
 from datetime import datetime, date
 from lightserv import db_lightsheet
 
-def test_requests_redirects(test_client):
+
+""" Testing all_requests """
+
+def test_all_requests_redirects_if_not_logged_in(test_client):
 	""" Tests that the requests page returns a 302 code (i.e. a redirect signal) for a not logged in user """
+	""" clear out any "user" key in session if it happened to sneak in 
+	during a previous test """
+	with test_client.session_transaction() as sess:
+		try:
+			sess.pop('user')
+		except:
+			pass
+	
 	response = test_client.get(url_for('requests.all_requests'),
 		content_type='html/text')
+	
 	assert response.status_code == 302, \
 			'Status code is {0}, but should be 302 (redirect)'.\
 			 format(response.status_code)
 
-def test_home_login_redirects(test_client):
-	""" Tests that the home page redirects to the login route """
+def test_all_requests_login_redirects(test_client):
+	""" Tests that the all_requests page redirects to the login route """
 	response = test_client.get(url_for('requests.all_requests'),
 		content_type='html/text',
 		follow_redirects=True)
 
 	assert response.status_code == 200, 'Status code is {0}, but should be 200'.format(response.status_code)
 
-def test_home_page(test_client,test_login):
-	""" Check that the home page loads properly """
+def test_all_requests_loads(test_client,test_login):
+	""" Check that the all requests page loads properly """
 	response = test_client.get(url_for('requests.all_requests'),
 		follow_redirects=True)
 
 	assert b'All core facility requests:' in response.data 
+
+def test_viz_processed_fixture_worked(test_client,test_login,test_request_viz_nonadmin):
+	""" Check that the all requests page loads properly """
+	response = test_client.get(url_for('requests.all_requests'),
+		follow_redirects=True)
+
+	assert b'core facility requests:' in response.data 
+	assert b'viz_processed' in response.data
+
+
 
 """ Testing new_request() """
 
