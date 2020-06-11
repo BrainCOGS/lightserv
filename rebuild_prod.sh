@@ -34,3 +34,8 @@ docker build -f ./neuroglancer.Dockerfile -t nglancer_viewer:prod .
 cd ../neuroglancer-registration
 
 docker build -f ./neuroglancer.Dockerfile -t nglancer_registration_viewer:prod .
+
+## build neuroglancer-custom prod tag
+cd ../neuroglancer-custom
+
+docker build -f ./neuroglancer.Dockerfile -t nglancer_custom_viewer:prod .
