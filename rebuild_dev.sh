@@ -34,5 +34,11 @@ cd ../neuroglancer-registration
 
 docker build -f ./neuroglancer.Dockerfile -t nglancer_registration_viewer:latest .
 
+## build neuroglancer-custom latest tag
+cd ../neuroglancer-custom
+
+docker build -f ./neuroglancer.Dockerfile -t nglancer_custom_viewer:latest .
+
+
 
 

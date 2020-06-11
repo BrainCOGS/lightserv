@@ -86,21 +86,11 @@ for ii in range(cv_count):
 			s.layers[cv_name] = neuroglancer.SegmentationLayer(
 		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
 		    )
+		    
 with viewer.txn() as s:
 	s.navigation.zoomFactor = 40000
-
-""" Make the row layout such that each layer 
-gets its own column in a single row
-is in the same groupviewer """
-logging.debug("layer list:")
-logging.debug(layer_list)
-if cv_count > 0:
-	row_layout = [neuroglancer.LayerGroupViewer(layers=[x]) for x in layer_list]
-	with viewer.txn() as s:	
-	    s.layout = neuroglancer.row_layout(row_layout)
-## need to retool this so it shows the correct link, the container's internal FQDN is not useful
-logging.info("viewer at: {}".format(viewer))
-
+	s.layout = 'xy'
+logging.debug("Not changing the layout")
 logging.debug("neuroglancer viewer is now available")
 
 ## redis shared state segment
