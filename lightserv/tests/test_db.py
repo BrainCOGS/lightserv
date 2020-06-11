@@ -13,8 +13,8 @@ from lightserv import db_lightsheet
 # 	assert 'jverpeut' in usernames and 'tomohito' in usernames
 # 	assert 'jverpeut@princeton.edu' in emails and 'zhihaoz@princeton.edu' in emails
 
-def test_login_inserts_user(test_client,test_login):
-	user_contents = db_lightsheet.User()
-	print(user_contents)
-	assert len(user_contents) > 0 
+# def test_login_inserts_user(test_client,test_login):
+# 	user_contents = db_lightsheet.User()
+# 	print(user_contents)
+# 	assert len(user_contents) > 0 
 

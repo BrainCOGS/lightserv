@@ -164,6 +164,46 @@ def test_ahoag_can_see_completed_processing_requests(test_client,completed_proce
 	processing_progress = processing_request_1_row[request_number_column_index].text
 	assert processing_progress == 'complete'
 
+def test_viz_processing_request_fixture_worked(test_client,processing_request_viz_nonadmin):
+	""" Test that the fixture that starts a processing request for
+	lightserv-test's viz_processed request actually worked and shows 
+	up in the processing manager"""
+	
+	# log lightserv-test in 
+	with test_client.session_transaction() as sess:
+		sess['user'] = "lightserv-test"
+	
+	response = test_client.get(url_for('processing.processing_manager'),
+		follow_redirects=True)
+	
+	assert b"Processing management GUI" in response.data
+	assert b"viz_processed" in response.data
+
+def test_nonadmin_can_see_completed_processing_request(test_client,completed_processing_request_viz_nonadmin):
+	""" Test that lightserv-test can see their completed processing request
+	in the processing manager"""
+	with test_client.session_transaction() as sess:
+		sess['user'] = "lightserv-test"
+	response = test_client.get(url_for('processing.processing_manager'),
+		follow_redirects=True)
+	
+	assert b"Processing management GUI" in response.data
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag = parsed_html.find('table',
+		attrs={'id':'horizontal_already_processed_table'})
+	table_row_tags = table_tag.find_all('tr')
+	header_row = table_row_tags[0].find_all('th')
+	processing_request_1_row = table_row_tags[1].find_all('td')
+	for ii,col in enumerate(header_row):
+		if col.text == 'processing progress':
+			request_number_column_index = ii
+			break
+	processing_progress = processing_request_1_row[request_number_column_index].text
+	assert processing_progress == 'complete'
+
+
+
+
 """ Tests for processing entry form """
 
 def test_processing_entry_form_loads(test_client,test_imaged_request_ahoag):

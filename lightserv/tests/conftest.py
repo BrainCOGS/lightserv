@@ -1642,7 +1642,6 @@ def test_new_processing_request_ahoag(test_client,test_single_sample_request_aho
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_new_processing_request fixture --------')
 
-
 """ Fixtures for processing """
 
 @pytest.fixture(scope='function')
@@ -1697,7 +1696,6 @@ def completed_processing_request_ahoag(test_client,processing_request_ahoag,
 	yield test_client
 
 	print('----------Teardown complete_processing_request_ahoag fixture ----------')
-
 
 @pytest.fixture(scope='function')
 def processing_request_nonadmin(test_client,test_imaged_request_nonadmin,
@@ -1780,6 +1778,48 @@ def completed_processing_request_viz_nonadmin(test_client,processing_request_viz
 	yield test_client
 
 	print('----------Teardown completed_processing_request_viz_nonadmin fixture ----------')
+
+""" Fixtures for neuroglancer """
+
+@pytest.fixture(scope='function')
+def precomputed_raw_complete_viz_nonadmin(test_client,test_imaged_request_viz_nonadmin,
+	test_delete_request_db_contents):
+	""" A fixture for having an imaged request for which the 
+	precomputed pipeline has already been run. request name is viz_processed
+	and the precomputed layers are already on bucket """
+
+	print('----------Setup precomputed_raw_complete_viz_nonadmin fixture ----------')
+
+
+	username = "lightserv-test"
+	request_name = "viz_processed"
+	sample_name = "viz_processed-001"
+	imaging_request_number = 1
+
+	ch488_restrict_dict = dict(username=username,
+		request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		channel_name='488')
+
+	ch488_imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
+		ch488_restrict_dict
+	dj.Table._update(ch488_imaging_channel_contents,
+		'left_lightsheet_precomputed_spock_job_progress','COMPLETED')
+	
+	ch647_restrict_dict = dict(username=username,
+		request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		channel_name='647')
+	ch647_imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
+		ch647_restrict_dict
+	dj.Table._update(ch647_imaging_channel_contents,
+		'left_lightsheet_precomputed_spock_job_progress','COMPLETED')
+	yield test_client
+
+	print('----------Teardown completed_processing_request_viz_nonadmin fixture ----------')
+
+
+
 
 """ Fixtures for celery testing """
 

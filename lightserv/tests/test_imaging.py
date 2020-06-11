@@ -93,6 +93,19 @@ def test_ahoag_multiple_imaging_requests_imaging_manager(test_client,test_cleare
 	assert first_request_number == '1'
 	assert second_request_number == '2'
 
+def test_imaged_viz_fixture_worked(test_client,test_imaged_request_viz_nonadmin):
+	""" Test that ahoag can access the imaging task manager
+	and see both of their imaging requests  """
+	# First log ahoag back in
+	with test_client.session_transaction() as sess:
+		# have to log an imaging manager in because the imager was zmd, not the person who requested it
+		sess['user'] = 'zmd'
+	response = test_client.get(url_for('imaging.imaging_manager')
+		, follow_redirects=True)
+	assert b'Imaging management GUI' in response.data
+	assert b'viz_processed' in response.data 
+
+
 """ Tests for imaging entry form """
 
 def test_imaging_entry_form_loads(test_client,test_cleared_request_ahoag,

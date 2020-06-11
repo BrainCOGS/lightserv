@@ -71,6 +71,23 @@ def test_multichannel_clearing_worked(test_client,test_cleared_multichannel_requ
 	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
 	assert clearing_progress == 'complete'
 
+def test_viz_clearing_worked(test_client,test_cleared_request_viz_nonadmin):
+	""" Test that the viz request was cleared in the fixture:
+	test_cleared_request_viz_nonadmin
+	"""
+	response = test_client.get(url_for('clearing.clearing_manager'),
+		follow_redirects=True
+	)
+	assert b'Clearing management GUI' in response.data
+	assert b'viz_processed' in response.data
+	
+	""" Make sure clearing_progress is now updated """
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & 'username="lightserv-test"' & \
+	'request_name="viz_processed"' & 'clearing_protocol="iDISCO abbreviated clearing"' & \
+			'antibody1=""' & 'antibody2=""'
+	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
+	assert clearing_progress == 'complete'
+
 
 """ Testing clearing_entry() """
 
