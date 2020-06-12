@@ -16,7 +16,10 @@ import secrets
 import pytest
 from flask import url_for
 import datajoint as dj
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
+import redis, json, requests
+import progproxy as pp
+
 
 user_agent_str = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'
 user_agent_str_firefox = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:72.0) Gecko/20100101 Firefox/72.0'
@@ -190,6 +193,65 @@ def test_delete_request_db_contents(test_client):
 	db_lightsheet.Request().delete()
 	# db_admin.UserActionLog().delete()	
 	# db_admin.LightsheetPipelineSpockJob().delete()	
+
+@pytest.fixture(scope='function') 
+def test_take_down_cloudv_and_ng_containers(test_client):
+	""" A fixture to take down any outstanding docker containers 
+	for cloudvolume and neuroglancer that might have been started 
+	during a fixture 
+	"""
+	print('----------Setup test_take_down_cloudv_and_ng_containers fixture ----------')
+
+	yield # this is where the test is run
+	# After test has run, that's when we take down the containers 
+	""" Find any outstanding containers through the confproxy """
+	proxy_h = pp.progproxy(target_hname='confproxy')
+	response_all = proxy_h.getroutes()
+	proxy_dict = json.loads(response_all.text)
+	print("PROXY DICT (ALL ROUTES):")
+	print(proxy_dict)
+	all_session_names = [key.split('/')[-1] for key in proxy_dict.keys() if 'viewer' in key]
+	""" Now delete all proxy routes"""
+	for session_name in all_session_names:
+		# first ng viewers
+		ng_proxypath = f'/viewers/{session_name}'
+		proxy_h.deleteroute(ng_proxypath)
+		# now find any cloudvolumes with this session name
+		cv_proxypaths = [key for key in proxy_dict.keys() if f'cloudvols/{session_name}' in key]
+		print("cloudvolume proxypaths:")
+		print(cv_proxypaths)
+		for cv_proxypath in cv_proxypaths:
+			proxy_h.deleteroute(cv_proxypath)
+
+	""" Now use the session names to take down the actual 
+		docker containers for both neuroglancer viewer and cloudvolume
+		that were launched for each session """
+	print("removing cloudvolume/neuroglancer containers linked to expired viewers")
+	kv = redis.Redis(host="testredis", decode_responses=True)
+	container_names_to_kill = []
+	for session_name in all_session_names:
+		print(f"in loop for {session_name}")
+		session_dict = kv.hgetall(session_name)
+		# Cloudvolume containers
+		try: # there might not always be cloudvolumes
+			cv_count = int(session_dict['cv_count'])
+		except:
+			cv_count = 0
+		for i in range(cv_count):
+			cv_container_name = session_dict['cv%i_container_name' % (i+1)]
+			container_names_to_kill.append(cv_container_name)
+
+		# Neuroglancer container - there will just be one per session
+		ng_container_name = session_dict['ng_container_name']
+		container_names_to_kill.append(ng_container_name)
+	
+	# Have to send the containers to viewer-launcher to kill since we are not root 
+	# in this flask container
+	if len(container_names_to_kill) > 0:
+		containers_to_kill_dict = {'list_of_container_names':container_names_to_kill}
+		requests.post('http://viewer-launcher:5005/container_killer',json=containers_to_kill_dict)
+	print('-------Teardown test_take_down_cloudv_and_ng_containers fixture --------')
+
 
 """ Fixtures for requests """
 
@@ -591,8 +653,8 @@ def test_archival_request_nonadmin(test_client,test_login_nonadmin,test_delete_r
 	 'requested_by': 'lightserv-test', 'date_submitted': '2019-02-26',
 	  'time_submitted': '12:55:22', 'labname': 'Wang', 'subject_fullname': '',
 	   'correspondence_email': 'lightserv-test@princeton.edu',
-	    'description': 'Image c-fos in whole brains at 1.3x.',
-	     'species': 'mouse', 'number_of_samples': 1, 'is_archival': True}
+		'description': 'Image c-fos in whole brains at 1.3x.',
+		 'species': 'mouse', 'number_of_samples': 1, 'is_archival': True}
 	clearing_batch_insert_dict = {
 	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'clearing_protocol': 'iDISCO abbreviated clearing',
 	'link_to_clearing_spreadsheet': 'https://docs.google.com/spreadsheets/d/1A83HVyy1bEhctqArwt4EiT637M8wBxTFodobbt1jrXI/edit#gid=895577002',
@@ -1775,6 +1837,35 @@ def completed_processing_request_viz_nonadmin(test_client,processing_request_viz
 		processing_request_number=processing_request_number)
 	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & restrict_dict
 	dj.Table._update(processing_request_contents,'processing_progress','complete')
+	""" Need to make a ProcessingChannel() entry manually as that is something that is done asynchronously
+	in the run_lightsheet_pipeline() task """
+	image_resolution = "1.3x"
+	datetime_processing_started  = datetime.now() - timedelta(hours=1)
+	datetime_processing_completed = datetime.now()                         
+	intensity_correction = 1                  
+
+	ch488_processing_channel_entry_dict = dict(username=username,
+		request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number,
+		image_resolution=image_resolution,
+		channel_name="488",
+		datetime_processing_started=datetime_processing_started,
+		datetime_processing_completed=datetime_processing_completed,
+		intensity_correction=intensity_correction)
+
+	ch647_processing_channel_entry_dict = dict(username=username,
+		request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number,
+		image_resolution=image_resolution,
+		channel_name="647",
+		datetime_processing_started=datetime_processing_started,
+		datetime_processing_completed=datetime_processing_completed,
+		intensity_correction=intensity_correction)
+
+	db_lightsheet.Request.ProcessingChannel().insert1(ch488_processing_channel_entry_dict)
+	db_lightsheet.Request.ProcessingChannel().insert1(ch647_processing_channel_entry_dict)
 	yield test_client
 
 	print('----------Teardown completed_processing_request_viz_nonadmin fixture ----------')
@@ -1785,7 +1876,7 @@ def completed_processing_request_viz_nonadmin(test_client,processing_request_viz
 def precomputed_raw_complete_viz_nonadmin(test_client,test_imaged_request_viz_nonadmin,
 	test_delete_request_db_contents):
 	""" A fixture for having an imaged request for which the 
-	precomputed pipeline has already been run. request name is viz_processed
+	raw precomputed pipeline has already been run (single tile). request name is viz_processed
 	and the precomputed layers are already on bucket """
 
 	print('----------Setup precomputed_raw_complete_viz_nonadmin fixture ----------')
@@ -1818,6 +1909,152 @@ def precomputed_raw_complete_viz_nonadmin(test_client,test_imaged_request_viz_no
 
 	print('----------Teardown completed_processing_request_viz_nonadmin fixture ----------')
 
+@pytest.fixture(scope='function')
+def precomputed_single_tile_pipeline_raw_and_blended_viz_nonadmin(test_client,completed_processing_request_viz_nonadmin,
+	test_delete_request_db_contents):
+	""" A fixture for having an imaged request for which the raw 
+	and blended precomputed pipelines have already been run (single tile). 
+	and the precomputed layers are already on bucket """
+
+	print('----------Setup precomputed_single_tile_pipeline_raw_and_blended_viz_nonadmin fixture ----------')
+
+	""" Update the raw precomputed pipeline status first """
+	username = "lightserv-test"
+	request_name = "viz_processed"
+	sample_name = "viz_processed-001"
+	imaging_request_number = 1
+	processing_request_number = 1
+	image_resolution="1.3x"
+	ch488_imaging_restrict_dict = dict(username=username,
+		request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		image_resolution=image_resolution,
+		channel_name='488')
+
+	ch488_imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
+		ch488_imaging_restrict_dict
+	dj.Table._update(ch488_imaging_channel_contents,
+		'left_lightsheet_precomputed_spock_job_progress','COMPLETED')
+	
+	ch647_imaging_restrict_dict = dict(username=username,
+		request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		image_resolution=image_resolution,
+		channel_name='647')
+	ch647_imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
+		ch647_imaging_restrict_dict
+	dj.Table._update(ch647_imaging_channel_contents,
+		'left_lightsheet_precomputed_spock_job_progress','COMPLETED')
+
+	""" Now blended precomputed pipeline status """
+
+	ch488_processing_restrict_dict = dict(username=username,
+		request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number,
+		image_resolution=image_resolution,
+		channel_name='488')
+
+	ch488_processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
+		ch488_processing_restrict_dict
+	
+	dj.Table._update(ch488_processing_channel_contents,
+		'blended_precomputed_spock_job_progress','COMPLETED')
+	
+	ch647_processing_restrict_dict = dict(username=username,
+		request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number,
+		image_resolution=image_resolution,
+		channel_name='647')
+	ch647_processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
+		ch647_processing_restrict_dict
+	dj.Table._update(ch647_processing_channel_contents,
+		'blended_precomputed_spock_job_progress','COMPLETED')
+	yield test_client
+
+
+	print('----------Teardown precomputed_single_tile_pipeline_raw_and_blended_viz_nonadmin fixture ----------')
+
+@pytest.fixture(scope='function')
+def precomputed_single_tile_pipeline_complete_viz_nonadmin(test_client,completed_processing_request_viz_nonadmin,
+	test_delete_request_db_contents):
+	""" A fixture for having an imaged request for which the raw 
+	and blended precomputed pipelines have already been run (single tile). 
+	and the precomputed layers are already on bucket """
+
+	print('----------Setup precomputed_single_tile_pipeline_complete_viz_nonadmin fixture ----------')
+
+	""" Update the raw precomputed pipeline status first """
+	username = "lightserv-test"
+	request_name = "viz_processed"
+	sample_name = "viz_processed-001"
+	imaging_request_number = 1
+	processing_request_number = 1
+	image_resolution="1.3x"
+	ch488_imaging_restrict_dict = dict(username=username,
+		request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		image_resolution=image_resolution,
+		channel_name='488')
+
+	ch488_imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
+		ch488_imaging_restrict_dict
+	dj.Table._update(ch488_imaging_channel_contents,
+		'left_lightsheet_precomputed_spock_job_progress','COMPLETED')
+	
+	ch647_imaging_restrict_dict = dict(username=username,
+		request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		image_resolution=image_resolution,
+		channel_name='647')
+	ch647_imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
+		ch647_imaging_restrict_dict
+	dj.Table._update(ch647_imaging_channel_contents,
+		'left_lightsheet_precomputed_spock_job_progress','COMPLETED')
+
+	""" Now blended precomputed pipeline status """
+
+	ch488_processing_restrict_dict = dict(username=username,
+		request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number,
+		image_resolution=image_resolution,
+		channel_name='488')
+
+	ch488_processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
+		ch488_processing_restrict_dict
+	
+	dj.Table._update(ch488_processing_channel_contents,
+		'blended_precomputed_spock_job_progress','COMPLETED')
+	
+	ch647_processing_restrict_dict = dict(username=username,
+		request_name=request_name,sample_name=sample_name,
+		imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number,
+		image_resolution=image_resolution,
+		channel_name='647')
+	ch647_processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
+		ch647_processing_restrict_dict
+	dj.Table._update(ch647_processing_channel_contents,
+		'blended_precomputed_spock_job_progress','COMPLETED')
+
+	""" Now downsized precomputed pipeline status """
+
+	dj.Table._update(ch488_processing_channel_contents,
+		'downsized_precomputed_spock_job_progress','COMPLETED')
+	dj.Table._update(ch647_processing_channel_contents,
+		'downsized_precomputed_spock_job_progress','COMPLETED')
+	
+	""" Now registered precomputed pipeline status """
+
+	dj.Table._update(ch488_processing_channel_contents,
+		'registered_precomputed_spock_job_progress','COMPLETED')
+	dj.Table._update(ch647_processing_channel_contents,
+		'registered_precomputed_spock_job_progress','COMPLETED')
+	yield test_client
+
+	print('----------Teardown precomputed_single_tile_pipeline_complete_viz_nonadmin fixture ----------')
 
 
 
@@ -1826,8 +2063,6 @@ def precomputed_raw_complete_viz_nonadmin(test_client,test_imaged_request_viz_no
 @pytest.fixture(scope='session')
 def celery_config():
 	return {
-	    'broker_url': 'amqp://localhost//',
-	    'result_backend': 'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test'
+		'broker_url': 'amqp://localhost//',
+		'result_backend': 'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test'
 	}
-
-

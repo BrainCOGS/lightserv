@@ -121,8 +121,6 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 	
 	channel_contents = (db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"')
-	logger.debug(f"Channel contents for imaging_request_number: {imaging_request_number}")
-	logger.debug(channel_contents)
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
 
 	channel_contents_lists = []

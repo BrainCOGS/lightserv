@@ -139,58 +139,7 @@ def run_lightsheet_pipeline(username,request_name,
 				rawdata_subfolder = unique_rawdata_subfolders[ii]
 				# this_rawdata_dict['rawdata_subfolder']=rawdata_subfolder
 				rawdata_fullpath = os.path.join(raw_basepath,rawdata_subfolder)
-				inputdictionary[rawdata_fullpath] = []
-				""" grab the metadata """
-				# logger.info(f"finding metadata for channel {channel_name}")
-					
-				""" First find the z=0 plane for this channel """
-
-				# ''' Always look in the Filter0000 z=0 file for the full metadata 
-				# since it holds the info for the Filter0001, Filter00002, etc... files as well and 
-				# the metadata in the z=0 planes for the Filter0001, ... files does not have the 
-				# necessary information '''
-				# z0_plane_path = glob.glob(rawdata_fullpath + \
-				# 	f'/*RawDataStack*C00*Filter0000.ome.tif')[0] # C00 just means left lightsheet which should always be there
-				# logger.info(f"Found Z=0 Filter0000 file: {z0_plane_path}")
-				# """ Extract metadata """
-				# with tifffile.TiffFile(z0_plane_path) as tif:
-				# 	tags = tif.pages[0].tags
-				# xml_description=tags['ImageDescription'].value
-
-				# root = ET.fromstring(xml_description)
-
-				# ''' NA '''
-				# custom_attributes = root[-1]
-				# prop_array = custom_attributes[0]
-				# for child in prop_array:
-				# 	if 'UltraII_Na_Value' in child.tag:
-				# 		NA = float(child.attrib['Value'])
-				# 		processing_insert_dict['numerical_aperture'] = NA
-
-				# ''' pixel type '''
-				# image_tag = root[2]
-				# pixel_tag = image_tag[2]
-				# pixel_dict = pixel_tag.attrib
-				# pixel_type = pixel_dict['PixelType']
-				# dj.Table._update(this_channel_content,'pixel_type',pixel_type)
-				# # processing_insert_dict['pixel_type'] = pixel_type
-
-				# ''' xyz_scale '''
-				# x_scale = int(float(pixel_dict['PhysicalSizeX']))
-				# y_scale = int(float(pixel_dict['PhysicalSizeY']))
-				# z_scale = int(float(pixel_dict['PhysicalSizeZ']))
-				# param_dict['xyz_scale'] = (x_scale,y_scale,z_scale)
-
-				# ''' imspector version '''
-				# try:
-				# 	custom_attributes_image = image_tag[-1]
-				# 	version_tag = [child for child in custom_attributes_image if 'ImspectorVersion' in child.tag][0]
-				# 	imspector_version = version_tag.attrib['ImspectorVersion']
-				# 	processing_insert_dict['imspector_version'] = imspector_version,	
-				# except:
-				# 	pass # do nothing. Those values will stay NULL
-				# ''' Store all of the metadata as an xml string for later access if needed '''
-				# processing_insert_dict['metadata_xml_string'] = xml_description			
+				inputdictionary[rawdata_fullpath] = []	
 
 				""" Loop through the channels themselves to make the input dictionary
 				and grab the rest of the parameter dictionary keys """
