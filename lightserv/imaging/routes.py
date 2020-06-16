@@ -229,7 +229,10 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 							layer_dir = os.path.join(this_viz_dir,layer_name)
 							mymkdir(layer_dir)
 							# Figure out what x and y dimensions are
-							all_slices = glob.glob(f"{raw_data_dir}/*RawDataStack[00 x 00*C00*Filter000{channel_index}*tif")
+							lightsheet_index_code = 'C00' # always for left lightsheet
+							precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
+							all_slices = glob.glob(
+								f"{raw_data_dir}/*RawDataStack[00 x 00*{lightsheet_index_code}*Filter000{channel_index}*tif")
 							first_slice = all_slices[0]
 							first_im = Image.open(first_slice)
 							x_dim,y_dim = first_im.size
@@ -247,8 +250,16 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 							precomputed_kwargs['layer_name'] = layer_name
 							layer_dir = os.path.join(this_viz_dir,layer_name)
 							mymkdir(layer_dir)
+							
+							# figure out whether to look for C00 or C01 files
+							if left_lightsheet_used:
+								lightsheet_index_code = 'C01'
+							else: 
+								# right light sheet was the only one used so looking for C00 files
+								lightsheet_index_code = 'C00'
+							precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
 							# Figure out what x and y dimensions are
-							all_slices = glob.glob(f"{raw_data_dir}/*RawDataStack[00 x 00*C01*Filter000{channel_index}*tif")
+							all_slices = glob.glob(f"{raw_data_dir}/*RawDataStack[00 x 00*{lightsheet_index_code}*Filter000{channel_index}*tif")
 							first_slice = all_slices[0]
 							first_im = Image.open(first_slice)
 							x_dim,y_dim = first_im.size
