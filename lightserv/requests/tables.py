@@ -4,10 +4,10 @@ from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import (DateTimeCol, ImagingRequestLinkCol,
 	ProcessingRequestLinkCol, element,NewProcessingRequestLinkCol,
-	AbbrevDescriptionCol,BooltoStringCol,NewImagingRequestLinkCol)
+	AbbrevDescriptionCol,BooltoStringCol,NewImagingRequestLinkCol,
+	NotAssignedCol)
 from lightserv import db_lightsheet
 import os
-
 
 class ClearingTableLinkCol(LinkCol):
 	""" A convenience column used to show 
@@ -119,6 +119,7 @@ class AllSamplesTable(Table):
 		th_html_attrs=archival_html_attrs)
 	species = Col('species',column_html_attrs=column_html_attrs)
 	clearing_protocol = Col('clearing protocol')
+	clearer = NotAssignedCol('clearer')
 	clearing_progress = Col('clearing progress')
 	# antibody1 = Col('antibody1')
 	# antibody2 = Col('antibody2')
@@ -156,8 +157,10 @@ class AllSamplesTable(Table):
 	imaging_requests_subtable_class.add_column('imaging_request_number',
 		ImagingRequestLinkCol('imaging request number','imaging.imaging_table',
 			url_kwargs=imaging_request_url_kwargs))
-	imaging_requests_subtable_class.add_column('imager',Col('imager'))
-	imaging_requests_subtable_class.add_column('imaging_progress',Col('imaging progress'))
+	imaging_requests_subtable_class.add_column('imager',
+		NotAssignedCol('imager'))
+	imaging_requests_subtable_class.add_column('imaging_progress',
+		Col('imaging progress'))
 	processing_url_kwargs = {'username':'username','request_name':'request_name',
 	'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
 	new_processing_request_tooltip_text = ('Not available for archival requests. '
@@ -186,8 +189,10 @@ class AllSamplesTable(Table):
 	processing_requests_subtable_class.add_column('processing_request_number',
 		ProcessingRequestLinkCol('processing request number','processing.processing_table',
 			url_kwargs=processing_request_url_kwargs))
-	processing_requests_subtable_class.add_column('processor',Col('processor'))
-	processing_requests_subtable_class.add_column('processing_progress',Col('processing progress'))
+	processing_requests_subtable_class.add_column('processor',
+		NotAssignedCol('processor'))
+	processing_requests_subtable_class.add_column('processing_progress',
+		Col('processing progress'))
 	processing_requests_subtable_class.add_column('visualization',
 		LinkCol('Viz', 'neuroglancer.general_data_setup',
 			url_kwargs=processing_request_url_kwargs,
@@ -234,7 +239,8 @@ class RequestOverviewTable(Table):
 	number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
 
 def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynamic Samples Table', **sort_kwargs):
-	""" Table showing all samples of a given request """
+	""" Table showing all samples of a given request, used in the 
+	request_overview() route """
 	def dynamic_sort_url(self, col_key, reverse=False):
 		if reverse:
 			direction = 'desc'
@@ -275,8 +281,13 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 	archival_html_attrs = {'class':'infolink','title':archival_tooltip_text}
 	table_class.add_column('is_archival',BooltoStringCol('archival?',column_html_attrs=column_html_attrs,
 		th_html_attrs=archival_html_attrs))
-	table_class.add_column('clearing_protocol',Col('clearing protocol',column_html_attrs=column_html_attrs))
-	table_class.add_column('clearing_progress',Col('clearing progress',column_html_attrs=column_html_attrs))
+	table_class.add_column('clearing_protocol',
+		Col('clearing protocol',column_html_attrs=column_html_attrs))
+	
+	table_class.add_column('clearer',
+		NotAssignedCol('clearer',column_html_attrs=column_html_attrs))
+	table_class.add_column('clearing_progress',
+		Col('clearing progress',column_html_attrs=column_html_attrs))
 
 	clearing_url_kwargs = {'username':'username','request_name':'request_name',
 		'clearing_protocol':'clearing_protocol',
@@ -299,8 +310,10 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 	imaging_requests_subtable_class.add_column('imaging_request_number',
 		ImagingRequestLinkCol('imaging request number','imaging.imaging_table',
 			url_kwargs=imaging_request_url_kwargs,column_html_attrs=column_html_attrs))
-	imaging_requests_subtable_class.add_column('imager',Col('imager',column_html_attrs=column_html_attrs))
-	imaging_requests_subtable_class.add_column('imaging_progress',Col('imaging progress',column_html_attrs=column_html_attrs))
+	imaging_requests_subtable_class.add_column('imager',
+		NotAssignedCol('imager',column_html_attrs=column_html_attrs))
+	imaging_requests_subtable_class.add_column('imaging_progress',
+		Col('imaging progress',column_html_attrs=column_html_attrs))
 	imaging_url_kwargs = {'username':'username','request_name':'request_name','sample_name':'sample_name'}
 	new_imaging_request_tooltip_text = ('Not available for archival requests. '
 		'Please only request additional imaging for this sample '
@@ -330,9 +343,11 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 		ProcessingRequestLinkCol('processing request number','processing.processing_table',
 			url_kwargs=processing_request_url_kwargs,
 			column_html_attrs=column_html_attrs))
-	processing_requests_subtable_class.add_column('processor',Col('processor',
+	processing_requests_subtable_class.add_column('processor',
+		NotAssignedCol('processor',
 		column_html_attrs=column_html_attrs))
-	processing_requests_subtable_class.add_column('processing_progress',Col('processing progress',
+	processing_requests_subtable_class.add_column('processing_progress',
+		Col('processing progress',
 		column_html_attrs=column_html_attrs))
 	processing_requests_subtable_class.add_column('visualization',
 		LinkCol('Viz', 'neuroglancer.general_data_setup',
