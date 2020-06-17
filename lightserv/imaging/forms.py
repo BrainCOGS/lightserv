@@ -131,13 +131,25 @@ class ImagingForm(FlaskForm):
 						f'imaging_request_{self.imaging_request_number.data}',
 						'rawdata',rawdata_subfolder) 
 				number_of_rawfiles_expected = number_of_z_planes*(left_lightsheet_used+right_lightsheet_used)*n_rows*n_columns
+				""" calculate the number we find. We have to be careful here
+				because the raw data filenames will include C00 if there
+				is only one light sheet used, regardless of whether it is
+				left or right. If both are used,
+				then the left lightsheet files always have C00 in filenames
+				and right lightsheet files always have C01 in filenames. """
 				number_of_rawfiles_found = 0
-				if left_lightsheet_used:
-					number_of_rawfiles_found_left_lightsheet = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
+				if left_lightsheet_used and right_lightsheet_used:
+					number_of_rawfiles_found_left_lightsheet = \
+						len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
 					number_of_rawfiles_found += number_of_rawfiles_found_left_lightsheet
-				if right_lightsheet_used:
-					number_of_rawfiles_found_right_lightsheet = len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C01_*Filter000{channel_index}*'))	
+					number_of_rawfiles_found_right_lightsheet = \
+						len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C01_*Filter000{channel_index}*'))	
 					number_of_rawfiles_found += number_of_rawfiles_found_right_lightsheet
+				else:
+					# doesn't matter if its left or right lightsheet. Since there is only one, their glob patterns will be identical
+					number_of_rawfiles_found = \
+						len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
+
 				if number_of_rawfiles_found != number_of_rawfiles_expected:
 					error_str = (f"You entered that for channel: {channel_name} there should be {number_of_rawfiles_expected} files, "
 						  f"but found {number_of_rawfiles_found} in raw data folder: "
