@@ -76,3 +76,8 @@ def send_admin_email(subject,body,sender_email='lightservhelper@gmail.com'):
 	smtp_server = smtp_connect()
 	smtp_server.send_message(msg)
 	return "Email sent!"
+
+@cel.task()
+def hello():
+	print("in celery task")
+	return "hello world"

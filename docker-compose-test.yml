@@ -1,10 +1,10 @@
 version: "3.4"
 
 services:
-  testredis:
-    image: redis
-    expose: # doesn't publish to host, just visible inside container
-      - 6379
+  # testredis:
+  #   image: redis
+  #   expose: # doesn't publish to host, just visible inside container
+  #     - 6379
   confproxy:
     env_file: .dockerenv
     image: jupyterhub/configurable-http-proxy:3.1.1
@@ -22,7 +22,7 @@ services:
     env_file: .testdockerenv
     hostname: docker_lightserv
     image: flaskcelery:test
-    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_imaging.py"
+    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_celery.py::test_celery_working"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData
@@ -30,13 +30,13 @@ services:
       - ./lib:/opt/libraries # for progproxy api
     ports:
       - '5010:5000'
-    depends_on:
-      - testredis
+    # depends_on:
+    #   - testredis
   coverage:
     env_file: .testdockerenv
     hostname: docker_lightserv
     image: flaskcelery:test
-    command: "pytest -p no:cacheprovider --cov=lightserv/imaging --cov-report=html -vs lightserv/tests/test_imaging.py"
+    command: "pytest -p no:cacheprovider --cov=lightserv/main --cov-report=html -vs lightserv/tests/test_main.py::test_FAQ"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData

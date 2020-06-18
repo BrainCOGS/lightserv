@@ -1,0 +1,11 @@
+version: "3.4"
+
+services:
+  testredis:
+    image: redis
+    expose: # doesn't publish to host, just visible inside container/network
+      - 6379
+networks:
+  default:
+    external:
+      name: lightserv-test

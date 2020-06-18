@@ -1,4 +1,5 @@
 from flask import url_for
+from lightserv.main import tasks
 
 def test_welcome_login_redirects(test_client):
 	""" Check that when someone lands on the welcome page they are logged in and then the 
@@ -114,23 +115,3 @@ def test_feedback_form_submits(test_client,test_login,test_single_sample_request
 	assert test_str.encode('utf-8') not in response.data 	
 	welcome_str="Welcome to the Brain Registration and Histology Core Facility Portal at the Princeton Neuroscience Institute"
 	assert welcome_str.encode('utf-8') in response.data
-
-# def test_feedback_form_validates(test_client,test_login,test_single_sample_request_ahoag):
-# 	""" Check that the feedback form for a request that has been submitted 
-# 	validates against no data for ratings """
-# 	response = test_client.post(url_for('main.feedback',
-# 		username='ahoag',request_name='admin_request'),
-# 		data=dict(clearing_notes='',
-# 			imaging_rating=4,imaging_notes='imaging comments',
-# 			processing_rating=3,processing_notes='None',
-# 			other_notes=''),
-# 		follow_redirects=True)
-# 	# with open('test_response.html','wb') as outfile:
-# 	# 	outfile.write(response.data)
-# 	# print("wrote 'test_response.html'")
-# 	assert 4==4
-	# assert b'' in response.data 	
-	# test_str = 'Please rate your experience with how we handled this request on scale from 1 (terrible) to 5 (excellent)'
-	# assert test_str.encode('utf-8') not in response.data 	
-	# welcome_str="Welcome to the Brain Registration and Histology Core Facility Portal at the Princeton Neuroscience Institute"
-	# assert welcome_str.encode('utf-8') in response.data
