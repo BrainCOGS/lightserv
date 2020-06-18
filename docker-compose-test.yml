@@ -56,6 +56,15 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - '5006:5005'
+  # testworker:
+  #   env_file: .testworkerdockerenv
+  #   image: flaskcelery:test
+  #   command: bash -c "sleep 4 && celery worker -A celery_worker.cel --loglevel=info"
+  #   volumes:
+  #     - .:/app
+  #     - ./lib:/opt/libraries
+  #     - /jukebox/LightSheetData:/jukebox/LightSheetData
+  #     - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
 networks:
   default:
     external:
