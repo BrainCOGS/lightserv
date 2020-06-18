@@ -37,6 +37,7 @@ class DevConfig(BaseConfig):
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_pnilsadmin_testing'
 	NG_VIEWER_EXPIRE_SECONDS = 60 # seconds (1 minute) time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
 	SPOCK_LSADMIN_USERNAME = 'lightserv-test'
+	CELERY_ACKS_LATE = True
 	CELERYBEAT_SCHEDULE = {
 		# 'processing_job_status_checker': {
 		# 'task': 'lightserv.processing.tasks.processing_job_status_checker',
@@ -58,10 +59,10 @@ class DevConfig(BaseConfig):
 		# 'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
 		# 'schedule': timedelta(minutes=2)
 		# },
-		'rawprecomp_job_status_checker': {
-		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
-		'schedule': timedelta(seconds=15)
-		},
+		# 'rawprecomp_job_status_checker': {
+		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
+		# 'schedule': timedelta(seconds=15)
+		# },
 		# 'blendedprecomp_job_ready_checker': {
 		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
 		# 'schedule': timedelta(seconds=30)
