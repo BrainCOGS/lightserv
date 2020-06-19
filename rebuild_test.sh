@@ -1,8 +1,10 @@
-# remove all running and stopped containers from this docker-compose file
-# docker rm -f $(docker ps -a | grep "lightserv\|cloudv_viewer\|nglancer_viewer\|nglancer_registration_viewer" | awk '{print $1}')
-docker rm -f $(docker ps -a | grep "lightserv_testredis\|lightserv_testflask\|cloudv_viewer:test\|nglancer_raw_viewer:test" | awk '{print $1}')
+# remove all running and stopped containers from the docker-compose file and the worker,
+# which is started with restart_test.sh. Never take down the testredis service!
 
-# Make the image used for actually running the tests
+docker rm -f $(docker ps -a | grep "lightserv_testflask\
+\|lightserv_testworker\|cloudv_viewer:test\|nglancer_raw_viewer:test" | awk '{print $1}')
+
+# # Make the image used for actually running the tests
 docker build -f ./flaskcelery.Dockerfile -t flaskcelery:test .
 
 # Build docker-compose services

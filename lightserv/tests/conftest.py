@@ -2060,9 +2060,27 @@ def precomputed_single_tile_pipeline_complete_viz_nonadmin(test_client,completed
 
 """ Fixtures for celery testing """
 
+@pytest.fixture
+def celery_worker_parameters():
+    # type: () -> Mapping[str, Any]
+    """Redefine this fixture to change the init parameters of Celery workers.
+
+    This can be used e. g. to define queues the worker will consume tasks from.
+
+    The dict returned by your fixture will then be used
+    as parameters when instantiating :class:`~celery.worker.WorkController`.
+    """
+    return {
+        # For some reason this `celery.ping` is not registed IF our own worker is still
+        # running. To avoid failing tests in that case, we disable the ping check.
+        # see: https://github.com/celery/celery/issues/3642#issuecomment-369057682
+        # here is the ping task: `from celery.contrib.testing.tasks import ping`
+        'perform_ping_check': False,
+    }
+
 @pytest.fixture(scope='session')
 def celery_config():
 	return {
-		'broker_url': 'amqp://localhost//',
-		'result_backend': 'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test'
+		'broker_url': 'redis://testredis:6379/0',
+		'result_backend': 'redis://testredis:6379/0'
 	}
