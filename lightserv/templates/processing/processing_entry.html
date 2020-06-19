@@ -95,18 +95,24 @@
 					
 						<hr class='class-2'>
 						<!-- Data products section -->
-						<a id='larger'>Data products that will be created for this channel: <a>
+						<a id='larger'>Data products that will be created (in this order) for this channel: <a>
 
 						<ul>
-							<li>Blended "raw" planes (.TIFs for each z plane)</li>
-							<li>Downsampled planes (.TIFs for each z plane)</li>
-							{% if 'registration' in channel_purposes_str %}
-								<li>Downsampled volume registered to atlas (.TIF stack)</li>
-								<li>Registration parameters (registration channel -> atlas )</li>
-							{% else %}
-								<li>Downsampled volume registered to atlas (.TIF stack)</li>
-								<li>Registration parameters (this channel -> registration channel)</li>
+							{% if channel_content['tiling_scheme'] != '1x1' %}
+								<li>Stitched z planes (.TIFs for each z plane)  </li>
 							{% endif %}
+							<li>Blended z planes (.TIFs for each z plane)</li>
+							<li>Downsampled planes (.TIFs for each z plane)</li>
+							{% if not no_registration %}
+								<li>Volume registered to atlas (single .TIF file for whole volume)</li>
+								{% if 'registration' in channel_purposes_str %}
+									<li>Registration parameters (registration channel -> atlas )</li>
+								{% else %}
+									<li>Registration parameters (this channel -> registration channel)</li>
+								{% endif %}
+
+							{% endif %}
+							
 
 						</ul>  
 					</div>
