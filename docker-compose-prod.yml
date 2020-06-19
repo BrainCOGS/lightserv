@@ -14,12 +14,7 @@ services:
               '--no-prepend-path',
               '--log-level', 'debug',
               '--api-ip', '0.0.0.0']
-
-  redis:
-    image: redis
-    expose:
-      - 6379
-    # restart: always
+    restart: unless-stopped
   flask:
     env_file: .dockerenv
     hostname: docker_lightserv
@@ -32,7 +27,7 @@ services:
       - ./lib:/opt/libraries # for progproxy api
     ports:
       - '8080:5000'
-    # restart: always
+    restart: unless-stopped
   viewer-launcher:
     env_file: .dockerenv
     build:
@@ -45,47 +40,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - '5004:5005'
-  worker:
-    env_file: .dockerenv
-    image: flaskcelery:prod
-    command: ["celery",
-              "worker",
-              "-A",
-              "celery_worker.cel",
-              "--loglevel=info"]
-    volumes:
-      - .:/app
-      - ./lib:/opt/libraries
-      - /jukebox/LightSheetData:/jukebox/LightSheetData
-      - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
-      - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - redis
-    # restart: always
-  scheduler:
-    env_file: .dockerenv
-    image: flaskcelery:prod
-    command: ["celery",
-              "beat",
-              "-A",
-              "celery_worker.cel",
-              "--schedule=/tmp/celerybeat-schedule",
-              "--loglevel=info",
-              "--pidfile=/tmp/celerybeat.pid"]
-    volumes:
-      - .:/app
-      - ./lib:/opt/libraries
-    depends_on:
-      - redis
-      - worker
-    # restart: always
-  nglancerstatic-prod:
-    build:
-      context: ./nglancerstatic_prod
-      dockerfile: nglancerstatic_prod.Dockerfile
-    ports:
-      - '8082:8080'
-
+    restart: unless-stopped
 networks:
   default:
     external:
