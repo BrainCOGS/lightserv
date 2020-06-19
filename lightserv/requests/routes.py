@@ -126,7 +126,8 @@ def all_requests():
 @log_http_requests
 @request_exists
 def request_overview(username,request_name):
-    """ A route for displaying a single request. """
+    """ A route for displaying information about a single request 
+    and its associated samples. """
     logger.debug(f"{username} accessed request_overview")
     request_contents = db_lightsheet.Request() & f'request_name="{request_name}"' & \
             f'username="{username}"'
@@ -143,7 +144,10 @@ def request_overview(username,request_name):
     # combined_contents = (samples_contents * clearing_batch_contents * \
     #     imaging_request_contents * processing_request_contents)
     replicated_args = dict(number_of_samples='number_of_samples',description='description',
-        species='species',clearing_progress='clearing_progress',is_archival='is_archival',
+        species='species',clearing_progress='clearing_progress',
+        clearer='clearer',
+        imaging_progress='imaging_progress',imager='imager',
+        is_archival='is_archival',
         link_to_clearing_spreadsheet='link_to_clearing_spreadsheet')
     sample_joined_contents = request_contents * sample_contents * clearing_batch_contents
     imaging_joined_contents = sample_joined_contents.aggr(
@@ -163,6 +167,8 @@ def request_overview(username,request_name):
         **replicated_args,
         imaging_request_number='imaging_request_number',
         processing_request_number='processing_request_number',
+        processor='processor',
+        processing_progress='processing_progress',
         total_imaging_requests='total_imaging_requests',
         n_processed='CONVERT(SUM(processing_progress="complete"),char)',
         total_processing_requests='CONVERT(COUNT(processing_progress),char)',
@@ -170,6 +176,8 @@ def request_overview(username,request_name):
         ).proj(
             **replicated_args,
             processing_request_number='IF(processing_request_number is NULL, "N/A",processing_request_number)',
+            processor='processor',
+            processing_progress='processing_progress',
             total_imaging_requests='total_imaging_requests',
             total_processing_requests='IF(n_processed is NULL,0,total_processing_requests)', 
             )
@@ -178,7 +186,7 @@ def request_overview(username,request_name):
 
     keep_keys = ['username','request_name','sample_name','species',
                  'clearing_protocol','antibody1','antibody2','clearing_progress',
-                 'clearing_batch_number','datetime_submitted','is_archival',
+                 'clearer','clearing_batch_number','datetime_submitted','is_archival',
                  'link_to_clearing_spreadsheet']
     
     """ Go through all samples in this request and for each of its 
@@ -273,8 +281,12 @@ def all_samples():
     
     replicated_args = dict(number_of_samples='number_of_samples',description='description',
         species='species',datetime_submitted='datetime_submitted',
-        clearing_progress='clearing_progress',is_archival='is_archival',
+        clearer='clearer',
+        clearing_progress='clearing_progress',
+        imager='imager',imaging_progress='imaging_progress',
+        is_archival='is_archival',
         link_to_clearing_spreadsheet='link_to_clearing_spreadsheet')
+    
     sample_joined_contents = request_contents * sample_contents * clearing_batch_contents
     imaging_joined_contents = sample_joined_contents.aggr(
         imaging_request_contents,
@@ -291,23 +303,26 @@ def all_samples():
     processing_joined_contents = (dj.U('username','request_name') * imaging_joined_contents).aggr(   
         processing_request_contents,
         **replicated_args,
-        processor='processor',
         imaging_request_number='imaging_request_number',
         processing_request_number='processing_request_number',
+        processor='processor',
+        processing_progress='processing_progress',
         total_imaging_requests='total_imaging_requests',
         n_processed='CONVERT(SUM(processing_progress="complete"),char)',
         total_processing_requests='CONVERT(COUNT(processing_progress),char)',
         keep_all_rows=True
         ).proj(
             **replicated_args,
-            processor='processor',
             processing_request_number='IF(processing_request_number is NULL, "N/A",processing_request_number)',
+            processor='processor',
+            processing_progress='processing_progress',
             total_imaging_requests='total_imaging_requests',
             total_processing_requests='IF(n_processed is NULL,0,total_processing_requests)', 
             )
     all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
     keep_keys = ['username','request_name','sample_name','species',
-                 'clearing_protocol','clearing_progress','antibody1','antibody2',
+                 'clearing_protocol','clearer','clearing_progress',
+                 'antibody1','antibody2',
                  'clearing_batch_number','n_imaging_requests',
                  'n_processing_requests','datetime_submitted','is_archival',
                  'link_to_clearing_spreadsheet']

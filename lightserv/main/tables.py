@@ -67,6 +67,15 @@ class BooltoStringCol(Col):
         else:
             return "no"
 
+class NotAssignedCol(Col):
+    """ Subclassing Col to show 'Not assigned' if 
+    entry is None, otherwise show the original content """  
+    def td_format(self, content):
+        if not content or content == None or content == "None":
+            return "Not assigned"
+        else:
+            return content
+   
 class ProgressCol(Col):
     """ Conditional bold fonting """
     def __init__(self, name, attr=None, attr_list=None,
@@ -103,7 +112,6 @@ class ProgressCol(Col):
                 escape_content=False,
                 attrs=self.td_html_attrs)
     
-
 class HeaderButtonLinkCol(Col):
     """ Conditional bold fonting """
     def __init__(self, name, attr=None, attr_list=None,
@@ -139,7 +147,6 @@ class HeaderButtonLinkCol(Col):
                 content=content,
                 escape_content=False,
                 attrs=self.td_html_attrs)
-
 
 class ImagingRequestLinkCol(LinkCol):
     """Subclass of LinkCol to show the imaging request number 
@@ -230,8 +237,8 @@ class AbbrevDescriptionCol(Col):
             return content[0:64] + ' ...'
         else:
             return content
-""" Tables I use in main.routes """
 
+""" Tables I use in main.routes """
 
 class RequestTable(Table):
     border = True

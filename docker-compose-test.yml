@@ -3,27 +3,26 @@ version: "3.4"
 services:
   # testredis:
   #   image: redis
-  #   expose:
+  #   expose: # doesn't publish to host, just visible inside container
   #     - 6379
-  #   restart: always
-  # confproxy:
-  #   env_file: .dockerenv
-  #   image: jupyterhub/configurable-http-proxy:3.1.1
-  #   # expose the proxy to the world
-  #   ports:
-  #     - "8002:8000"
-  #     - "8003:8001"
-  #   command: ['configurable-http-proxy',
-  #             '--auto-rewrite',
-  #             '--no-include-prefix',
-  #             '--no-prepend-path',
-  #             '--log-level', 'debug',
-  #             '--api-ip', '0.0.0.0']
+  confproxy:
+    env_file: .dockerenv
+    image: jupyterhub/configurable-http-proxy:3.1.1
+    # expose the proxy to the world
+    ports:
+      - "8004:8000"
+      - "8005:8001"
+    command: ['configurable-http-proxy',
+              '--auto-rewrite',
+              '--no-include-prefix',
+              '--no-prepend-path',
+              '--log-level', 'debug',
+              '--api-ip', '0.0.0.0']
   testflask:
     env_file: .testdockerenv
     hostname: docker_lightserv
     image: flaskcelery:test
-    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_neuroglancer.py"
+    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_celery.py::test_celery_working"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData
@@ -31,11 +30,13 @@ services:
       - ./lib:/opt/libraries # for progproxy api
     ports:
       - '5010:5000'
+    # depends_on:
+    #   - testredis
   coverage:
     env_file: .testdockerenv
     hostname: docker_lightserv
     image: flaskcelery:test
-    command: "pytest -p no:cacheprovider --cov=lightserv/main --cov-report=html -vs lightserv/tests"
+    command: "pytest -p no:cacheprovider --cov=lightserv/main --cov-report=html -vs lightserv/tests/test_main.py::test_FAQ"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData
@@ -43,6 +44,27 @@ services:
       - ./lib:/opt/libraries # for progproxy api
     ports:
       - '5010:5000'
+  viewer-launcher:
+    env_file: .testdockerenv
+    build:
+      context: ./viewer-launcher
+      dockerfile: viewer-launcher.Dockerfile
+    command: ["python", "run.py"]
+    volumes:
+      - ./viewer-launcher:/app
+      - /jukebox/LightSheetData:/jukebox/LightSheetData
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - '5006:5005'
+  # testworker:
+  #   env_file: .testworkerdockerenv
+  #   image: flaskcelery:test
+  #   command: bash -c "sleep 4 && celery worker -A celery_worker.cel --loglevel=info"
+  #   volumes:
+  #     - .:/app
+  #     - ./lib:/opt/libraries
+  #     - /jukebox/LightSheetData:/jukebox/LightSheetData
+  #     - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
 networks:
   default:
     external:

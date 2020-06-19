@@ -195,6 +195,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 	
 	
 	channel_contents_lists = []
+	no_registration=True # start it out as True, set to false if we find any registration channels
 	while len(form.image_resolution_forms) > 0:
 		form.image_resolution_forms.pop_entry() # pragma: no cover - used to exclude this line from calculating test coverage
 	""" Figure out the unique number of image resolutions """
@@ -226,6 +227,8 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 				if channel_content[imaging_mode]:
 					used_imaging_modes.append(imaging_mode)
 			channel_purposes_str = ', '.join(mode for mode in used_imaging_modes)
+			if 'registration' in channel_purposes_str:
+				no_registration=False
 			this_channel_form.channel_purposes_str.data = channel_purposes_str
 
 	if processing_progress != 'incomplete':
@@ -235,6 +238,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 	data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
 	return render_template('processing/processing_entry.html',
 		processing_request_number=processing_request_number,
+		no_registration=no_registration,
 		channel_contents_lists=channel_contents_lists,
 		sample_dict=sample_dict,data_bucket_rootpath=data_bucket_rootpath,
 		form=form,overview_table=overview_table)	

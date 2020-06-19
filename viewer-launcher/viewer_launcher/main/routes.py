@@ -9,6 +9,8 @@ if flask_mode == 'DEV':
 	network = 'lightserv-dev'
 elif flask_mode == 'PROD':
 	network = 'lightserv-prod'
+elif flask_mode == 'TEST':
+	network = 'lightserv-test'
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -40,6 +42,8 @@ def cvlauncher():
 		cv_image = 'cloudv_viewer:latest'
 	elif flask_mode == 'PROD':
 		cv_image = 'cloudv_viewer:prod'
+	elif flask_mode == 'TEST':
+		cv_image = 'cloudv_viewer:test'
 	cv_container = client.containers.run(cv_image,
 								  volumes=cv_mounts,
 								  network=network,
@@ -65,6 +69,8 @@ def ng_raw_launcher():
 		ng_raw_image = 'nglancer_raw_viewer:latest'
 	elif flask_mode == 'PROD':
 		ng_raw_image = 'nglancer_raw_viewer:prod'
+	elif flask_mode == 'TEST':
+		ng_raw_image = 'nglancer_raw_viewer:test'
 	ng_container = client.containers.run(ng_raw_image,
                                   environment=ng_environment,
                                   network=network,
@@ -90,6 +96,8 @@ def nglauncher():
 		ng_image = 'nglancer_viewer:latest'
 	elif flask_mode == 'PROD':
 		ng_image = 'nglancer_viewer:prod'
+	elif flask_mode == 'TEST':
+		ng_image = 'nglancer_viewer:test'
 	ng_container = client.containers.run(ng_image,
                                   environment=ng_environment,
                                   network=network,
@@ -115,6 +123,8 @@ def ng_reg_launcher():
 		ng_reg_image = 'nglancer_registration_viewer:latest'
 	elif flask_mode == 'PROD':
 		ng_reg_image = 'nglancer_registration_viewer:prod'
+	elif flask_mode == 'TEST':
+		ng_reg_image = 'nglancer_registration_viewer:test'
 	ng_container = client.containers.run(ng_reg_image,
                                   environment=ng_environment,
                                   network=network,

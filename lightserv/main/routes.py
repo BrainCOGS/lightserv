@@ -178,3 +178,15 @@ def feedback(username,request_name):
 			logger.debug(form.errors) # pragma: no cover - used to exclude this line from testing
 	return render_template('main/feedback_form.html',
 		form=form,table=table)
+
+
+@main.route("/cel")
+def test_cel(): 
+	from . import tasks as maintasks
+	from datetime import datetime, timedelta
+	future_time = datetime.utcnow() + timedelta(seconds=15)
+	print("sending hello task")
+	maintasks.hello.apply_async(eta=future_time) 
+	print("sent hello task")
+	assert 4==4
+	return "test ran"

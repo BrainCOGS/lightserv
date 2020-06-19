@@ -55,7 +55,7 @@
 							<a id='larger' >Raw data folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/rawdata/{{channel_content['rawdata_subfolder']}} </span>
 						</div>
 						<div>
-							<a id='larger' >Output folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/output/processing_request_{{processing_request_number}}/{{channel_content['rawdata_subfolder']}} </span>
+							<a id='larger' >Output folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/output/processing_request_{{processing_request_number}}/resolution_{{channel_content['image_resolution']}} </span>
 						</div>
 
 						<div>
@@ -95,18 +95,24 @@
 					
 						<hr class='class-2'>
 						<!-- Data products section -->
-						<a id='larger'>Data products that will be created for this channel: <a>
+						<a id='larger'>Data products that will be created (in this order) for this channel: <a>
 
 						<ul>
-							<li>Blended "raw" planes (.TIFs for each z plane)</li>
-							<li>Downsampled planes (.TIFs for each z plane)</li>
-							{% if 'registration' in channel_purposes_str %}
-								<li>Downsampled volume registered to atlas (.TIF stack)</li>
-								<li>Registration parameters (registration channel -> atlas )</li>
-							{% else %}
-								<li>Downsampled volume registered to atlas (.TIF stack)</li>
-								<li>Registration parameters (this channel -> registration channel)</li>
+							{% if channel_content['tiling_scheme'] != '1x1' %}
+								<li>Stitched z planes (.TIFs for each z plane)  </li>
 							{% endif %}
+							<li>Blended z planes (.TIFs for each z plane)</li>
+							<li>Downsampled planes (.TIFs for each z plane)</li>
+							{% if not no_registration %}
+								<li>Volume registered to atlas (single .TIF file for whole volume)</li>
+								{% if 'registration' in channel_purposes_str %}
+									<li>Registration parameters (registration channel -> atlas )</li>
+								{% else %}
+									<li>Registration parameters (this channel -> registration channel)</li>
+								{% endif %}
+
+							{% endif %}
+							
 
 						</ul>  
 					</div>

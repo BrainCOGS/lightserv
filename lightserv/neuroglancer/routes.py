@@ -63,7 +63,11 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
         logger.debug('POST request')
         config_proxy_auth_token = os.environ['CONFIGPROXY_AUTH_TOKEN']
         # Redis setup for this session
-        kv = redis.Redis(host="redis", decode_responses=True)
+        if os.environ['FLASK_MODE'] == 'TEST':
+            logger.debug("Trying to connect to test redis container")
+            kv = redis.Redis(host="testredis", decode_responses=True)
+        else:
+            kv = redis.Redis(host="redis", decode_responses=True)
         hosturl = os.environ['HOSTURL'] # via dockerenv
         data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
         neuroglancer_url_dict = {}
@@ -183,7 +187,7 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
                     if 'viewer' in session_dict.keys():
                         break
                     else:
-                        logging.debug("Still spinning; waiting for redis entry for neuoglancer viewer")
+                        logger.debug("Still spinning; waiting for redis entry for neuroglancer viewer")
                         time.sleep(0.25)
                 viewer_json_str = kv.hgetall(session_name)['viewer']
                 viewer_dict = json.loads(viewer_json_str)
