@@ -156,6 +156,7 @@ class TestConfig(BaseConfig):
 	WTF_CSRF_ENABLED = False # disables the csrf token validation in forms
 	dj.config['safemode'] = False
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_testing'
+	SPOCK_LSADMIN_USERNAME = 'lightserv-test'
 	CLEARING_CALENDAR_ID = 'skq68osl830f13tfgv6i0kq750@group.calendar.google.com' # the test calendar for the time being
 	# CELERY_BROKER_URL='amqp://localhost//',
 	# CELERY_RESULT_BACKEND=f'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test'
