@@ -20,6 +20,10 @@ class ClearingForm(FlaskForm):
 	so I dont have to write the clearing parameters out for each sample 
 	"""
 	sample_name = StringField("Sample name",validators=[InputRequired()]) # helpful for flash message -- keeps track of sample a form error occurred in
+	subject_fullname_unique_list = sorted(list(set(db_subject.Subject().fetch('subject_fullname'))))
+	subject_fullname_choices = [('','')] + [(x,x) for x in subject_fullname_unique_list]
+	subject_fullname = SelectField('subject_fullname in u19_subject table:',
+		choices=subject_fullname_choices,default='') 
 	clearing_protocol = SelectField('Clearing Protocol:', choices= \
 		[('iDISCO abbreviated clearing','iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
 		 ('iDISCO abbreviated clearing (rat)','Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
@@ -91,10 +95,6 @@ class NewRequestForm(FlaskForm):
 	enter_for_otheruser = BooleanField('Check if you are filling out this form for someone else',default=False)
 	other_username = StringField('Netid of that person',
 		validators=[Length(max=20)])
-	subject_fullname_unique_list = sorted(list(set(db_subject.Subject().fetch('subject_fullname'))))
-	subject_fullname_choices = [('','')] + [(x,x) for x in subject_fullname_unique_list]
-	subject_fullname = SelectField('subject_fullname in u19_subject table:',
-		choices=subject_fullname_choices,default='') 
 	request_name = StringField(
 		'Request_name - a unique identifier for this request -- max 64 characters --',
 		validators=[InputRequired(),Length(max=64)])

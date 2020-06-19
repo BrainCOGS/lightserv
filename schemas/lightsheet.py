@@ -48,7 +48,6 @@ class Request(dj.Manual):
     date_submitted               :   date     # The date it was submitted as a request
     time_submitted               :   time     # The time it was submitted as a request
     labname                      :   varchar(50)
-    subject_fullname             :   varchar(64)
     correspondence_email = ''    :   varchar(100)
     description                  :   varchar(250)
     species                      :   varchar(50)
@@ -80,6 +79,7 @@ class Request(dj.Manual):
         sample_name                  :   varchar(64)                
         ----
         -> master.ClearingBatch
+        subject_fullname = NULL      :   varchar(64)
         """  
 
     class ImagingRequest(dj.Part):
