@@ -549,7 +549,6 @@ def new_request():
                     request_insert_dict = dict(request_name=form.request_name.data,
                         username=username,requested_by=current_user,
                         labname=form.labname.data.lower(),
-                        subject_fullname=form.subject_fullname.data,
                         correspondence_email=form.correspondence_email.data.lower(),
                         description=form.description.data,species=form.species.data,
                         number_of_samples=form.number_of_samples.data,
@@ -578,6 +577,7 @@ def new_request():
                     for ii in range(number_of_samples):
                         clearing_sample_form_dict = form.clearing_samples[ii].data      
                         sample_name = clearing_sample_form_dict['sample_name']              
+                        subject_fullname = clearing_sample_form_dict['subject_fullname']              
                         sample_insert_dict = {}
                         """ Set up sample insert dict """
                         ''' Add primary keys that are not in the form '''
@@ -585,6 +585,7 @@ def new_request():
 
                         sample_insert_dict['username'] = username 
                         sample_insert_dict['sample_name'] = sample_name
+                        sample_insert_dict['subject_fullname'] = subject_fullname
                         
                         """ update sample insert dict with clearing form data """
                         sample_insert_dict['clearing_protocol'] = clearing_sample_form_dict['clearing_protocol']
@@ -860,8 +861,15 @@ def new_request():
         logger.info("GET request")
 
         if not form.correspondence_email.data:  
-            form.correspondence_email.data = current_user + '@princeton.edu' 
-
+            form.correspondence_email.data = current_user + '@princeton.edu'
+        """ Convenience auto-fills for DEV mode """
+        if os.environ['FLASK_MODE'] == 'DEV': 
+            if not form.labname.data:
+                form.labname.data = 'braincogs'
+            if not form.request_name.data:
+                form.request_name.data = 'test'
+            if not form.description.data:
+                form.description.data = 'test'
         # form.subject_fullname.choices = [('test','test')] 
 
     if 'column_name' not in locals():

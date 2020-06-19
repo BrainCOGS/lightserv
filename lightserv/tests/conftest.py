@@ -651,7 +651,7 @@ def test_archival_request_nonadmin(test_client,test_login_nonadmin,test_delete_r
 	print('----------Setup test_single_request_ahoag fixture ----------')
 	request_insert_dict = {'username': 'lightserv-test', 'request_name': 'test_archival_request',
 	 'requested_by': 'lightserv-test', 'date_submitted': '2019-02-26',
-	  'time_submitted': '12:55:22', 'labname': 'Wang', 'subject_fullname': '',
+	  'time_submitted': '12:55:22', 'labname': 'Wang',
 	   'correspondence_email': 'lightserv-test@princeton.edu',
 		'description': 'Image c-fos in whole brains at 1.3x.',
 		 'species': 'mouse', 'number_of_samples': 1, 'is_archival': True}

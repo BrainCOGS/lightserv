@@ -20,6 +20,10 @@ class ClearingForm(FlaskForm):
 	so I dont have to write the clearing parameters out for each sample 
 	"""
 	sample_name = StringField("Sample name",validators=[InputRequired()]) # helpful for flash message -- keeps track of sample a form error occurred in
+	subject_fullname_unique_list = sorted(list(set(db_subject.Subject().fetch('subject_fullname'))))
+	subject_fullname_choices = [('','')] + [(x,x) for x in subject_fullname_unique_list]
+	subject_fullname = SelectField('subject_fullname in u19_subject table:',
+		choices=subject_fullname_choices,default='') 
 	clearing_protocol = SelectField('Clearing Protocol:', choices= \
 		[('iDISCO abbreviated clearing','iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
 		 ('iDISCO abbreviated clearing (rat)','Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)'),
@@ -91,21 +95,24 @@ class NewRequestForm(FlaskForm):
 	enter_for_otheruser = BooleanField('Check if you are filling out this form for someone else',default=False)
 	other_username = StringField('Netid of that person',
 		validators=[Length(max=20)])
-	subject_fullname_unique_list = sorted(list(set(db_subject.Subject().fetch('subject_fullname'))))
-	subject_fullname_choices = [('','')] + [(x,x) for x in subject_fullname_unique_list]
-	subject_fullname = SelectField('subject_fullname in u19_subject table:',
-		choices=subject_fullname_choices,default='') 
-	request_name = StringField('Request_name - a unique identifier for this request -- max 64 characters --',
-		validators=[InputRequired(),Length(max=64)],default="test")
-	description = TextAreaField('What is the goal of this request? -- max 250 characters --',validators=[InputRequired(),Length(max=250)],default="test")
-	labname = StringField('Lab name(s) (e.g. Tank/Brody)',validators=[InputRequired(),Length(max=100)],default="Braincogs")
+	request_name = StringField(
+		'Request_name - a unique identifier for this request -- max 64 characters --',
+		validators=[InputRequired(),Length(max=64)])
+	
+	description = TextAreaField('What is the goal of this request? -- max 250 characters --',
+		validators=[InputRequired(),Length(max=250)])
+	
+	labname = StringField('Lab name(s) (e.g. Tank/Brody)',
+		validators=[InputRequired(),Length(max=100)],)
+	
 	correspondence_email = StringField('Correspondence email (default is your princeton email)',
 		validators=[DataRequired(),Length(max=100),Email()])
 
-	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],
-		validators=[InputRequired(),Length(max=50)],default="mouse") # for choices first element of tuple is the value of the option, the second is the displayed text
-	species_display = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),('primate','primate'),('marsupial','marsupial')],
-		validators=[Length(max=50)],default="mouse") 
+	species = SelectField('Species:', choices=[('mouse','mouse'),('rat','rat'),
+		('primate','primate'),('marsupial','marsupial')],
+		validators=[InputRequired(),Length(max=50)],
+		default="mouse") # for choices first element of tuple is the value of the option, the second is the displayed text
+	
 	number_of_samples = IntegerField('Number of samples (a.k.a. tubes)',widget=html5.NumberInput(),validators=[InputRequired()],default=1)
 	# sample_prefix = StringField('Sample prefix (your samples will be named prefix-1, prefix-2, ...)',validators=[InputRequired(),Length(max=32)],default='sample')
 	# subject_fullnames_known = BooleanField("Check if any of your samples have subject_fullname entries in the u19_subject database table")
