@@ -55,10 +55,10 @@ class DevConfig(BaseConfig):
 		# 'task': 'lightserv.processing.tasks.stitched_precomputed_job_status_checker',
 		# 'schedule': timedelta(seconds=7)
 		# },
-		# 'ng_viewer_cleanser': {
-		# 'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
-		# 'schedule': timedelta(minutes=2)
-		# },
+		'ng_viewer_cleanser': {
+		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
+		'schedule': timedelta(minutes=2)
+		},
 		# 'rawprecomp_job_status_checker': {
 		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
 		# 'schedule': timedelta(seconds=15)
@@ -96,7 +96,7 @@ class ProdConfig(BaseConfig):
 	CLEARING_CALENDAR_ID = os.environ.get("CLEARING_CALENDAR_URL") # the test calendar for the time being
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv'
-	NG_VIEWER_EXPIRE_SECONDS = 21600 # 6 hours - time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
+	NG_VIEWER_EXPIRE_SECONDS = 43200 # 6 hours - time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
 	SPOCK_LSADMIN_USERNAME = 'lightserv-test'
 
 	CELERYBEAT_SCHEDULE = {
@@ -118,7 +118,7 @@ class ProdConfig(BaseConfig):
 		},
 		'ng_viewer_cleanser': {
 		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
-		'schedule': timedelta(minutes=5)
+		'schedule': timedelta(minutes=30)
 		},
 		'rawprecomp_job_status_checker': {
 		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
