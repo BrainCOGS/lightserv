@@ -77,10 +77,13 @@ def make_precomputed_rawdata(**kwargs):
 
 	""" Now set up the connection to spock """
 	
-	command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "
-			   f"/jukebox/wang/ahoag/precomputed/raw_pipeline/precomputed_pipeline_raw.sh {viz_dir}")
-	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
-	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_fail_pipeline.sh "
+	if os.environ['FLASK_MODE'] == 'TEST':
+		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_imaging_script.sh "
+	else:
+		# command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "
+		# 		   f"/jukebox/wang/ahoag/precomputed/raw_pipeline/precomputed_pipeline_raw.sh {viz_dir}")
+		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+		# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_fail_pipeline.sh "
 
 	hostname = 'spock.pni.princeton.edu'
 	port=22
