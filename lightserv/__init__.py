@@ -43,8 +43,11 @@ dj.config["enable_python_native_blobs"] = True
 
 def set_celery_db():
 	if os.environ['FLASK_MODE'] == 'DEV':
+		user=os.environ['DJ_DB_USER']
+		password=os.environ['DJ_DB_PASS']
+		backend_connection_str = f'db+mysql+pymysql://{user}:{password}@datajoint00.pni.princeton.edu:3306/ahoag_celery_test?ssl_ca=/etc/ssl/certs/ca-certificates.crt'
 		cel = Celery(__name__,broker='redis://redis:6379/0',
-			backend='redis://redis:6379/0')
+			backend=backend_connection_str)
 	elif os.environ['FLASK_MODE'] == 'TEST':
 		cel = Celery(__name__,broker='redis://testredis:6379/0',
 			backend='redis://testredis:6379/0')
