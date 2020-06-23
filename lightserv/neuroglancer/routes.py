@@ -2805,6 +2805,160 @@ def jess_cfos_an20():
     return render_template('neuroglancer/single_link.html',
         neuroglancerurl=neuroglancerurl)
 
+@neuroglancer.route("/neuroglancer/jess_cfos_201810dataset",
+    methods=['GET','POST'])
+@logged_in
+@log_http_requests
+def jess_cfos_201810dataset():
+    """ A route for generating a link to Neuroglancer to show Jess'
+    brains she requested on 6/10/2020
+    The route spawns cloudvolumes for each layer and then 
+    makes a neuroglancer viewer and provides the link to the user. """
+
+    layer_rootdir = '/jukebox/LightSheetData/lightserv_testing/neuroglancer/201904_ymaze_cfos/201810_adultacutePC_ymaze_cfos'
+    config_proxy_auth_token = os.environ['CONFIGPROXY_AUTH_TOKEN']
+    # Redis setup for this session
+    kv = redis.Redis(host="redis", decode_responses=True)
+    hosturl = os.environ['HOSTURL'] # via dockerenv
+    
+    session_name = secrets.token_hex(6)
+    # session_name = 'my_ng_session'
+    viewer_id = "viewer1" # for storing the viewer info in redis
+    # kv.hmset(session_name,{"viewer_id":viewer_id})
+    kv.hmset(session_name,{"cv_count":0}) # initialize the number of cloudvolumes in this ng session
+
+    # Set up environment to be shared by all cloudvolumes
+    cv_environment = {
+    'PYTHONPATH':'/opt/libraries',
+    'CONFIGPROXY_AUTH_TOKEN':f"{config_proxy_auth_token}",
+    'SESSION_NAME':session_name
+    }
+
+    """ CV 1: Raw data """
+    layer_type = "image"
+               
+    cv_number = 0 # to keep track of how many cloudvolumes in this viewer
+    cv_container_name = f'{session_name}_rawdata_dadult_pc_crus1_1_iso'
+    cv_name = f"rawdata_an20_iso"
+    cv_path = os.path.join(layer_rootdir,'rawdata_dadult_pc_crus1_1_iso')      
+    cv_number += 1              
+    """ send the data to the viewer-launcher
+    to launch the cloudvolume """                       
+    cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
+        cv_container_name=cv_container_name,
+        layer_type=layer_type,session_name=session_name)
+    requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
+    logger.debug("Made post request to viewer-launcher to launch cloudvolume")
+
+    """ Enter the cv information into redis
+    so I can get it from within the neuroglancer container """
+    kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
+        f"cv{cv_number}_name": cv_name, f"layer{cv_number}_type":layer_type})
+    # increment the number of cloudvolumes so it is up to date
+    kv.hincrby(session_name,'cv_count',1)
+    # register with the confproxy so that it can be seen from outside the nglancer network
+    proxy_h = pp.progproxy(target_hname='confproxy')
+    proxypath = os.path.join('cloudvols',session_name,cv_name)
+    proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
+
+    # """ CV 2: Raw atlas dadult_pc_crus1_1 """
+    layer_type = "segmentation"
+               
+    cv_number += 1              
+    cv_container_name = f'{session_name}_rawatlas_dadult_pc_crus1_1_iso'
+    cv_name = f"rawatlas_dadult_pc_crus1_1_iso"
+    cv_path = os.path.join(layer_rootdir,'rawatlas_dadult_pc_crus1_1_iso')      
+    """ send the data to the viewer-launcher
+    to launch the cloudvolume """                       
+    cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
+        cv_container_name=cv_container_name,
+        layer_type=layer_type,session_name=session_name)
+    requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
+    logger.debug("Made post request to viewer-launcher to launch cloudvolume")
+
+    """ Enter the cv information into redis
+    so I can get it from within the neuroglancer container """
+    kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
+        f"cv{cv_number}_name": cv_name, f"layer{cv_number}_type":layer_type})
+    # increment the number of cloudvolumes so it is up to date
+    kv.hincrby(session_name,'cv_count',1)
+    # register with the confproxy so that it can be seen from outside the nglancer network
+    proxy_h = pp.progproxy(target_hname='confproxy')
+    proxypath = os.path.join('cloudvols',session_name,cv_name)
+    proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
+
+    # """ CV 3: Raw cells  """
+    layer_type = "segmentation"
+               
+    cv_number += 1              
+    cv_container_name = f'{session_name}_rawcells_dadult_pc_crus1_1_iso_dilated_iso'
+    cv_name = f"rawcells_dadult_pc_crus1_1_iso_dilated_iso"
+    cv_path = os.path.join(layer_rootdir,'rawcells_dadult_pc_crus1_1_dilated_iso')      
+    """ send the data to the viewer-launcher
+    to launch the cloudvolume """                       
+    cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
+        cv_container_name=cv_container_name,
+        layer_type=layer_type,session_name=session_name)
+    requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
+    logger.debug("Made post request to viewer-launcher to launch cloudvolume")
+
+    """ Enter the cv information into redis
+    so I can get it from within the neuroglancer container """
+    kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
+        f"cv{cv_number}_name": cv_name, f"layer{cv_number}_type":layer_type})
+    # increment the number of cloudvolumes so it is up to date
+    kv.hincrby(session_name,'cv_count',1)
+    # register with the confproxy so that it can be seen from outside the nglancer network
+    proxy_h = pp.progproxy(target_hname='confproxy')
+    proxypath = os.path.join('cloudvols',session_name,cv_name)
+    proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
+
+    """ Neuroglancer viewer container """
+    ng_container_name = f'{session_name}_ng_container'
+    ng_dict = {}
+    ng_dict['hosturl'] = hosturl
+    ng_dict['ng_container_name'] = ng_container_name
+    ng_dict['session_name'] = session_name
+    """ send the data to the viewer-launcher
+    to launch the ng viewer """                       
+    
+    requests.post('http://viewer-launcher:5005/ng_custom_launcher',json=ng_dict)
+    logger.debug("Made post request to viewer-launcher to launch ng custom viewer")
+    
+    # Add the ng container name to redis session key level
+    kv.hmset(session_name, {"ng_container_name": ng_container_name})
+    # Add ng viewer url to config proxy so it can be seen from outside of the lightserv docker network 
+    proxy_h.addroute(proxypath=f'viewers/{session_name}', 
+        proxytarget=f"http://{ng_container_name}:8080/")
+    logger.debug(f"Added {ng_container_name} to redis and confproxy")
+    # Add the ng container name to redis session key level
+    kv.hmset(session_name, {"ng_container_name": ng_container_name})
+    # Add ng viewer url to config proxy so it can be seen from outside of the lightserv docker network 
+    proxy_h.addroute(proxypath=f'viewers/{session_name}', 
+        proxytarget=f"http://{ng_container_name}:8080/")
+
+    # Spin until the neuroglancer viewer token from redis becomes available (may be waiting on the neuroglancer container to finish writing to redis)
+    while True:
+        session_dict = kv.hgetall(session_name)
+        if 'viewer' in session_dict.keys():
+            break
+        else:
+            logging.debug("Still spinning; waiting for redis entry for neuoglancer viewer")
+            time.sleep(0.25)
+    viewer_json_str = kv.hgetall(session_name)['viewer']
+    viewer_dict = json.loads(viewer_json_str)
+    logging.debug(f"Redis contents for viewer")
+    logging.debug(viewer_dict)
+    proxy_h.getroutes()
+    # logger.debug("Proxy contents:")
+    # logger.debug(proxy_contents)
+    
+    neuroglancerurl = f"http://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
+    logger.debug(neuroglancerurl)
+    
+    return render_template('neuroglancer/single_link.html',
+        neuroglancerurl=neuroglancerurl)
+
 
 @neuroglancer.route("/neuroglancer/jess_cfos_setup",
     methods=['GET','POST'])
@@ -2814,9 +2968,14 @@ def jess_cfos_setup():
     """ A route for Jess to select which of her available brains
     she wants to make links for in Neuroglancer """
     form = CfosSetupForm(request.form)
-    animal_dataset_dict = {'201904_ymaze_cfos':
-        ['an4','an5','an6','an7','an8','an11','an12','an15','an16','an18','an19','an20',
-        'an22','an23']}
+    animal_dataset_dict = {
+        '201904_ymaze_cfos':
+            ['an4','an5','an6','an7','an8','an11',
+            'an12','an15','an16','an18','an19','an20',
+            'an22','an23','an24','an25','an26'],
+        '201810_adultacutePC_ymaze_cfos':
+            ['dadult_pc_crus1_1']
+    }
     if request.method == 'POST':
         logger.debug("POST request")
         if form.validate_on_submit():
@@ -2826,10 +2985,12 @@ def jess_cfos_setup():
             for animal_form in animal_forms:
                 viz = animal_form.viz.data
                 animal_id = animal_form.animal_id.data
+                dataset = animal_form.dataset.data
                 if viz:
                     selected_animal_id = animal_id
                     break
-            layer_rootdir = '/jukebox/LightSheetData/lightserv_testing/neuroglancer/201904_ymaze_cfos'
+            layer_rootdir = os.path.join('/jukebox/LightSheetData/lightserv_testing/neuroglancer',
+                'jess_cfos',dataset)
             config_proxy_auth_token = os.environ['CONFIGPROXY_AUTH_TOKEN']
             # Redis setup for this session
             kv = redis.Redis(host="redis", decode_responses=True)
