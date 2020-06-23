@@ -2815,7 +2815,8 @@ def jess_cfos_setup():
     she wants to make links for in Neuroglancer """
     form = CfosSetupForm(request.form)
     animal_dataset_dict = {'201904_ymaze_cfos':
-        ['an4','an5','an7','an8','an11','an12','an15','an16','an18','an19','an20']}
+        ['an4','an5','an6','an7','an8','an11','an12','an15','an16','an18','an19','an20',
+        'an22','an23']}
     if request.method == 'POST':
         logger.debug("POST request")
         if form.validate_on_submit():
