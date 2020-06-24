@@ -2974,7 +2974,8 @@ def jess_cfos_setup():
             'an12','an15','an16','an18','an19','an20',
             'an22','an23','an24','an25','an26'],
         '201810_adultacutePC_ymaze_cfos':
-            ['dadult_pc_crus1_1']
+            ['dadult_pc_crus1_1','dadult_pc_crus1_2',
+            'dadult_pc_crus1_3','dadult_pc_crus1_4']
     }
     if request.method == 'POST':
         logger.debug("POST request")
