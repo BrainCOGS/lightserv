@@ -2959,7 +2959,6 @@ def jess_cfos_201810dataset():
     return render_template('neuroglancer/single_link.html',
         neuroglancerurl=neuroglancerurl)
 
-
 @neuroglancer.route("/neuroglancer/jess_cfos_setup",
     methods=['GET','POST'])
 @logged_in
@@ -2975,7 +2974,10 @@ def jess_cfos_setup():
             'an22','an23','an24','an25','an26'],
         '201810_adultacutePC_ymaze_cfos':
             ['dadult_pc_crus1_1','dadult_pc_crus1_2',
-            'dadult_pc_crus1_3','dadult_pc_crus1_4']
+            'dadult_pc_crus1_3','dadult_pc_crus1_4',
+            'dadult_pc_crus1_5'],
+        '202002_cfos':
+            ['an2_vecctrl_ymaze','an3_vecctrl_ymaze']
     }
     if request.method == 'POST':
         logger.debug("POST request")
