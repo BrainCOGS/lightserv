@@ -18,14 +18,14 @@ class ChannelForm(FlaskForm):
 	zoom_body_magnification = DecimalField('Zoom body magnification',default=1.0,validators=[Optional()])
 	image_orientation = SelectField('Image orientation',choices=[('sagittal','sagittal'),('coronal','coronal'),
 				 ('horizontal','horizontal')],default='horizontal',validators=[InputRequired()])
-	left_lightsheet_used = BooleanField('Left',default=True)
+	left_lightsheet_used = BooleanField('Left',default=False)
 	right_lightsheet_used = BooleanField('Right',default=False)
-	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',default='1x1')
+	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --')
 	tiling_overlap = DecimalField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
 		places=2,validators=[Optional()],default=0.15) 
-	z_step = DecimalField('Z resolution (microns)',validators=[InputRequired()],default=5.0)
+	z_step = DecimalField('Z resolution (microns)',validators=[InputRequired()])
 	number_of_z_planes = IntegerField('Number of z planes',
-		widget=html5.NumberInput(),validators=[InputRequired()],default=1258)
+		widget=html5.NumberInput(),validators=[InputRequired()])
 	rawdata_subfolder = TextAreaField('channel subfolder',validators=[InputRequired()])
 
 	def validate_tiling_overlap(self,tiling_overlap):
