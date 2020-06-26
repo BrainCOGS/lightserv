@@ -20,9 +20,9 @@ class ChannelForm(FlaskForm):
 				 ('horizontal','horizontal')],default='horizontal',validators=[InputRequired()])
 	left_lightsheet_used = BooleanField('Left',default=False)
 	right_lightsheet_used = BooleanField('Right',default=False)
-	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --')
+	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',validators=[InputRequired()])
 	tiling_overlap = DecimalField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
-		places=2,validators=[Optional()],default=0.15) 
+		places=2,validators=[Optional()]) 
 	z_step = DecimalField('Z resolution (microns)',validators=[InputRequired()])
 	number_of_z_planes = IntegerField('Number of z planes',
 		widget=html5.NumberInput(),validators=[InputRequired()])
