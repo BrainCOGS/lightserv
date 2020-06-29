@@ -467,10 +467,12 @@ def make_precomputed_stitched_data(**kwargs):
 	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
 
 	# """ Now set up the connection to spock """
-	
-	command = ("cd /jukebox/wang/ahoag/precomputed/stitched_pipeline; "
-			   f"/jukebox/wang/ahoag/precomputed/stitched_pipeline/precomputed_pipeline_stitched.sh {viz_dir}")
-	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+	if os.environ['FLASK_MODE'] == 'TEST':
+		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_precomputed_stitching_script.sh "
+	else:
+		command = ("cd /jukebox/wang/ahoag/precomputed/stitched_pipeline; "
+				   f"/jukebox/wang/ahoag/precomputed/stitched_pipeline/precomputed_pipeline_stitched.sh {viz_dir}")
+		# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	hostname = 'spock.pni.princeton.edu'
 	port=22
 	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts

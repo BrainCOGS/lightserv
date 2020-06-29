@@ -1,9 +1,11 @@
-from flask import url_for
+from flask import url_for, current_app
 import tempfile
 import webbrowser
-from lightserv import db_lightsheet, db_admin
+from PIL import Image
+from lightserv import db_lightsheet, db_admin, db_spockadmin
 from bs4 import BeautifulSoup 
 from datetime import datetime
+import os, glob
 import lorem
 
 """ Tests for Processing Manager """
@@ -200,8 +202,6 @@ def test_nonadmin_can_see_completed_processing_request(test_client,completed_pro
 			break
 	processing_progress = processing_request_1_row[request_number_column_index].text
 	assert processing_progress == 'complete'
-
-
 
 
 """ Tests for processing entry form """
@@ -555,7 +555,6 @@ def test_new_processing_request_nonadmin_validates(test_client,test_single_sampl
 
 """ Tests for processing utils """
 
-
 def test_determine_status_code():
 	""" Test that the new processing request route validates when
 	the form is submitted with bad data
@@ -586,3 +585,54 @@ def test_determine_status_code():
 	status_codes5 = ['CANCELLED by 1234']
 	status_code5 = determine_status_code(status_codes5)
 	assert status_code5 == 'CANCELLED'
+
+
+""" Test for processing tasks """
+
+
+def test_stitched_precomputed_pipeline_starts(test_client,):
+	""" Test that the stitched precomputed pipeline task runs through,
+	given the correct input. Uses a test script on spock which just returns
+	job ids. Runs a celery task """
+	from lightserv.processing import tasks
+	import time
+	username='lightserv-test'
+	request_name='tracing_test'
+	sample_name='tracing_test-001'
+	imaging_request_number=1
+	processing_request_number=1
+	image_resolution='4x'
+	channel_name='647'
+	channel_index=0
+	number_of_z_planes=682
+	lightsheet='left'
+	left_lightsheet_used=True
+	right_lightsheet_used=False
+	z_step=2
+	rawdata_subfolder='test647'
+	processing_pipeline_jobid_step0=12345678 # just some dummy number
+	stitched_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
+							 f"{request_name}/{sample_name}/"
+							 f"imaging_request_{imaging_request_number}/viz/"
+							 f"processing_request_{processing_request_number}/"
+							 f"stitched_raw")
+	channel_viz_dir = os.path.join(stitched_viz_dir,f'channel_{channel_name}')
+	this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
+
+	precomputed_kwargs = dict(
+				username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number,
+				processing_request_number=processing_request_number,
+				image_resolution=image_resolution,channel_name=channel_name,
+				channel_index=channel_index,
+				rawdata_subfolder=rawdata_subfolder,
+				left_lightsheet_used=left_lightsheet_used,
+				right_lightsheet_used=right_lightsheet_used,
+				processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
+				z_step=z_step,lightsheet='left',viz_dir=this_viz_dir)
+	
+	tasks.make_precomputed_stitched_data.delay(**precomputed_kwargs) 
+	time.sleep(2)
+	table_contents = db_spockadmin.StitchedPrecomputedSpockJob() 
+	print(table_contents)
+	assert len(table_contents) > 0
