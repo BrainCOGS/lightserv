@@ -586,8 +586,32 @@ def test_determine_status_code():
 	status_code5 = determine_status_code(status_codes5)
 	assert status_code5 == 'CANCELLED'
 
-
 """ Test for processing tasks """
+
+def test_lightsheet_pipeline_starts(test_client,test_imaged_request_viz_nonadmin):
+	""" Test that the light sheet pipeline starts,
+	given the correct input. Uses a test script on spock which just returns
+	job ids. Runs a celery task """
+	from lightserv.processing import tasks
+	import time
+	username='lightserv-test'
+	request_name='viz_processed'
+	sample_name='viz_processed-001'
+	imaging_request_number=1
+	processing_request_number=1
+	kwargs = dict(username=username,request_name=request_name,
+		sample_name=sample_name,imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number)
+	all_channel_contents = db_lightsheet.Request.ImagingChannel() & f'username="{username}"' \
+		& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
+		f'imaging_request_number="{imaging_request_number}"'
+	print(all_channel_contents)
+	# assert 4==4
+	tasks.run_lightsheet_pipeline.delay(**kwargs)
+	time.sleep(2)
+	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
+	print(table_contents)
+	assert len(table_contents) > 0
 
 
 def test_stitched_precomputed_pipeline_starts(test_client,):
@@ -634,5 +658,169 @@ def test_stitched_precomputed_pipeline_starts(test_client,):
 	tasks.make_precomputed_stitched_data.delay(**precomputed_kwargs) 
 	time.sleep(2)
 	table_contents = db_spockadmin.StitchedPrecomputedSpockJob() 
+	print(table_contents)
+	assert len(table_contents) > 0
+
+
+def test_blended_precomputed_pipeline_starts(test_client,):
+	""" Test that the blended precomputed pipeline task runs through,
+	given the correct input. Uses a test script on spock which just returns
+	job ids. Runs a celery task """
+	from lightserv.processing import tasks
+	import time
+	username='lightserv-test'
+	request_name='viz_processed'
+	sample_name='viz_processed-001'
+	imaging_request_number=1
+	processing_request_number=1
+	image_resolution='1.3x'
+	channel_name='488'
+	channel_index=0
+	left_lightsheet_used=True
+	right_lightsheet_used=False
+	z_step=5
+	rawdata_subfolder='test488'
+	processing_pipeline_jobid_step0=12345679 # just some dummy number
+	data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
+	channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
+	blended_data_path = os.path.join(data_bucket_rootpath,username,
+					 request_name,sample_name,
+					 f"imaging_request_{imaging_request_number}",
+					 "output",
+					 f"processing_request_{processing_request_number}",
+					 f"resolution_{image_resolution}",
+					 "full_sizedatafld",
+					 f"{rawdata_subfolder}_ch{channel_index_padded}")
+	blended_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
+							 f"{request_name}/{sample_name}/"
+							 f"imaging_request_{imaging_request_number}/viz/"
+							 f"processing_request_{processing_request_number}/"
+							 f"blended")
+	channel_viz_dir = os.path.join(blended_viz_dir,f'channel_{channel_name}')
+	precomputed_kwargs = dict(
+				username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number,
+				processing_request_number=processing_request_number,
+				image_resolution=image_resolution,channel_name=channel_name,
+				channel_index=channel_index,
+				processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
+				z_step=z_step,blended_data_path=blended_data_path)
+
+	precomputed_kwargs['viz_dir'] = channel_viz_dir
+	tasks.make_precomputed_blended_data.delay(**precomputed_kwargs)
+
+	time.sleep(2)
+	table_contents = db_spockadmin.BlendedPrecomputedSpockJob() 
+	print(table_contents)
+	assert len(table_contents) > 0
+
+def test_downsized_precomputed_pipeline_starts(test_client,):
+	""" Test that the downsized precomputed pipeline task runs through,
+	given the correct input. Uses a test script on spock which just returns
+	job ids. Runs a celery task """
+	from lightserv.processing import tasks
+	import time
+	username='lightserv-test'
+	request_name='viz_processed'
+	sample_name='viz_processed-001'
+	imaging_request_number=1
+	processing_request_number=1
+	image_resolution='1.3x'
+	channel_name='488'
+	channel_index=0
+	left_lightsheet_used=True
+	right_lightsheet_used=False
+	z_step=5
+	rawdata_subfolder='test488'
+	processing_pipeline_jobid_step0=12345680 # just some dummy number
+	data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
+	atlas_name='princeton_mouse_atlas'
+	downsized_data_path = os.path.join(data_bucket_rootpath,username,
+							 request_name,sample_name,
+							 f"imaging_request_{imaging_request_number}",
+							 "output",
+							 f"processing_request_{processing_request_number}",
+							 f"resolution_{image_resolution}")
+	precomputed_kwargs = dict(
+				username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number,
+				processing_request_number=processing_request_number,
+				image_resolution=image_resolution,channel_name=channel_name,
+				channel_index=channel_index,rawdata_subfolder=rawdata_subfolder,
+				processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
+				downsized_data_path=downsized_data_path,atlas_name=atlas_name)
+	downsized_viz_dir = os.path.join(data_bucket_rootpath,username,
+					 request_name,sample_name,
+					 f"imaging_request_{imaging_request_number}",
+					 "viz",
+					 f"processing_request_{processing_request_number}",
+					 "downsized")
+	channel_viz_dir = os.path.join(downsized_viz_dir,
+				f'channel_{channel_name}')
+	precomputed_kwargs['viz_dir'] = channel_viz_dir
+	tasks.make_precomputed_downsized_data.delay(**precomputed_kwargs)
+	time.sleep(2)
+	table_contents = db_spockadmin.DownsizedPrecomputedSpockJob() 
+	print(table_contents)
+	assert len(table_contents) > 0
+
+def test_registered_precomputed_pipeline_starts(test_client,):
+	""" Test that the downsized precomputed pipeline task runs through,
+	given the correct input. Uses a test script on spock which just returns
+	job ids. Runs a celery task """
+	from lightserv.processing import tasks
+	import time
+	username='lightserv-test'
+	request_name='viz_processed'
+	sample_name='viz_processed-001'
+	imaging_request_number=1
+	processing_request_number=1
+	image_resolution='1.3x'
+	channel_name='488'
+	channel_index=0
+	lightsheet_channel_str='regch'	
+	z_step=5
+	rawdata_subfolder='test488'
+	processing_pipeline_jobid_step0=12345684 # just some dummy number
+	data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
+	atlas_name='princeton_mouse_atlas'
+	
+	registered_data_path = os.path.join(data_bucket_rootpath,username,
+							 request_name,sample_name,
+							 f"imaging_request_{imaging_request_number}",
+							 "output",
+							 f"processing_request_{processing_request_number}",
+							 f"resolution_{image_resolution}",
+							 "elastix")
+
+	""" number of z planes could be altered in the case of tiling due to terastitcher 
+	so we will calculate it on the fly when doing the precomputed steps """
+	precomputed_kwargs = dict(
+		username=username,request_name=request_name,
+		sample_name=sample_name,imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number,
+		image_resolution=image_resolution,channel_name=channel_name,
+		channel_index=channel_index,
+		lightsheet_channel_str=lightsheet_channel_str,
+		rawdata_subfolder=rawdata_subfolder,
+		atlas_name=atlas_name,
+		processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
+		registered_data_path=registered_data_path)
+
+	registered_viz_dir = os.path.join(data_bucket_rootpath,username,
+					 request_name,sample_name,
+					 f"imaging_request_{imaging_request_number}",
+					 "viz",
+					 f"processing_request_{processing_request_number}",
+					 "registered")
+	channel_viz_dir = os.path.join(registered_viz_dir,
+		f'channel_{channel_name}_{lightsheet_channel_str}')
+	precomputed_kwargs['viz_dir'] = channel_viz_dir
+	layer_name = f'channel{channel_name}_registered'
+	precomputed_kwargs['layer_name'] = layer_name
+
+	tasks.make_precomputed_registered_data.delay(**precomputed_kwargs)
+	time.sleep(2)
+	table_contents = db_spockadmin.RegisteredPrecomputedSpockJob() 
 	print(table_contents)
 	assert len(table_contents) > 0

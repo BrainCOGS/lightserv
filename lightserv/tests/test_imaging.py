@@ -758,9 +758,12 @@ def test_imaging_entry_form_submits_for_second_imaging_request(test_client,test_
 		'username="ahoag"' & 'sample_name="sample-001"' & 'imaging_request_number=2').fetch1('imaging_progress')
 	assert imaging_progress_request_2 == 'complete'
 
+""" Test for imaging tasks """
+
 def test_raw_precomputed_pipeline_starts(test_client,):
 	""" Test that the raw precomputed pipeline task runs through,
-	given the correct input """
+	given the correct input. Uses a test script on spock which just returns
+	job ids. Runs a celery task """
 	from lightserv.imaging import tasks
 	import time
 	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
