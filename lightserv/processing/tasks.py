@@ -310,11 +310,24 @@ def run_lightsheet_pipeline(username,request_name,
 			# 		n_array_jobs_step1,
 			# 		n_channels_total
 			# 	)
-			
-			if n_channels_reg > 0:
-				command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline.sh"""
-			else:	
-				command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline_noreg.sh"""
+			if os.environ['FLASK_MODE'] == 'TEST':
+				if n_channels_reg > 0:
+					command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline.sh"""
+				else:	
+					command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline_noreg.sh"""
+			else:
+				# if n_channels_reg > 0:
+				# 	command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_sleep_pipeline.sh"""
+				# else:	
+				# 	command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_sleep_pipeline_noreg.sh"""
+				command = """cd %s;%s/%s %s %s %s""" % \
+				(processing_code_dir,
+					processing_code_dir,
+					pipeline_shell_script,
+					output_directory,
+					n_array_jobs_step1,
+					n_channels_total
+				)
 			spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
 			port = 22
 
@@ -575,9 +588,11 @@ def make_precomputed_blended_data(**kwargs):
 		pickle.dump(kwargs,pkl_file)
 
 	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
-	
-	command = ("cd /jukebox/wang/ahoag/precomputed/blended_pipeline; "
-			   f"/jukebox/wang/ahoag/precomputed/blended_pipeline/precomputed_pipeline_blended.sh {viz_dir}")	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+	if os.environ['FLASK_MODE'] == 'TEST':
+		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_precomputed_blended_script.sh "
+	else:
+		command = ("cd /jukebox/wang/ahoag/precomputed/blended_pipeline; "
+				   f"/jukebox/wang/ahoag/precomputed/blended_pipeline/precomputed_pipeline_blended.sh {viz_dir}")	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	hostname = 'spock.pni.princeton.edu'
 	port=22
 	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
@@ -660,12 +675,14 @@ def make_precomputed_downsized_data(**kwargs):
 		pickle.dump(kwargs,pkl_file)
 
 	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
-	
-	command = ("cd /jukebox/wang/ahoag/precomputed/downsized_pipeline; "
-			   "/jukebox/wang/ahoag/precomputed/downsized_pipeline/precomputed_pipeline_downsized.sh {}").format(
-		viz_dir)
+	if os.environ['FLASK_MODE'] == 'TEST':
+		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_precomputed_downsized_script.sh "
+	else:
+		command = ("cd /jukebox/wang/ahoag/precomputed/downsized_pipeline; "
+				   "/jukebox/wang/ahoag/precomputed/downsized_pipeline/precomputed_pipeline_downsized.sh {}").format(
+			viz_dir)
 
-	# command = "cd /jukebox/wang/ahoag/precomputed/downsized_pipeline/testing; ./test_pipeline.sh "
+		# command = "cd /jukebox/wang/ahoag/precomputed/downsized_pipeline/testing; ./test_pipeline.sh "
 	logger.debug("command:")
 	logger.debug(command)
 	hostname = 'spock.pni.princeton.edu'
@@ -748,12 +765,13 @@ def make_precomputed_registered_data(**kwargs):
 		pickle.dump(kwargs,pkl_file)
 
 	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
-	
-	command = ("cd /jukebox/wang/ahoag/precomputed/registered_pipeline; "
-			   "/jukebox/wang/ahoag/precomputed/registered_pipeline/precomputed_pipeline_registered.sh {}").format(
-		viz_dir)
-	
-	# command = "cd /jukebox/wang/ahoag/precomputed/registered_pipeline/testing; ./test_pipeline.sh "
+	if os.environ['FLASK_MODE'] == 'TEST':
+		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_precomputed_registered_script.sh "
+	else:
+		command = ("cd /jukebox/wang/ahoag/precomputed/registered_pipeline; "
+				   "/jukebox/wang/ahoag/precomputed/registered_pipeline/precomputed_pipeline_registered.sh {}").format(
+			viz_dir)
+		# command = "cd /jukebox/wang/ahoag/precomputed/registered_pipeline/testing; ./test_pipeline.sh "
 	logger.debug("command:")
 	logger.debug(command)
 	hostname = 'spock.pni.princeton.edu'
