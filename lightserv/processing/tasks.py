@@ -87,8 +87,7 @@ def run_lightsheet_pipeline(username,request_name,
 			 f'processing_request_number="{processing_request_number}"' & \
 			 f'image_resolution="{image_resolution}"'  
 			atlas_name,final_orientation = this_image_resolution_content.fetch1('atlas_name','final_orientation')
-			logger.debug("Atlas keys")
-			logger.debug(list(atlas_dict.keys()))
+	
 			atlas_file = atlas_dict[atlas_name]
 			atlas_annotation_file = atlas_annotation_dict[atlas_name]
 			""" set up the base parameter dictionary that is common to this image resolution
@@ -246,6 +245,7 @@ def run_lightsheet_pipeline(username,request_name,
 			logger.info(f"wrote pickle file: {pickle_fullpath}")
 			logger.debug("Permissions on pickle file are originally:")
 			logger.debug(st.st_mode)
+			# Add group write permissions so that lightserv-test or anyone in 
 			os.chmod(pickle_fullpath,st.st_mode | stat.S_IWGRP)
 			st_now = os.stat(pickle_fullpath)
 			logger.debug("Group should have write permissions to the pickle file now")
