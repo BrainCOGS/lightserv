@@ -1226,6 +1226,64 @@ def test_only_one_registration_channel_per_res(test_client,test_login):
 		)	
 	assert b'There can only be one registration channel per image resolution' in response.data  
 
+def test_newlines_do_not_affect_clearing_batch_membership(test_client,
+	test_login_nonadmin,test_delete_request_db_contents):
+	""" Ensure that carriage returns
+	or newlines entered when typing in primary or secondary antibodies 
+	do not affect which clearing batches the samples end up in.
+
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	today = date.today()
+	today_proper_format = today.strftime('%Y-%m-%d')
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"test_request_newlines",
+			'description':"This is a test request to ensure that newlines in antibody fields do not affect clearing batch membership",
+			'species':"mouse",'number_of_samples':2,
+			'username':test_login_nonadmin['user'],
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-clearing_protocol':'iDISCO+_immuno',
+			'clearing_samples-0-antibody1':'test_antibody1',
+			'clearing_samples-0-antibody2':'test_antibody2',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'clearing_samples-1-expected_handoff_date':today_proper_format,
+			'clearing_samples-1-perfusion_date':today_proper_format,
+			'clearing_samples-1-clearing_protocol':'iDISCO+_immuno',
+			'clearing_samples-1-antibody1':'test_antibody1\r\n',
+			'clearing_samples-1-antibody2':'test_antibody2\r\n',
+			'clearing_samples-1-sample_name':'sample-002',
+			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-1-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-1-image_resolution_forsetup':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"core facility requests" in response.data
+	assert b"This is a test request to ensure" in response.data
+	assert b"New Request Form" not in response.data
+
+	""" Now check to make sure that only one clearing batch was made """
+	clearing_batch_results = db_lightsheet.Request().ClearingBatch() & 'request_name="test_request_newlines"'
+	print(clearing_batch_results)
+	assert len(clearing_batch_results) == 1
+
 
 """ Testing all_requests() """
 
