@@ -589,8 +589,8 @@ def new_request():
                         
                         """ update sample insert dict with clearing form data """
                         sample_insert_dict['clearing_protocol'] = clearing_sample_form_dict['clearing_protocol']
-                        sample_insert_dict['antibody1'] = clearing_sample_form_dict['antibody1']
-                        sample_insert_dict['antibody2'] = clearing_sample_form_dict['antibody2']
+                        sample_insert_dict['antibody1'] = clearing_sample_form_dict['antibody1'].strip()
+                        sample_insert_dict['antibody2'] = clearing_sample_form_dict['antibody2'].strip()
                         sample_insert_list.append(sample_insert_dict)
 
                         """ Now clearing batch """
@@ -598,8 +598,8 @@ def new_request():
                         clearing_batch_insert_dict['request_name'] = form.request_name.data
                         clearing_batch_insert_dict['username'] = username 
                         clearing_batch_insert_dict['clearing_protocol'] = clearing_sample_form_dict['clearing_protocol']
-                        clearing_batch_insert_dict['antibody1'] = clearing_sample_form_dict['antibody1']
-                        clearing_batch_insert_dict['antibody2'] = clearing_sample_form_dict['antibody2']
+                        clearing_batch_insert_dict['antibody1'] = clearing_sample_form_dict['antibody1'].strip()
+                        clearing_batch_insert_dict['antibody2'] = clearing_sample_form_dict['antibody2'].strip()
                         if form.self_clearing.data == True:
                             logger.debug("Self clearing selected!")
                             clearing_batch_insert_dict['clearer'] = username
