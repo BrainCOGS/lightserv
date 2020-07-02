@@ -60,9 +60,9 @@
 				</div>
 				<div class="form-group" data-toggle="tooltip" title="Must not contain spaces. Use '_' instead of spaces">
 					{% if form.request_name.flags.required %}*{% endif %}
-					{{ form.request_name.label(class="form-control-label infolink") }}
+					{{ form.request_name.label(class="form-control-label infolink") }} <a id="request_name_charbox"></a>
 					{% if form.request_name.errors %}
-						{{ form.request_name(class="form-control form-control-lg is-invalid") }}
+						{{ form.request_name(class="form-control form-control-lg is-invalid",oninput="update_charbox(this)") }}
 						<div class="invalid-feedback">
 							{% for error in form.request_name.errors %}
 								<span>{{ error }}</span>
@@ -72,22 +72,22 @@
 						{% if form.clearing_samples|length > 0 %}
 							{{ form.request_name(readonly=true, class="form-control form-control-lg") }}
 						{% else %}
-							{{ form.request_name(class="form-control form-control-lg") }}
+							{{ form.request_name(class="form-control form-control-lg",oninput="update_charbox(this)") }}
 						{% endif %}
 					{% endif %}
 				</div>
 				<div class="form-group">
 					{% if form.description.flags.required %}*{% endif %}
-					{{ form.description.label(class="form-control-label") }}
+					{{ form.description.label(class="form-control-label") }} <a id="description_charbox"></a>
 					{% if form.description.errors %}
-						{{ form.description(class="form-control form-control-lg is-invalid") }}
+						{{ form.description(class="form-control form-control-lg is-invalid",oninput="update_charbox(this)") }}
 						<div class="invalid-feedback">
 							{% for error in form.description.errors %}
 								<span>{{ error }}</span>
 							{% endfor %}
 						</div>
 					{% else %}
-						{{ form.description(class="form-control form-control-lg") }}
+						{{ form.description(class="form-control form-control-lg",oninput="update_charbox(this)") }}
 					{% endif %}
 				</div>
 				<div class="form-group">
@@ -266,16 +266,16 @@
 
 						<div class="form-group">
 							{% if clearing_entry.notes_for_clearer.flags.required %}*{% endif %}
-							{{ clearing_entry.notes_for_clearer.label(class="form-control-label") }}
+							{{ clearing_entry.notes_for_clearer.label(class="form-control-label") }} <a id='clearing_samples-{{ii}}-notes_for_clearer_charbox'></a>
 							{% if clearing_entry.notes_for_clearer.errors %}
-								{{ clearing_entry.notes_for_clearer(class="form-control form-control-lg is-invalid") }}
+								{{ clearing_entry.notes_for_clearer(class="form-control form-control-lg is-invalid",oninput="update_charbox(this)") }}
 								<div class="invalid-feedback">
 									{% for error in clearing_entry.notes_for_clearer.errors %}
 										<span>{{ error }}</span>
 									{% endfor %}
 								</div>
 							{% else %}
-								{{ clearing_entry.notes_for_clearer(class="form-control form-control-lg") }}
+								{{ clearing_entry.notes_for_clearer(class="form-control form-control-lg",oninput="update_charbox(this)") }}
 							{% endif %}
 						</div>
 						{% if ii == 0 and form.number_of_samples.data > 1 %}
@@ -335,32 +335,32 @@
 
 				             <div class="form-group infolink" data-toggle="tooltip" title="While this notes field is not required, we strongly recommend that you fill it out if you want your images taken of a specific brain region only or at a specific orientation (e.g. sagittal). Otherwise, we will assume that you want the entire brain imaged, and we will image it in a sagittal orientation. ">
 								{% if image_resolution_form.notes_for_imager.flags.required %}*{% endif %}
-								{{ image_resolution_form.notes_for_imager.label(class="form-control-label") }}
+								{{ image_resolution_form.notes_for_imager.label(class="form-control-label") }} <a id='imaging_samples-{{ii}}-image_resolution_forms-{{jj}}-notes_for_imager_charbox'></a>
 								{% if image_resolution_form.notes_for_imager.errors %}
-									{{ image_resolution_form.notes_for_imager(class="form-control form-control-lg is-invalid") }}
+									{{ image_resolution_form.notes_for_imager(class="form-control form-control-lg is-invalid",oninput="update_charbox(this)") }}
 									<div class="invalid-feedback">
 										{% for error in image_resolution_form.notes_for_imager.errors %}
 											<span>{{ error }}</span>
 										{% endfor %}
 									</div>
 								{% else %}
-									{{ image_resolution_form.notes_for_imager(class="form-control form-control-lg") }}
+									{{ image_resolution_form.notes_for_imager(class="form-control form-control-lg",oninput="update_charbox(this)") }}
 								{% endif %}
 							</div>
 
 							{% if image_resolution_form.image_resolution.data != '2x' %}
 								<div class="form-group">
 									{% if image_resolution_form.notes_for_processor.flags.required %}*{% endif %}
-									{{ image_resolution_form.notes_for_processor.label(class="form-control-label") }}
+									{{ image_resolution_form.notes_for_processor.label(class="form-control-label") }} <a id='imaging_samples-{{ii}}-image_resolution_forms-{{jj}}-notes_for_processor_charbox'></a>
 									{% if image_resolution_form.notes_for_processor.errors %}
-										{{ image_resolution_form.notes_for_processor(class="form-control form-control-lg is-invalid") }}
+										{{ image_resolution_form.notes_for_processor(class="form-control form-control-lg is-invalid",oninput="update_charbox(this)") }}
 										<div class="invalid-feedback">
 											{% for error in image_resolution_form.notes_for_processor.errors %}
 												<span>{{ error }}</span>
 											{% endfor %}
 										</div>
 									{% else %}
-										{{ image_resolution_form.notes_for_processor(class="form-control form-control-lg") }}
+										{{ image_resolution_form.notes_for_processor(class="form-control form-control-lg",oninput="update_charbox(this)") }}
 									{% endif %}
 								</div>
 
@@ -475,6 +475,37 @@ function togglefield(checkboxElem) {
 	} else {
 		x.style.display = "none";
 		}
+	}
+</script>
+
+<script> 
+function initializeCharboxes() {
+	{# Loop through all charboxes and initialize the text 
+	stating how many characters are currently used. Doesn't work for samples fields, but will work for top fields 
+	that have defaults sometimes.  #}
+	charboxes = document.querySelectorAll('[id*="charbox"]');
+
+	for (var i = 0; i < charboxes.length; i++) {
+		console.log('charbox:', charboxes[i])
+		var charbox = charboxes[i]
+		charbox_id = charbox.id
+		parent_elem_id = charbox_id.split("_").slice(0,-1).join('_')// All but the last which is "charbox"
+		parent_elem = document.getElementById(parent_elem_id)
+		current_n_chars = parent_elem.value.length
+		// Update charbox text to display the correct number of characters when page was loaded
+		charbox.innerHTML = current_n_chars + " characters used"
+	}
+}
+window.onload = initializeCharboxes;
+</script>
+
+<script>
+function update_charbox(elem) {
+	var id = elem.id;
+	charbox_id = id + '_charbox';
+	var n_chars = elem.value.length
+	var charboxElement = document.getElementById(charbox_id);
+	charboxElement.innerHTML = n_chars + " characters used"
 	}
 </script>
 <!-- For focusing to a given tag -->
