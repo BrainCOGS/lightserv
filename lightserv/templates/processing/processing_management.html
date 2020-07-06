@@ -5,8 +5,8 @@
 
 {% if table_failed_processing.items %}
 	<h3>Failed processes:</h3>
-<div style="max-height: 300px; overflow: auto;">
-	 {{ table_failed_processing }}
+<div class="mb-4 tableFixHead">
+	{{ table_failed_processing }}
 </div>
 
 <hr class="class-5">	
@@ -14,23 +14,35 @@
 {% endif %}
 
 <h3>Samples currently being processed:</h3>
-<div style="max-height: 300px; overflow: auto;">
-	{{ table_being_processed }}
-</div>
+{% if table_being_processed.items != [] %}
+  <div class="mb-4 tableFixHead">
+{% else %}
+  <div class="mb-4">
+{% endif %}
+    {{ table_being_processed }}
+  </div>
 
 <hr class="class-5" >	
 
 <h3>Samples ready to be processed:</h3>
-<div style="max-height: 300px; overflow: auto;">
-	{{ table_ready_to_process }}
-</div>
+{% if table_ready_to_process.items != [] %}
+  <div class="mb-4 tableFixHead">
+{% else %}
+  <div class="mb-4">
+{% endif %}
+    {{ table_ready_to_process }}
+  </div>
 
 <hr class="class-5">	
 
 <h3>Samples already processed:</h3>
-<div style="max-height: 300px; overflow: auto;">
-	{{ table_already_processed }}
-</div>
+{% if table_already_processed.items != [] %}
+  <div class="mb-4 tableFixHead">
+{% else %}
+  <div class="mb-4">
+{% endif %}
+    {{ table_already_processed }}
+  </div>
 
 
 {% endblock content %}

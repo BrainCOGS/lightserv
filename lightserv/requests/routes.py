@@ -436,8 +436,8 @@ def new_request():
                             
                             if form.species.data == 'mouse' and channel_name == '488' and image_resolution_forsetup == "1.3x":
                                 image_resolution_form.channel_forms[x].registration.data = 1
-                            if form.species.data == 'mouse' and channel_name == '555' and image_resolution_forsetup == "1.3x":
-                                image_resolution_form.channel_forms[x].injection_detection.data = 1
+                            # if form.species.data == 'mouse' and channel_name == '555' and image_resolution_forsetup == "1.3x":
+                            #     image_resolution_form.channel_forms[x].injection_detection.data = 1
                                 
                         logger.info(f"Column name is: {column_name}")
             

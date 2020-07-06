@@ -4,30 +4,45 @@
 <hr class="class-5">	
 
 <h3>Samples currently being imaged:</h3>
-<div style="max-height: 300px; overflow: auto;">
-	{{ table_being_imaged }}
-</div>
+{% if table_being_imaged.items != [] %}
+  <div class="mb-4 tableFixHead">
+{% else %}
+  <div class="mb-4">
+{% endif %}
+    {{ table_being_imaged }}
+  </div>
 
 <hr class="class-5">	
 
 <h3>Samples ready to be imaged:</h3>
-<div style="max-height: 300px; overflow: auto;">
-	{{ table_ready_to_image }}
-</div>
-
+{% if table_ready_to_image.items != [] %}
+  <div class="mb-4 tableFixHead">
+{% else %}
+  <div class="mb-4">
+{% endif %}
+    {{ table_ready_to_image }}
+  </div>
 <hr class="class-5">	
 
 <h3>Samples still in clearing stage:</h3>
-<div style="max-height: 300px; overflow: auto;">
-	{{ table_on_deck }}
-</div>
+{% if table_on_deck.items != [] %}
+  <div class="mb-4 tableFixHead">
+{% else %}
+  <div class="mb-4">
+{% endif %}
+    {{ table_on_deck }}
+  </div>
 
 <hr class="class-5">	
 
 <h3>Samples already imaged:</h3>
-<div style="max-height: 300px; overflow: auto;">
-	{{ table_already_imaged }}
-</div>
+{% if table_already_imaged.items != [] %}
+  <div class="mb-4 tableFixHead">
+{% else %}
+  <div class="mb-4">
+{% endif %}
+    {{ table_already_imaged }}
+  </div>
 
 <hr class="class-5">
 	<h3> Key: </h3>
