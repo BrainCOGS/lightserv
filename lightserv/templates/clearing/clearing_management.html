@@ -6,23 +6,34 @@
 
 
 <h3>Batches currently being cleared:</h3>
-<div style="max-height: 300px; overflow: auto;">
-  {{ table_being_cleared }}
-</div>
+{% if table_being_cleared.items != [] %}
+  <div class="mb-4 tableFixHead">
+{% else %}
+  <div class="mb-4">
+{% endif %}
+    {{ table_being_cleared }}
+  </div>
 
 <hr class="class-5">	
 
 <h3>Batches ready to be cleared:</h3>
-<div style="max-height: 300px; overflow: auto;">
-  {{ table_ready_to_clear }}
-</div>
-
+{% if table_ready_to_clear.items != [] %}
+  <div class="mb-4 tableFixHead">
+{% else %}
+  <div class="mb-4">
+{% endif %}
+    {{ table_ready_to_clear }}
+  </div>
 <hr class="class-5">	
 
 <h3>Batches already cleared:</h3>
-<div style="max-height: 300px; overflow: auto;">
-	{{ table_already_cleared }}
-</div>
+{% if table_already_cleared.items != [] %}
+  <div class="mb-4 tableFixHead">
+{% else %}
+  <div class="mb-4">
+{% endif %}
+    {{ table_already_cleared }}
+  </div>
 
 <hr class="class-5">
 

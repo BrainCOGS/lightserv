@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 	{% block content %}
 	<legend class="border-bottom mb-4 mt-4">{{ legend }}:</legend>
-		<div style="max-height: 400px; overflow: auto;">
+		<div class="tableFixHead">
 			{{ request_table }}
 		</div>
 		<!-- {% if request_contents %} -->

@@ -208,3 +208,10 @@ li{
 li.widespace { 
             margin: 10px 0;
         } 
+
+.tableFixHead          { overflow-y: auto; height: 450px; }
+.tableFixHead thead th { position: sticky; top: 0; }
+
+table  { border-collapse: collapse; width: 100%; }
+th, td { padding: 8px 16px; }
+th     { background:#eee; }
