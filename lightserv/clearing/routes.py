@@ -55,7 +55,7 @@ def clearing_manager():
 		clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
 	request_contents = db_lightsheet.Request()
 	combined_contents = (clearing_batch_contents * request_contents).proj(
-		'number_in_batch',
+		'number_in_batch','expected_handoff_date',
 		'clearing_protocol','species',
 		'clearer','clearing_progress','clearing_protocol','antibody1','antibody2',
 		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')

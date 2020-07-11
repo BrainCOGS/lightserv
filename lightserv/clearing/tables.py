@@ -36,6 +36,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
         table_id = table_id,
         classes = ["mb-4"]
         ) 
+
     column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
     table_class = create_table(name,options=options)
     table_class.get_tr_attrs = dynamic_get_tr_attrs
@@ -49,6 +50,8 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
     table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('expected_handoff_date',Col('Handoff date (expected)',
         column_html_attrs=column_html_attrs))
     table_class.add_column('clearing_protocol',Col('clearing protocol',
         column_html_attrs=column_html_attrs))
@@ -76,6 +79,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     clearing_url_kwargs = {'username':'username','request_name':'request_name',
         'clearing_protocol':'clearing_protocol','antibody1':'antibody1','antibody2':'antibody2',
         'clearing_batch_number':'clearing_batch_number'}
+
     anchor_attrs = {'target':"_blank",}
     if table_id == 'horizontal_ready_to_clear_table':
         table_class.add_column('start_clearing_link',LinkCol('Start clearing',
