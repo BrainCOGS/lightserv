@@ -33,11 +33,11 @@ class AllRequestTable(Table):
 	border = True
 	allow_sort = True
 	no_items = "No Requests Yet"
-	html_attrs = {"style":'font-size:17px',} # gets assigned to table header
+	html_attrs = {"style":'font-size:16px',} # gets assigned to table header
 	table_id = 'vert_table' # override this when you make an instance if you dont want vertical layout by default
 	# column_html_attrs = {'style':'text-align: center; min-width:10px', 'bgcolor':"#FF0000"} # gets assigned to both th and td
 	# column_html_attrs = [] # javascript tableswapper does not preserve these.
-	column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
+	column_html_attrs = {'style':'word-wrap: break-word; max-width:120px;'}
 	classes = [] # gets assigned to table classes. 
 	# Striped is alternating bright and dark rows for visual ease.
 	datetime_submitted = DateTimeCol('datetime submitted')
@@ -66,12 +66,20 @@ class AllRequestTable(Table):
 	samples_link = LinkCol('View request status', 'requests.request_overview',url_kwargs=url_kwargs,
 		anchor_attrs=anchor_attrs,allow_sort=False)
 	delete_request_kwargs = {'username':'username','request_name':'request_name'}
+	delete_request_tooltip_text = ('If this column shows "N/A" '
+		'then you can no longer delete the request at this point. '
+		'This is because at least one of the clearing batches '
+		'in this request either is currently undergoing clearing or has already been cleared. '
+		 'Contact lightservhelper@gmail.com if you still need to delete this request. ')
+	delete_request_html_attrs = {'class':'infolink','title':delete_request_tooltip_text}
+	
 	delete_request_link = ConditionalDeleteLinkCol('Delete request?', 'requests.delete_request',url_kwargs=delete_request_kwargs,
 		anchor_attrs={
         "data-toggle":"modal",
         "data-target":"#deleteModal",
         "id":"delete_modal"
-		},allow_sort=False)
+		},th_html_attrs=delete_request_html_attrs,
+		allow_sort=False)
 	
 	def get_tr_attrs(self, item, reverse=False):
 		fraction_cleared_str = item['fraction_cleared']
