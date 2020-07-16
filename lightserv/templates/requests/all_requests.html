@@ -4,8 +4,6 @@
 		<div class="tableFixHead">
 			{{ request_table }}
 		</div>
-		<!-- {% if request_contents %} -->
-			<!-- <input id = "tableSwapper" type="button"  class="btn btn-sm btn-secondary mt-1" value="Click to change table orientation (vertical/horizontal)"/> -->
 
 		<hr class="class-5">
 		<h3> Key: </h3>
@@ -29,12 +27,50 @@
 			<b>*</b> A given sample can have multiple imaging requests, so the denominator may be larger than or equal to denominator in fraction_cleared, which is the same as the number of samples. </br>
 			<b>**</b> A given sample can have multiple processing requests per imaging request and a given sample may have no processing requests (for example if only 2x imaging was requested) so the denominator may be less than, larger than or equal to the denominator in fraction_imaged and the denominator in fraction_cleared. If fraction_processed is "0/0" it is because no processing was requested for any samples in that request.
 		</div>
-
-		{% endif %}
 		
+		
+
 		<form action="{{url_for('requests.new_request')}}">
 			<button type="submit" class="btn btn-info mt-4 mb-4">Start a new request</button>
 		</form>
+
+		 <!-- Modal -->
+		  <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+		    <div class="modal-dialog" role="document">
+		      <div class="modal-content">
+		        <div class="modal-header">
+		          <h5 class="modal-title" id="deleteModalLabel">Are you sure you want to delete? </h5>
+		          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		            <span aria-hidden="true">&times;</span>
+		          </button>
+		        </div>
+				<form action="" method='post'>
+
+					<div class="modal-body">
+							{{ form.hidden_tag() }}
+
+							{{ form.request_name.label(id='larger')}}
+							{% if form.request_name.errors %}
+								{{ form.request_name(class="form-control form-control-sm is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in form.request_name.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ form.request_name(class="form-control form-control-sm ") }}
+							{% endif %}
+					</div>
+			        <div class="modal-footer">
+			        	
+				        	<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> 
+
+							{{ form.submit(class="btn btn-success") }}
+					</div>
+		    	</form>        
+		      </div>
+		    </div>
+		  </div>	
 
 	<script type="text/javascript" defer="defer">
 

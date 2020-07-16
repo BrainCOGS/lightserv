@@ -27,7 +27,8 @@ class BaseConfig(object):
 	'princeton_mouse_atlas':'/jukebox/LightSheetTransfer/atlas/annotation_sagittal_atlas_20um_iso_16bit.tif'
 	}
 	PROCESSING_CODE_DIR = '/jukebox/wang/ahoag/brainpipe'
-	dj.config['safemode'] = True 
+	DJ_SAFEMODE = True
+	dj.config['safemode'] = DJ_SAFEMODE
 	
 
 class DevConfig(BaseConfig):
@@ -154,7 +155,8 @@ class ProdConfig(BaseConfig):
 class TestConfig(BaseConfig):
 	TESTING = True
 	WTF_CSRF_ENABLED = False # disables the csrf token validation in forms
-	dj.config['safemode'] = False
+	DJ_SAFEMODE = False
+	dj.config['safemode'] = DJ_SAFEMODE
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_testing'
 	SPOCK_LSADMIN_USERNAME = 'lightserv-test'
 	CLEARING_CALENDAR_ID = 'skq68osl830f13tfgv6i0kq750@group.calendar.google.com' # the test calendar for the time being

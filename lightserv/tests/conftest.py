@@ -252,7 +252,6 @@ def test_take_down_cloudv_and_ng_containers(test_client):
 		requests.post('http://viewer-launcher:5005/container_killer',json=containers_to_kill_dict)
 	print('-------Teardown test_take_down_cloudv_and_ng_containers fixture --------')
 
-
 """ Fixtures for requests """
 
 @pytest.fixture(scope='function') 

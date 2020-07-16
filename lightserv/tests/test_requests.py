@@ -1482,7 +1482,6 @@ def test_4x_multitile_request_fixture(test_client,test_4x_multitile_request_nona
 	assert b"4x_647_kelly" in response.data
 
 
-
 """ Testing all_samples() """
 
 def test_admin_sees_all_samples(test_client,test_single_sample_request_ahoag,test_login_zmd):
@@ -1701,3 +1700,49 @@ def test_archival_nonadmin_request_overview(test_client,test_archival_request_no
 			break
 	is_archival = data_row[archival_column_index].text
 	assert is_archival == "yes"
+
+""" Testing delete_request() """
+
+def test_delete_request_works(test_client,test_single_sample_request_nonadmin):
+	""" Check that lightserv-test (a nonadmin) can delete their own request provided
+	the clearing has not started yet.
+
+	Uses the test_single_sample_request_nonadmin fixture
+	to insert a request into the database as nonadmin that 
+	can then be deleted.	"""
+	
+	response = test_client.get(url_for('requests.delete_request',
+		username='lightserv-test',request_name='nonadmin_request'),
+		follow_redirects=True)
+	assert b'core facility requests:' in response.data
+	assert b'nonadmin_request' not in response.data 	
+
+def test_delete_request_denied_for_wrong_user(test_client,test_single_sample_request_nonadmin,test_login_zmd):
+	""" Test that zmd cannot delete a request for lightserv-test since only the one who submitted 
+	the request can delete it.
+
+	Uses the test_single_sample_request_nonadmin fixture
+	to insert a request into the database.	"""
+	
+	response = test_client.get(url_for('requests.delete_request',
+		username='lightserv-test',request_name='nonadmin_request'),
+		follow_redirects=True)
+
+	assert b'core facility requests:' in response.data
+	assert b'nonadmin_request' in response.data
+	assert b'Only lightserv-test can delete their own request.' in response.data 	
+
+def test_delete_request_denied_if_clearing_started(test_client,test_cleared_request_nonadmin):
+	""" Test that request cannot be deleted if clearing has been started (or completed) already
+
+	Uses the test_single_sample_request_nonadmin fixture
+	to insert a request into the database.	"""
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
+	response = test_client.get(url_for('requests.delete_request',
+		username='lightserv-test',request_name='nonadmin_request'),
+		follow_redirects=True)
+
+	assert b'core facility requests:' in response.data
+	assert b'nonadmin_request' in response.data
+	assert b'At least one clearing batch for this request is already started.' in response.data 	
