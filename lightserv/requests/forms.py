@@ -261,5 +261,5 @@ class ConfirmDeleteForm(FlaskForm):
 
 	def validate_request_name(self,request_name):
 		request_names = db_lightsheet.Request().fetch('request_name')
-		if request_name not in request_names:
+		if request_name.data not in request_names:
 			raise ValidationError("Request name is not valid. Please try again.")
