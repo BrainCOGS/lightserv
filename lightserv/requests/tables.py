@@ -5,7 +5,7 @@ from lightserv.main.utils import table_sorter
 from lightserv.main.tables import (DateTimeCol, ImagingRequestLinkCol,
 	ProcessingRequestLinkCol, element,NewProcessingRequestLinkCol,
 	AbbrevDescriptionCol,BooltoStringCol,NewImagingRequestLinkCol,
-	NotAssignedCol)
+	NotAssignedCol,ConditionalDeleteLinkCol)
 from lightserv import db_lightsheet
 import os
 
@@ -65,6 +65,13 @@ class AllRequestTable(Table):
 	
 	samples_link = LinkCol('View request status', 'requests.request_overview',url_kwargs=url_kwargs,
 		anchor_attrs=anchor_attrs,allow_sort=False)
+	delete_request_kwargs = {'username':'username','request_name':'request_name'}
+	delete_request_link = ConditionalDeleteLinkCol('Delete request?', 'requests.delete_request',url_kwargs=delete_request_kwargs,
+		anchor_attrs={
+        "data-toggle":"modal",
+        "data-target":"#deleteModal",
+        "id":"delete_modal"
+		},allow_sort=False)
 	
 	def get_tr_attrs(self, item, reverse=False):
 		fraction_cleared_str = item['fraction_cleared']

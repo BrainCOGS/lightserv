@@ -252,3 +252,14 @@ class UpdateNotesForm(FlaskForm):
 	""" The form for updating notes field"""
 	notes = TextAreaField('Notes',validators=[Length(max=1000)])
 	submit = SubmitField('Submit Changes')	
+
+
+class ConfirmDeleteForm(FlaskForm):
+	# form_name = HiddenField('Form Name')
+	request_name = StringField('Type the request name you want to delete:', validators=[InputRequired()]) 
+	submit = SubmitField('Yes, delete this request.')
+
+	def validate_request_name(self,request_name):
+		request_names = db_lightsheet.Request().fetch('request_name')
+		if request_name not in request_names:
+			raise ValidationError("Request name is not valid. Please try again.")

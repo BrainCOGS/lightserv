@@ -2,14 +2,15 @@ from flask import (render_template, url_for, flash,
                    redirect, request, abort, Blueprint,session,
                    Markup, current_app)
 
-from lightserv.requests.forms import NewRequestForm, UpdateNotesForm
+from lightserv.requests.forms import (NewRequestForm, UpdateNotesForm,
+ ConfirmDeleteForm)
 from lightserv.requests.tables import (AllRequestTable,
     RequestOverviewTable, create_dynamic_samples_table,
     AllSamplesTable)
 from lightserv import cel,db_lightsheet, smtp_connect
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
     check_clearing_completed,check_imaging_completed,log_http_requests,
-    request_exists,mymkdir)
+    request_exists,mymkdir, logged_in_as_request_owner,clearing_not_yet_started)
 from lightserv.main.tasks import send_email
 
 import datajoint as dj
@@ -47,7 +48,7 @@ logger.addHandler(file_handler)
 
 requests = Blueprint('requests',__name__)
 
-@requests.route("/requests/all_requests")
+@requests.route("/requests/all_requests",methods=['GET','POST'])
 @log_http_requests
 @logged_in
 def all_requests(): 
@@ -119,7 +120,20 @@ def all_requests():
     table = AllRequestTable(sorted_results,sort_by=sort,
                       sort_reverse=reverse)
     table.table_id = 'horizontal'
-    return render_template('requests/all_requests.html',request_contents=processing_joined_contents,request_table=table,legend=legend)
+
+    form = ConfirmDeleteForm()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            return redirect(url_for('requests.delete_request',
+                username=current_user,request_name=form.request_name.data))
+        else:
+            for key in form.errors:
+                error = form.errors[key]
+                flash(error,'danger')
+
+    return render_template('requests/all_requests.html',
+        request_contents=processing_joined_contents,request_table=table,
+        legend=legend,form=form)
 
 @requests.route("/request_overview/<username>/<request_name>",)
 @logged_in
@@ -880,3 +894,50 @@ def new_request():
 
     return render_template('requests/new_request.html', title='new_request',
         form=form,legend='New Request',column_name=column_name) 
+
+@requests.route("/delete_request/<username>/<request_name>",)
+@logged_in
+@logged_in_as_request_owner
+@clearing_not_yet_started
+@log_http_requests
+@request_exists
+def delete_request(username,request_name):
+    """ A route for deleting a request """
+    logger.debug(f"{username} accessed delete_request")
+    request_contents = db_lightsheet.Request() & f'request_name="{request_name}"' & \
+            f'username="{username}"'
+    """ Figure out if clearer was not yet assigned for any of the clearing 
+    batches associated with this request. In that case, 
+    Laura needs to know that these clearing batches will disappear from the clearing GUI """
+    email_laura = False
+    clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'request_name="{request_name}"' & \
+            f'username="{username}"'
+    for clearing_dict in clearing_batch_contents:
+        clearer = clearing_dict['clearer']
+        if not clearer:
+            email_laura = True
+            break
+    
+    """ temporarily turn safemode off so that there is no yes/no prompt upon delete() """
+    dj.config['safemode'] = False
+    request_contents.delete()
+    """ Reset to whatever mode it was before the switch """
+    dj.config['safemode'] = current_app.config['DJ_SAFEMODE']
+    if not os.environ['FLASK_MODE'] == 'TEST': # pragma: no cover - used to exclude this line from calculating test coverage
+        if email_laura:
+            subject = 'Lightserv automated email: Clearing Request Deleted'
+            hosturl = os.environ['HOSTURL']
+            clearing_manager_link = f'https://{hosturl}' + url_for('clearing.clearing_manager')
+            message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+                'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
+                'A request:\n'
+                f'username: "{username}"\n'
+                f'request_name: "{request_name}"\n'
+                'was deleted and no longer needs to be cleared. '
+                'The clearing request(s) associated with this request '
+                f'were removed from the clearing management page: {clearing_manager_link}\n\n'
+                'Thanks,\nThe Histology and Brain Registration Core Facility.')
+            recipients = [x + '@princeton.edu' for x in current_app.config['CLEARING_ADMINS']]
+            send_email.delay(subject=subject,body=message_body,recipients=recipients) 
+    flash('Your request has been deleted','success')
+    return redirect(url_for('requests.all_requests'))

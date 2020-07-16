@@ -4,8 +4,8 @@ from flask import session,current_app
 from flask_table import Col,LinkCol,NestedTableCol, Table
 # from datetime import strftime
 from functools import partial
-
 from flask import Markup
+from lightserv import db_lightsheet
 
 channel_str_dict = {'regch':'registration','injch':'injection/probe detection',
                     'cellch':'cell detection','gench':'generic imaging'}
@@ -237,6 +237,33 @@ class AbbrevDescriptionCol(Col):
             return content[0:64] + ' ...'
         else:
             return content
+
+class ConditionalDeleteLinkCol(LinkCol):
+    """Subclass of LinkCol to conditionally show the "Delete request?" link in the 
+    delete request column. 
+    The condition to show the link is if no clearing batches have been started
+    for this request yet. 
+    If they are, show the link, if not show "N/A'"
+    """
+    def __init__(self,name,endpoint,**kwargs):
+        super(ConditionalDeleteLinkCol, self).__init__(name,endpoint,**kwargs)
+    
+    def text(self, item, attr_list):
+        return "Delete request?"
+
+    def td_contents(self, item, attr_list):
+        restrict_dict = dict(username=item['username'],
+            request_name=item['request_name'])
+        clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & restrict_dict
+        clearing_batches_started = [clearing_dict['clearing_progress']!='incomplete' for clearing_dict in clearing_batch_contents]
+        if any(clearing_batches_started):
+            return "N/A"
+        else:
+            attrs = dict(href=self.url(item))
+            attrs.update(self.anchor_attrs)
+            text = self.td_format(self.text(item, attr_list))
+            return element('a', attrs=attrs, content=text, escape_content=False)
+
 
 """ Tables I use in main.routes """
 

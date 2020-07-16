@@ -513,3 +513,41 @@ def check_imaging_request_precomputed(f):
 				sample_name=sample_name))
 			
 	return decorated_function
+
+def logged_in_as_request_owner(f):
+	""" Used to check that the current logged in user
+	is the owner of the given request """
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		current_user = session['user']
+		username = kwargs['username']
+		request_name = kwargs['request_name']
+		if current_user != username:
+			flash(f"Only {username} can delete their own request.","danger")
+			logger.info(f"{current_user} tried to delete request_name: {request_name} "
+						f"by username: {username} and was denied")
+			return redirect(url_for('requests.all_requests'))
+		else:
+			logger.info(f"Current user: {current_user} is owner of request_name: {request_name}, username: {username}")
+			return f(*args, **kwargs)
+
+	return decorated_function
+
+def clearing_not_yet_started(f):
+	""" Used to check that the clearing 
+	for any batches associated with a request
+	are not yet started """
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		username = kwargs['username']
+		request_name = kwargs['request_name']
+		restrict_dict = dict(username=username,request_name=request_name)
+		clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & restrict_dict
+		clearing_batches_started = [clearing_dict['clearing_progress']!='incomplete' for clearing_dict in clearing_batch_contents]
+		if any(clearing_batches_started):
+			logger.info("Clearing batches are either in progress or completed. Not removing this request.")
+			flash(f"At least one clearing batch for this request is already started. Cannot delete this request","danger")
+			return redirect(url_for('requests.all_requests'))
+		else:
+			return f(*args, **kwargs)
+	return decorated_function
