@@ -104,7 +104,8 @@ def test_abbreviated_clearing_entry_form_loads(test_client,test_single_sample_re
 	assert b'Clearing Entry Form' in response.data
 	assert b'Protocol: iDISCO abbreviated clearing' in response.data
  
-def test_abbreviated_clearing_entry_form_submits(test_client,test_single_sample_request_nonadmin,test_login_ll3):
+def test_abbreviated_clearing_entry_form_submits(test_client,
+	test_single_sample_request_nonadmin,test_login_ll3):
 	""" Test that ll3 can submit a clearing entry form 
 	and it redirects her back to the clearing task manager  """
 	# response = test_client.get(url_for('requests.all_requests'))
@@ -133,10 +134,30 @@ def test_abbreviated_clearing_entry_form_submits(test_client,test_single_sample_
 	""" Make sure the clearing batch is now in the correct table in the manager """
 	parsed_html = BeautifulSoup(response.data,features="html.parser")
 	table_tag = parsed_html.body.find('table',attrs={'id':'horizontal_already_cleared_table'})
-	table_row_tag = table_tag.find_all('tr')[1] # the 0th row is the headers
-	td_tags = table_row_tag.find_all('td')
-	assert td_tags[1].text == "iDISCO abbreviated clearing" and \
-	td_tags[2].text == "" and td_tags[3].text == "" and td_tags[4].text == 'nonadmin_request'
+	table_row_tag = [1] # the 0th row is the headers
+	table_rows = table_tag.find_all('tr')
+	header_row = table_rows[0].find_all('th')
+	data_row = table_rows[1].find_all('td')
+	for ii,col in enumerate(header_row):
+		if col.text == 'clearing protocol':
+			clearing_protocol_column_index = ii
+		elif col.text == 'antibody1':
+			antibody1_column_index = ii
+		elif col.text == 'antibody2':
+			antibody2_column_index = ii
+		elif col.text == 'request name':
+			request_name_column_index = ii
+	clearing_protocol_retrieved = data_row[clearing_protocol_column_index].text
+	antibody1_retrieved = data_row[antibody1_column_index].text
+	antibody2_retrieved = data_row[antibody2_column_index].text
+	request_name_retrieved = data_row[request_name_column_index].text
+	# td_tags = table_row_tag.find_all('td')
+	assert clearing_protocol_retrieved == "iDISCO abbreviated clearing"
+	assert antibody1_retrieved == ""
+	assert antibody2_retrieved == ""
+	assert request_name_retrieved == "nonadmin_request"
+	#  and \
+	# td_tags[2].text == "" and td_tags[3].text == "" and td_tags[4].text == 'nonadmin_request'
 
 def test_mouse_clearing_entry_forms_load(test_client,test_request_all_mouse_clearing_protocols_ahoag,test_login_ll3):
 	""" Test that ll3 can access the clearing entry forms

@@ -180,13 +180,23 @@ def feedback(username,request_name):
 		form=form,table=table)
 
 
-@main.route("/cel")
+# @main.route("/cel")
+# def test_cel(): 
+# 	from . import tasks as maintasks
+# 	from datetime import datetime, timedelta
+# 	future_time = datetime.utcnow() + timedelta(seconds=25)
+# 	print("sending hello task")
+# 	maintasks.hello.apply_async(eta=future_time) 
+# 	print("sent hello task")
+# 	assert 4==4
+# 	return "test ran"
+
+@main.route("/test_cel")
 def test_cel(): 
 	from . import tasks as maintasks
 	from datetime import datetime, timedelta
-	future_time = datetime.utcnow() + timedelta(seconds=15)
+	future_time = datetime.utcnow() + timedelta(seconds=30)
 	print("sending hello task")
 	maintasks.hello.apply_async(eta=future_time) 
 	print("sent hello task")
-	assert 4==4
-	return "test ran"
+	return "sent task"
