@@ -1,10 +1,6 @@
 version: "3.4"
 
 services:
-  # testredis:
-  #   image: redis
-  #   expose: # doesn't publish to host, just visible inside container
-  #     - 6379
   confproxy:
     env_file: .dockerenv
     image: jupyterhub/configurable-http-proxy:3.1.1
@@ -22,7 +18,7 @@ services:
     env_file: .testdockerenv
     hostname: docker_lightserv
     image: flaskcelery:test
-    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_requests.py::test_expected_handoff_date_required_for_non_self_clearing"
+    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_neuroglancer.py::test_raw_data_setup_form_submits"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData
@@ -46,9 +42,7 @@ services:
       - '5010:5000'
   viewer-launcher:
     env_file: .testdockerenv
-    build:
-      context: ./viewer-launcher
-      dockerfile: viewer-launcher.Dockerfile
+    image: viewer-launcher:test
     command: ["python", "run.py"]
     volumes:
       - ./viewer-launcher:/app
