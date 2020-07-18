@@ -37,7 +37,7 @@ class ClearingForm(FlaskForm):
 	perfusion_date = StringField('Perfusion Date (YYYY-MM-DD); leave blank if unsure):',
 		validators=[Optional(),date_validator])
 	expected_handoff_date = StringField(
-		'Expected date of hand-off (YYYY-MM-DD; leave blank if not sure or not applicable):',
+		'Expected date of hand-off (YYYY-MM-DD; please provide unless you plan to clear yourself):',
 		validators=[Optional(),date_validator])
 	notes_for_clearer = TextAreaField(
 		'Special notes for clearing  -- max 1024 characters --',validators=[Length(max=1024)])
@@ -143,10 +143,17 @@ class NewRequestForm(FlaskForm):
 	""" Custom validators """
 
 	def validate_submit(self,submit):
-		""" Make sure that user has filled out sample setup section """ 
+		""" Make sure that user has filled out sample setup section
+
+		Also make sure that expected handoff dates are filled unless self clearing is selected.""" 
 		if submit.data == True:
 			if len(self.clearing_samples.data) == 0 or  len(self.imaging_samples.data) == 0:
 				raise ValidationError("You must fill out and submit the Samples setup section first.")
+			if not self.self_clearing.data:
+				samples_missing_expected_handoff_date_str = \
+					', '.join([d['sample_name'] for d in self.clearing_samples.data if not d['expected_handoff_date']])
+				if samples_missing_expected_handoff_date_str != '':
+					raise ValidationError(f"Expected handoff date required for samples: {samples_missing_expected_handoff_date_str}")
 
 	def validate_number_of_samples(self,number_of_samples):
 		""" Make sure number_of_samples is > 0 and < max_number_of_samples """
@@ -191,6 +198,7 @@ class NewRequestForm(FlaskForm):
 				raise ValidationError(f"Sample_name: {sample_name}. The clearing protocol you selected: {clearing_protocol_sample} "
 				                        "is not valid for species=rat. The only clearing protocol currently available for rat subjects is: " 
 				  						"Rat: iDISCO for non-oxidizable fluorophores (abbreviated clearing)")
+
 
 	def validate_imaging_samples(self,imaging_samples):
 		""" make sure that each resolution sub-form has at least

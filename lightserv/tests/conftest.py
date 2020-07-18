@@ -24,6 +24,9 @@ import progproxy as pp
 user_agent_str = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36'
 user_agent_str_firefox = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:72.0) Gecko/20100101 Firefox/72.0'
 
+today = date.today()
+today_proper_format = today.strftime('%Y-%m-%d')
+
 """ Fixtures for different test clients (different browsers) """
 
 @pytest.fixture(scope='session') 
@@ -273,6 +276,8 @@ def test_single_sample_request_ahoag(test_client,test_login,test_delete_request_
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-notes_for_imager':'Image horizontally please!',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
@@ -297,6 +302,7 @@ def test_single_sample_request_4x_ahoag(test_client,test_login,test_delete_reque
 	the entry is deleted as soon as the test has been run
 	"""
 	print('----------Setup test_single_request_ahoag fixture ----------')
+
 	with test_client.session_transaction() as sess:
 		current_user = sess['user']
 	response = test_client.post(
@@ -308,6 +314,8 @@ def test_single_sample_request_4x_ahoag(test_client,test_login,test_delete_reque
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'4x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
@@ -342,6 +350,8 @@ def test_request_4x_nonadmin(test_client,test_login_nonadmin,test_delete_request
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'test2-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'4x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
@@ -377,6 +387,8 @@ def test_multichannel_request_ahoag(test_client,test_login,test_delete_request_d
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
@@ -412,6 +424,8 @@ def test_two_requests_ahoag(test_client,test_login,test_delete_request_db_conten
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
@@ -432,6 +446,8 @@ def test_two_requests_ahoag(test_client,test_login,test_delete_request_db_conten
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
@@ -466,6 +482,8 @@ def test_request_all_mouse_clearing_protocols_ahoag(test_client,test_login,test_
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
@@ -474,6 +492,8 @@ def test_request_all_mouse_clearing_protocols_ahoag(test_client,test_login,test_
 			'clearing_samples-1-clearing_protocol':'iDISCO+_immuno',
 			'clearing_samples-1-antibody1':'test antibody for immunostaining',
 			'clearing_samples-1-sample_name':'sample-002',
+			'clearing_samples-1-expected_handoff_date':today_proper_format,
+			'clearing_samples-1-perfusion_date':today_proper_format,
 			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-1-image_resolution_forms-0-final_orientation':'sagittal',
@@ -481,6 +501,8 @@ def test_request_all_mouse_clearing_protocols_ahoag(test_client,test_login,test_
 			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
 			'clearing_samples-2-clearing_protocol':'uDISCO',
 			'clearing_samples-2-sample_name':'sample-003',
+			'clearing_samples-2-expected_handoff_date':today_proper_format,
+			'clearing_samples-2-perfusion_date':today_proper_format,
 			'imaging_samples-2-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-2-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-2-image_resolution_forms-0-final_orientation':'sagittal',
@@ -488,6 +510,8 @@ def test_request_all_mouse_clearing_protocols_ahoag(test_client,test_login,test_
 			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-registration':True,
 			'clearing_samples-3-clearing_protocol':'iDISCO_EdU',
 			'clearing_samples-3-sample_name':'sample-004',
+			'clearing_samples-3-expected_handoff_date':today_proper_format,
+			'clearing_samples-3-perfusion_date':today_proper_format,
 			'imaging_samples-3-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-3-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-3-image_resolution_forms-0-final_orientation':'sagittal',
@@ -509,6 +533,7 @@ def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_del
 	the entry is deleted as soon as the test has been run
 	"""
 	print('----------Setup test_single_request_nonadmin fixture ----------')
+	
 	with test_client.session_transaction() as sess:
 		current_user = sess['user']
 		print(f"Current user is {current_user}")
@@ -521,6 +546,8 @@ def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_del
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
@@ -555,6 +582,8 @@ def test_rat_request_nonadmin(test_client,test_login_nonadmin,test_delete_reques
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing (rat)',
 			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
@@ -589,6 +618,8 @@ def test_request_generic_imaging_nonadmin(test_client,test_login_nonadmin,test_d
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'coronal',
@@ -703,6 +734,8 @@ def test_experimental_clearing_request_nonadmin(test_client,test_login_nonadmin,
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'experimental',
 			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
@@ -730,8 +763,7 @@ def test_both_lightsheets_nonadmin_request(test_client,test_login_nonadmin,test_
 	with test_client.session_transaction() as sess:
 		current_user = sess['user']
 		print(f"Current user is {current_user}")
-	today = date.today()
-	today_proper_format = today.strftime('%Y-%m-%d')
+
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -771,8 +803,7 @@ def test_two_channels_request_nonadmin(test_client,test_login_nonadmin,test_dele
 	with test_client.session_transaction() as sess:
 		current_user = sess['user']
 		print(f"Current user is {current_user}")
-	today = date.today()
-	today_proper_format = today.strftime('%Y-%m-%d')
+
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -820,6 +851,8 @@ def test_4x_multitile_request_nonadmin(test_client,test_login_nonadmin,test_dele
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'4x_647_kelly-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'4x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
@@ -857,6 +890,8 @@ def test_request_viz_nonadmin(test_client,test_login_nonadmin,test_delete_reques
 			'username':current_user,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'viz_processed-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',

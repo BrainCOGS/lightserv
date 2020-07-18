@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime, date
 from lightserv import db_lightsheet
 
+today = date.today()
+today_proper_format = today.strftime('%Y-%m-%d')
 
 """ Testing all_requests """
 
@@ -55,8 +57,6 @@ def test_two_sheets_request_submits(test_client,test_login_nonadmin,test_delete_
 	test_cleared_multichannel_request_ahoag
 	"""
 
-	today = date.today()
-	today_proper_format = today.strftime('%Y-%m-%d')
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -356,8 +356,6 @@ def test_submit_good_mouse_request(test_client,test_login,test_delete_request_db
 	the Request() contents (and all dependent tables) after the test is run
 	so that other tests see blank contents 
 	""" 
-	today = date.today()
-	today_proper_format = today.strftime('%Y-%m-%d')
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -393,8 +391,6 @@ def test_submit_good_mouse_request_4x(test_client,test_login,test_delete_request
 	the Request() contents (and all dependent tables) after the test is run
 	so that other tests see blank contents 
 	""" 
-	today = date.today()
-	today_proper_format = today.strftime('%Y-%m-%d')
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
@@ -430,8 +426,6 @@ def test_submit_good_rat_request(test_client,test_login,test_delete_request_db_c
 	the Request() contents (and all dependent tables) after the test is run
 	so that other tests see blank contents 
 	""" 
-	today = date.today()
-	today_proper_format = today.strftime('%Y-%m-%d')
 	
 	response = test_client.post(
 		url_for('requests.new_request'),data={
@@ -442,6 +436,8 @@ def test_submit_good_rat_request(test_client,test_login,test_delete_request_db_c
 			'username':test_login['user'],
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing (rat)',
 			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
@@ -515,6 +511,8 @@ def test_submit_mouse_self_imaging_request(test_client,test_login,test_delete_re
 			'self_imaging':True,
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
@@ -940,8 +938,6 @@ def test_sagittal_orientation_required_if_registration(test_client,test_login):
 	but they requested registration. 
 	
 	"""
-	today = date.today()
-	today_proper_format = today.strftime('%Y-%m-%d')
 	with test_client.session_transaction() as sess:
 		current_user = sess['user']
 	# Simulate pressing the "Set up imaging parameters" button
@@ -1056,6 +1052,8 @@ def test_multiple_samples_same_clearing_batch(test_client,test_login,test_delete
 			'username':test_login['user'],
 			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
@@ -1063,6 +1061,8 @@ def test_multiple_samples_same_clearing_batch(test_client,test_login,test_delete
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'clearing_samples-1-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-1-sample_name':'sample-002',
+			'clearing_samples-1-expected_handoff_date':today_proper_format,
+			'clearing_samples-1-perfusion_date':today_proper_format,
 			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
 			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-1-image_resolution_forms-0-final_orientation':'sagittal',
@@ -1126,8 +1126,6 @@ def test_submit_good_mouse_request_for_someone_else(test_client,
 	the Request() contents (and all dependent tables) after the test is run
 	so that other tests see blank contents 
 	""" 
-	today = date.today()
-	today_proper_format = today.strftime('%Y-%m-%d')
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Tank/Brody",'correspondence_email':"test@demo.com",
@@ -1165,8 +1163,6 @@ def test_request_name_no_spaces(test_client,
 	so use the fixture test_delete_request_db_contents
 	to remove any contents just in case
 	""" 
-	today = date.today()
-	today_proper_format = today.strftime('%Y-%m-%d')
 	
 	response = test_client.post(
 		url_for('requests.new_request'),data={
@@ -1237,8 +1233,6 @@ def test_newlines_do_not_affect_clearing_batch_membership(test_client,
 	the Request() contents (and all dependent tables) after the test is run
 	so that other tests see blank contents 
 	""" 
-	today = date.today()
-	today_proper_format = today.strftime('%Y-%m-%d')
 	response = test_client.post(
 		url_for('requests.new_request'),data={
 			'labname':"Wang",'correspondence_email':"test@demo.com",
