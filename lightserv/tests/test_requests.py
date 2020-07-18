@@ -1278,6 +1278,37 @@ def test_newlines_do_not_affect_clearing_batch_membership(test_client,
 	print(clearing_batch_results)
 	assert len(clearing_batch_results) == 1
 
+def test_expected_handoff_date_required_for_non_self_clearing(
+	test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Test that if lightserv-test tries to submit the new request and 
+	did not select self clearing and did not fill out the expected handoff date 
+	a validation error occurs.
+
+	""" 
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"admin_request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'username':test_login_nonadmin['user'],
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"New Request Form" in response.data
+	assert b"Expected handoff date required for samples: sample-001" in response.data
+	assert b"core facility requests" not in response.data
+
 
 """ Testing all_requests() """
 

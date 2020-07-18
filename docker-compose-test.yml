@@ -22,7 +22,7 @@ services:
     env_file: .testdockerenv
     hostname: docker_lightserv
     image: flaskcelery:test
-    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_clearing.py::test_abbreviated_clearing_entry_form_submits"
+    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_requests.py::test_expected_handoff_date_required_for_non_self_clearing"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData
