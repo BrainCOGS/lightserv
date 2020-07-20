@@ -2033,7 +2033,6 @@ def blank_viewer():
     return render_template('neuroglancer/blank_viewer_link.html',
                 neuroglancerurl=neuroglancerurl)
 
-
 @neuroglancer.route("/neuroglancer/jess_cfos_example",
     methods=['GET','POST'])
 @logged_in
@@ -2044,7 +2043,7 @@ def jess_cfos_example():
     The route spawns cloudvolumes for each layer and then 
     makes a neuroglancer viewer and provides the link to the user. """
 
-    layer_rootdir = '/jukebox/LightSheetData/lightserv_testing/neuroglancer/201904_ymaze_cfos'
+    layer_rootdir = '/jukebox/LightSheetData/lightserv_testing/neuroglancer/jess_cfos/201904_ymaze_cfos'
     config_proxy_auth_token = os.environ['CONFIGPROXY_AUTH_TOKEN']
     # Redis setup for this session
     kv = redis.Redis(host="redis", decode_responses=True)

@@ -58,7 +58,7 @@ class DevConfig(BaseConfig):
 		# },
 		'ng_viewer_cleanser': {
 		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
-		'schedule': timedelta(minutes=2)
+		'schedule': timedelta(minutes=5)
 		},
 		# 'rawprecomp_job_status_checker': {
 		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
