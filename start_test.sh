@@ -13,5 +13,5 @@ else
 	echo "Celery test worker container already started"
 fi
 
-# # Now run the actual test(s) that is defined in docker-compose-test.yml 
+# # Now run the actual test(s) that is defined in docker-compose-test.yml
 docker-compose -f docker-compose-test.yml up --abort-on-container-exit --scale coverage=0
