@@ -5,7 +5,7 @@
 	<h3 align="center"> Protocol: {{clearing_protocol}}  </h3>
 	<hr class='class-1'>
 	<h3 align="center"> Overview of clearing batch: </h3>
-	<div align="center">
+	<div align="center" class="sticky-top">
 		{{ clearing_table }}
 	</div>
 	 <div class="content-section mt-4">
@@ -211,6 +211,22 @@
 			return 
 			}
 	</script>
+
+{# <script>
+window.onscroll = function() {myFunction()};
+
+var header = document.getElementById("myStickyTable");
+var sticky = header.offsetTop;
+
+function myFunction() {
+  if (window.pageYOffset > sticky) {
+    header.classList.add("sticky");
+  } else {
+    header.classList.remove("sticky");
+  }
+}
+</script> #}
+
 {% if column_name %}
 	<script>
 	window.onload = function() {

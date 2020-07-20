@@ -115,7 +115,7 @@ class ClearingTable(Table):
     no_items = "No Clearing Yet"
     html_attrs = {"style":'font-size:14px'} # gets assigned to table header
     # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
-    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px; background: white;'}
     
     # column_html_attrs=column_html_attrs
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
