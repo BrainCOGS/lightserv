@@ -49,6 +49,31 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
+
+    ''' Add the start_imaging_link if the table is being imaged or ready to image '''
+    clearing_url_kwargs = {'username':'username','request_name':'request_name',
+        'clearing_protocol':'clearing_protocol','antibody1':'antibody1','antibody2':'antibody2',
+        'clearing_batch_number':'clearing_batch_number'}
+    anchor_attrs = {'target':"_blank",}
+    if table_id == 'horizontal_ready_to_clear_table':
+        table_class.add_column('start_clearing_link',LinkCol('Start clearing',
+         'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
+            anchor_attrs=anchor_attrs,allow_sort=False,
+            column_html_attrs=column_html_attrs))
+    elif table_id == 'horizontal_being_cleared_table':
+        table_class.add_column('continue_clearing_link',LinkCol('Continue clearing',
+         'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
+            anchor_attrs=anchor_attrs,allow_sort=False,
+            column_html_attrs=column_html_attrs))
+    elif table_id == 'horizontal_already_cleared_table':
+        table_class.add_column('view_clearing_link',LinkCol('View clearing log',
+         'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
+            anchor_attrs=anchor_attrs,allow_sort=False,
+            column_html_attrs=column_html_attrs))
+    if not table_class.table_id == 'horizontal_ready_to_clear_table':
+        table_class.add_column('clearing_progress',Col('clearing progress',
+            column_html_attrs=column_html_attrs))
+
     table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted',
         column_html_attrs=column_html_attrs))
     table_class.add_column('expected_handoff_date',Col('Handoff date (expected)',
@@ -66,36 +91,16 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
     table_class.add_column('clearer',DesignatedRoleCol('clearer',
         column_html_attrs=column_html_attrs))
     
-    if not table_class.table_id == 'horizontal_ready_to_clear_table':
-        table_class.add_column('clearing_progress',Col('clearing progress',
-            column_html_attrs=column_html_attrs))
+   
 
     table_class.add_column('species',Col('species',
         column_html_attrs=column_html_attrs))    
     table_class.add_column('number_in_batch',Col('number in batch',
         column_html_attrs=column_html_attrs))    
 
-    ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
-    clearing_url_kwargs = {'username':'username','request_name':'request_name',
-        'clearing_protocol':'clearing_protocol','antibody1':'antibody1','antibody2':'antibody2',
-        'clearing_batch_number':'clearing_batch_number'}
+   
 
-    anchor_attrs = {'target':"_blank",}
-    if table_id == 'horizontal_ready_to_clear_table':
-        table_class.add_column('start_clearing_link',LinkCol('Start clearing',
-         'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False,
-            column_html_attrs=column_html_attrs))
-    elif table_id == 'horizontal_being_cleared_table':
-        table_class.add_column('continue_clearing_link',LinkCol('Continue clearing',
-         'clearing.clearing_entry',url_kwargs=clearing_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False,
-            column_html_attrs=column_html_attrs))
-    elif table_id == 'horizontal_already_cleared_table':
-        table_class.add_column('view_clearing_link',LinkCol('View clearing log',
-         'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False,
-            column_html_attrs=column_html_attrs))
+   
          
     sorted_contents = sorted(contents.fetch(as_dict=True),
             key=partial(table_sorter,sort_key=sort),reverse=reverse)
