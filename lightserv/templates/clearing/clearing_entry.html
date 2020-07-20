@@ -66,6 +66,11 @@
 							{{ form[thisday_date](class='datepicker') }}
 							<button type="button" class="btn btn-sm btn-primary" onclick="autoFillDate(key='{{thisday_date}}')">Autofill with current date</button>
 							{{ form[thisday_date_submit](class="btn btn-sm btn-danger") }}
+							{% if thisday == 'antibody1' %}
+								<p> {{antibody1}} </p>
+							{% elif thisday == 'antibody2' %}
+								<p> {{antibody2}} </p>
+							{% endif %}
 							{% set new_counter = current_counter + 1 %}
 							<!-- Update the dictionary to store the new day and counter.
 							The if statements are just a hack to get the dictionary to update -->
