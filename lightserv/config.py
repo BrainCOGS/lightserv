@@ -56,14 +56,10 @@ class DevConfig(BaseConfig):
 		# 'task': 'lightserv.processing.tasks.stitched_precomputed_job_status_checker',
 		# 'schedule': timedelta(seconds=7)
 		# },
-		# 'ng_viewer_cleanser': {
-		# 'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
-		# 'schedule': timedelta(minutes=2)
-		# },
-		# 'rawprecomp_job_status_checker': {
-		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
-		# 'schedule': timedelta(seconds=15)
-		# },
+		'ng_viewer_cleanser': {
+		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
+		'schedule': timedelta(minutes=5)
+		},
 		# 'rawprecomp_job_status_checker': {
 		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
 		# 'schedule': timedelta(seconds=15)
