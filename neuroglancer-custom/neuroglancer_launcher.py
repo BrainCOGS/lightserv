@@ -86,6 +86,10 @@ for ii in range(cv_count):
 			s.layers[cv_name] = neuroglancer.SegmentationLayer(
 		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
 		    )
+		elif layer_type == 'annotation':
+			s.layers[cv_name] = neuroglancer.AnnotationLayer(
+		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
+		    )
 		    
 with viewer.txn() as s:
 	s.navigation.zoomFactor = 40000
