@@ -51,6 +51,44 @@ def cvlauncher():
 								  detach=True)
 	return "success"
 
+@main.route("/corslauncher",methods=['POST']) 
+def corslauncher(): 
+	""" Launches a CORS static webserver. Useful 
+	for the precomputed annotation layers,
+	which are not supported by cloudvolume yet """
+	logging.debug("POST request to /corslauncher in viewer-launcher")
+
+	client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+	cv_dict = request.json
+	# cv_name = cv_dict['cv_name'] # the name of the layer in Neuroglancer
+	layer_type = cv_dict['layer_type']
+	cv_path = cv_dict['cv_path'] # where the info file and precomputed data will live
+	session_name = cv_dict['session_name']
+	cv_container_name = cv_dict['cv_container_name'] # The name given to the docker container
+
+	cv_mounts = {
+		cv_path:{
+			'bind':'/web',
+			'mode':'ro'
+			},
+	}
+
+	cv_environment = ["CORS=true"]
+	# if flask_mode == 'DEV':
+	# 	cv_image = 'cloudv_viewer:latest'
+	# elif flask_mode == 'PROD':
+	# 	cv_image = 'cloudv_viewer:prod'
+	# elif flask_mode == 'TEST':
+	# 	cv_image = 'cloudv_viewer:test'
+	image = 'halverneus/static-file-server:latest'
+	cv_container = client.containers.run(image,
+								  volumes=cv_mounts,
+								  environment=cv_environment,
+								  network=network,
+								  name=cv_container_name,
+								  detach=True)
+	return "success"
+
 @main.route("/ng_raw_launcher",methods=['POST']) 
 def ng_raw_launcher(): 
 	logging.debug("POST request to /ng_raw_launcher in viewer-launcher")
