@@ -2033,6 +2033,66 @@ def blank_viewer():
     return render_template('neuroglancer/blank_viewer_link.html',
                 neuroglancerurl=neuroglancerurl)
 
+@neuroglancer.route("/neuroglancer/allen_atlas",
+    methods=['GET','POST'])
+@logged_in
+@log_http_requests
+def allen_atlas():
+    """ A route for generating a link to Neuroglancer
+    showing the Allen Brain Atlas with 3D mesh and segment properties
+    """
+    from .utils import generate_neuroglancer_url
+    session_name = secrets.token_hex(6)
+
+    """ CV 1: Allen Mouse Brain Atlas """
+    layer_type = "segmentation"
+               
+    cv_number = 1 # to keep track of how many cloudvolumes in this viewer
+    cv_container_name = f'{session_name}_allenatlas_2017'
+    cv_name = f"allen_mouse_brain_atlas_2017"
+    cv_path = '/jukebox/LightSheetData/atlas/neuroglancer/atlas/allenatlas_2017'  
+    cv_dict = dict(cv_number=cv_number,cv_path=cv_path,cv_name=cv_name,
+        cv_container_name=cv_container_name,
+        layer_type=layer_type,session_name=session_name)
+    cv_dict_list = [cv_dict]
+    payload = {'session_name':session_name,'cv_dict_list':cv_dict_list}
+    neuroglancerurl = generate_neuroglancer_url(payload)
+    
+    
+    return render_template('neuroglancer/single_link.html',
+        neuroglancerurl=neuroglancerurl)
+
+
+@neuroglancer.route("/neuroglancer/princeton_mouse_atlas",
+    methods=['GET','POST'])
+@logged_in
+@log_http_requests
+def princeton_mouse_atlas():
+    """ A route for generating a link to Neuroglancer
+    showing the Allen Brain Atlas with 3D mesh and segment properties
+    """
+    from .utils import generate_neuroglancer_url
+    session_name = secrets.token_hex(6)
+
+    """ CV 1: Princeton Mouse Brain Atlas """
+    layer_type = "segmentation"
+               
+    cv_number = 1 # to keep track of how many cloudvolumes in this viewer
+    cv_container_name = f'{session_name}_princeton_mouse_atlas'
+    cv_name = f"princeton_mouse_brain_atlas_v1.0"
+    cv_path = '/jukebox/LightSheetData/atlas/neuroglancer/atlas/princetonmouse'  
+    cv_dict = dict(cv_number=cv_number,cv_path=cv_path,cv_name=cv_name,
+        cv_container_name=cv_container_name,
+        layer_type=layer_type,session_name=session_name)
+    cv_dict_list = [cv_dict]
+    payload = {'session_name':session_name,'cv_dict_list':cv_dict_list}
+    neuroglancerurl = generate_neuroglancer_url(payload)
+    
+    return render_template('neuroglancer/single_link.html',
+        neuroglancerurl=neuroglancerurl)
+
+
+
 @neuroglancer.route("/neuroglancer/jess_cfos_example",
     methods=['GET','POST'])
 @logged_in
