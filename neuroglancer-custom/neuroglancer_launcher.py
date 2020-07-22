@@ -52,10 +52,10 @@ logging.debug(session_dict)
 
 """ Define shader code so that the image layer is visible. 
 If not present the image layer will be completely dark """
-shader_code = """void main() {
-  emitGrayscale(toNormalized(getDataValue())*45.0);
-}
-"""
+# shader_code = """void main() {
+#   emitGrayscale(toNormalized(getDataValue())*45.0);
+# }
+# """
 try:
 	cv_count = int(session_dict['cv_count']) # number of cloudvolumes
 except:
@@ -78,9 +78,7 @@ for ii in range(cv_count):
 		logging.debug(f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}")
 		if layer_type == 'image':
 		    s.layers[cv_name] = neuroglancer.ImageLayer(
-		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}", # this needs to be visible outside of the container in the browser
-		        shader=shader_code
-		    )
+		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}") # this needs to be visible outside of the container in the browser
 		elif layer_type == 'segmentation':
 			
 			s.layers[cv_name] = neuroglancer.SegmentationLayer(
