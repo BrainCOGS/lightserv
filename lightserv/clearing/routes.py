@@ -91,22 +91,18 @@ def clearing_manager():
 		table_ready_to_clear=table_ready_to_clear,
 		table_already_cleared=table_already_cleared)
 
-@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/",
-	methods=['GET','POST'],defaults={'antibody1':'','antibody2':''})
-@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/<antibody1>/",
-	methods=['GET','POST'],defaults={'antibody2':''})
-@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/<antibody1>/<antibody2>",
+@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>",
 	methods=['GET','POST'])
 @logged_in
 @logged_in_as_clearer
 @log_http_requests
-def clearing_entry(username,request_name,clearing_protocol,antibody1,antibody2,clearing_batch_number): 
+def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number): 
 	current_user = session['user']
 	logger.debug(f'{current_user} accessed clearing entry form')
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
-	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	& \
 	 		f'clearing_batch_number={clearing_batch_number}'				
+	antibody1,antibody2 = clearing_batch_contents.fetch1('antibody1','antibody2')
 	clearing_table = ClearingTable(clearing_batch_contents)
 	
 	clearing_dbTable = determine_clearing_dbtable(clearing_protocol)
