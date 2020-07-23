@@ -3,7 +3,7 @@
 	<h1 id='primary_header' align="center">New Request Form</h1>
 	 <div class="content-section">
 
-		<form method="POST" action="">
+		<form id="new_request_form" method="POST" action="">
 			{{ form.hidden_tag() }}
 			<fieldset class="form-group">
 				<legend class="border-bottom mb-2 mt-4">Background Info</legend>
@@ -515,5 +515,14 @@ function update_charbox(elem) {
 	  document.getElementById("{{column_name}}").focus();
 	};
 	</script>
+
 {% endif %}
+
+<script>    
+	$( function() {
+		$( "#new_request_form" ).sisyphus();
+		// or you can persist all forms data at one command
+		// $( "form" ).sisyphus();
+	} );
+</script>
 {% endblock content %}

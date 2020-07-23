@@ -9,7 +9,7 @@
 		{{ clearing_table }}
 	</div>
 	 <div class="content-section mt-4">
-		<form method="POST" action="">
+		<form id="clearing_entry_form" method="POST" action="">
 			{{ form.hidden_tag() }}
 			{% set day_dictionary = {'dehydr':'Dehydration','rehydr':'Rehydration','blocking':'Blocking','antibody1':'Primary Antibody','antibody2':'Secondary Antibody','clearing':'Clearing','wash1':'Wash','wash2':'Wash'} %}
 
@@ -240,4 +240,11 @@ function myFunction() {
 	</script>
 {% endif %}
 
+<script>    
+	$( function() {
+		$( "#clearing_entry_form" ).sisyphus();
+		// or you can persist all forms data at one command
+		// $( "form" ).sisyphus();
+	} );
+</script>
 {% endblock content %}
