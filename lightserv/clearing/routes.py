@@ -13,6 +13,7 @@ from lightserv.main.tasks import send_email
 import numpy as np
 import datajoint as dj
 import re, os, datetime
+import secrets
 
 import logging
 from werkzeug.routing import BaseConverter
@@ -250,9 +251,10 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 	else:
 		dj.Table._update(clearing_batch_contents,'clearing_progress','in progress')
 	# form.time_pbs_wash1.data = "2019-16-19T16:54:17"
+	form_id = '_'.join([username,request_name,'clearing_batch',str(clearing_batch_number)]) 
 	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,
 		antibody1=antibody1,antibody2=antibody2,
-		form=form,clearing_table=clearing_table,column_name=column_name)
+		form=form,clearing_table=clearing_table,column_name=column_name,form_id=form_id)
 
 @clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/",
 	methods=['GET','POST'],defaults={'antibody1':'','antibody2':''})

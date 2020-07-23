@@ -732,7 +732,9 @@ def new_request():
                                     channel_insert_list.append(channel_insert_dict)
                             # logger.info(channel_insert_list)
                     
-                    """ Now figure out the number in each clearing batch """
+                    """ Now figure out the number in each clearing batch.
+                    A clearing batch is determined by unique combination of 
+                    clearing_protocol, antibody1, antibody2 """
                     new_list = []
                     good_indices = []
                     counts = []
