@@ -23,34 +23,28 @@
 	
 <hr class='class-2'>
 
-	<div class='mb-4'>
+	<div id="cfos" class='mb-4'>
 		<h3 align="center"> c-Fos thalamic expression </h3>
 		<div align="center" class='mb-2'>
-			<img width="1200" src="{{ url_for('static',filename='gallery/clearmap_jess_201904_ymaze_cfos_an4.png') }}">
+			{# <img width="1200" src="{{ url_for('static',filename='gallery/clearmap_jess_201904_ymaze_cfos_an4.png') }}"> #}
+			<img width="1100" src="{{ url_for('static',filename='gallery/cfos_an21.gif') }}">
 		</div>
 
 		<p align="left"> Verpeut et al. (in prep.) used light sheet imaging to 
-		trace c-Fos expression in thalamic subregions after a Y-maze reversal task. 
-		Shown above is a horizontal slice through the brain of a mouse subject
-		showing the light sheet data 
-		at cellular resolution in inverse color scale (gray background), 
-		selected regions of the Princeton Mouse Brain Atlas (colored regions),
-		and detected cell centers (yellow circles) from Clearmap cell detection algorithm. 
-		</br></br>
-		The visualization is shown at the resolution of the raw data 
-		(i.e. highest resolution possible in this experiment), and the brain atlas
-		was transformed to the raw data coordinate framework for reference. 
-		On the right hand side are the anatomical labels for the selected brain regions. 
-		Clearmap is well suited for cell detection at this resolution (1.3x), and 
-		detects cells over a wide dynamic range. For example, the large, visibly obvious cells
-		and the very faint, less obvious cells are simultaneously detected in a single run over the entire brain.
-		</p>
+		trace brain-wide c-Fos expression after a Y-maze reversal task. 
+		Shown above is an animation of a sagittal sweep through the brain of a mouse subject
+		that underwent the task. The left panel shows the 2D sagittal slices and the right panel
+		shows the 3D context of these slices. In both panels, the raw data and selected thalamic regions 
+		of the Princeton Mouse Brain Atlas are shown. At the midpoint of the sweep, cell center labels (yellow)
+		obtained from the Clearmap cell detection algorithm are turned on 
+		and the animation sweeps in reverse. The cell centers shown are a subsample of the total cell centers
+		detected, but are representative of the spatial distribution.
 
 		<h5 class='border-bottom'> Technical specs: </h5>
 		<b>Species:</b> Mouse </br>
 		<b>Clearing protocol:</b> iDISCO+ (with immunostaining)</br>
 		<b>Imaging resolution:</b> 1.3x</br>
-		<b>Imaging modes:</b> Registration (488 nm) - not shown, Cell detection (647 nm) - shown above</br>
+		<b>Imaging modes:</b> Registration (488 nm; not shown), Cell detection (647 nm; shown above)</br>
 		<b>Cell detection method:</b> <a href="https://github.com/PrincetonUniversity/ClearMapCluster">https://github.com/PrincetonUniversity/ClearMapCluster</a></br>
 
 		<b>Visualization:</b> <a target="_blank" href="http://github.com/BrainCOGS/neuroglancer">neuroglancer</a>
