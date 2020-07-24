@@ -562,6 +562,59 @@ def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_del
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_nonadmin fixture --------')
 	
+
+@pytest.fixture(scope='function') 
+def test_multisample_request_nonadmin_clearing_notes(test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits a new request as 'lightserv-test' (a nonadmin) with multiple samples that can be used for various tests.
+	There are notes_for_clearer entries in multiple sample fields 
+	so we can test that we properly account for all notes
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_single_request_nonadmin fixture ----------')
+	
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+		print(f"Current user is {current_user}")
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Tank/Brody",'correspondence_email':"lightserv-test@princeton.edu",
+			'request_name':"nonadmin_request_clearing_notes",
+			'description':"This is a request by lightserv-test, a non admin, containing clearing notes for multiple samples",
+			'species':"mouse",'number_of_samples':2,
+			'username':current_user,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-notes_for_clearer':'sample 1 notes',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'clearing_samples-1-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-1-sample_name':'sample-002',
+			'clearing_samples-1-expected_handoff_date':today_proper_format,
+			'clearing_samples-1-perfusion_date':today_proper_format,
+			'clearing_samples-1-notes_for_clearer':'sample 2 notes',
+			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-1-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-1-image_resolution_forsetup':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_single_request_nonadmin fixture --------')
+
+
 @pytest.fixture(scope='function') 
 def test_rat_request_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
 	""" Submits a new request as Manuel ('lightserv-test', a nonadmin) for species='rat' that can be used for various tests.
