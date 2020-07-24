@@ -144,8 +144,10 @@
 				<div>
 					{% for ii in range(form.clearing_samples|length) %}
 						{% set clearing_entry = form.clearing_samples[ii] %}
-						
-				    	<h3 class="form-control-label">Sample {{ii+1}} </h3>
+						<div id="sample_section">
+						<div class="sticky-top">
+					    	<h3 class="form-control-label">Sample {{ii+1}} </h3>
+				    	</div>
 				        <hr class='class-2'>
 
 				    	<div class="form-group">
@@ -436,7 +438,9 @@
 						<br/>
 
 		            	<hr class='class-2'>
+		            	</div> <!-- The sample section div -->
 					{% endfor %} <!-- Loop over all samples -->
+
 				</div>
 			
 
