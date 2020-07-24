@@ -8,6 +8,19 @@
 	<div align="center" class="sticky-top">
 		{{ clearing_table }}
 	</div>
+	<hr class='class-2'>
+	<div class='mt-2'>
+		<label for="notes_for_clearer" id="larger">Notes to the clearer for this batch: </label>
+		{% if notes_for_clearer|length > 0 %}
+		<textarea style="height:100px" class="form-control form-control-lg" 
+		id="notes_for_clearer" name="notes_for_clearer" disabled>{{notes_for_clearer}}</textarea>
+		{% else %}
+		<textarea class="form-control form-control-lg" 
+		id="notes_for_clearer" name="notes_for_clearer" disabled>There were no notes for this batch</textarea>
+
+		{% endif %}			
+	</div>
+
 	 <div class="content-section mt-4">
 		<form id="clearing_entry_form_{{form_id}}" method="POST" action="">
 			{{ form.hidden_tag() }}
@@ -216,21 +229,6 @@
 			return 
 			}
 	</script>
-
-{# <script>
-window.onscroll = function() {myFunction()};
-
-var header = document.getElementById("myStickyTable");
-var sticky = header.offsetTop;
-
-function myFunction() {
-  if (window.pageYOffset > sticky) {
-    header.classList.add("sticky");
-  } else {
-    header.classList.remove("sticky");
-  }
-}
-</script> #}
 
 {% if column_name %}
 	<script>

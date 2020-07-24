@@ -117,7 +117,6 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 	''' If there are contents and the form is blank, then that means the user is accessing the form 
 	to edit it from a previous session and we should pre-load the current contents of the db '''
 	if len(clearing_contents) > 0 and (not request.form):
-		fill_dict = {'exp_notes':'some_notes'}
 		form = determine_clearing_form(clearing_protocol,existing_form=request.form)
 		for key,val in list(clearing_contents.fetch1().items()):
 			if key in form._fields.keys():
@@ -245,6 +244,7 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 		column_name = None
 
 	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
+	notes_for_clearer = clearing_batch_contents.fetch1('notes_for_clearer')
 	if clearing_progress == 'complete':
 		flash("Clearing is already complete for this sample. "
 			"This page is read only and hitting any of the buttons will not update the clearing log",'warning')
@@ -254,7 +254,8 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 	form_id = '_'.join([username,request_name,'clearing_batch',str(clearing_batch_number)]) 
 	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,
 		antibody1=antibody1,antibody2=antibody2,
-		form=form,clearing_table=clearing_table,column_name=column_name,form_id=form_id)
+		form=form,clearing_table=clearing_table,column_name=column_name,form_id=form_id,
+		notes_for_clearer=notes_for_clearer)
 
 @clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/",
 	methods=['GET','POST'],defaults={'antibody1':'','antibody2':''})

@@ -529,6 +529,27 @@ def test_clearing_entry_experimental_rat_nonadmin(test_client,test_experimental_
 	# assert td_tags[1].text == "iDISCO abbreviated clearing" and \
 	# td_tags[2].text == "" and td_tags[3].text == "" and td_tags[4].text == 'nonadmin_request'
 
+def test_clearing_notes_appear_in_clearing_entry_form(test_client,test_multisample_request_nonadmin_clearing_notes,
+	test_login_ll3,test_delete_request_db_contents):
+	""" Clears the request with multiple samples by 'lightserv-test' (with clearer='ll3')  
+	
+	Runs test_login_ll3 next so that 'll3' gets logged in and can do the clearing
+
+	Uses the test_delete_request_db_contents fixture, which means that 
+	all db entries are deleted upon teardown of this fixture
+	"""
+
+	response = test_client.get(url_for('clearing.clearing_entry',username="lightserv-test",
+			request_name="nonadmin_request_clearing_notes",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		follow_redirects=True)
+	assert b'Clearing Entry Form' in response.data
+	assert b'sample 1 notes' in response.data
+	assert b'sample 2 notes' in response.data
+	
+
 """ Test clearing_table() """
 
 def test_mouse_clearing_tables_have_db_content(test_client,test_cleared_all_mouse_clearing_protocols_ahoag):

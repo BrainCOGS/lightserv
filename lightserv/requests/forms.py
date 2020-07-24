@@ -40,7 +40,7 @@ class ClearingForm(FlaskForm):
 		'Expected date of hand-off (YYYY-MM-DD; please provide unless you plan to clear yourself):',
 		validators=[Optional(),date_validator])
 	notes_for_clearer = TextAreaField(
-		'Special notes for clearing  -- max 1024 characters --',validators=[Length(max=1024)])
+		'Special notes for clearing  -- max 400 characters --',validators=[Length(max=400)])
 
 	def validate_antibody1(self,antibody1):
 		''' Makes sure that primary antibody is not blank if immunostaining clearing protocol

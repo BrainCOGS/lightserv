@@ -734,27 +734,48 @@ def new_request():
                     
                     """ Now figure out the number in each clearing batch.
                     A clearing batch is determined by unique combination of 
-                    clearing_protocol, antibody1, antibody2 """
-                    new_list = []
-                    good_indices = []
-                    counts = []
+                    clearing_protocol, antibody1, antibody2.
+                    
+                    Update the clearing_batch_insert_list to only have as many
+                    entries as clearing batches, removing the redundant entries.
+
+                    Make sure notes_for_clearer
+                    fields are concatenated for all samples in a batch """
+                    
+                    new_list = [] # dummy list of subdicts only containing the 3 important keys
+                    good_indices = [] # indices of original clearing_batch_insert_list that we will use in the end
+                    counts = [] # number in each batch, index shared with new_list
+                    notes_for_clearer_each_batch = [] # concatenated 
                     for index,dict_ in enumerate(clearing_batch_insert_list):
                         subdict = {key:dict_[key] for key in dict_.keys() if key == 'clearing_protocol' \
                                     or key == 'antibody1' or key == 'antibody2'}
-                        try: # check if new_list contains the dict already
+                        notes_for_clearer_this_sample = dict_['notes_for_clearer']
+                        sample_name = sample_insert_list[index]['sample_name']
+                        if notes_for_clearer_this_sample != '':
+                            notes_for_clearer_string = f'{notes_for_clearer_this_sample} (for sample: {sample_name})\n'
+                        else:
+                            notes_for_clearer_string = ''
+                        # check if new_list contains the subdict already
+                        try: 
+                            # if it does then find the index of new_list corresponding to this batch
                             i = new_list.index(subdict)
-                        except ValueError:
+                        except ValueError: 
+                            # if it doesn't, then this is a new unique combo of keys
                             counts.append(1)
                             new_list.append(subdict)
                             good_indices.append(index)
-                        else:
-                            counts[i] += 1
+                            notes_for_clearer_each_batch.append(notes_for_clearer_string)
+                        else: # only gets executed if try block doesn't generate an error
+                            counts[i] += 1 
+                            notes_for_clearer_each_batch[i]+=notes_for_clearer_string
 
+                    """ remake clearing_batch_insert_list to only have unique entries """
                     clearing_batch_insert_list = [clearing_batch_insert_list[index] for index in good_indices]
                     for ii in range(len(clearing_batch_insert_list)):
                         insert_dict = clearing_batch_insert_list[ii]
                         insert_dict['number_in_batch'] = counts[ii]
                         insert_dict['clearing_batch_number'] = ii+1
+                        insert_dict['notes_for_clearer'] = notes_for_clearer_each_batch[ii]
                     
                     """ Now loop through all sample insert dicts and assign clearing batch number """
                     for sample_insert_dict in sample_insert_list:
