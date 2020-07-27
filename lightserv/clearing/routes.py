@@ -258,18 +258,13 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 		notes_for_clearer=notes_for_clearer)
 
 @clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/",
-	methods=['GET','POST'],defaults={'antibody1':'','antibody2':''})
-@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/<antibody1>/",
-	methods=['GET','POST'],defaults={'antibody2':''})
-@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/<antibody1>/<antibody2>",
-	methods=['GET','POST'])
+	methods=['GET'])
 @logged_in_as_clearer
 @log_http_requests
-def clearing_table(username,request_name,clearing_protocol,antibody1,antibody2,clearing_batch_number):
+def clearing_table(username,request_name,clearing_protocol,clearing_batch_number):
 	""" Show the clearing contents for a clearing batch """ 
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
-	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	& \
 	 		f'clearing_batch_number={clearing_batch_number}'
 
 	overview_table = ClearingTable(clearing_batch_contents)
@@ -277,7 +272,6 @@ def clearing_table(username,request_name,clearing_protocol,antibody1,antibody2,c
 	dbTable = determine_clearing_dbtable(clearing_protocol)
 	db_contents = dbTable() & f'request_name="{request_name}"' & \
 	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
-	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	& \
 	 		f'clearing_batch_number={clearing_batch_number}'
 	table = determine_clearing_table(clearing_protocol)(db_contents)
 	table.table_id = 'vertical'

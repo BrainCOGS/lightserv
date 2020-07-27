@@ -166,16 +166,28 @@
 		function autoFill(key) { 
 			var d = new Date();
 			var datestring = d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2) + "T" + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
-			document.getElementById(key).value = datestring;
+
+			elem = document.getElementById(key)
+			elem.value = datestring;
+			var myevent = new Event('change');
+			// Dispatch it.
+			elem.dispatchEvent(myevent);
 		}
 	</script>
 
 	<script> 
 		function autoFillDate(key) { 
-			{# console.log(key) #}
+			console.log(key);
 			var d = new Date();
 			var datestring = d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
-			document.getElementById(key).value = datestring;
+			var elem = document.getElementById(key);
+			// var evt = document.createEvent("HTMLEvents");
+			// evt.initEvent("change", false, true);
+			elem.value = datestring;
+			var myevent = new Event('change');
+			// Dispatch it.
+			elem.dispatchEvent(myevent);
+			// elem.onchange()
 		}
 	</script>
 
@@ -240,7 +252,7 @@
 
 <script>    
 	$( function() {
-		$( "#clearing_entry_form_{{form_id|safe}}" ).sisyphus();
+		$( "#clearing_entry_form_{{form_id|safe}}" ).sisyphus({autoRelease: false});
 		// or you can persist all forms data at one command
 		// $( "form" ).sisyphus();
 	} );

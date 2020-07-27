@@ -15,7 +15,8 @@ class BaseConfig(object):
 	IMAGING_MODES = ['registration','injection_detection','probe_detection','cell_detection','generic_imaging']
 	IMAGING_CHANNELS = ['488','555','647','790']
 	ADMINS_TO_EMAIL = ['ahoag'] # for problems with requests/spock jobs
-	WTF_CSRF_TIME_LIMIT = 24*3600 # seconds (24 hours)
+	WTF_CSRF_TIME_LIMIT = None # never expire
+	# WTF_CSRF_TIME_LIMIT = 5 # seconds 
 	# WTF_CSRF_TIME_LIMIT = 1 #
 	ATLAS_NAME_FILE_DICTIONARY = {
 	'allen_2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/average_template_25_sagittal_forDVscans.tif',

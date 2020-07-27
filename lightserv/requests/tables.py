@@ -136,11 +136,9 @@ class AllSamplesTable(Table):
 	clearing_protocol = Col('clearing protocol')
 	clearer = NotAssignedCol('clearer')
 	clearing_progress = Col('clearing progress')
-	# antibody1 = Col('antibody1')
-	# antibody2 = Col('antibody2')
 	clearing_url_kwargs = {'username':'username','request_name':'request_name',
 	'clearing_protocol':'clearing_protocol',
-	'antibody1':'antibody1','antibody2':'antibody2','clearing_batch_number':'clearing_batch_number'}
+	'clearing_batch_number':'clearing_batch_number'}
 	anchor_attrs = {}
 	clearing_log = ClearingTableLinkCol('Clearing log', 
 		'clearing.clearing_table',url_kwargs=clearing_url_kwargs,
@@ -306,7 +304,7 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 
 	clearing_url_kwargs = {'username':'username','request_name':'request_name',
 		'clearing_protocol':'clearing_protocol',
-		'antibody1':'antibody1','antibody2':'antibody2','clearing_batch_number':'clearing_batch_number'}
+		'clearing_batch_number':'clearing_batch_number'}
 	anchor_attrs = {}
 	table_class.add_column('view_clearing_link',
 		 ClearingTableLinkCol('Clearing log', 
