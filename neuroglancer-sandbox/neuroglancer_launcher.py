@@ -75,10 +75,9 @@ for ii in range(cv_count):
 		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
 		    )
 
-with viewer.txn() as s:
-	s.layout='yz'
-	s.layers['rawatlas_an21'].visible = False
-
+# with viewer.txn() as s:
+# 	s.layout='yz'
+# 	s.layers['rawatlas_an21'].visible = False
 
 logging.debug("neuroglancer viewer is now available")
 
