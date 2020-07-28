@@ -74,13 +74,12 @@ def corslauncher():
 	}
 
 	cv_environment = ["CORS=true"]
-	# if flask_mode == 'DEV':
-	# 	cv_image = 'cloudv_viewer:latest'
-	# elif flask_mode == 'PROD':
-	# 	cv_image = 'cloudv_viewer:prod'
-	# elif flask_mode == 'TEST':
-	# 	cv_image = 'cloudv_viewer:test'
-	image = 'halverneus/static-file-server:latest'
+	if flask_mode == 'DEV':
+		image = 'halverneus/static-file-server:latest'
+
+	elif flask_mode == 'PROD':
+		image = 'halverneus/static-file-server:v1.8.0'
+
 	cv_container = client.containers.run(image,
 								  volumes=cv_mounts,
 								  environment=cv_environment,
