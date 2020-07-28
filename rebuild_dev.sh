@@ -40,6 +40,18 @@ cd ../neuroglancer-custom
 
 docker build -f ./neuroglancer.Dockerfile -t nglancer_custom_viewer:latest .
 
+## build neuroglancer-custom latest tag
+cd ../neuroglancer-custom
+
+docker build -f ./neuroglancer.Dockerfile -t nglancer_custom_viewer:latest .
+
+
+## build neuroglancer-sandbox latest tag
+cd ../neuroglancer-sandbox
+
+docker build -f ./neuroglancer.Dockerfile -t nglancer_sandbox_viewer:latest .
+
+
 
 
 
