@@ -2145,30 +2145,30 @@ def sandbox():
     proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
 
     """ CV 2: Raw atlas an21 """
-    # layer_type = "segmentation"
+    layer_type = "segmentation"
                
-    # cv_number += 1              
-    # cv_container_name = f'{session_name}_rawatlas_an21'
-    # cv_name = f"rawatlas_an21"
-    # cv_path = os.path.join(layer_rootdir,'rawatlas_an21')      
-    # """ send the data to the viewer-launcher
-    # to launch the cloudvolume """                       
-    # cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
-    #     cv_container_name=cv_container_name,
-    #     layer_type=layer_type,session_name=session_name)
-    # requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
-    # logger.debug("Made post request to viewer-launcher to launch cloudvolume")
+    cv_number += 1              
+    cv_container_name = f'{session_name}_rawatlas_an21'
+    cv_name = f"rawatlas_an21"
+    cv_path = os.path.join(layer_rootdir,'rawatlas_an21')      
+    """ send the data to the viewer-launcher
+    to launch the cloudvolume """                       
+    cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
+        cv_container_name=cv_container_name,
+        layer_type=layer_type,session_name=session_name)
+    requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
+    logger.debug("Made post request to viewer-launcher to launch cloudvolume")
 
-    # """ Enter the cv information into redis
-    # so I can get it from within the neuroglancer container """
-    # kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
-    #     f"cv{cv_number}_name": cv_name, f"layer{cv_number}_type":layer_type})
-    # # increment the number of cloudvolumes so it is up to date
-    # kv.hincrby(session_name,'cv_count',1)
-    # # register with the confproxy so that it can be seen from outside the nglancer network
-    # proxy_h = pp.progproxy(target_hname='confproxy')
-    # proxypath = os.path.join('cloudvols',session_name,cv_name)
-    # proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
+    """ Enter the cv information into redis
+    so I can get it from within the neuroglancer container """
+    kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
+        f"cv{cv_number}_name": cv_name, f"layer{cv_number}_type":layer_type})
+    # increment the number of cloudvolumes so it is up to date
+    kv.hincrby(session_name,'cv_count',1)
+    # register with the confproxy so that it can be seen from outside the nglancer network
+    proxy_h = pp.progproxy(target_hname='confproxy')
+    proxypath = os.path.join('cloudvols',session_name,cv_name)
+    proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
 
     # """ CV 3: Raw cells an21 """
     # layer_type = "annotation"
