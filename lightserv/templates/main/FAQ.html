@@ -3,6 +3,27 @@
 <h1 align="center" class="mb-4">FAQ</h1>
 <hr class='class-1'>
 
+<div id="viz">
+	<h4 align="center"> Q: How do I visualize my light sheet data?</h4>
+		<p>
+			<b>A:</b> When your data are imaged and processed, we automatically
+			generate links to Neuroglancer for you to browse your data. 
+			There are multiple ways to see these links. The easiest is to go to your 
+			<a href="{{url_for('requests.all_requests')}}">Requests</a> page, then 
+			click the "View request status" link in the row corresponding to the request
+			of interest. Then find the sample you want to visualize, scroll all the way 
+			to the right of that row and click the "Viz" link. If the sample of interest
+			has not yet been imaged, then the link will not go anywhere. If it has been
+			imaged (and our visualization scripts have finished), then you will be linked
+			to a form to choose what data specifically
+			you want to visualize from this sample. You will receive an email when 
+			your data are ready to be visualized with a link to this form. 
+		</p>
+</div>
+
+<hr class='class-1'>
+
+
 <div id="stitching">
 	<h4 align="center"> Q: What is stitching/tiling?</h4>
 		<p>
