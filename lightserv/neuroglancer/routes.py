@@ -2226,13 +2226,14 @@ def sandbox():
         if 'viewer' in session_dict.keys():
             break
         else:
-            logging.debug("Still spinning; waiting for redis entry for neuoglancer viewer")
+            logger.debug("Still spinning; waiting for redis entry for neuoglancer viewer")
             time.sleep(0.25)
     viewer_json_str = kv.hgetall(session_name)['viewer']
     viewer_dict = json.loads(viewer_json_str)
-    logging.debug(f"Redis contents for viewer")
-    logging.debug(viewer_dict)
-    proxy_h.getroutes()
+    logger.debug(f"Redis contents for viewer")
+    logger.debug(viewer_dict)
+    logger.debug("Proxy routes")
+    logger.debug(proxy_h.getroutes().json())
     # logger.debug("Proxy contents:")
     # logger.debug(proxy_contents)
     
