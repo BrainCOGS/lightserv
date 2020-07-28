@@ -8,12 +8,12 @@ docker-compose -f docker-compose-redisdev.yml up -d
 worker_containers=$(docker ps | grep "lightserv_worker" | awk '{print $1}') # prod will have lightservprod_worker so no collision will occur
 if [ -z "$worker_containers" ] # checks if null
 then
-	echo "Celery test worker container not already started. Starting container."
+	echo "Celery dev worker container not already started. Starting container."
 	docker-compose -f docker-compose-celerydev.yml up -d
 	echo "Sleeping to give time for worker to start up before main application starts"
 	sleep 2
 else
-	echo "Celery test worker container already started"
+	echo "Celery dev worker container already started"
 fi
 
 # Now run the rest of the dev services 
