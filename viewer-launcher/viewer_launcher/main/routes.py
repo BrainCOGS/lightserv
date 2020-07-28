@@ -195,6 +195,34 @@ def ng_custom_launcher():
                                   detach=True) 
 	return "success"
 
+@main.route("/ng_sandbox_launcher",methods=['POST']) 
+def ng_sandbox_launcher(): 
+	logging.debug("POST request to /ng_sandbox_launcher in viewer-launcher")
+	client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+	ng_dict = request.json
+	ng_container_name = ng_dict['ng_container_name'] # the name of the layer in Neuroglancer
+	session_name = ng_dict['session_name']
+	hosturl = ng_dict['hosturl']
+	ng_environment = {
+		'HOSTURL':hosturl,
+        'SESSION_NAME':session_name,
+        'FLASK_MODE':os.environ['FLASK_MODE']
+    }
+
+	if flask_mode == 'DEV':
+		ng_sandbox_image = 'nglancer_sandbox_viewer:latest'
+	elif flask_mode == 'PROD':
+		ng_sandbox_image = 'nglancer_sandbox_viewer:prod'
+	logging.debug("ng_sandbox_image is:")
+	logging.debug(ng_sandbox_image)
+	ng_container = client.containers.run(ng_sandbox_image,
+                                  environment=ng_environment,
+                                  network=network,
+                                  name=ng_container_name,
+                                  detach=True) 
+	logging.debug("Launched container")
+	return "success"
+
 
 
 @main.route("/container_killer",methods=['POST']) 
