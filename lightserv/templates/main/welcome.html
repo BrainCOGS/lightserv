@@ -13,10 +13,27 @@
 
 	<h5> What data products do we provide? </h5>
 	<p>
-		The default data products are raw light sheet images at each image resolution and wavelength specified when you filled out the request form. You can also elect to use our automated processing pipeline which combines the raw light sheet images ("blending"), stitches multiple tiles together if present, then downsamples and registers the images to a reference atlas, provided that an atlas is available for the species in your request. The Core Facility currently supports two versions of the Allen Brain atlas (pre and post-2017) as well as an in-house light sheet atlas (the "Princeton Mouse Atlas"; Pisano et al., in prep.) that provides superior registration precision for light sheet data. The processing pipeline runs on <a href="https://npcdocs.princeton.edu/index.php/Spock">spock</a>, a high performance computer at the Princeton Neuroscience Institute. 
+		The default data products are raw light sheet images at each image resolution
+		and wavelength specified when you filled out the request form. 
+		You can also elect to use our automated processing pipeline 
+		which combines the raw light sheet images ("blending"), 
+		stitches multiple tiles together if present, 
+		then downsamples and registers the images to a reference atlas, 
+		provided that an atlas is available for the species in your request. 
+		The Core Facility currently supports two versions of the Allen Brain atlas 
+		(pre and post-2017) as well as an in-house light sheet atlas
+		(the "Princeton Mouse Atlas"; Pisano et al., in prep.) 
+		that provides superior registration accuracy and precision for light sheet data. 
+		
 	</p>
+
 	<p>
-		At your <a href="{{url_for('requests.all_requests')}}">Requests</a> page, you will see an overview and status updates on all of your ongoing and completed requests. The parameters of your clearing and imaging data are automatically stored in a datajoint database upon your completion of the new request form for access external to this site. Contact us for more details.  
+		At your <a href="{{url_for('requests.all_requests')}}">Requests</a> page,
+		you will see an overview and status updates on all of your ongoing and completed requests.
+		The parameters of your clearing and imaging data are automatically stored in a
+		Datajoint database upon your completion of the new request form for access external
+		to this site. Visualizations of your data at various stages in the pipeline are also
+		available. See the FAQ or contact us for more details.  
 	</p>
 
 	<h5 id='contact'> How to contact us? </h5>
