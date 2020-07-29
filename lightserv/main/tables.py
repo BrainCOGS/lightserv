@@ -279,3 +279,15 @@ class RequestTable(Table):
     species = Col('species',column_html_attrs=column_html_attrs)
     number_of_samples = Col('number_of_samples',column_html_attrs=column_html_attrs)
 
+
+
+class AdminTable(Table):
+    """ Table showing user actions """
+    border = True
+    no_items = "No User Actions yet"
+    html_attrs = {"style":'font-size:18px'} # gets assigned to table header
+    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    timestamp = DateTimeCol('timestamp',column_html_attrs=column_html_attrs)
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    platform = Col('platform',column_html_attrs=column_html_attrs)
+    event = Col('event',column_html_attrs=column_html_attrs)

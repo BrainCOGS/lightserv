@@ -2,9 +2,10 @@ from flask import (render_template, request, redirect,
 				   Blueprint, session, url_for, flash,
 				   Markup, Request, Response,abort)
 from lightserv import db_lightsheet, db_admin
-from lightserv.main.utils import logged_in, table_sorter, log_http_requests
+from lightserv.main.utils import (logged_in, table_sorter,
+	 log_http_requests, logged_in_as_admin)
 from lightserv.main.forms import SpockConnectionTesterForm, FeedbackForm
-from lightserv.main.tables import RequestTable
+from lightserv.main.tables import RequestTable, AdminTable
 from functools import partial, wraps
 
 import datajoint as dj
@@ -178,6 +179,24 @@ def feedback(username,request_name):
 			logger.debug(form.errors) # pragma: no cover - used to exclude this line from testing
 	return render_template('main/feedback_form.html',
 		form=form,table=table)
+
+@main.route("/admin") 
+@logged_in_as_admin
+@log_http_requests
+def admin(): 
+	""" Show last 20 entries to the user action log in an
+	html table """
+	current_user = session['user']
+	user_action_contents = db_admin.UserActionLog() 
+	""" First get last 20 """
+	result=user_action_contents.fetch(limit=20,order_by='timestamp DESC',as_dict=True) 
+	print(result)
+	""" Then reverse order so they are in chronological order """
+	# df_chron = df.iloc[::-1]
+	admin_table = AdminTable(result[::-1])
+	logger.info(f"{current_user} accessed admin page")
+	return render_template('main/admin.html',admin_table=admin_table)
+
 
 
 # @main.route("/cel")
