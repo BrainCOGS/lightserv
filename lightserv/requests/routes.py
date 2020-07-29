@@ -857,6 +857,7 @@ def new_request():
                         message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
                             'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
                             'A new request:\n'
+                            f'username: "{username}"\n'
                             f'request_name: "{form.request_name.data}"\n'
                             'was received and will need to be cleared.\n\n'
                             f'Information about each clearing batch from this request can be viewed at the clearing management page: {clearing_manager_link}\n\n'
