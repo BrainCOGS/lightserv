@@ -101,8 +101,8 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 	current_user = session['user']
 	logger.debug(f'{current_user} accessed clearing entry form')
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
-	 		f'clearing_batch_number={clearing_batch_number}'				
+			f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
+			f'clearing_batch_number={clearing_batch_number}'				
 	antibody1,antibody2 = clearing_batch_contents.fetch1('antibody1','antibody2')
 	clearing_table = ClearingTable(clearing_batch_contents)
 	
@@ -110,9 +110,9 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 	''' Check to see if there is an entry in the db yet. If not create one with all NULL values.
 	They will get updated as the user fills out the form '''
 	clearing_contents = clearing_dbTable() & f'request_name="{request_name}"' & \
-	 	f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
-	 	f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	& \
-	 	f'clearing_batch_number={clearing_batch_number}'	
+		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
+		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'	& \
+		f'clearing_batch_number={clearing_batch_number}'	
 
 	''' If there are contents and the form is blank, then that means the user is accessing the form 
 	to edit it from a previous session and we should pre-load the current contents of the db '''
@@ -200,9 +200,32 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 								{'username':username,'request_name':request_name}
 							correspondence_email = request_contents.fetch1('correspondence_email')
 							recipients = [correspondence_email]
+
 							if not os.environ['FLASK_MODE'] == 'TEST':
 								send_email.delay(subject=subject,body=message_body,recipients=recipients) # pragma: no cover - used to exclude this line from calculating test coverage
 
+							""" Now check to see if we need to send an email to the imaging managers """
+							first_sample_name = samples_this_clearing_batch[0]
+							imaging_request_keys = {'username':username,'request_name':request_name,
+							   'sample_name':first_sample_name,'imaging_request_number':1}
+							imager_this_batch = (db_lightsheet.Request.ImagingRequest & \
+								imaging_request_keys).fetch1('imager')
+							if not imager_this_batch: 
+								subject = 'Lightserv automated email: Sample(s) ready for imaging'
+
+								hosturl = os.environ['HOSTURL']
+								imaging_manager_link = f'https://{hosturl}' + url_for('imaging.imaging_manager')
+								message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+									'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
+									'A request:\n'
+									f'username: "{username}"\n'
+									f'request_name: "{request_name}"\n'
+									'has samples that are ready to be imaged.\n\n'
+									f'Information about each sample can be viewed '
+									f'at the imaging management page: {imaging_manager_link}\n\n'
+									'Thanks,\nThe Histology and Brain Registration Core Facility.')
+								recipients = [x + '@princeton.edu' for x in current_app.config['IMAGING_ADMINS']]
+								send_email.delay(subject=subject,body=message_body,recipients=recipients)
 							return redirect(url_for('clearing.clearing_manager'))
 
 					elif re.search("^(?!perfusion).*_date_submit$",key) != None: # one of the calendar date submit buttons
@@ -264,15 +287,15 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 def clearing_table(username,request_name,clearing_protocol,clearing_batch_number):
 	""" Show the clearing contents for a clearing batch """ 
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
-	 		f'clearing_batch_number={clearing_batch_number}'
+			f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
+			f'clearing_batch_number={clearing_batch_number}'
 
 	overview_table = ClearingTable(clearing_batch_contents)
 	clearing_table.table_id = 'horizontal'
 	dbTable = determine_clearing_dbtable(clearing_protocol)
 	db_contents = dbTable() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
-	 		f'clearing_batch_number={clearing_batch_number}'
+			f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
+			f'clearing_batch_number={clearing_batch_number}'
 	table = determine_clearing_table(clearing_protocol)(db_contents)
 	table.table_id = 'vertical'
 
