@@ -16,7 +16,6 @@ def test_welcome_page(test_client,test_login):
 
 	assert b'Welcome to the' in response.data and b'How to contact us?' in response.data
 
-
 def test_login_inserts_user(test_client,test_login):
 	from lightserv import db_lightsheet
 	user_contents = db_lightsheet.User()
@@ -115,3 +114,17 @@ def test_feedback_form_submits(test_client,test_login,test_single_sample_request
 	assert test_str.encode('utf-8') not in response.data 	
 	welcome_str="Welcome to the Brain Registration and Histology Core Facility Portal at the Princeton Neuroscience Institute"
 	assert welcome_str.encode('utf-8') in response.data
+
+def test_ahoag_access_admin_page(test_client,test_login):
+	response = test_client.get(url_for('main.admin'),
+		follow_redirects=True)
+	assert response.status_code == 200
+	assert b'Admin' in response.data
+	assert b'restricted' not in response.data 
+
+def test_nonadmin_cannot_access_admin_page(test_client,test_login_nonadmin):
+	response = test_client.get(url_for('main.admin'),
+		follow_redirects=True)
+	# assert response.status_code == 302
+	assert b'Admin' not in response.data
+	assert b'That page is restricted' in response.data 

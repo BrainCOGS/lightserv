@@ -44,7 +44,7 @@ def send_email(subject,body,sender_email='lightservhelper@gmail.com',recipients=
 	recipients     list of email address strings
 	"""
 	if os.environ['FLASK_MODE'] == 'DEV':
-		print("Sending email only to ahoag@princeton.edu since we are in DEV mode")
+		logger.debug("Sending email only to ahoag@princeton.edu since we are in DEV mode")
 		recipients = ['ahoag@princeton.edu']
 	""" Asynchronous task to send an email """
 	msg = EmailMessage()
