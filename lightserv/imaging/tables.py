@@ -42,29 +42,6 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
-    table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted',
-        column_html_attrs=column_html_attrs))
-    table_class.add_column('request_name',Col('request name',
-        column_html_attrs=column_html_attrs))
-    table_class.add_column('sample_name',Col('sample name',
-        column_html_attrs=column_html_attrs))
-    table_class.add_column('username',Col('username',
-        column_html_attrs=column_html_attrs))    
-    table_class.add_column('imaging_request_number',Col('imaging request number',
-        column_html_attrs=column_html_attrs))    
-    
-    if table_class.table_id != 'horizontal_already_imaged_table':
-        table_class.add_column('clearing_progress',Col('clearing progress',
-            column_html_attrs=column_html_attrs))
-    if table_class.table_id == 'horizontal_on_deck_table':
-        table_class.add_column('clearer',DesignatedRoleCol('clearer',
-            column_html_attrs=column_html_attrs))
-    table_class.add_column('imaging_progress',Col('imaging progress',
-        column_html_attrs=column_html_attrs))
-    table_class.add_column('imager',DesignatedRoleCol('imager',
-        column_html_attrs=column_html_attrs))
-    table_class.add_column('species',Col('species',
-        column_html_attrs=column_html_attrs))    
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
     imaging_url_kwargs = {'username':'username','request_name':'request_name',
@@ -87,6 +64,33 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
          'imaging.imaging_table',url_kwargs=imaging_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False,
             column_html_attrs=column_html_attrs))
+
+    table_class.add_column('imaging_progress',Col('imaging progress',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('request_name',Col('request name',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('sample_name',Col('sample name',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('username',Col('username',
+        column_html_attrs=column_html_attrs))    
+    table_class.add_column('imaging_request_number',Col('imaging request number',
+        column_html_attrs=column_html_attrs))    
+    
+    if table_class.table_id != 'horizontal_already_imaged_table':
+        table_class.add_column('clearing_progress',Col('clearing progress',
+            column_html_attrs=column_html_attrs))
+    if table_class.table_id == 'horizontal_on_deck_table':
+        table_class.add_column('clearer',DesignatedRoleCol('clearer',
+            column_html_attrs=column_html_attrs))
+   
+    table_class.add_column('imager',DesignatedRoleCol('imager',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('species',Col('species',
+        column_html_attrs=column_html_attrs))    
+
+   
          
     sorted_contents = sorted(contents.fetch(as_dict=True),
             key=partial(table_sorter,sort_key=sort),reverse=reverse)
