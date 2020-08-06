@@ -53,5 +53,44 @@
 
 	</div>
 
+<hr class='class-2'>
+
+	<div id="probe" class='mb-4'>
+		<h3 align="center"> Neuronexus probe detection </h3>
+		<div align="center" class='mb-2'>
+			<img width="900" src="{{ url_for('static',filename='gallery/probe_detection.png') }}">
+			{# <img width="500" src="{{ url_for('static',filename='gallery/probe_detection_annotations_csv.png') }}"> #}
+		</div>
+		<div align="center" class='mb-2'>
+			<img width="500" src="{{ url_for('static',filename='gallery/probe_detection_annotations_csv.png') }}">
+		</div>
+
+		<p align="left"> Oostland et al. used light sheet imaging to do a post-experiment 
+		verification of the precise anatomical regions of a Neuronexus probe implanted in the 
+		lateral cerebellum. 
+		The probe has four shanks which were coated in CM-Dil to increase their signal brightness.
+		The top left panel shows a coronal slice of the brain with the image (greyscale)
+		and selected regions of the Princeton Mouse Brain Atlas (colored overlay).
+		The black vertical strips in the image are the CM-Dil signal,
+		marking the location of the probe in this section. The yellow circles are annotations
+		added in Neuroglancer to mark the locations	along each of the four shanks in multiple sections.
+		The top right panel shows the 3D view of the annotations in the context of the brain regions. 
+		</br></br>
+		The coordinates and brain region of each annotation can be exported to a CSV file from Neuroglancer
+		for further analysis.
+		The bottom panel shows the CSV file that was exported from this example. 
+		Each row represents a different annotation. The columns that are blank here are there to support
+		other types of annotations, such as lines and ellipsoids which are not used in this example.  
+		The coordinates are in the registered atlas space.
+
+		<h5 class='border-bottom'> Technical specs: </h5>
+		<b>Species:</b> Mouse </br>
+		<b>Clearing protocol:</b> iDISCO abbreviated clearing </br>
+		<b>Imaging resolution:</b> 1.3x</br>
+		<b>Imaging modes:</b> Registration (488 nm; not shown), Probe detection (555 nm; shown above)</br>
+
+		<b>Visualization:</b> <a target="_blank" href="http://github.com/BrainCOGS/neuroglancer">neuroglancer</a>
+
+	</div>
 
 {% endblock content %}
