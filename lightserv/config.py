@@ -11,7 +11,8 @@ class BaseConfig(object):
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	IMAGING_ADMINS = ['ahoag','zmd']
 	PROCESSING_ADMINS = ['ahoag','jduva','zmd']
-	CLEARING_ADMINS = ['ahoag','ll3','zmd']
+	CLEARING_ADMINS = ['ahoag','ll3','zmd','jverpeut']
+	TEMP_CLEARING_SUPERADMINS = ['ahoag','ll3','zmd','jverpeut']
 	IMAGING_MODES = ['registration','injection_detection','probe_detection','cell_detection','generic_imaging']
 	IMAGING_CHANNELS = ['488','555','647','790']
 	ADMINS_TO_EMAIL = ['ahoag'] # for problems with requests/spock jobs
