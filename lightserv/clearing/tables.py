@@ -37,7 +37,7 @@ def dynamic_clearing_management_table(contents,table_id,ignore_columns=[],
         classes = ["mb-4"]
         ) 
 
-    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:120px;'}
     table_class = create_table(name,options=options)
     table_class.get_tr_attrs = dynamic_get_tr_attrs
     table_class.sort_url = dynamic_sort_url

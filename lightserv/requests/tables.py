@@ -38,6 +38,8 @@ class AllRequestTable(Table):
 	# column_html_attrs = {'style':'text-align: center; min-width:10px', 'bgcolor':"#FF0000"} # gets assigned to both th and td
 	# column_html_attrs = [] # javascript tableswapper does not preserve these.
 	column_html_attrs = {'style':'word-wrap: break-word; max-width:120px;'}
+	narrow_html_attrs = {'style':'word-wrap: break-word; max-width:110px;'}
+
 	classes = [] # gets assigned to table classes. 
 	# Striped is alternating bright and dark rows for visual ease.
 	datetime_submitted = DateTimeCol('datetime submitted')
@@ -45,18 +47,19 @@ class AllRequestTable(Table):
 	username = Col('username',column_html_attrs=column_html_attrs)
 	request_name = Col('request name',column_html_attrs=column_html_attrs)
 	description = AbbrevDescriptionCol('description',column_html_attrs=column_html_attrs)
-	species = Col('species',column_html_attrs=column_html_attrs)
+
+	species = Col('species',column_html_attrs=narrow_html_attrs)
 	archival_tooltip_text = ('An archival request is a request '
 		'that was not submitted through this web portal, '
 		'but was manually entered after the experiment '
 		 'was already done. As a result, information may be incomplete '
 		 'and not all data products or visualizations may be available.')
 	archival_html_attrs = {'class':'infolink','title':archival_tooltip_text}
-	is_archival = BooltoStringCol('archival?',column_html_attrs=column_html_attrs,
+	is_archival = BooltoStringCol('archival?',column_html_attrs=narrow_html_attrs,
 		th_html_attrs=archival_html_attrs)
-	number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
-	fraction_cleared = Col('fraction cleared',column_html_attrs=column_html_attrs)
-	fraction_imaged = Col('fraction imaged*',column_html_attrs=column_html_attrs)
+	number_of_samples = Col('number of samples',column_html_attrs=narrow_html_attrs)
+	fraction_cleared = Col('fraction cleared',column_html_attrs=narrow_html_attrs)
+	fraction_imaged = Col('fraction imaged*',column_html_attrs=narrow_html_attrs)
 	fraction_processed = Col('fraction processed**',column_html_attrs=column_html_attrs)
 
 	url_kwargs = {'username':'username','request_name':'request_name'}
