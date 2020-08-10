@@ -44,8 +44,6 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
-# neuroglancer.set_static_content_source(url='https://neuromancer-seung-import.appspot.com')
-
 requests = Blueprint('requests',__name__)
 
 @requests.route("/requests/all_requests",methods=['GET','POST'])
@@ -58,7 +56,7 @@ def all_requests():
     clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
     imaging_request_contents = db_lightsheet.Request.ImagingRequest()
     processing_request_contents = db_lightsheet.Request.ProcessingRequest()
-    if current_user in ['ahoag','zmd','ll3','kellyms','jduva']:
+    if current_user in ['ahoag','zmd','ll3']:
         legend = 'All core facility requests'
     else:
         legend = 'Your core facility requests'

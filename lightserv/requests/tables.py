@@ -85,6 +85,22 @@ class AllRequestTable(Table):
 		allow_sort=False)
 	
 	def get_tr_attrs(self, item, reverse=False):
+		""" Sets properties at the row level. 
+		If any clearing batches have been started
+		then change the background color of that row.
+		If request is complete make it a different 
+		background color """
+
+		username = item['username']
+		request_name = item['request_name']
+		restrict_dict = dict(username=username,request_name=request_name)
+		clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & restrict_dict
+		clearing_progress_all_batches = clearing_batch_contents.fetch('clearing_progress')
+		any_started_clearing = any(
+			[clearing_progress != "incomplete" for clearing_progress in clearing_progress_all_batches])
+
+		""" figure out fraction cleared, imaged and processed
+		in order to know if request has been completed """
 		fraction_cleared_str = item['fraction_cleared']
 		n_cleared,n_possible_to_clear = map(int,fraction_cleared_str.split("/"))
 
@@ -97,7 +113,7 @@ class AllRequestTable(Table):
 		if n_cleared == n_possible_to_clear and n_imaged == n_possible_to_image and \
 			n_processed == n_possible_to_process: # request was completely fulfilled
 			return {'bgcolor':'#A4FCAC'} # green
-		elif n_cleared > 0: # in progress
+		elif any_started_clearing > 0: # in progress
 			return {'bgcolor':'#A4FCFA'} # cyan
 		else: # nothing done yet
 			return {'bgcolor':'#FCA5A4'} # red
