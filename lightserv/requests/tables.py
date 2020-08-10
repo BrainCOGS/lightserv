@@ -38,6 +38,8 @@ class AllRequestTable(Table):
 	# column_html_attrs = {'style':'text-align: center; min-width:10px', 'bgcolor':"#FF0000"} # gets assigned to both th and td
 	# column_html_attrs = [] # javascript tableswapper does not preserve these.
 	column_html_attrs = {'style':'word-wrap: break-word; max-width:120px;'}
+	narrow_html_attrs = {'style':'word-wrap: break-word; max-width:110px;'}
+
 	classes = [] # gets assigned to table classes. 
 	# Striped is alternating bright and dark rows for visual ease.
 	datetime_submitted = DateTimeCol('datetime submitted')
@@ -45,18 +47,19 @@ class AllRequestTable(Table):
 	username = Col('username',column_html_attrs=column_html_attrs)
 	request_name = Col('request name',column_html_attrs=column_html_attrs)
 	description = AbbrevDescriptionCol('description',column_html_attrs=column_html_attrs)
-	species = Col('species',column_html_attrs=column_html_attrs)
+
+	species = Col('species',column_html_attrs=narrow_html_attrs)
 	archival_tooltip_text = ('An archival request is a request '
 		'that was not submitted through this web portal, '
 		'but was manually entered after the experiment '
 		 'was already done. As a result, information may be incomplete '
 		 'and not all data products or visualizations may be available.')
 	archival_html_attrs = {'class':'infolink','title':archival_tooltip_text}
-	is_archival = BooltoStringCol('archival?',column_html_attrs=column_html_attrs,
+	is_archival = BooltoStringCol('archival?',column_html_attrs=narrow_html_attrs,
 		th_html_attrs=archival_html_attrs)
-	number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
-	fraction_cleared = Col('fraction cleared',column_html_attrs=column_html_attrs)
-	fraction_imaged = Col('fraction imaged*',column_html_attrs=column_html_attrs)
+	number_of_samples = Col('number of samples',column_html_attrs=narrow_html_attrs)
+	fraction_cleared = Col('fraction cleared',column_html_attrs=narrow_html_attrs)
+	fraction_imaged = Col('fraction imaged*',column_html_attrs=narrow_html_attrs)
 	fraction_processed = Col('fraction processed**',column_html_attrs=column_html_attrs)
 
 	url_kwargs = {'username':'username','request_name':'request_name'}
@@ -82,6 +85,22 @@ class AllRequestTable(Table):
 		allow_sort=False)
 	
 	def get_tr_attrs(self, item, reverse=False):
+		""" Sets properties at the row level. 
+		If any clearing batches have been started
+		then change the background color of that row.
+		If request is complete make it a different 
+		background color """
+
+		username = item['username']
+		request_name = item['request_name']
+		restrict_dict = dict(username=username,request_name=request_name)
+		clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & restrict_dict
+		clearing_progress_all_batches = clearing_batch_contents.fetch('clearing_progress')
+		any_started_clearing = any(
+			[clearing_progress != "incomplete" for clearing_progress in clearing_progress_all_batches])
+
+		""" figure out fraction cleared, imaged and processed
+		in order to know if request has been completed """
 		fraction_cleared_str = item['fraction_cleared']
 		n_cleared,n_possible_to_clear = map(int,fraction_cleared_str.split("/"))
 
@@ -94,7 +113,7 @@ class AllRequestTable(Table):
 		if n_cleared == n_possible_to_clear and n_imaged == n_possible_to_image and \
 			n_processed == n_possible_to_process: # request was completely fulfilled
 			return {'bgcolor':'#A4FCAC'} # green
-		elif n_cleared > 0: # in progress
+		elif any_started_clearing > 0: # in progress
 			return {'bgcolor':'#A4FCFA'} # cyan
 		else: # nothing done yet
 			return {'bgcolor':'#FCA5A4'} # red

@@ -249,6 +249,8 @@ class Request(dj.Manual):
         wash1_ptwh_wash4_notes = ""                              :   varchar(250)
         time_wash1_ptwh_wash5 = NULL                             :   datetime
         wash1_ptwh_wash5_notes = ""                              :   varchar(250)
+        time_wash1_ptwh_wash6 = NULL                             :   datetime
+        wash1_ptwh_wash6_notes = ""                              :   varchar(250)
         time_antibody2_added = NULL                              :   datetime
         antibody2_added_notes = ""                               :   varchar(250)
         time_wash2_start_roomtemp = NULL                         :   datetime
@@ -263,6 +265,8 @@ class Request(dj.Manual):
         wash2_ptwh_wash4_notes = ""                              :   varchar(250)
         time_wash2_ptwh_wash5 = NULL                             :   datetime
         wash2_ptwh_wash5_notes = ""                              :   varchar(250)
+        time_wash2_ptwh_wash6 = NULL                             :   datetime
+        wash2_ptwh_wash6_notes = ""                              :   varchar(250)
         time_clearing_methanol_20percent_wash1 = NULL               :   datetime
         clearing_methanol_20percent_wash1_notes = ""                :   varchar(250)
         time_clearing_methanol_40percent_wash1 = NULL               :   datetime

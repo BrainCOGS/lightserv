@@ -137,7 +137,7 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	time_antibody1_ptwh_wash2_submit = SubmitField('Update')
 	antibody1_ptwh_wash2_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	antibody1_ptwh_wash2_notes_submit = SubmitField('Update Notes')
-	time_antibody1_added = OptionalDateTimeLocalField('primary antibody (5% DMSO, 3% donkey serum in PTwH); 37C 7d')
+	time_antibody1_added = OptionalDateTimeLocalField('Primary antibody (5% DMSO, 3% donkey serum in PTwH); 37C 7d')
 	time_antibody1_added_submit = SubmitField('Update')
 	antibody1_added_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	antibody1_added_notes_submit = SubmitField('Update Notes')
@@ -169,6 +169,10 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	time_wash1_ptwh_wash5_submit = SubmitField('Update')
 	wash1_ptwh_wash5_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	wash1_ptwh_wash5_notes_submit = SubmitField('Update Notes')
+	time_wash1_ptwh_wash6 = OptionalDateTimeLocalField('Overnight wash')
+	time_wash1_ptwh_wash6_submit = SubmitField('Update')
+	wash1_ptwh_wash6_notes = TextAreaField('Notes',validators=[Length(max=250)])
+	wash1_ptwh_wash6_notes_submit = SubmitField('Update Notes')
 
 	""" Secondary Antibody """
 	antibody2_date = OptionalDateField('Secondary Antibody')
@@ -205,6 +209,10 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	time_wash2_ptwh_wash5_submit = SubmitField('Update')
 	wash2_ptwh_wash5_notes = TextAreaField('Notes',validators=[Length(max=250)])
 	wash2_ptwh_wash5_notes_submit = SubmitField('Update Notes')
+	time_wash2_ptwh_wash6 = OptionalDateTimeLocalField('Overnight wash')
+	time_wash2_ptwh_wash6_submit = SubmitField('Update')
+	wash2_ptwh_wash6_notes = TextAreaField('Notes',validators=[Length(max=250)])
+	wash2_ptwh_wash6_notes_submit = SubmitField('Update Notes')
 
 	""" Clearing """
 	clearing_date = OptionalDateField('Clearing')

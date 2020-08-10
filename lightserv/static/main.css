@@ -219,3 +219,9 @@ th     { background:#eee; }
 .sticky-top{
   top:56px;
 }
+
+@media (min-width: 1200px) {
+    .container{
+        max-width: 1350px;
+    }
+}
