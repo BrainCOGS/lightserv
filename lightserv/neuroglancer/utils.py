@@ -21,7 +21,7 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
-def generate_neuroglancer_url(payload):
+def generate_neuroglancer_url(payload,ng_image=None):
     """ A convenience function that takes a list of cloudvolume paths/metadata
     and launches cloudvolume containers and a neuroglancer viewer container
     and returns a link to the viewer. The cloudvolumes and neuroglancer
@@ -78,8 +78,10 @@ def generate_neuroglancer_url(payload):
     ng_dict['session_name'] = session_name
     """ send the data to the viewer-launcher
     to launch the ng viewer """                       
-    
-    requests.post('http://viewer-launcher:5005/ng_custom_launcher',json=ng_dict)
+    if ng_image == 'custom' or not ng_image:
+        requests.post('http://viewer-launcher:5005/ng_custom_launcher',json=ng_dict)
+    elif ng_image == 'ontology':
+        requests.post('http://viewer-launcher:5005/ng_ontology_launcher',json=ng_dict)
     logger.debug("Made post request to viewer-launcher to launch ng custom viewer")
     
     # Add the ng container name to redis session key level
