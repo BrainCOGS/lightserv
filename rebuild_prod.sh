@@ -42,3 +42,8 @@ docker build -f ./neuroglancer.Dockerfile -t nglancer_custom_viewer:prod .
 cd ../neuroglancer-sandbox
 
 docker build -f ./neuroglancer.Dockerfile -t nglancer_sandbox_viewer:prod .
+
+## build neuroglancer-ontology prod tag
+cd ../neuroglancer-ontology
+
+docker build -f ./neuroglancer.Dockerfile -t nglancer_ontology_viewer:prod .

@@ -152,19 +152,56 @@ def get_parent(graph,input_nodename):
 			return parent_nodename
 	return
 
-def contract_atlas(s):
-	# with viewer.config_state.txn() as st:
-	# 	st.status_messages['hello'] = 'Message received'
-
-	region_map = s.selected_values[layer_name]
+def init_tool(s):
+	logging.debug("in init_tool()")
+	with viewer.config_state.txn() as st:
+		try:
+			del st.status_messages['hello']
+		except KeyError:
+			pass
+	logging.debug("made it here")
+	""" first figure out the selected layer """
+	with viewer.txn() as txn:
+		if len(txn.layers) > 1:
+			selected_layer_name = txn.selectedLayer.layer
+			if not selected_layer_name:
+				with viewer.config_state.txn() as st:
+					st.status_messages['hello'] = 'No layer selected. Select a layer (right click or ctrl+click the layer panel)'        
+					return None, None
+		elif len(txn.layers) == 1:
+			logging.debug("should be here")
+			selected_layer_name = txn.layers[0].name
+		else:
+			with viewer.config_state.txn() as st:
+				st.status_messages['hello'] = 'No layers loaded. First load a layer to use this tool'        
+				return None, None
+	logging.debug("selecting region_map")
+	logging.debug("layer name:")
+	logging.debug(selected_layer_name)
+	logging.debug("selected values:")
+	logging.debug(s.selected_values)
+	try:
+		region_map = s.selected_values[selected_layer_name]
+	except KeyError:
+		# you need to move your cursor to get the layer to be selectable again
+		return None, None
 	named_tuple = region_map.value
+	logging.debug("end of init_tool()")
+	logging.debug("named tuple:")
+	logging.debug(named_tuple)
+	return named_tuple, selected_layer_name
+
+def contract_atlas(s):
+	named_tuple, selected_layer_name = init_tool(s)
+
 	if named_tuple:
+		with viewer.config_state.txn() as st:
+			st.status_messages['hello'] = 'key p pressed: contracting atlas' 
 		if named_tuple.value:
 			region_id = named_tuple.value
 		else:
 			region_id = named_tuple.key
 		region_name = ontology_id_dict[region_id]
-		logging.debug(region_name)
 		# Look up parent name and then get corresponding ID
 		parent_name = get_parent(Gnew,region_name)
 		if not parent_name:
@@ -172,8 +209,6 @@ def contract_atlas(s):
 				st.status_messages['hello'] = 'No parent found.'
 			return
 		parent_id = ontology_name_dict.get(parent_name)
-		logging.debug("parent found")
-		logging.debug(parent_id)
 		# find all progeny of this parent
 		progeny_list = get_progeny(data,input_nodename=parent_name) # progeny names
 		# initialize our equivalence list using the id-parent relationship we just found
@@ -184,10 +219,9 @@ def contract_atlas(s):
 			if progeny_id:
 				equivalence_list.append((progeny_id,parent_id)) 
 		with viewer.txn() as txn:
-			existing_equivalences = list(txn.layers[layer_name].layer.equivalences.items())
+			existing_equivalences = list(txn.layers[selected_layer_name].layer.equivalences.items())
 			final_equivalence_list = existing_equivalences + equivalence_list
-			txn.layers['Allen hierarch labels'].layer.equivalences = final_equivalence_list
-			logging.debug(txn.layers['Allen hierarch labels'].layer.equivalences.items())
+			txn.layers[selected_layer_name].layer.equivalences = final_equivalence_list
 		return
 	else:
 		with viewer.config_state.txn() as st:
@@ -195,12 +229,11 @@ def contract_atlas(s):
 		return
 	
 def expand_atlas(s):
-	with viewer.config_state.txn() as st:
-		logging.debug(st.status_messages)
-		st.status_messages['hello'] = 'Message received'
-	region_map = s.selected_values[layer_name]
-	named_tuple = region_map.value
+	named_tuple, selected_layer_name = init_tool(s)
+
 	if named_tuple:
+		with viewer.config_state.txn() as st:
+			st.status_messages['hello'] = 'key c pressed: expanding atlas' 
 		""" if the hovered segment is mapped to a parent, then start at the parent level"""
 		if named_tuple.value:
 			region_id = named_tuple.value
@@ -208,7 +241,7 @@ def expand_atlas(s):
 			region_id = named_tuple.key
 		""" Find and remove any existing equivalences that involve this region_id"""
 		with viewer.txn() as txn:
-			equiv_map = txn.layers[layer_name].layer.equivalences
+			equiv_map = txn.layers[selected_layer_name].layer.equivalences
 			if region_id not in equiv_map.keys():
 				with viewer.config_state.txn() as st:
 					st.status_messages['hello'] = 'This segment is already at the lowest level in the hierarchy'
@@ -216,7 +249,8 @@ def expand_atlas(s):
 				equiv_map.delete_set(region_id)
 		return
 	else:
-		st.status_messages['hello'] = 'No segment under cursor. Hover over segment to enable hierarchy tools' 
+		with viewer.config_state.txn() as st:
+			st.status_messages['hello'] = 'No segment under cursor. Hover over segment to enable hierarchy tools' 
 		return
 
 
@@ -225,36 +259,21 @@ viewer.actions.add(f'got to bottom of this branch of the atlas hierarchy', expan
 with viewer.config_state.txn() as s:
 	s.input_event_bindings.viewer['keyp'] = f'go up a level in the atlas hierarchy'
 	s.input_event_bindings.viewer['keyc'] = f'got to bottom of this branch of the atlas hierarchy'
-	s.status_messages['hello'] = 'Welcome to the merge ontology example. Press p to go up a level, c to go down to bottom of selected branch.'
+	s.status_messages['hello'] = ('Merge ontology tool activated. '
+			'When hovered over a region: press p to go up, c to go down in hierarchy.')
 
 # def my_action(s):
-# 	logging.debug('Got my-action')
-# 	logging.debug('  Mouse position: %s' % (s.mouse_voxel_coordinates,))
-# 	logging.debug('  Layer selected values: %s' % (s.selected_values,))
-# 	randn = np.random.randint(5,10)
-# 	with viewer.config_state.txn() as s:
-# 		s.status_messages['hello'] = f'We heard you. Zooming to {randn}'
-# 	with viewer.txn() as s:
-# 		s.cross_section_scale = randn
+#     logging.debug('Got my-action')
+#     logging.debug('  Mouse position: %s' % (s.mouse_voxel_coordinates,))
+#     logging.debug('  Layer selected values: %s' % (s.selected_values,))
+#     with viewer.config_state.txn() as s:
+#         s.status_messages['hello'] = 'We heard you.'
+#     with viewer.txn() as s:
+#         s.cross_section_scale = 8
 # viewer.actions.add('my-action', my_action)
 # with viewer.config_state.txn() as s:
-# 	s.input_event_bindings.viewer['keyt'] = 'my-action'
-# 	s.status_messages['hello'] = 'Welcome to this example'
-
+#     s.input_event_bindings.viewer['keyt'] = 'my-action'
+#     s.status_messages['hello'] = 'Welcome to this example'
 
 while True:
 	sleep(1)
-# from flask import Flask
-
-# app = Flask(__name__)
-
-# @app.route("/") 
-# def base():
-#     return "home of my viewer"
-
-# @app.route("/test") 
-# def test():
-#     print(viewer.state) 
-#     return "test complete!"
-
-# app.run(debug=True, host='0.0.0.0',port=5000)

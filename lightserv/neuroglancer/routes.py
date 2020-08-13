@@ -2243,7 +2243,6 @@ def sandbox():
     return render_template('neuroglancer/single_link.html',
         neuroglancerurl=neuroglancerurl)
 
-
 @neuroglancer.route("/neuroglancer/merge_ontology_demo",
     methods=['GET','POST'])
 @logged_in
@@ -2258,21 +2257,12 @@ def merge_ontology_demo():
     """ CV 1: Allen Mouse Brain Atlas """
     layer_type = "segmentation"
                
-    cv_number = 1 # to keep track of how many cloudvolumes in this viewer
-    cv_container_name = f'{session_name}_allenatlas_2017'
-    cv_name = f"allen_mouse_brain_atlas_2017_hierarch_labels"
-    cv_path = 'gs://wanglab-pma-test/allenatlas_2017_16bit_hierarch_labels'
-
-    cv_dict = dict(cv_number=cv_number,cv_path=cv_path,cv_name=cv_name,
-        cv_container_name=cv_container_name,
-        layer_type=layer_type,session_name=session_name)
-    cv_dict_list = [cv_dict]
+    cv_dict_list = []
     payload = {'session_name':session_name,'cv_dict_list':cv_dict_list}
     neuroglancerurl = generate_neuroglancer_url(payload,ng_image='ontology')
     
     return render_template('neuroglancer/single_link.html',
         neuroglancerurl=neuroglancerurl)
-
 
 @neuroglancer.route("/neuroglancer/jess_cfos_example",
     methods=['GET','POST'])
