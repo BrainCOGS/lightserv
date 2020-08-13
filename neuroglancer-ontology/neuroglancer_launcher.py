@@ -51,34 +51,12 @@ session_name = os.environ['SESSION_NAME'] # from the environment passed to this 
 session_dict = kv.hgetall(session_name) # gets a dict of all key,val pairs in the session
 logging.debug("session dict:")
 logging.debug(session_dict)
+layer_name = 'allenatlas_2017_16bit_hierarch_labels'
 
-try:
-	cv_count = int(session_dict['cv_count']) # number of cloudvolumes
-except:
-	logging.debug("No cloudvolumes to view")
-	cv_count = 0
-layer_list = []
-for ii in range(cv_count):
-	cv_number = ii+1
-	cv_name = session_dict[f'cv{cv_number}_name']
-
-	layer_list.append(cv_name)
-	layer_type = session_dict[f'layer{cv_number}_type']
-	with viewer.txn() as s:
-		logging.debug("Loading in source: ")
-		logging.debug(f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}")
-		if layer_type == 'image':
-			s.layers[cv_name] = neuroglancer.ImageLayer(
-				source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}") # this needs to be visible outside of the container in the browser
-		elif layer_type == 'segmentation':
-			
-			s.layers[cv_name] = neuroglancer.SegmentationLayer(
-				source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
-			)
-		elif layer_type == 'annotation':
-			s.layers[cv_name] = neuroglancer.AnnotationLayer(
-				source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
-			)
+with viewer.txn() as s:
+	s.layers[layer_name] = neuroglancer.SegmentationLayer(
+		source=f"precomputed://gs://wanglab-pma-test/{layer_name}" # this needs to be visible outside of the container in the browser
+	)
 			
 
 logging.debug("Not changing the layout")
@@ -177,12 +155,7 @@ def get_parent(graph,input_nodename):
 def contract_atlas(s):
 	# with viewer.config_state.txn() as st:
 	# 	st.status_messages['hello'] = 'Message received'
-	if cv_count != 1:
-		with viewer.config_state.txn() as st:
-			st.status_messages['hello'] = 'There was an issue with the ontology merge tool. Please report this.'
-		return
 
-	layer_name = session_dict['cv1_name']
 	region_map = s.selected_values[layer_name]
 	named_tuple = region_map.value
 	if named_tuple:
@@ -225,11 +198,6 @@ def expand_atlas(s):
 	with viewer.config_state.txn() as st:
 		logging.debug(st.status_messages)
 		st.status_messages['hello'] = 'Message received'
-	if cv_count != 1:
-		with viewer.config_state.txn() as st:
-			st.status_messages['hello'] = 'There was an issue with the ontology merge tool. Please report this.'
-		return
-	layer_name = session_dict['cv1_name']
 	region_map = s.selected_values[layer_name]
 	named_tuple = region_map.value
 	if named_tuple:
