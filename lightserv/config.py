@@ -38,7 +38,7 @@ class DevConfig(BaseConfig):
 	CLEARING_CALENDAR_ID = os.environ.get("TEST_CALENDAR_URL") # the test calendar for the time being
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_pnilsadmin_testing'
-	NG_VIEWER_EXPIRE_SECONDS = 60 # seconds (1 minute) time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
+	NG_VIEWER_EXPIRE_SECONDS = 3600 # seconds time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
 	SPOCK_LSADMIN_USERNAME = 'lightserv-test'
 	CELERY_ACKS_LATE = True
 	CELERYBEAT_SCHEDULE = {
