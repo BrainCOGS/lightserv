@@ -89,6 +89,9 @@ def generate_neuroglancer_url(payload,ng_image=None):
     # Add ng viewer url to config proxy so it can be seen from outside of the lightserv docker network 
     proxy_h.addroute(proxypath=f'viewers/{session_name}', 
         proxytarget=f"http://{ng_container_name}:8080/")
+    # if ng_image == 'ontology':
+    #     proxy_h.addroute(proxypath=f'ng_api', 
+    #         proxytarget=f"http://{ng_container_name}:5000/")
     logger.debug(f"Added {ng_container_name} to redis and confproxy")
 
     # Spin until the neuroglancer viewer token from redis becomes available 

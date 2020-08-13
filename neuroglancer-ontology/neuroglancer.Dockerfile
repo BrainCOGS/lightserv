@@ -8,7 +8,7 @@ WORKDIR /opt/repos
 RUN apt-get update -y && apt-get upgrade -y && \
     apt-get install bash git gcc 'g++' musl-dev -y
 
-RUN  pip install neuroglancer==2.8 redis pandas graphviz
+RUN  pip install neuroglancer==2.8 redis pandas graphviz Flask==1.1.1
 
 COPY neuroglancer_launcher.py /opt/neuroglancer_launcher.py
 
