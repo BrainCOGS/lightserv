@@ -211,7 +211,7 @@ def ng_ontology_launcher():
 	if flask_mode == 'DEV':
 		ng_ontology_image = 'nglancer_ontology_viewer:latest'
 	elif flask_mode == 'PROD':
-		ng_ontology_image = 'nglancer_ontology_viewer:prod'
+		ng_ontology_image = 'nglancer_ontology_viewer:latest'
 	ng_container = client.containers.run(ng_ontology_image,
                                   environment=ng_environment,
                                   network=network,
