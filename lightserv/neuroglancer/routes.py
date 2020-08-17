@@ -2243,6 +2243,27 @@ def sandbox():
     return render_template('neuroglancer/single_link.html',
         neuroglancerurl=neuroglancerurl)
 
+@neuroglancer.route("/neuroglancer/merge_ontology_demo",
+    methods=['GET','POST'])
+@logged_in
+@log_http_requests
+def merge_ontology_demo():
+    """ A route for generating a link to Neuroglancer
+    showing the Allen Brain Atlas merge-ontology demo
+    """
+    from .utils import generate_neuroglancer_url
+    session_name = secrets.token_hex(6)
+
+    """ CV 1: Allen Mouse Brain Atlas """
+    layer_type = "segmentation"
+               
+    cv_dict_list = []
+    payload = {'session_name':session_name,'cv_dict_list':cv_dict_list}
+    neuroglancerurl = generate_neuroglancer_url(payload,ng_image='ontology')
+    
+    return render_template('neuroglancer/single_link.html',
+        neuroglancerurl=neuroglancerurl)
+
 @neuroglancer.route("/neuroglancer/jess_cfos_example",
     methods=['GET','POST'])
 @logged_in
