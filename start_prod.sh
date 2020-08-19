@@ -1,6 +1,3 @@
-# start neuroglnacer in background if it is not running already
-docker-compose -f docker-compose-nglancerprod.yml up -d
-
 # start redis in background if it is not running already
 docker-compose -f docker-compose-redisprod.yml up -d
 
