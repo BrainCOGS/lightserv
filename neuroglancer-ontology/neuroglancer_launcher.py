@@ -193,7 +193,8 @@ def init_tool(s):
 
 def contract_atlas(s):
 	named_tuple, selected_layer_name = init_tool(s)
-
+	if not selected_layer_name:
+		return
 	if named_tuple:
 		with viewer.config_state.txn() as st:
 			st.status_messages['hello'] = 'key p pressed: contracting atlas' 
@@ -230,7 +231,9 @@ def contract_atlas(s):
 	
 def expand_atlas(s):
 	named_tuple, selected_layer_name = init_tool(s)
-
+	if not selected_layer_name:
+		return
+	
 	if named_tuple:
 		with viewer.config_state.txn() as st:
 			st.status_messages['hello'] = 'key c pressed: expanding atlas' 
