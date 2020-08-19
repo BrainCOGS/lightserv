@@ -1,4 +1,4 @@
-from flask import Blueprint,request
+from flask import Blueprint,request,jsonify
 import os
 import redis, docker
 import secrets
@@ -219,7 +219,6 @@ def ng_ontology_launcher():
                                   detach=True) 
 	return "success"
 
-
 @main.route("/ng_sandbox_launcher",methods=['POST']) 
 def ng_sandbox_launcher(): 
 	logging.debug("POST request to /ng_sandbox_launcher in viewer-launcher")
@@ -248,8 +247,6 @@ def ng_sandbox_launcher():
 	logging.debug("Launched container")
 	return "success"
 
-
-
 @main.route("/container_killer",methods=['POST']) 
 def container_killer(): 
 	logging.debug("POST request to /container_killer in viewer-launcher")
@@ -265,3 +262,25 @@ def container_killer():
 		logging.debug(f"Killed the container")
 	
 	return "success"
+
+@main.route("/get_container_info",methods=['POST']) 
+def get_container_info(): 
+	""" Given container names returns container IDs """ 
+	logging.debug("POST request to /get_container_info in viewer-launcher")
+	client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+	container_dict = request.json
+	container_names_to_id = container_dict['list_of_container_names'] # the name of the layer in Neuroglancer
+	logging.debug("Received container names to get info for:")
+	logging.debug(container_names_to_id)
+	container_info_dict = {}
+	for container_name in container_names_to_id:
+		container = client.containers.get(container_name)
+		container_id = container.short_id
+		container_image =  container.attrs['Config']['Image']
+			
+		container_info_dict[container_name] = {
+			'container_id':container_id,
+			'container_image':container_image
+		}
+	
+	return jsonify(container_info_dict)
