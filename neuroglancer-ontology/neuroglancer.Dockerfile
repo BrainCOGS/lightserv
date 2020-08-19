@@ -12,7 +12,7 @@ RUN  pip install neuroglancer==2.8 redis pandas graphviz Flask==1.1.1
 
 COPY neuroglancer_launcher.py /opt/neuroglancer_launcher.py
 
-COPY allen.json /opt/allen.json
+COPY allen_hierarch_labels_fillmissing.json /opt/allen.json
 
 COPY allen_id_table_w_voxel_counts_hierarch_labels.csv /opt/allen_id_table_w_voxel_counts_hierarch_labels.csv
 

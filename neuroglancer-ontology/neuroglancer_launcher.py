@@ -51,7 +51,7 @@ session_name = os.environ['SESSION_NAME'] # from the environment passed to this 
 session_dict = kv.hgetall(session_name) # gets a dict of all key,val pairs in the session
 logging.debug("session dict:")
 logging.debug(session_dict)
-layer_name = 'allenatlas_2017_16bit_hierarch_labels'
+layer_name = 'allenatlas_2017_16bit_hierarch_labels_fillmissing'
 
 with viewer.txn() as s:
 	s.layers[layer_name] = neuroglancer.SegmentationLayer(
@@ -69,13 +69,13 @@ kv.hmset(session_name,{'viewer': viewer_json_str})
 
 # Add the key bindings
 logging.debug('adding key bindings')
-df_allen = pd.read_csv('/opt/allen_id_table_w_voxel_counts_hierarch_labels.csv')
-logging.debug("read in dataframe")
-logging.debug(df_allen)
-ids = df_allen['reassigned_id']
-names = df_allen['name']
-ontology_id_dict = {ids[ii]:names[ii] for ii in range(len(df_allen))}
-ontology_name_dict = {names[ii]:ids[ii] for ii in range(len(df_allen))}
+# df_allen = pd.read_csv('/opt/allen_id_table_w_voxel_counts_hierarch_labels.csv')
+# logging.debug("read in dataframe")
+# logging.debug(df_allen)
+# ids = df_allen['reassigned_id']
+# names = df_allen['name']
+# ontology_id_dict = {ids[ii]:names[ii] for ii in range(len(df_allen))}
+# ontology_name_dict = {names[ii]:ids[ii] for ii in range(len(df_allen))}
 
 ontology_file = '/opt/allen.json'
 logging.debug("loading in JSON ontology file")
@@ -85,8 +85,12 @@ with open(ontology_file) as json_file:
 logging.debug("read in JSON file")
 
 """ Make the graph that will be used
-in the get_parent() function below """
+in the get_parent() function below.
+Also makes the dictionaries that are 
+used in the keybinding functions below """
 
+ontology_id_dict = {}
+ontology_name_dict = {}
 def make_id_graph(dic,graph):
 	""" Make a edge-unweighted directed graph from a dictionary
 	Representing a brain ontology
@@ -96,6 +100,8 @@ def make_id_graph(dic,graph):
 	children = dic.get('children')
 	orig_id = dic.get('id')
 	new_id = dic.get('graph_order') + 1
+	ontology_id_dict[new_id] = name
+	ontology_name_dict[name] = new_id
 	graph.node(name,f'{acronym}: {new_id}')
 	for child in children:
 		child_name = child.get('name')
