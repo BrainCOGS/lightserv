@@ -15,13 +15,18 @@ from .forms import (RawDataSetupForm,StitchedDataSetupForm,
     DownsizedDataSetupForm,GeneralDataSetupForm,
     CfosSetupForm)
 from .tables import (ImagingRequestTable, ProcessingRequestTable,
-    CloudVolumeLayerTable,MultiLightSheetCloudVolumeLayerTable)
+    CloudVolumeLayerTable,MultiLightSheetCloudVolumeLayerTable,
+    ConfproxyAdminTable)
 from lightserv import cel, db_lightsheet
 from lightserv.main.utils import (check_imaging_completed,
     check_imaging_request_precomputed,log_http_requests,
-    check_some_precomputed_pipelines_completed,logged_in)
+    check_some_precomputed_pipelines_completed,logged_in,
+    table_sorter,logged_in_as_admin)
 from .tasks import ng_viewer_checker
 import progproxy as pp
+
+from functools import partial
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -3389,3 +3394,75 @@ def jess_cfos_setup():
             this_animal_form.dataset.data = dataset
             this_animal_form.animal_id.data = animal_id
     return render_template('neuroglancer/jess_cfos_setup.html',form=form)
+
+@neuroglancer.route("/admin/confproxy_table",methods=['GET'])
+@logged_in_as_admin
+def confproxy_table():
+    """ A route to visualize the entries in the confproxy table
+    and their associated docker container names """
+    sort = request.args.get('sort', 'session_name') # first is the variable name, second is default value
+    reverse = (request.args.get('direction', 'asc') == 'desc')
+    kv = redis.Redis(host="redis", decode_responses=True)
+    proxy_h = pp.progproxy(target_hname='confproxy')
+    """ Make the timestamp against which we will compare the viewer timestamps """
+    response_all = proxy_h.getroutes()
+    proxy_dict = json.loads(response_all.text)
+    
+    table_contents = []
+    """ Figure out session name and
+    whether there are other containers associated """
+    session_names = [key.split('/')[-1] for key in proxy_dict.keys() if 'viewer' in key]
+    viewer_dict = {}
+    for session_name in session_names:
+        # first ng viewers
+        ng_table_entry = {}
+        ng_proxypath = f'/viewers/{session_name}'
+        ng_table_entry['session_name'] = session_name
+        ng_table_entry['proxy_path'] =  ng_proxypath
+
+        # now find any cloudvolumes with this session name
+        cv_proxypaths = [key for key in proxy_dict.keys() if f'cloudvols/{session_name}' in key]
+        viewer_dict[session_name] = cv_proxypaths
+        """ Now figure out container IDs """
+        session_dict = kv.hgetall(session_name)
+        logger.debug(session_dict)
+        try: # there might not always be cloudvolumes
+            cv_count = int(session_dict['cv_count'])
+        except:
+            cv_count = 0
+        cv_container_names = [session_dict[f'cv{x+1}_container_name'] for x in range(cv_count)]
+        ng_container_name = session_dict['ng_container_name']
+        ng_table_entry['container_name'] = ng_container_name
+        container_names = cv_container_names + [ng_container_name]
+        
+        container_dict = {'list_of_container_names':container_names}
+        response = requests.post('http://viewer-launcher:5005/get_container_info',json=container_dict)
+        container_info_dict = json.loads(response.text)
+        logger.debug(response)
+        logger.debug(container_info_dict)
+        ng_container_info_dict = container_info_dict[ng_container_name]
+        ng_container_id = ng_container_info_dict['container_id']
+        ng_container_image = ng_container_info_dict['container_image']
+        ng_table_entry['container_id'] = ng_container_id
+        ng_table_entry['image'] = ng_container_image
+        table_contents.append(ng_table_entry)
+        for ii in range(cv_count):
+            cv_table_entry = {
+                'session_name':session_name,
+                'proxy_path':cv_proxypaths[ii],
+            }
+            cv_container_name = cv_container_names[ii]
+            this_container_info_dict = container_info_dict[cv_container_name]
+            cv_container_id = this_container_info_dict['container_id']
+            cv_container_image = this_container_info_dict['container_image']
+            cv_table_entry['container_name'] = cv_container_name
+            cv_table_entry['container_id'] = cv_container_id
+            cv_table_entry['image'] = cv_container_image
+            table_contents.append(cv_table_entry)
+    sorted_table_contents = sorted(table_contents,
+        key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
+    table = ConfproxyAdminTable(sorted_table_contents,
+        sort_by=sort,sort_reverse=reverse)
+
+    return render_template('neuroglancer/confproxy_admin_panel.html',table=table)
+   
