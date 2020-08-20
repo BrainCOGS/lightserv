@@ -276,7 +276,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			 f'request_name="{request_name}"').fetch1('correspondence_email')
 			data_rootpath = current_app.config["DATA_BUCKET_ROOTPATH"]
 			path_to_data = (f'{data_rootpath}/{username}/{request_name}/'
-							 f'{sample_name}/rawdata/imaging_request_number_{imaging_request_number}')
+							 f'{sample_name}/imaging_request_number_{imaging_request_number}/rawdata')
 			""" Send email """
 			subject = 'Lightserv automated email: Imaging complete'
 			hosturl = os.environ['HOSTURL']
