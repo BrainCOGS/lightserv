@@ -14,4 +14,4 @@ else
 fi
 
 # Now run the rest of the dev services 
-docker-compose -f docker-compose-prod.yml up 
+docker-compose -f docker-compose-prod.yml up -d
