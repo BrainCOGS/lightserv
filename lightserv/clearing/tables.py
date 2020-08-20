@@ -362,51 +362,31 @@ class IdiscoAbbreviatedRatTable(Table):
     time_dehydr_methanol_20percent_wash1           = Col('time_dehydr_methanol_20percent_wash1',)
     dehydr_methanol_20percent_wash1_notes           = Col('dehydr_methanol_20percent_wash1_notes',)
     
-    time_dehydr_methanol_20percent_wash2           = Col('time_dehydr_methanol_20percent_wash2',)
-    dehydr_methanol_20percent_wash2_notes           = Col('dehydr_methanol_20percent_wash2_notes',)
-    
     time_dehydr_methanol_40percent_wash1           = Col('time_dehydr_methanol_40percent_wash1',)
     dehydr_methanol_40percent_wash1_notes           = Col('dehydr_methanol_40percent_wash1_notes',)
-    
-    time_dehydr_methanol_40percent_wash2           = Col('time_dehydr_methanol_40percent_wash2',)
-    dehydr_methanol_40percent_wash2_notes           = Col('dehydr_methanol_40percent_wash2_notes',)
-    
+        
     time_dehydr_methanol_60percent_wash1           = Col('time_dehydr_methanol_60percent_wash1',)
     dehydr_methanol_60percent_wash1_notes           = Col('dehydr_methanol_60percent_wash1_notes',)
     
     time_dehydr_methanol_80percent_wash1           = Col('time_dehydr_methanol_80percent_wash1',)
     dehydr_methanol_80percent_wash1_notes           = Col('dehydr_methanol_80percent_wash1_notes',)
-    
-    time_dehydr_methanol_80percent_wash2           = Col('time_dehydr_methanol_80percent_wash2',)
-    dehydr_methanol_80percent_wash2_notes           = Col('dehydr_methanol_80percent_wash2_notes',)
-    
+       
     time_dehydr_methanol_100percent_wash1          = Col('time_dehydr_methanol_100percent_wash1',)
     dehydr_methanol_100percent_wash1_notes          = Col('dehydr_methanol_100percent_wash1_notes',)
     
-    time_dehydr_methanol_100percent_wash2          = Col('time_dehydr_methanol_100percent_wash2',)
-    dehydr_methanol_100percent_wash2_notes          = Col('dehydr_methanol_100percent_wash2_notes',)
 
     time_dehydr_peroxide_wash1 = Col('time_dehydr_peroxide_wash1')
     dehydr_peroxide_wash1_notes = Col('dehydr_peroxide_wash1_notes')
     
-    time_dehydr_methanol_100percent_wash3 = Col('time_dehydr_methanol_100percent_wash3')
-    dehydr_methanol_100percent_wash3_notes = Col('dehydr_methanol_100percent_wash3_notes')
-    
-    time_dehydr_methanol_100percent_wash4 = Col('time_dehydr_methanol_100percent_wash4')
-    dehydr_methanol_100percent_wash4_notes = Col('dehydr_methanol_100percent_wash4_notes')
-    
-    time_dehydr_methanol_100percent_wash5 = Col('time_dehydr_methanol_100percent_wash5')
-    dehydr_methanol_100percent_wash5_notes = Col('dehydr_methanol_100percent_wash5_notes')
+    time_dehydr_methanol_100percent_wash2          = Col('time_dehydr_methanol_100percent_wash2',)
+    dehydr_methanol_100percent_wash2_notes          = Col('dehydr_methanol_100percent_wash2_notes',)
 
     time_dehydr_dcm_66percent_methanol_33percent = Col('time_dehydr_dcm_66percent_methanol_33percent')
     dehydr_dcm_66percent_methanol_33percent_notes = Col('dehydr_dcm_66percent_methanol_33percent_notes')
     
     time_dehydr_dcm_wash1 = Col('time_dehydr_dcm_wash1')
     dehydr_dcm_wash1_notes = Col('dehydr_dcm_wash1_notes')
-    
-    time_dehydr_dcm_wash2 = Col('time_dehydr_dcm_wash2')
-    dehydr_dcm_wash2_notes = Col('dehydr_dcm_wash2_notes')
-    
+        
     time_dehydr_dbe_wash1 = Col('time_dehydr_dbe_wash1')
     dehydr_dbe_wash1_notes = Col('dehydr_dbe_wash1_notes')
     
