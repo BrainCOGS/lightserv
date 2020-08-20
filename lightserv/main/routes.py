@@ -214,7 +214,7 @@ def admin():
 def test_cel(): 
 	from . import tasks as maintasks
 	from datetime import datetime, timedelta
-	future_time = datetime.utcnow() + timedelta(seconds=30)
+	future_time = datetime.utcnow() + timedelta(seconds=1)
 	print("sending hello task")
 	maintasks.hello.apply_async(eta=future_time) 
 	print("sent hello task")

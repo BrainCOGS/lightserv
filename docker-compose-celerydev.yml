@@ -15,6 +15,24 @@ services:
       - /jukebox/LightSheetData:/jukebox/LightSheetData
       - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
       - /var/run/docker.sock:/var/run/docker.sock
+  flower:
+    env_file: .dockerenv
+    image: flaskcelery:latest
+    command: ["celery",
+              "flower",
+              "-A",
+              "celery_worker.cel",
+              "--address=0.0.0.0",
+              "--port=5555",
+              "--loglevel=info"]
+    volumes:
+      - .:/app
+      - ./lib:/opt/libraries
+      - /jukebox/LightSheetData:/jukebox/LightSheetData
+      - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - '8050:5555'
   scheduler:
     env_file: .dockerenv
     image: flaskcelery:latest
