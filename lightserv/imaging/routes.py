@@ -345,9 +345,9 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				reminder_email_kwargs['body'] = body
 				reminder_email_kwargs['recipients'] = recipients
 				if not os.environ['FLASK_MODE'] == 'TEST': # pragma: no cover - used to exclude this line from calculating test coverage
-					tasks.send_processing_reminder_email.apply_async(
-						kwargs=reminder_email_kwargs,eta=future_time) 
-					logger.debug("Sent celery task for reminder email.")
+					# tasks.send_processing_reminder_email.apply_async(
+					# 	kwargs=reminder_email_kwargs,eta=future_time) 
+					logger.debug("Not running celery task for reminder email while debugging.")
 			return redirect(url_for('imaging.imaging_manager'))
 		else:
 			logger.info("Not validated")
