@@ -113,7 +113,11 @@ class ImagingTable(Table):
     sample_name = Col('sample name',column_html_attrs=column_html_attrs)
     imager = Col('imager',column_html_attrs=column_html_attrs)
     imaging_request_number = Col('imaging request number',column_html_attrs=column_html_attrs)
+    clearing_protocol = Col('clearing protocol',column_html_attrs=column_html_attrs)
+    antibody1 = Col('antibody1',column_html_attrs=column_html_attrs)
+    antibody2 = Col('antibody2',column_html_attrs=column_html_attrs)
     imaging_progress = ProgressCol('imaging progress',column_html_attrs=column_html_attrs)
+
 
 class SampleTable(Table):
     border = True

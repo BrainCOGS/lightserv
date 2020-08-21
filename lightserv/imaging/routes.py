@@ -113,6 +113,12 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 	form.imaging_request_number.data = imaging_request_number
 	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' 
+	antibody1,antibody2,clearing_batch_number = sample_contents.fetch1(
+		'antibody1','antibody2','clearing_batch_number')
+	clearing_batch_restrict_dict = dict(
+		antibody1=antibody1,antibody2=antibody2,clearing_batch_number=clearing_batch_number)
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & clearing_batch_restrict_dict
+	notes_for_clearer = clearing_batch_contents.fetch1('notes_for_clearer')
 	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			f'imaging_request_number="{imaging_request_number}"' 
@@ -139,7 +145,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			channel_content = channel_contents_list_this_resolution[jj]
 			channel_contents_lists[ii].append(channel_content)
 	overview_dict = imaging_request_contents.fetch1()
-	imaging_table = ImagingTable(imaging_request_contents)
+	imaging_table = ImagingTable(imaging_request_contents*sample_contents)
 
 	if request.method == 'POST':
 		logger.info("Post request")
@@ -370,6 +376,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}' & \
 			f'image_resolution="{this_image_resolution}" '
 			notes_for_imager = image_resolution_request_contents.fetch1('notes_for_imager')
+
 			channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
 			while len(form.image_resolution_forms) > 0:
 				form.image_resolution_forms.pop_entry() # pragma: no cover - used to exclude this line from calculating test coverage
@@ -380,6 +387,10 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				this_resolution_form.notes_for_imager.data = notes_for_imager 
 			else:
 				this_resolution_form.notes_for_imager.data = 'No special notes'
+			if notes_for_clearer:
+				this_resolution_form.notes_for_clearer.data = notes_for_clearer 
+			else:
+				this_resolution_form.notes_for_clearer.data = 'No special notes'
 			''' Now add the channel subforms to the image resolution form '''
 			for jj in range(len(channel_contents_list_this_resolution)):
 				channel_content = channel_contents_list_this_resolution[jj]
@@ -627,8 +638,9 @@ def imaging_table(username,request_name,sample_name,imaging_request_number):
 			f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			f'imaging_request_number="{imaging_request_number}"' 
-
-	imaging_overview_table = ImagingTable(imaging_request_contents)
+	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
+			f'username="{username}"' & f'sample_name="{sample_name}"' 
+	imaging_overview_table = ImagingTable(imaging_request_contents*sample_contents)
 	imaging_progress = imaging_request_contents.fetch1('imaging_progress')
 	
 	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \

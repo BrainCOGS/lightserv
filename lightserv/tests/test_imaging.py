@@ -419,7 +419,7 @@ def test_access_already_imaged_request_nonadmin(test_client,test_imaged_request_
 	imaging entry form that Zahra (zmd) has already completed.
 	"""
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'jduva'
+		sess['user'] = 'ahoag'
 	response = test_client.get(url_for('imaging.imaging_entry',
 			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
 			imaging_request_number=1),
@@ -528,9 +528,8 @@ def test_both_lightsheets_submit(test_client,test_cleared_request_both_lightshee
 		'image_resolution_forms-0-channel_forms-0-right_lightsheet_used':True,
 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_step':10,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':683,
+		'image_resolution_forms-0-channel_forms-0-z_step':5,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':1261,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test647',
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',

@@ -69,7 +69,9 @@ class ImageResolutionForm(FlaskForm):
 	""" A form for each image resolution that a user picks """
 	max_number_of_channels = 4
 	image_resolution = HiddenField('image resolution')
-	notes_for_imager = TextAreaField('Notes for imager:')
+	notes_for_clearer = TextAreaField('Notes left for clearer:')
+	notes_for_imager = TextAreaField('Notes left for imager:')
+
 	channel_forms = FieldList(FormField(ChannelForm),min_entries=0,max_entries=max_number_of_channels)
 	
 class ImagingForm(FlaskForm):
