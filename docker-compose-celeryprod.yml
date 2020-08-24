@@ -34,7 +34,7 @@ services:
     restart: unless-stopped
   flower:
     env_file: .dockerenv
-    image: flaskcelery:latest
+    image: flaskcelery:prod
     command: ["celery",
               "flower",
               "-A",
