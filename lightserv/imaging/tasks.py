@@ -181,7 +181,8 @@ def check_raw_precomputed_statuses():
 	client.set_missing_host_key_policy(paramiko.WarningPolicy)
 	
 	client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
-	# logger.debug("connected to spock")
+	logger.debug("connected to spock")
+	logger.debug("")
 	command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
 	stdin, stdout, stderr = client.exec_command(command)
 	stdout_str = stdout.read().decode("utf-8")
@@ -193,21 +194,23 @@ def check_raw_precomputed_statuses():
 		logger.debug("Something went wrong parsing output of precomputed sacct query on spock")
 		client.close()
 		return "Error parsing sacct query of precomputed jobid on spock"
-	# logger.debug("jobids_received:")
-	# logger.debug(jobids_received)
+	logger.debug("jobids_received:")
+	logger.debug(jobids_received)
 	job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
 	job_insert_list = []
 	for jobid,indices_list in job_status_indices_dict.items():
-		# logger.debug(f"In loop for jobid: {jobid}")
+		logger.debug(f"In loop for jobid: {jobid}")
 		job_insert_dict = {'jobid_step2':jobid}
 		status_codes = [status_codes_received[ii] for ii in indices_list]
 		status_step2 = determine_status_code(status_codes)
+		logger.debug("Summary status code:")
+		logger.debug(status_step2)
 		job_insert_dict['status_step2'] = status_step2
 		""" Find the username, other jobids associated with this jobid """
 		username_thisjob,lightsheet_thisjob,jobid_step0,jobid_step1 = (
 			unique_contents & f'jobid_step2={jobid}').fetch1(
 			'username','lightsheet','jobid_step0','jobid_step1')
-		# logger.debug(f"Lightsheet is: {lightsheet_thisjob}")
+		logger.debug(f"Lightsheet is: {lightsheet_thisjob}")
 		job_insert_dict['username']=username_thisjob
 		job_insert_dict['jobid_step0']=jobid_step0
 		job_insert_dict['jobid_step1']=jobid_step1
@@ -223,7 +226,7 @@ def check_raw_precomputed_statuses():
 			client.close()
 			return "Error fetching steps 0,1 job statuses from spock"
 		stdout_str_earlier_steps = stdout_earlier_steps.read().decode("utf-8")
-		# logger.debug(stdout_str_earlier_steps)
+		logger.debug(stdout_str_earlier_steps)
 		try:
 			response_lines_earlier_steps = stdout_str_earlier_steps.strip('\n').split('\n')
 			jobids_received_earlier_steps = [x.split('|')[0].split('_')[0] for x in response_lines_earlier_steps] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
@@ -238,22 +241,26 @@ def check_raw_precomputed_statuses():
 		""" Loop through the earlier steps and figure out their statuses """
 		for step_counter in range(2):
 		# for jobid_earlier_step,indices_list_earlier_step in job_status_indices_dict_earlier_steps.items():
-			step = f'step{step_counter}'
 			jobid_earlier_step = jobid_step_dict[step]
 			indices_list_earlier_step = job_status_indices_dict_earlier_steps[jobid_earlier_step]
-			# logger.debug(f'Step {step_counter} jobid: {jobid_earlier_step}')
 			status_codes_earlier_step = [status_codes_received_earlier_steps[ii] for ii in indices_list_earlier_step]
 			status_this_step = determine_status_code(status_codes_earlier_step)
 			status_step_str = f'status_step{step_counter}'
 			job_insert_dict[status_step_str] = status_this_step
-			# logger.debug(f"Status for {status_step_str} is: {status_this_step}")
 		job_insert_dict['lightsheet'] = lightsheet_thisjob
 		job_insert_list.append(job_insert_dict)
 		""" Get the imaging channel entry associated with this jobid
 		and update the progress """
 		this_imaging_channel_content = db_lightsheet.Request.ImagingChannel() & \
 		f'{lightsheet_thisjob}_lightsheet_precomputed_spock_jobid={jobid}'
-		dj.Table._update(this_imaging_channel_content,f'{lightsheet_thisjob}_lightsheet_precomputed_spock_job_progress',status_step2)
+		
+		try:
+			dj.Table._update(this_imaging_channel_content,
+				f'{lightsheet_thisjob}_lightsheet_precomputed_spock_job_progress',status_step2)
+			logger.debug("Updated ImagingChannel() entry")
+		except:
+			logger.info("Could not update ImagingChannel() entry")
+		
 		""" If the pipeline is now complete figure out if all of the 
 		resolution/channel combinations that in this same imaging request
 		are complete. If so, then email the user that their images are ready 
