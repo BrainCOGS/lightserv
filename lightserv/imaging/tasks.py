@@ -78,11 +78,11 @@ def make_precomputed_rawdata(**kwargs):
 	""" Now set up the connection to spock """
 	
 	if os.environ['FLASK_MODE'] == 'TEST':
-		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_imaging_script.sh "
+		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_imaging_script.sh"
 	else:
-		# command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "
-		# 		   f"/jukebox/wang/ahoag/precomputed/raw_pipeline/precomputed_pipeline_raw.sh {viz_dir}")
-		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+		command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "
+				   f"/jukebox/wang/ahoag/precomputed/raw_pipeline/precomputed_pipeline_raw.sh {viz_dir}")
+		# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 		# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_fail_pipeline.sh "
 
 	hostname = 'spock.pni.princeton.edu'
@@ -97,7 +97,7 @@ def make_precomputed_rawdata(**kwargs):
 
 	try:
 		response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
-		# logger.debug(response)
+		logger.debug(response)
 		jobid_step0, jobid_step1, jobid_step2 = response.split('\n')
 	except:
 		if lightsheet == 'left':

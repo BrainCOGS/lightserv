@@ -812,7 +812,7 @@ def test_raw_precomputed_pipeline_starts(test_client,):
 	precomputed_kwargs['y_dim'] = y_dim
 	tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) 
 	first_im.close() 
-	time.sleep(2)
+	time.sleep(3)
 	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
 	print(table_contents)
 	assert len(table_contents) > 0
