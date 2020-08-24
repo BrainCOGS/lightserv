@@ -31,6 +31,9 @@ class BaseConfig(object):
 	PROCESSING_CODE_DIR = '/jukebox/wang/ahoag/brainpipe'
 	DJ_SAFEMODE = True
 	dj.config['safemode'] = DJ_SAFEMODE
+	CELERY_ENABLE_UTC = False
+	CELERY_TIMEZONE = os.environ['TZ']
+
 	
 
 class DevConfig(BaseConfig):
