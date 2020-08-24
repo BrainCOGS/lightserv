@@ -113,10 +113,15 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 	form.imaging_request_number.data = imaging_request_number
 	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' 
-	antibody1,antibody2,clearing_batch_number = sample_contents.fetch1(
+	clearing_protocol,antibody1,antibody2,clearing_batch_number = sample_contents.fetch1(
+		'clearing_protocol',
 		'antibody1','antibody2','clearing_batch_number')
-	clearing_batch_restrict_dict = dict(
-		antibody1=antibody1,antibody2=antibody2,clearing_batch_number=clearing_batch_number)
+	clearing_batch_restrict_dict = dict(userame=username,request_name=request_name,
+		sample_name=sample_name,
+		clearing_protocol=clearing_protocol,
+		antibody1=antibody1,
+		antibody2=antibody2,
+		clearing_batch_number=clearing_batch_number)
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & clearing_batch_restrict_dict
 	notes_for_clearer = clearing_batch_contents.fetch1('notes_for_clearer')
 	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \

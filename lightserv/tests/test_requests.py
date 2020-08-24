@@ -1664,13 +1664,11 @@ def test_sort_request_overview_table(test_client,test_single_sample_request_ahoa
 
 
 	for column_name in ['sample_name','request_name','username','clearing_protocol']:
-		print(column_name)
 		response = test_client.get(
 					url_for('requests.request_overview',request_name='admin_request',
 						username='ahoag',sample_name='sample-001',sort=column_name,direction='desc'),
 				follow_redirects=True
 			)	
-		print(response.data)
 		assert b'Samples in this request:' in response.data	
 
 def test_clearing_table_link_works(test_client,test_cleared_request_nonadmin):

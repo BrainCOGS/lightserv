@@ -190,25 +190,11 @@ def admin():
 	user_action_contents = db_admin.UserActionLog() 
 	""" First get last 20 """
 	result=user_action_contents.fetch(limit=20,order_by='timestamp DESC',as_dict=True) 
-	print(result)
 	""" Then reverse order so they are in chronological order """
 	# df_chron = df.iloc[::-1]
 	admin_table = AdminTable(result[::-1])
 	logger.info(f"{current_user} accessed admin page")
 	return render_template('main/admin.html',admin_table=admin_table)
-
-
-
-# @main.route("/cel")
-# def test_cel(): 
-# 	from . import tasks as maintasks
-# 	from datetime import datetime, timedelta
-# 	future_time = datetime.utcnow() + timedelta(seconds=25)
-# 	print("sending hello task")
-# 	maintasks.hello.apply_async(eta=future_time) 
-# 	print("sent hello task")
-# 	assert 4==4
-# 	return "test ran"
 
 @main.route("/test_cel")
 def test_cel(): 

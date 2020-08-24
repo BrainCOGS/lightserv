@@ -125,6 +125,5 @@ def test_ahoag_access_admin_page(test_client,test_login):
 def test_nonadmin_cannot_access_admin_page(test_client,test_login_nonadmin):
 	response = test_client.get(url_for('main.admin'),
 		follow_redirects=True)
-	# assert response.status_code == 302
 	assert b'Admin' not in response.data
 	assert b'That page is restricted' in response.data 
