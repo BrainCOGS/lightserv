@@ -22,5 +22,9 @@ sshconfig
 checkroutes.sh
 .vscode
 screenshots
-stop_dev_celery.sh
-start_dev_celery.sh
+start_celery_dev.sh
+start_celery_prod.sh
+start_flower_dev.sh
+stop_celery_dev.sh
+stop_celery_prod.sh
+stop_flower_dev.sh
