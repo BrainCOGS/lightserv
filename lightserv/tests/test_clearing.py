@@ -88,6 +88,21 @@ def test_viz_clearing_worked(test_client,test_cleared_request_viz_nonadmin):
 	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
 	assert clearing_progress == 'complete'
 
+def test_sort_clearing_manager_all_columns(test_client,test_two_requests_ahoag):
+	""" Check that sorting all columns of all requests table works 
+
+	Uses the test_two_requests_ahoag fixture
+	to insert a two requests into the database as ahoag. 
+	"""
+
+	for column_name in ['datetime_submitted','expected_handoff_date','clearing_protocol','antibody1','antibody2',
+	'username','request_name','clearer','species']:
+		response = test_client.get(
+			url_for('clearing.clearing_manager',sort=column_name,direction='desc'),
+			follow_redirects=True)
+		assert b'Clearing management GUI' in response.data
+
+
 
 """ Testing clearing_entry() """
 

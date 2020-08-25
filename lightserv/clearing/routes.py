@@ -60,13 +60,6 @@ def clearing_manager():
 		'clearing_protocol','species',
 		'clearer','clearing_progress','clearing_protocol','antibody1','antibody2',
 		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
-	# combined_contents = dj.U('request_name','username','clearing_protocol','antibody1','antibody2').aggr(sample_contents, 
- #        clearer='clearer',clearing_progress='clearing_progress',
- #        sample_name='min(sample_name)',number_in_batch='count(*)') * request_contents	
-	# all_contents_unique_clearing_protocol = combined_contents.proj('sample_name','number_in_batch',
-	# 	'clearing_protocol','species',
-	# 	'clearer','clearing_progress','clearing_protocol','antibody1','antibody2',
-	# 	datetime_submitted='TIMESTAMP(date_submitted,time_submitted)') # will pick up the primary keys by default
 
 	''' First get all entities that are currently being cleared '''
 	contents_being_cleared = combined_contents & 'clearing_progress="in progress"'
