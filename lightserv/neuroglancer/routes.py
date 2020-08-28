@@ -26,7 +26,9 @@ from .tasks import ng_viewer_checker
 import progproxy as pp
 
 from functools import partial
+import humanize
 
+datetimeformat='%Y-%m-%dT%H:%M:%S.%fZ'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -3400,6 +3402,7 @@ def jess_cfos_setup():
 def confproxy_table():
     """ A route to visualize the entries in the confproxy table
     and their associated docker container names """
+    logger.debug("In confproxy_table route")
     sort = request.args.get('sort', 'session_name') # first is the variable name, second is default value
     reverse = (request.args.get('direction', 'asc') == 'desc')
     kv = redis.Redis(host="redis", decode_responses=True)
@@ -3407,25 +3410,31 @@ def confproxy_table():
     """ Make the timestamp against which we will compare the viewer timestamps """
     response_all = proxy_h.getroutes()
     proxy_dict = json.loads(response_all.text)
-    
     table_contents = []
     """ Figure out session name and
     whether there are other containers associated """
     session_names = [key.split('/')[-1] for key in proxy_dict.keys() if 'viewer' in key]
     viewer_dict = {}
     for session_name in session_names:
-        # first ng viewers
+        # first ng viewer
         ng_table_entry = {}
         ng_proxypath = f'/viewers/{session_name}'
         ng_table_entry['session_name'] = session_name
         ng_table_entry['proxy_path'] =  ng_proxypath
+        # Figure out last activity
+        ng_last_activity = proxy_dict[f'/viewers/{session_name}']['last_activity']
+        ng_last_activity_dt = datetime.strptime(ng_last_activity,datetimeformat)
+        # ng_last_activity_dt_
+        ng_td = datetime.utcnow() - ng_last_activity_dt
+        ng_td_str = humanize.naturaltime(ng_td)
 
+        ng_table_entry['last_activity'] = ng_td_str
         # now find any cloudvolumes with this session name
         cv_proxypaths = [key for key in proxy_dict.keys() if f'cloudvols/{session_name}' in key]
         viewer_dict[session_name] = cv_proxypaths
         """ Now figure out container IDs """
         session_dict = kv.hgetall(session_name)
-        logger.debug(session_dict)
+        # logger.debug(session_dict)
         try: # there might not always be cloudvolumes
             cv_count = int(session_dict['cv_count'])
         except:
@@ -3434,12 +3443,9 @@ def confproxy_table():
         ng_container_name = session_dict['ng_container_name']
         ng_table_entry['container_name'] = ng_container_name
         container_names = cv_container_names + [ng_container_name]
-        
         container_dict = {'list_of_container_names':container_names}
         response = requests.post('http://viewer-launcher:5005/get_container_info',json=container_dict)
         container_info_dict = json.loads(response.text)
-        logger.debug(response)
-        logger.debug(container_info_dict)
         ng_container_info_dict = container_info_dict[ng_container_name]
         ng_container_id = ng_container_info_dict['container_id']
         ng_container_image = ng_container_info_dict['container_image']
@@ -3453,6 +3459,14 @@ def confproxy_table():
             }
             cv_container_name = cv_container_names[ii]
             this_container_info_dict = container_info_dict[cv_container_name]
+            cv_proxy_key = next(x for x in proxy_dict.keys() if f'/cloudvols/{session_name}' in x)
+            cv_last_activity = proxy_dict[cv_proxy_key]['last_activity']
+            logger.debug(cv_last_activity)
+            cv_last_activity_dt = datetime.strptime(cv_last_activity,datetimeformat)
+            cv_td = datetime.utcnow() - cv_last_activity_dt
+            cv_td_str = humanize.naturaltime(cv_td)
+
+            cv_table_entry['last_activity'] = cv_td_str
             cv_container_id = this_container_info_dict['container_id']
             cv_container_image = this_container_info_dict['container_image']
             cv_table_entry['container_name'] = cv_container_name

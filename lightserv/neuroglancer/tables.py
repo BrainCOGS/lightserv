@@ -1,6 +1,7 @@
 from flask import url_for,flash,redirect, request, Markup
 from flask_table import Table, Col
 import os
+from lightserv.main.tables import DateTimeCol
 
 class ImagingRequestTable(Table):
 	border = True
@@ -94,6 +95,8 @@ class ConfproxyAdminTable(Table):
 	image = Col('docker image',column_html_attrs=column_html_attrs)
 	container_name = Col('container name',column_html_attrs=column_html_attrs)
 	container_id = Col('container id')
+	# last_activity = DateTimeCol('last activity')
+	last_activity = Col('last activity')
 	def sort_url(self, col_key, reverse=False):
 		if reverse:
 			direction = 'desc'
