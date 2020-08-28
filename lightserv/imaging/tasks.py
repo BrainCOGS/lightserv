@@ -241,6 +241,7 @@ def check_raw_precomputed_statuses():
 		""" Loop through the earlier steps and figure out their statuses """
 		for step_counter in range(2):
 		# for jobid_earlier_step,indices_list_earlier_step in job_status_indices_dict_earlier_steps.items():
+			step = f'step{step_counter}'
 			jobid_earlier_step = jobid_step_dict[step]
 			indices_list_earlier_step = job_status_indices_dict_earlier_steps[jobid_earlier_step]
 			status_codes_earlier_step = [status_codes_received_earlier_steps[ii] for ii in indices_list_earlier_step]
