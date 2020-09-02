@@ -3352,7 +3352,6 @@ def jess_cfos_eroded_cell_demo():
         neuroglancerurl=neuroglancerurl)
 
 
-
 @neuroglancer.route("/neuroglancer/jess_cfos_setup",
     methods=['GET','POST'])
 @logged_in
@@ -3378,16 +3377,28 @@ def jess_cfos_setup():
              'an7_crus1_lat','an10_crus1_lat','an11_crus1_lat',
              'an13_crus1_lat','an19_crus1_lat','an4_saline','an5_cno']
     }
+
+    # I made eroded cell precomputed layers for a subset of these
+    eroded_dataset_dict = {
+        '201904_ymaze_cfos':
+            ['an11','an12','an25'],
+        '201810_adultacutePC_ymaze_cfos':
+            ['dadult_pc_crus1_1'],
+        '202002_cfos':
+            ['an2_vecctrl_ymaze','an7_crus1_lat','an11_crus1_lat',
+             'an4_saline','an5_cno']
+    }
+
     if request.method == 'POST':
         logger.debug("POST request")
         if form.validate_on_submit():
             logger.debug("form validated")
             animal_forms = form.animal_forms
-            # logger.debug(animal_forms)
             for animal_form in animal_forms:
                 viz = animal_form.viz.data
                 animal_id = animal_form.animal_id.data
                 dataset = animal_form.dataset.data
+                eroded_cells = animal_form.eroded_cells.data
                 if viz:
                     selected_animal_id = animal_id
                     break
@@ -3465,9 +3476,15 @@ def jess_cfos_setup():
             layer_type = "annotation"
                        
             cv_number += 1              
-            cv_container_name = f'{session_name}_rawcells_{selected_animal_id}_iso'
-            cv_name = f"rawcells_{selected_animal_id}_iso"
-            cv_path = os.path.join(layer_rootdir,f'rawcells_annotation_{selected_animal_id}_iso')      
+            
+            if eroded_cells:
+                cv_container_name = f'{session_name}_rawcells_{selected_animal_id}_eroded_iso'
+                cv_name = f"rawcells_{selected_animal_id}_eroded_iso"
+                cv_path = os.path.join(layer_rootdir,f'rawcells_annotation_{selected_animal_id}_eroded_iso')      
+            else:    
+                cv_container_name = f'{session_name}_rawcells_{selected_animal_id}_iso'
+                cv_name = f"rawcells_{selected_animal_id}_iso"
+                cv_path = os.path.join(layer_rootdir,f'rawcells_annotation_{selected_animal_id}_iso')      
             """ send the data to the viewer-launcher
             to launch the cors webserver """                       
             cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
@@ -3550,6 +3567,11 @@ def jess_cfos_setup():
             this_animal_form = animal_forms[-1]
             this_animal_form.dataset.data = dataset
             this_animal_form.animal_id.data = animal_id
+            if animal_id in eroded_dataset_dict[dataset]:
+                this_animal_form.eroded_cells.data = 'yes'
+            else:
+                this_animal_form.eroded_cells.data = 'no'
+
     return render_template('neuroglancer/jess_cfos_setup.html',form=form)
 
 @neuroglancer.route("/admin/confproxy_table",methods=['GET'])

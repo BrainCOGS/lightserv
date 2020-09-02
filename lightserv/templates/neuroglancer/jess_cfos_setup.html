@@ -15,6 +15,7 @@
 			        <tr>
 			            <th>Dataset </th>
 			            <th>Animal ID</th>
+			            <th>Eroded cells?</th>
 			            <th>Visualize?</th>
 			        </tr>
 			        {% for ii in range(form.animal_forms|length) %}
@@ -22,12 +23,15 @@
 						<!-- render the hidden fields -->
 						{{ animal_form.dataset() }}
 						{{ animal_form.animal_id() }}
+						{{ animal_form.eroded_cells() }}
 						{% set dataset = animal_form.dataset.data %}
 						{% set animal_id = animal_form.animal_id.data %}
+						{% set eroded_cells = animal_form.eroded_cells.data %}
 
 						<tr>   
 						    <td>{{dataset}}</td>
 						    <td>{{animal_id}}</td>
+						    <td>{{eroded_cells}}</td>
 						    <td> 
 					    		<div>							    		
 					    			{{ animal_form.viz }}

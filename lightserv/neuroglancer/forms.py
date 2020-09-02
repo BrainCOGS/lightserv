@@ -202,6 +202,7 @@ class AnimalForm(FlaskForm):
 	""" A sub-form for each image resolution in RawDataSetupForm """
 	dataset = HiddenField('dataset')
 	animal_id = HiddenField('animal_id')
+	eroded_cells = HiddenField('Eroded cells?')
 	viz = BooleanField("Visualize?")
 
 class CfosSetupForm(FlaskForm):

@@ -16,13 +16,12 @@ docker-compose -f docker-compose-test.yml build
 docker network create --attachable lightserv-test
 
 ## viewer-launcher test tag
-cd ./viewer-launcher
+cd viewer-launcher
 
 docker build -f ./viewer-launcher.Dockerfile -t viewer-launcher:test .
 
-
 ## build cloud volume test tag
-cd ./cloudvolume
+cd ../cloudvolume
 
 docker build -f ./cloudvolume.Dockerfile -t cloudv_viewer:test .
 	
