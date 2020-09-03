@@ -703,11 +703,11 @@ def new_request():
                                 processing_resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
                                 processing_resolution_insert_dict['final_orientation'] = resolution_dict['final_orientation']
                                 processing_resolution_insert_list.append(processing_resolution_insert_dict)
-                                """ Make processing path on /jukebox """
-                                processing_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
-                                username,form.request_name.data,sample_name,f'imaging_request_{imaging_request_number}',
-                                'output',f'processing_request_{processing_request_number}',f'resolution_{image_resolution}')
-                                mymkdir(processing_path_to_make)
+                                # """ Make processing path on /jukebox """
+                                # processing_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+                                # username,form.request_name.data,sample_name,f'imaging_request_{imaging_request_number}',
+                                # 'output',f'processing_request_{processing_request_number}',f'resolution_{image_resolution}')
+                                # mymkdir(processing_path_to_make)
 
                             """ now loop through the imaging channels and fill out the ImagingChannel entries """
                             for imaging_channel_dict in resolution_dict['channel_forms']:

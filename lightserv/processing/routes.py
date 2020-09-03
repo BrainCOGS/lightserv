@@ -60,7 +60,7 @@ def processing_manager():
 	request_contents = db_lightsheet.Request()
 	imaging_request_contents = db_lightsheet.Request.ImagingRequest()
 	processing_request_contents = (db_lightsheet.Request.ProcessingRequest() * \
-	 	clearing_batch_contents * request_contents * imaging_request_contents).\
+		clearing_batch_contents * request_contents * imaging_request_contents).\
 			proj('clearing_progress','processing_request_date_submitted','processing_request_time_submitted',
 			'imaging_progress','imager','species','processing_progress','processor',
 			datetime_submitted='TIMESTAMP(processing_request_date_submitted,processing_request_time_submitted)')
@@ -167,10 +167,14 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 			""" loop through and update the atlas to be used based on what the user supplied """
 			for form_resolution_dict in form.image_resolution_forms.data:
 				this_image_resolution = form_resolution_dict['image_resolution']
-				# logger.info(this_image_resolution)
+				""" Make processing path on /jukebox """
+				processing_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+				username,request_name,sample_name,f'imaging_request_{imaging_request_number}',
+				'output',f'processing_request_{processing_request_number}',
+				f'resolution_{this_image_resolution}')
+				mymkdir(processing_path_to_make)
 				this_image_resolution_content = processing_resolution_request_contents & \
 				f'image_resolution="{this_image_resolution}"'
-				# logger.debug(this_image_resolution_content)
 				atlas_name = form_resolution_dict['atlas_name']
 				logger.info("updating atlas and notes_from_processing in ProcessingResolutionRequest() with user's form data")
 				dj.Table._update(this_image_resolution_content,'atlas_name',atlas_name)
@@ -264,22 +268,22 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 	all_imaging_modes = current_app.config['IMAGING_MODES']
 
 	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"'								
+			f'username="{username}"' & f'sample_name="{sample_name}"'								
 	sample_dict = sample_contents.fetch1()
 	# sample_table = SampleTable(sample_contents)
 	channel_contents = (db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"')
+			f'username="{username}"' & f'sample_name="{sample_name}"')
 	""" figure out the new processing request number to give the new request """
 	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
-	 		f'imaging_request_number="{imaging_request_number}"'
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			f'imaging_request_number="{imaging_request_number}"'
 	previous_processing_resolution_request_contents = db_lightsheet.Request.ProcessingResolutionRequest() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
-	 		f'imaging_request_number="{imaging_request_number}"'  
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			f'imaging_request_number="{imaging_request_number}"'  
 
 	previous_processing_request_contents = db_lightsheet.Request.ProcessingRequest() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
-	 		f'imaging_request_number="{imaging_request_number}"' 
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			f'imaging_request_number="{imaging_request_number}"' 
 
 	previous_processing_request_numbers = np.unique(previous_processing_request_contents.\
 		fetch('processing_request_number'))

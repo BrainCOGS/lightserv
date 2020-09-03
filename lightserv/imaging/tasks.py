@@ -77,7 +77,7 @@ def make_precomputed_rawdata(**kwargs):
 
 	""" Now set up the connection to spock """
 	
-	if os.environ['FLASK_MODE'] == 'TEST':
+	if os.environ['FLASK_MODE'] == 'TEST' or os.environ['FLASK_MODE'] == 'DEV':
 		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_imaging_script.sh"
 	else:
 		command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "

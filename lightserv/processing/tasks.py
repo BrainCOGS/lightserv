@@ -302,15 +302,8 @@ def run_lightsheet_pipeline(username,request_name,
 			""" First get the git commit from brainpipe """
 			command_get_commit = f'cd {processing_code_dir}; git rev-parse --short HEAD'
 
-			# command = """cd %s;%s/%s %s %s %s""" % \
-			# 	(processing_code_dir,
-			# 		processing_code_dir,
-			# 		pipeline_shell_script,
-			# 		output_directory,
-			# 		n_array_jobs_step1,
-			# 		n_channels_total
-			# 	)
-			if os.environ['FLASK_MODE'] == 'TEST':
+			
+			if os.environ['FLASK_MODE'] == 'TEST' or os.environ['FLASK_MODE'] == 'DEV' :
 				if n_channels_reg > 0:
 					command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline.sh"""
 				else:	
