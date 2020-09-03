@@ -1512,36 +1512,36 @@ def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_reques
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 
-@pytest.fixture(scope='function') 
-def test_imaged_4x_request_nonadmin(test_client,test_cleared_request_4x_nonadmin,
-	test_delete_request_db_contents,test_login_zmd):
-	""" Images the cleared 4x request by 'lightserv-test' (clearer='ll3')
-	with imager='zmd' """
+# @pytest.fixture(scope='function') 
+# def test_imaged_4x_request_nonadmin(test_client,test_cleared_request_4x_nonadmin,
+# 	test_delete_request_db_contents,test_login_zmd):
+# 	""" Images the cleared 4x request by 'lightserv-test' (clearer='ll3')
+# 	with imager='zmd' """
 
-	print('----------Setup test_4x_imaging_request_nonadmin fixture ----------')
-	with test_client.session_transaction() as sess:
-		sess['user'] = 'zmd'
-	# print(db_lightsheet.Request.Sample())
-	data = {
-		'image_resolution_forms-0-image_resolution':'4x',
-		'image_resolution_forms-0-channel_forms-0-channel_name':'647',
-		'image_resolution_forms-0-channel_forms-0-image_orientation':'sagittal',
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'2x3',
-		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
-		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.15,
-		'image_resolution_forms-0-channel_forms-0-z_step':2,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':682,
-		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test647'
-		}
-	response = test_client.post(url_for('imaging.imaging_entry',
-			username='lightserv-test',request_name='test2',sample_name='test2-001',
-			imaging_request_number=1),
-		data=data,
-		follow_redirects=True)
-	with test_client.session_transaction() as sess:
-		sess['user'] = 'lightserv-test'
-	yield test_client
-	print('----------Teardown test_4x_imaging_request_nonadmin fixture ----------')
+# 	print('----------Setup test_4x_imaging_request_nonadmin fixture ----------')
+# 	with test_client.session_transaction() as sess:
+# 		sess['user'] = 'zmd'
+# 	# print(db_lightsheet.Request.Sample())
+# 	data = {
+# 		'image_resolution_forms-0-image_resolution':'4x',
+# 		'image_resolution_forms-0-channel_forms-0-channel_name':'647',
+# 		'image_resolution_forms-0-channel_forms-0-image_orientation':'sagittal',
+# 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'2x3',
+# 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+# 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.15,
+# 		'image_resolution_forms-0-channel_forms-0-z_step':2,
+# 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':682,
+# 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test647'
+# 		}
+# 	response = test_client.post(url_for('imaging.imaging_entry',
+# 			username='lightserv-test',request_name='test2',sample_name='test2-001',
+# 			imaging_request_number=1),
+# 		data=data,
+# 		follow_redirects=True)
+# 	with test_client.session_transaction() as sess:
+# 		sess['user'] = 'lightserv-test'
+# 	yield test_client
+# 	print('----------Teardown test_4x_imaging_request_nonadmin fixture ----------')
 
 @pytest.fixture(scope='function') 
 def imaged_request_lightserv_test(test_client,test_cleared_request_nonadmin,

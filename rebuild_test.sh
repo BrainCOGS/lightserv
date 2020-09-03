@@ -3,9 +3,6 @@
 
 docker rm -f $(docker ps -a -f network=lightserv-test | grep -v "redis\|nglancerstatic" | awk '{print $1}')
 
-# # Make the image used for actually running the tests
-docker build -f ./flaskcelery.Dockerfile -t flaskcelery:test .
-
 # Build docker-compose services
 docker-compose -f docker-compose-test.yml build 
 

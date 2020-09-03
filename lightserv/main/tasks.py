@@ -80,4 +80,4 @@ def send_admin_email(subject,body,sender_email='lightservhelper@gmail.com'):
 @cel.task()
 def hello():
 	print("in celery task")
-	return "hello world1"
+	return "hello world"

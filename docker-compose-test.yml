@@ -18,7 +18,7 @@ services:
     env_file: .testdockerenv
     hostname: docker_lightserv
     image: flaskcelery:test
-    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_clearing.py::test_sort_clearing_manager_all_columns"
+    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_imaging.py"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData
@@ -50,15 +50,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - '5006:5005'
-  # testworker:
-  #   env_file: .testworkerdockerenv
-  #   image: flaskcelery:test
-  #   command: bash -c "sleep 4 && celery worker -A celery_worker.cel --loglevel=info"
-  #   volumes:
-  #     - .:/app
-  #     - ./lib:/opt/libraries
-  #     - /jukebox/LightSheetData:/jukebox/LightSheetData
-  #     - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
 networks:
   default:
     external:

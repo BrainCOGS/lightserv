@@ -1,7 +1,7 @@
 HOSTURL=braincogs00-test.pni.princeton.edu
 #CVDATA=./data
 CONFIGPROXY_AUTH_TOKEN='31507a9ddf3e41cf86b58ffede2db68326657437704461ae2c1a4018d55e18f0'
-#TZ=America/New_York
+TZ=America/New_York
 PYTHONPATH=/opt/libraries
 
 #NB_UID=1001

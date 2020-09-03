@@ -3,7 +3,7 @@ version: "3.4"
 services:
   testworker:
     env_file: .testworkerdockerenv
-    image: flaskcelery:test
+    image: flaskcelery:latest
     command: "celery worker -A celery_worker.cel --loglevel=info"
     volumes:
       - .:/app
