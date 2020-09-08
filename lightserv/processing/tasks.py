@@ -137,7 +137,8 @@ def run_lightsheet_pipeline(username,request_name,
 			for ii in range(len(unique_rawdata_subfolders)):
 				rawdata_subfolder = unique_rawdata_subfolders[ii]
 				# this_rawdata_dict['rawdata_subfolder']=rawdata_subfolder
-				rawdata_fullpath = os.path.join(raw_basepath,rawdata_subfolder)
+				rawdata_fullpath = os.path.join(raw_basepath,f'resolution_{image_resolution}',
+					rawdata_subfolder)
 				inputdictionary[rawdata_fullpath] = []	
 
 				""" Loop through the channels themselves to make the input dictionary

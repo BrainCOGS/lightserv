@@ -55,17 +55,6 @@ def test_zmd_access_processing_manager(test_client,
 	assert b'nonadmin_request' in response.data 
 	assert b'lightserv-test' in response.data 
 
-# def test_nonadmin_sees_their_4x_processing_request(test_client,
-	test_imaged_4x_request_nonadmin):
-	""" Test that lightserv-test, a nonadmin can access the processing task manager
-	and can see his entry because everyone is by default the processor for their requests """
-	response = test_client.get(url_for('processing.processing_manager')
-		, follow_redirects=True)
-	assert b'Processing management GUI' in response.data
-	# assert b'admin_request' not in response.data 
-	assert b'test2' in response.data 
-	# assert b'lightserv-test' in response.data 
-
 def test_ahoag_multiple_processing_requests_processing_manager(test_client,test_imaged_two_processing_requests_ahoag):
 	""" Test that ahoag can access the processing task manager
 	and see both of their processing requests for the same request """

@@ -171,6 +171,11 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			for form_resolution_dict in form.image_resolution_forms.data:
 				subfolder_dict = {}
 				image_resolution = form_resolution_dict['image_resolution']
+				""" Make rawdata/ subdirectories for this resolution """
+				imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+								 request_name,sample_name,f"imaging_request_{imaging_request_number}",
+								 "rawdata",f"resolution_{image_resolution}")
+				mymkdir(imaging_dir)
 				for form_channel_dict in form_resolution_dict['channel_forms']:
 					channel_name = form_channel_dict['channel_name']
 					rawdata_subfolder = form_channel_dict['rawdata_subfolder']
@@ -227,9 +232,9 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 						mymkdir(raw_viz_dir)
 						channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
 						mymkdir(channel_viz_dir)
-						raw_data_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
-								 f"{request_name}/{sample_name}/"
-								 f"imaging_request_{imaging_request_number}/rawdata/{rawdata_subfolder}")
+						raw_data_dir = os.path.join(imaging_dir,rawdata_subfolder)
+						logger.debug("raw data dir:")
+						logger.debug(raw_data_dir)
 						if left_lightsheet_used:
 							this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
 							mymkdir(this_viz_dir)

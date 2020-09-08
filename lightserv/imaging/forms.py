@@ -131,7 +131,7 @@ class ImagingForm(FlaskForm):
 				rawdata_fullpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 						self.username.data,self.request_name.data,self.sample_name.data,
 						f'imaging_request_{self.imaging_request_number.data}',
-						'rawdata',rawdata_subfolder) 
+						'rawdata',f'resolution_{this_image_resolution}',rawdata_subfolder) 
 				number_of_rawfiles_expected = number_of_z_planes*(left_lightsheet_used+right_lightsheet_used)*n_rows*n_columns
 				""" calculate the number we find. We have to be careful here
 				because the raw data filenames will include C00 if there

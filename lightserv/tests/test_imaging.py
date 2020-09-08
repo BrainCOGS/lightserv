@@ -725,7 +725,8 @@ def test_4x_multitile_request_submits(test_client,test_cleared_request_4x_multit
 	assert b'Imaging management GUI' in response.data
 	assert b'4x_647_kelly' in response.data 
 
-def test_imaging_entry_form_submits_for_second_imaging_request(test_client,test_imaged_first_of_two_imaging_requests_ahoag,
+def test_imaging_entry_form_submits_for_second_imaging_request(test_client,
+	test_imaged_first_of_two_imaging_requests_ahoag,
 	test_login_zmd):
 	""" Test that Zahra (zmd, an imaging admin) can submit the imaging entry form
 	for the second imaging request for a single sample """
@@ -766,7 +767,6 @@ def test_raw_precomputed_pipeline_starts(test_client,):
 	from lightserv.imaging import tasks
 	import time
 	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
-	print(table_contents)
 	username='ahoag'
 	request_name='admin_request'
 	sample_name='sample-001'
@@ -791,9 +791,10 @@ def test_raw_precomputed_pipeline_starts(test_client,):
 			 f"imaging_request_{imaging_request_number}/viz/raw")
 
 	channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
-	raw_data_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
-			 f"{request_name}/{sample_name}/"
-			 f"imaging_request_{imaging_request_number}/rawdata/{rawdata_subfolder}")
+	raw_data_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+						request_name,sample_name,
+						f"imaging_request_{imaging_request_number}","rawdata",
+						f"resolution_{image_resolution}",f"{rawdata_subfolder}")
 	this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
 	precomputed_kwargs['lightsheet'] = 'left'
 	precomputed_kwargs['viz_dir'] = this_viz_dir
@@ -814,7 +815,6 @@ def test_raw_precomputed_pipeline_starts(test_client,):
 	first_im.close() 
 	time.sleep(3)
 	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
-	print(table_contents)
 	assert len(table_contents) > 0
 
 """ Tests for New imaging request """	

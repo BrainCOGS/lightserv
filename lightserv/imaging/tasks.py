@@ -61,10 +61,10 @@ def make_precomputed_rawdata(**kwargs):
 	to save on /jukebox so spock can see it """
 	# x_dim,y_dim,z_dim = 2160,2560,int(number_of_z_planes)
 
-	rawdata_path = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
-								 f"{request_name}/{sample_name}/"
-								 f"imaging_request_{imaging_request_number}/rawdata/"
-								 f"{rawdata_subfolder}")
+	rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+								 request_name,sample_name,
+								 f"imaging_request_{imaging_request_number}","rawdata",
+								 f"resolution_{image_resolution}",f"{rawdata_subfolder}")
 
 	kwargs['rawdata_path'] = rawdata_path
 	slurmjobfactor = 20 # the number of processes run per core
