@@ -185,15 +185,30 @@
 	<hr class='class-1'>
 
 	<div>
-		<h3 class="infolink" data-toggle='tooltip' title='Make sure not to overwrite folders and do not put data from two different resolutions into the same folder unless they were read-out from the microscope that way'>Move all raw data folders so that they live inside this folder on bucket: </h3>
+		<h3 class="infolink" data-toggle='tooltip' title='Make sure not to overwrite folders and do not put data from two different imaging channels into the same subfolder unless they were read-out from the microscope that way'>
+		Move all raw data folders so that they live inside the correct folder on bucket: </h3>
 		<p>
-			{{rawdata_filepath}}
+			<code>{{rawdata_filepath}}resolution_<b>XX</b></code></br></br>
+			where <b>XX</b> is the resolution of the images, e.g. "1.1x", "1.3x", "2x", or "4x".</br></br>
+			This folder may not already exist inside of the rawdata/ folder. If it does not already exist,
+			first make the resolution folder before moving the rawdata subfolder. 
 		</p>
+		<p>
+			For example, say you took images in channel 488 for image resolution 1.3x for this brain and you saved
+			these raw images in a folder called test488 on the microscope computer. In that case, you would
+			first create the folder on bucket: </br>
+			<code>{{rawdata_filepath}}resolution_1.3x/ </code></br></br>
+			and then move the data folder from the microscope to this new folder: </br>
+			<code>scp test488 {{rawdata_filepath}}resolution_1.3x/</code>
+		</p>
+
 	</div>
 
+	<hr class='class-1'>
+
 	<div>
-		<h3> and record the name of the raw data subfolder for each channel below: </h3> 
-		<p> (e.g. "190820_m61468_observ_20190628_1d3x_647_008na_1hfds_z5um_250msec_14-50-40") </p>
+		<h3> Finally, record the name of the raw data subfolder for each resolution/channel combination below: </h3> 
+		<p> In the example above, <code>test488</code> was the name of the rawdata subfolder for 1.3x imaging with channel 488, so that is what you would enter in the box for that row below. </p>
 	</div>
 		{% for ii in range(form.image_resolution_forms|length) %}
 			{% set image_resolution_form = form.image_resolution_forms[ii] %}

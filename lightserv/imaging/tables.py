@@ -28,11 +28,11 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
         border = True,
         allow_sort = True,
         no_items = "No samples at the moment",
-        html_attrs = {"style":'font-size:18px; width=100%'}, 
+        html_attrs = {"style":'font-size:16px; width=100%'}, 
         table_id = table_id,
         classes = ["table-striped","mb-4"]
         ) 
-    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:150px;'}
 
     table_class = create_table(name,options=options)
     table_class.get_tr_attrs = dynamic_get_tr_attrs
