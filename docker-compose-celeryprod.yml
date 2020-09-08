@@ -32,25 +32,6 @@ services:
     depends_on:
       - worker
     restart: unless-stopped
-  flower:
-    env_file: .dockerenv
-    image: flaskcelery:prod
-    command: ["celery",
-              "flower",
-              "-A",
-              "celery_worker.cel",
-              "--address=0.0.0.0",
-              "--port=5555",
-              "--loglevel=info"]
-    volumes:
-      - .:/app
-      - ./lib:/opt/libraries
-      - /jukebox/LightSheetData:/jukebox/LightSheetData
-      - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - '8060:5555'
-    restart: unless-stopped
 networks:
   default:
     external:
