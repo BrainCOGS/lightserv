@@ -41,6 +41,25 @@ def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
     """ Add the columns that you want to go first here.
     It is OK if they get duplicated in the loop below -- they
     will not be added twice """
+
+    ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
+    processing_url_kwargs = {'username':'username','request_name':'request_name',
+        'sample_name':'sample_name','imaging_request_number':'imaging_request_number',
+        'processing_request_number':'processing_request_number'}
+
+    anchor_attrs = {}
+    if table_id == 'horizontal_ready_to_process_table':
+        table_class.add_column('start_processing_link',LinkCol('Start processing',
+         'processing.processing_entry',url_kwargs=processing_url_kwargs,
+            anchor_attrs=anchor_attrs,allow_sort=False))
+    elif table_id == 'horizontal_being_processed_table':
+        table_class.add_column('continue_processing_link',LinkCol('Continue processing',
+         'processing.processing_entry',url_kwargs=processing_url_kwargs,
+            anchor_attrs=anchor_attrs,allow_sort=False))
+    elif table_id == 'horizontal_already_processed_table':
+        table_class.add_column('view_processing_link',LinkCol('View processing log',
+         'processing.processing_entry',url_kwargs=processing_url_kwargs,
+            anchor_attrs=anchor_attrs,allow_sort=False))
     table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted'))
     table_class.add_column('request_name',Col('request name'))
     table_class.add_column('sample_name',Col('sample name'))
@@ -57,25 +76,9 @@ def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
     table_class.add_column('processor',DesignatedRoleCol('processor'))
     table_class.add_column('species',Col('species'))    
 
-    ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
-    processing_url_kwargs = {'username':'username','request_name':'request_name',
-        'sample_name':'sample_name','imaging_request_number':'imaging_request_number',
-        'processing_request_number':'processing_request_number'}
-
+   
     # anchor_attrs = {'target':"_blank",}
-    anchor_attrs = {}
-    if table_id == 'horizontal_ready_to_process_table':
-        table_class.add_column('start_processing_link',LinkCol('Processing entry form',
-         'processing.processing_entry',url_kwargs=processing_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False))
-    elif table_id == 'horizontal_being_processed_table':
-        table_class.add_column('continue_processing_link',LinkCol('Continue processing',
-         'processing.processing_entry',url_kwargs=processing_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False))
-    elif table_id == 'horizontal_already_processed_table':
-        table_class.add_column('view_processing_link',LinkCol('View processing log',
-         'processing.processing_entry',url_kwargs=processing_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False))
+    
          
     sorted_contents = sorted(contents.fetch(as_dict=True),
             key=partial(table_sorter,sort_key=sort),reverse=reverse)
