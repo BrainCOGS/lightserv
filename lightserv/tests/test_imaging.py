@@ -126,8 +126,6 @@ def test_imaging_entry_form_submits(test_client,test_cleared_request_ahoag,
 	test_login_zmd):
 	""" Test that Zahra (zmd, an imaging admin) can submit the imaging entry form
 	for a test sample """
-	from lightserv import db_lightsheet
-	print(db_lightsheet.Request.ImagingChannel())
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
@@ -778,12 +776,9 @@ def test_imaging_entry_form_submits_for_second_imaging_request(test_client,
 def test_imager_changes_resolution(test_client,
 	test_cleared_request_nonadmin,
 	test_login_zmd):
-	""" Test that Zahra (zmd, an imaging admin) can submit the imaging entry form
-	for the second imaging request for a single sample
-	and she can switch the image resolution from 1.3x to 1.1x"""
+	""" Test that Zahra (zmd, an imaging admin) can change the image resolution
+	in the imaging entry form"""
 
-	# imaging_contents = db_lightsheet.Request.ImagingChannel() & 'imaging_request_number=1'
-	# print(imaging_contents.fetch1(''))
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-change_resolution':True,
@@ -808,6 +803,37 @@ def test_imager_changes_resolution(test_client,
 	assert imaging_channel_image_resolution_recovered == '1.1x'
 	# assert b'Imaging Entry Form' in response.data
 
+def test_imager_submits_changed_resolution(test_client,test_request_resolution_switched_nonadmin,
+	test_cleared_request_nonadmin,
+	test_login_zmd):
+	""" Test that Zahra (zmd, an imaging admin) can submit the imaging entry form
+	after switching the image resolution from 1.3x to 1.1x"""
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.1x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'submit':True
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging management GUI' in response.data
+	assert b'admin_request' in response.data 
+
+	imaging_progress = (db_lightsheet.Request.ImagingRequest() & 'request_name="nonadmin_request"' & \
+		'username="lightserv-test"' & 'sample_name="sample-001"' & 'imaging_request_number=1').fetch1(
+			'imaging_progress')
+	assert imaging_progress == 'complete'
+	
 
 """ Test for imaging tasks """
 

@@ -1418,7 +1418,6 @@ def test_cleared_request_viz_nonadmin(test_client,test_request_viz_nonadmin,
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_cleared_request_nonadmin fixture --------')
 
-
 """ Fixtures for imaging  """
 
 @pytest.fixture(scope='function') 
@@ -1481,6 +1480,32 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 		sess['user'] = 'lightserv-test'
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
+
+@pytest.fixture(scope='function') 
+def test_request_resolution_switched_nonadmin(test_client,test_cleared_request_nonadmin,
+	test_delete_request_db_contents,test_login_zmd):
+	""" In the imaging entry form, Zahra switches the image resolution to 1.1x
+	but does not submit the form """
+
+	print('----------Setup test_imaged_request_nonadmin fixture ----------')
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'zmd'
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-change_resolution':True,
+		'image_resolution_forms-0-new_image_resolution':'1.1x',
+		'image_resolution_forms-0-update_resolution_button':True
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	# with test_client.session_transaction() as sess:
+	# 	sess['user'] = 'lightserv-test'
+	yield test_client
+	print('----------Teardown test_imaged_request_ahoag fixture ----------')
+
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_request_generic_imaging_nonadmin,
