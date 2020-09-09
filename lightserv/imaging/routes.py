@@ -127,6 +127,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			f'imaging_request_number="{imaging_request_number}"' 
+	
 	''' If imaging is already complete (from before), then dont change imaging_progress '''
 	imaging_progress = imaging_request_contents.fetch1('imaging_progress')
 	
@@ -151,10 +152,82 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			channel_contents_lists[ii].append(channel_content)
 	overview_dict = imaging_request_contents.fetch1()
 	imaging_table = ImagingTable(imaging_request_contents*sample_contents)
-
+	logger.debug(db_lightsheet.Request.ImagingResolutionRequest() & \
+						f'username="{username}" ' & f'request_name="{request_name}" ')
 	if request.method == 'POST':
 		logger.info("Post request")
-		if form.validate_on_submit():
+		logger.debug(form.data)
+		""" Check to see if an image resolution update button was pressed """
+		if not form.submit.data:
+			logger.debug("Update button pressed")
+			""" Figure out which image resolution form this came from so I can properly update the 
+			image resolution """
+			for form_resolution_dict in form.image_resolution_forms.data:
+				this_image_resolution =  form_resolution_dict['image_resolution']
+				logger.debug("Image resolution:")
+				logger.debug(this_image_resolution)
+				update_resolution_button_pressed = form_resolution_dict['update_resolution_button']
+				if update_resolution_button_pressed:
+					new_image_resolution = form_resolution_dict['new_image_resolution']
+					logger.debug("New image resolution is:")
+					logger.debug(new_image_resolution)
+					""" Update image resolution in the database """
+
+					image_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
+						f'username="{username}" ' & f'request_name="{request_name}" ' & \
+						f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}' & \
+						f'image_resolution="{this_image_resolution}"'
+					logger.debug("ImagingResolutionRequest() contents: ")
+					logger.debug(image_resolution_request_contents)
+					image_resolution_request_insert_dict = image_resolution_request_contents.fetch1()
+					imaging_channel_request_contents = db_lightsheet.Request.ImagingChannel() & \
+						f'username="{username}" ' & f'request_name="{request_name}" ' & \
+						f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}' & \
+						f'image_resolution="{this_image_resolution}" '
+					imaging_channel_dicts = imaging_channel_request_contents.fetch(as_dict=True)
+					""" First delete each ImagingChannel() entry """
+					imaging_channel_dicts_to_insert = [d for d in imaging_channel_dicts]
+					dj.config['safemode'] = False
+					imaging_channel_request_contents.delete(force=True)
+					""" And delete ProcessingChannel() entries tied to this imaging request as well """
+					processing_channel_request_contents = db_lightsheet.Request.ProcessingChannel() & \
+						f'username="{username}" ' & f'request_name="{request_name}" ' & \
+						f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}' & \
+						f'image_resolution="{this_image_resolution}" '
+					processing_channel_dicts = processing_channel_request_contents.fetch(as_dict=True)
+					processing_channel_dicts_to_insert = [d for d in processing_channel_dicts]
+					processing_channel_request_contents.delete(force=True)
+					""" Now delete ProcessingResolutionRequest() entry """
+					processing_resolution_request_contents = db_lightsheet.Request.ProcessingResolutionRequest() & \
+						f'username="{username}" ' & f'request_name="{request_name}" ' & \
+						f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}' & \
+						f'image_resolution="{this_image_resolution}"'
+					processing_resolution_request_insert_dict = processing_resolution_request_contents.fetch1()
+					processing_resolution_request_contents.delete(force=True)
+					""" Now delete ImagingResolutionRequest() entry """
+					image_resolution_request_contents.delete(force=True)
+					""" Reset to whatever safemode was before the switch """
+					dj.config['safemode'] = current_app.config['DJ_SAFEMODE']
+
+					""" Now make the inserts with the updated image_resolution value """
+					""" First ImagingResolutionRequest() """
+					image_resolution_request_insert_dict['image_resolution'] = new_image_resolution
+					db_lightsheet.Request.ImagingResolutionRequest().insert1(
+						image_resolution_request_insert_dict)
+					""" Now ImagingChannel() """
+					[d.update({'image_resolution':new_image_resolution}) for d in imaging_channel_dicts_to_insert]
+					db_lightsheet.Request.ImagingChannel().insert(imaging_channel_dicts_to_insert)
+					""" Now ProcessingResolutionRequest() """
+					processing_resolution_request_insert_dict['image_resolution'] = new_image_resolution
+					db_lightsheet.Request.ProcessingResolutionRequest().insert1(
+						processing_resolution_request_insert_dict)
+					""" Finally ProcessingChannel() """
+					[d.update({'image_resolution':new_image_resolution}) for d in processing_channel_dicts_to_insert]
+					db_lightsheet.Request.ProcessingChannel().insert(processing_channel_dicts_to_insert)
+					logger.info("Updated image resolution in all 4 tables")
+					return redirect(url_for('imaging.imaging_entry',
+						username=username,request_name=request_name,sample_name=sample_name,imaging_request_number=imaging_request_number))
+		elif form.validate_on_submit():
 			logger.info("form validated")
 			imaging_progress = imaging_request_contents.fetch1('imaging_progress')
 			

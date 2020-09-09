@@ -1439,6 +1439,7 @@ def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
 		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'submit':True
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
 			username='ahoag',request_name='admin_request',sample_name='sample-001',
@@ -1469,6 +1470,7 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'submit':True
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
 			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
@@ -1501,6 +1503,7 @@ def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_reques
 		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test555',
+		'submit':True
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
 			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
@@ -1564,6 +1567,7 @@ def imaged_request_lightserv_test(test_client,test_cleared_request_nonadmin,
 		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'submit':True
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
 			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
@@ -1630,6 +1634,7 @@ def test_imaged_two_processing_requests_ahoag(test_client,test_cleared_two_proce
 		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'submit':True
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
 			username='ahoag',request_name='admin_request',sample_name='sample-001',
@@ -1658,6 +1663,7 @@ def test_imaged_first_of_two_imaging_requests_ahoag(test_client,test_cleared_two
 		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'submit':True
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
 			username='ahoag',request_name='admin_request',sample_name='sample-001',
@@ -1686,6 +1692,7 @@ def test_imaged_both_imaging_requests_ahoag(test_client,test_imaged_first_of_two
 		'image_resolution_forms-0-channel_forms-0-z_step':10,
 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'submit':True
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
 			username='ahoag',request_name='admin_request',sample_name='sample-001',
@@ -1725,6 +1732,7 @@ def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadm
 		'image_resolution_forms-0-channel_forms-1-z_step':5,
 		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':1258,
 		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test647',
+		'submit':True
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
 			username='lightserv-test',request_name='viz_processed',sample_name='viz_processed-001',

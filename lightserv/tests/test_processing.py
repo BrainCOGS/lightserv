@@ -373,37 +373,37 @@ def test_submit_processing_entry_generic_imaging_nonadmin(test_client,test_image
 	processing_progress = processing_request_contents.fetch1('processing_progress')
 	assert processing_progress == 'running'
 
-def test_submit_processing_entry_4x_nonadmin(test_client,test_imaged_4x_request_nonadmin):
-	""" Test that lightserv-test can submit their 4x processing request"""
-	with test_client.session_transaction() as sess:
-		sess['user'] = 'lightserv-test'
-	data = {
-		'image_resolution_forms-0-image_resolution':'4x',
-		'image_resolution_forms-0-channel_forms-0-channel_name':'647',
-		'submit':True
-		}
-	username='lightserv-test'
-	request_name='test2'
-	sample_name='test2-001'
-	imaging_request_number=1
-	processing_request_number=1
-	response = test_client.post(url_for('processing.processing_entry',
-		username=username,request_name=request_name,sample_name=sample_name,
-		imaging_request_number=imaging_request_number,
-		processing_request_number=processing_request_number)
-		,data=data,
-		follow_redirects=True)
+# def test_submit_processing_entry_4x_nonadmin(test_client,test_imaged_4x_request_nonadmin):
+# 	""" Test that lightserv-test can submit their 4x processing request"""
+# 	with test_client.session_transaction() as sess:
+# 		sess['user'] = 'lightserv-test'
+# 	data = {
+# 		'image_resolution_forms-0-image_resolution':'4x',
+# 		'image_resolution_forms-0-channel_forms-0-channel_name':'647',
+# 		'submit':True
+# 		}
+# 	username='lightserv-test'
+# 	request_name='test2'
+# 	sample_name='test2-001'
+# 	imaging_request_number=1
+# 	processing_request_number=1
+# 	response = test_client.post(url_for('processing.processing_entry',
+# 		username=username,request_name=request_name,sample_name=sample_name,
+# 		imaging_request_number=imaging_request_number,
+# 		processing_request_number=processing_request_number)
+# 		,data=data,
+# 		follow_redirects=True)
 	
-	assert b"core facility requests" in response.data
-	assert b"Processing entry form" not in response.data
+# 	assert b"core facility requests" in response.data
+# 	assert b"Processing entry form" not in response.data
 
-	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
-			f'request_name="{request_name}"' & \
-			f'username="{username}"' & f'sample_name="{sample_name}"' & \
-			f'imaging_request_number="{imaging_request_number}"' & \
-			f'processing_request_number="{processing_request_number}"'
-	processing_progress = processing_request_contents.fetch1('processing_progress')
-	assert processing_progress == 'running'
+# 	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
+# 			f'request_name="{request_name}"' & \
+# 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+# 			f'imaging_request_number="{imaging_request_number}"' & \
+# 			f'processing_request_number="{processing_request_number}"'
+# 	processing_progress = processing_request_contents.fetch1('processing_progress')
+# 	assert processing_progress == 'running'
 
 def test_processing_entry_form_shows_readonly_if_already_submitted(test_client,processing_request_nonadmin):
 	""" Test that the processing entry form shows a flash message 

@@ -72,8 +72,13 @@ class ImageResolutionForm(FlaskForm):
 	notes_for_clearer = TextAreaField('Notes left for clearer:')
 	notes_for_imager = TextAreaField('Notes left for imager:')
 
+	change_resolution = BooleanField("Change image resolution?",default=False)
+	new_image_resolution = SelectField('Select the new image resolution you want to use:', 
+		choices=[('1.3x','1.3x'),
+	('4x','4x'),('1.1x','1.1x'),('2x','2x')],validators=[Optional()])
+	update_resolution_button = SubmitField('Update')
 	channel_forms = FieldList(FormField(ChannelForm),min_entries=0,max_entries=max_number_of_channels)
-	
+
 class ImagingForm(FlaskForm):
 	""" The form for entering imaging information """
 	username = HiddenField('username')

@@ -22,10 +22,22 @@
 
 		<hr class='class-2'>
 		{% if image_resolution == '2x' %}
-			<h3 class='mb-4 infolink' data-toggle="tooltip" title="Make sure to use organic dipping cap on 2x objective if sample went through oil-based clearing protocol like iDISCO or uDISCO."> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+			<h3 class='infolink' data-toggle="tooltip" title="Make sure to use organic dipping cap on 2x objective if sample went through oil-based clearing protocol like iDISCO or uDISCO."> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
         {% else %}
-			<h3 class='mb-4 infolink' data-toggle="tooltip" title="Do NOT use the zoom body (at a value other than 1) for this objective. If you do, we will very likely not be able to process the images. An exception is if no processing is needed (i.e. only raw images are required)."> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+			<h3 class='infolink' data-toggle="tooltip" title="Do NOT use the zoom body (at a value other than 1) for this objective. If you do, we will very likely not be able to process the images. An exception is if no processing is needed (i.e. only raw images are required)."> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
 		{% endif %}
+		<div class="checkbox mb-2">
+			{{ image_resolution_form.change_resolution(class="form-check-input",onchange="togglefield(this)") }}
+			{{ image_resolution_form.change_resolution.label(class="form-check-label") }}
+		</div>
+		
+		
+		<div class="form-group" id="new_image_resolution_field" style="display: none">
+			{{ image_resolution_form.new_image_resolution.label }}
+			{{ image_resolution_form.new_image_resolution(class="form-control form-control-lg") }}
+			{{ image_resolution_form.update_resolution_button(class="btn btn-sm btn-danger") }}
+		</div>
+		
 		<div class='row'>
 			<div class="form-group col">
 				{{ image_resolution_form.notes_for_clearer.label(class="form-control-label")}}
@@ -264,5 +276,15 @@
 	</script>
 {% endif %}
 
+<script>
+function togglefield(checkboxElem) {
+	var x = document.getElementById("new_image_resolution_field");
+	if (checkboxElem.checked) {
+		x.style.display = "block";
+	} else {
+		x.style.display = "none";
+		}
+	}
+</script>
 
 {% endblock content %}
