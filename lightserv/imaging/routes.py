@@ -158,7 +158,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 		logger.info("Post request")
 		logger.debug(form.data)
 		""" Check to see if an image resolution update button was pressed """
-		if not form.submit.data:
+		if form.submit.data == False:
 			logger.debug("Update button pressed")
 			""" Figure out which image resolution form this came from so I can properly update the 
 			image resolution """
@@ -177,8 +177,6 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 						f'username="{username}" ' & f'request_name="{request_name}" ' & \
 						f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}' & \
 						f'image_resolution="{this_image_resolution}"'
-					logger.debug("ImagingResolutionRequest() contents: ")
-					logger.debug(image_resolution_request_contents)
 					image_resolution_request_insert_dict = image_resolution_request_contents.fetch1()
 					imaging_channel_request_contents = db_lightsheet.Request.ImagingChannel() & \
 						f'username="{username}" ' & f'request_name="{request_name}" ' & \
@@ -224,7 +222,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					""" Finally ProcessingChannel() """
 					[d.update({'image_resolution':new_image_resolution}) for d in processing_channel_dicts_to_insert]
 					db_lightsheet.Request.ProcessingChannel().insert(processing_channel_dicts_to_insert)
-					logger.info("Updated image resolution in all 4 tables")
+					logger.debug("Updated image resolution in all 4 tables: ")
+					logger.debug("ImagingChannel(), ImagingResolutionRequest(), ProcessingChannel(), ProcessingResolutionRequest ")
 					return redirect(url_for('imaging.imaging_entry',
 						username=username,request_name=request_name,sample_name=sample_name,imaging_request_number=imaging_request_number))
 		elif form.validate_on_submit():

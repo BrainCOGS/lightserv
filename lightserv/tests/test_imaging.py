@@ -775,6 +775,40 @@ def test_imaging_entry_form_submits_for_second_imaging_request(test_client,
 		'username="ahoag"' & 'sample_name="sample-001"' & 'imaging_request_number=2').fetch1('imaging_progress')
 	assert imaging_progress_request_2 == 'complete'
 
+def test_imager_changes_resolution(test_client,
+	test_cleared_request_nonadmin,
+	test_login_zmd):
+	""" Test that Zahra (zmd, an imaging admin) can submit the imaging entry form
+	for the second imaging request for a single sample
+	and she can switch the image resolution from 1.3x to 1.1x"""
+
+	# imaging_contents = db_lightsheet.Request.ImagingChannel() & 'imaging_request_number=1'
+	# print(imaging_contents.fetch1(''))
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-change_resolution':True,
+		'image_resolution_forms-0-new_image_resolution':'1.1x',
+		'image_resolution_forms-0-update_resolution_button':True
+		}
+
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	""" Verify that the new image resolution is reflected in the db """
+	restrict_dict = {'username':'lightserv-test','request_name':'nonadmin_request',
+		'sample_name':'sample-001','imaging_request_number':1}
+	imaging_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & restrict_dict
+	image_resolution_recovered = imaging_resolution_request_contents.fetch1('image_resolution')
+	assert image_resolution_recovered == '1.1x'
+
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict
+	imaging_channel_image_resolution_recovered = imaging_channel_contents.fetch1('image_resolution')
+	assert imaging_channel_image_resolution_recovered == '1.1x'
+	# assert b'Imaging Entry Form' in response.data
+
+
 """ Test for imaging tasks """
 
 def test_raw_precomputed_pipeline_starts(test_client,):
