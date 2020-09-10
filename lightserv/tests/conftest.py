@@ -1516,6 +1516,7 @@ def test_imaged_request_nonadmin_new_channel_added(test_client,test_cleared_requ
 	data1 = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-new_channel_dropdown':'555',
+		'image_resolution_forms-0-new_channel_purpose':'injection_detection',
 		'image_resolution_forms-0-new_channel_button': True,
 		}
 	response1 = test_client.post(url_for('imaging.imaging_entry',

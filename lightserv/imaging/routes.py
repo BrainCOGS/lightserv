@@ -161,7 +161,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			logger.debug("Update or new channel button pressed")
 			""" Figure out which image resolution form this submit came from """
 			for form_resolution_dict in form.image_resolution_forms.data:
-				print(form_resolution_dict)
+				logger.debug(form_resolution_dict)
 				this_image_resolution =  form_resolution_dict['image_resolution']
 				logger.debug("Image resolution:")
 				logger.debug(this_image_resolution)
@@ -170,6 +170,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				if new_channel_button_pressed:
 					logger.debug("New channel button pressed!")
 					new_channel_name = form_resolution_dict['new_channel_dropdown']
+					new_channel_purpose = form_resolution_dict['new_channel_purpose']
 					logger.debug("Have new channel:")
 					logger.debug(new_channel_name)
 					""" Create a new ImagingChannel() entry for this channel """
@@ -180,6 +181,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					imaging_channel_entry_dict['imaging_request_number'] = imaging_request_number
 					imaging_channel_entry_dict['image_resolution'] = this_image_resolution
 					imaging_channel_entry_dict['channel_name'] = new_channel_name
+					imaging_channel_entry_dict[new_channel_purpose] = 1
 					db_lightsheet.Request.ImagingChannel().insert1(imaging_channel_entry_dict)
 					return redirect(url_for('imaging.imaging_entry',
 						username=username,request_name=request_name,sample_name=sample_name,imaging_request_number=imaging_request_number))
@@ -493,9 +495,13 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 				this_resolution_form.notes_for_clearer.data = 'No special notes'
 			''' Now add the channel subforms to the image resolution form '''
 			used_channels = []
+			registration_channel_used = False
 			for jj in range(len(channel_contents_list_this_resolution)):
-				channel_name = channel_content['channel_name']
 				channel_content = channel_contents_list_this_resolution[jj]
+				channel_name = channel_content['channel_name']
+				registration_channel = channel_content['registration']
+				if registration_channel:
+					registration_channel_used = True
 				this_resolution_form.channel_forms.append_entry()
 				this_channel_form = this_resolution_form.channel_forms[-1]
 				this_channel_form.channel_name.data = channel_name
@@ -514,6 +520,10 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			all_imaging_channels = current_app.config['IMAGING_CHANNELS']
 			available_channels = [x for x in all_imaging_channels if x not in used_channels]
 			this_resolution_form.new_channel_dropdown.choices = [(x,x) for x in available_channels]
+			available_imaging_modes = current_app.config['IMAGING_MODES']
+			if registration_channel_used:
+				available_imaging_modes = [x for x in available_imaging_modes if x != 'registration']
+			this_resolution_form.new_channel_purpose.choices = [(x,x) for x in available_imaging_modes]
 	rawdata_filepath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 		overview_dict['username'],overview_dict['request_name'],
 		overview_dict['sample_name'],

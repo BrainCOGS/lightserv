@@ -840,6 +840,7 @@ def test_imager_adds_channel(test_client,
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-new_channel_dropdown':'555',
+		'image_resolution_forms-0-new_channel_purpose':'injection_detection',
 		'image_resolution_forms-0-new_channel_button': True,
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',
@@ -875,6 +876,7 @@ def test_imager_adds_channel_then_submits(test_client,
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-new_channel_dropdown':'555',
+		'image_resolution_forms-0-new_channel_purpose':'injection_detection',
 		'image_resolution_forms-0-new_channel_button': True,
 		}
 	response = test_client.post(url_for('imaging.imaging_entry',

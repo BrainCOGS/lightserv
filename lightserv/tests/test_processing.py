@@ -194,7 +194,6 @@ def test_nonadmin_can_see_completed_processing_request(test_client,completed_pro
 
 
 
-
 """ Tests for processing entry form """
 
 def test_processing_entry_form_loads(test_client,test_imaged_request_ahoag):
