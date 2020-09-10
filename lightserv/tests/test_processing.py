@@ -193,6 +193,8 @@ def test_nonadmin_can_see_completed_processing_request(test_client,completed_pro
 	assert processing_progress == 'complete'
 
 
+
+
 """ Tests for processing entry form """
 
 def test_processing_entry_form_loads(test_client,test_imaged_request_ahoag):
@@ -442,6 +444,65 @@ def test_processing_entry_form_redirects_on_post_if_already_submitted(test_clien
                        "see your request page") 
 	assert warning_message.encode('utf-8') in response.data
 
+def test_new_channel_added_visible_in_processing_entry_form(test_client,test_imaged_request_nonadmin_new_channel_added,):
+	""" Test that lightserv-test can submit processing for the original channel as well as the channel 
+	that was added by zmd (555) in the imaging entry form"""
+	import time
+	from lightserv.processing import tasks
+
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'image_resolution_forms-0-atlas_name':'allen_2017',
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'submit':True
+		}
+
+	username = "lightserv-test"
+	request_name = "nonadmin_request"
+	sample_name = "sample-001"
+	imaging_request_number = 1
+	processing_request_number = 1
+	response = test_client.post(url_for('processing.processing_entry',
+			username=username,request_name=request_name,sample_name=sample_name,
+			imaging_request_number=imaging_request_number,
+			processing_request_number=processing_request_number),
+		data=data,
+		follow_redirects=True)
+	assert b"core facility requests" in response.data
+	assert b"Processing entry form" not in response.data
+
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
+			f'request_name="{request_name}"' & \
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			f'imaging_request_number="{imaging_request_number}"' & \
+			f'processing_request_number="{processing_request_number}"'
+	processing_progress = processing_request_contents.fetch1('processing_progress')
+	assert processing_progress == 'running'
+	""" Make sure ProcessingChannel() entry gets created for channel 555 """
+
+	kwargs = dict(username=username,request_name=request_name,
+		sample_name=sample_name,imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number)
+	
+	all_channel_contents = db_lightsheet.Request.ImagingChannel() & f'username="{username}"' \
+		& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
+		f'imaging_request_number="{imaging_request_number}"'
+	print(all_channel_contents)
+	tasks.run_lightsheet_pipeline.delay(**kwargs)
+	time.sleep(2)
+	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
+	print(table_contents)
+	assert len(table_contents) > 0
+	# time.sleep(2) # sleep to allow celery task that starts light sheet pipeline to create the database entry
+	# processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
+	# 	'request_name="nonadmin_request"' & 'username="lightserv-test"' & \
+	# 	'sample_name="sample-001"' & 'imaging_request_number=1' & \
+	# 	'processing_request_number=1' &	'channel_name="555"'
+	# assert len(processing_channel_contents) == 1
 """ Tests for processing_table """
 
 def test_ahoag_access_processing_table(test_client,processing_request_ahoag):
@@ -602,7 +663,6 @@ def test_lightsheet_pipeline_starts(test_client,test_imaged_request_viz_nonadmin
 	print(table_contents)
 	assert len(table_contents) > 0
 
-
 def test_stitched_precomputed_pipeline_starts(test_client,):
 	""" Test that the stitched precomputed pipeline task runs through,
 	given the correct input. Uses a test script on spock which just returns
@@ -649,7 +709,6 @@ def test_stitched_precomputed_pipeline_starts(test_client,):
 	table_contents = db_spockadmin.StitchedPrecomputedSpockJob() 
 	print(table_contents)
 	assert len(table_contents) > 0
-
 
 def test_blended_precomputed_pipeline_starts(test_client,):
 	""" Test that the blended precomputed pipeline task runs through,

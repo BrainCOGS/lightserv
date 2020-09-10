@@ -152,22 +152,39 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			channel_contents_lists[ii].append(channel_content)
 	overview_dict = imaging_request_contents.fetch1()
 	imaging_table = ImagingTable(imaging_request_contents*sample_contents)
-	logger.debug(db_lightsheet.Request.ImagingResolutionRequest() & \
-						f'username="{username}" ' & f'request_name="{request_name}" ')
+
+
 	if request.method == 'POST':
 		logger.info("Post request")
-		logger.debug(form.data)
-		""" Check to see if an image resolution update button was pressed """
+		""" Check to see if a button other than the final submit was pressed """
 		if form.submit.data == False:
-			logger.debug("Update button pressed")
-			""" Figure out which image resolution form this came from so I can properly update the 
-			image resolution """
+			logger.debug("Update or new channel button pressed")
+			""" Figure out which image resolution form this submit came from """
 			for form_resolution_dict in form.image_resolution_forms.data:
+				print(form_resolution_dict)
 				this_image_resolution =  form_resolution_dict['image_resolution']
 				logger.debug("Image resolution:")
 				logger.debug(this_image_resolution)
 				update_resolution_button_pressed = form_resolution_dict['update_resolution_button']
-				if update_resolution_button_pressed:
+				new_channel_button_pressed = form_resolution_dict['new_channel_button']
+				if new_channel_button_pressed:
+					logger.debug("New channel button pressed!")
+					new_channel_name = form_resolution_dict['new_channel_dropdown']
+					logger.debug("Have new channel:")
+					logger.debug(new_channel_name)
+					""" Create a new ImagingChannel() entry for this channel """
+					imaging_channel_entry_dict = {}
+					imaging_channel_entry_dict['username'] = username
+					imaging_channel_entry_dict['request_name'] = request_name
+					imaging_channel_entry_dict['sample_name'] = sample_name
+					imaging_channel_entry_dict['imaging_request_number'] = imaging_request_number
+					imaging_channel_entry_dict['image_resolution'] = this_image_resolution
+					imaging_channel_entry_dict['channel_name'] = new_channel_name
+					db_lightsheet.Request.ImagingChannel().insert1(imaging_channel_entry_dict)
+					return redirect(url_for('imaging.imaging_entry',
+						username=username,request_name=request_name,sample_name=sample_name,imaging_request_number=imaging_request_number))
+				elif update_resolution_button_pressed:
+					logger.debug("Update image resolution button pressed!")
 					new_image_resolution = form_resolution_dict['new_image_resolution']
 					logger.debug("New image resolution is:")
 					logger.debug(new_image_resolution)
@@ -465,6 +482,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			form.image_resolution_forms.append_entry()
 			this_resolution_form = form.image_resolution_forms[-1]
 			this_resolution_form.image_resolution.data = this_image_resolution
+
 			if notes_for_imager:
 				this_resolution_form.notes_for_imager.data = notes_for_imager 
 			else:
@@ -474,12 +492,15 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 			else:
 				this_resolution_form.notes_for_clearer.data = 'No special notes'
 			''' Now add the channel subforms to the image resolution form '''
+			used_channels = []
 			for jj in range(len(channel_contents_list_this_resolution)):
+				channel_name = channel_content['channel_name']
 				channel_content = channel_contents_list_this_resolution[jj]
 				this_resolution_form.channel_forms.append_entry()
 				this_channel_form = this_resolution_form.channel_forms[-1]
-				this_channel_form.channel_name.data = channel_content['channel_name']
+				this_channel_form.channel_name.data = channel_name
 				this_channel_form.image_resolution.data = channel_content['image_resolution']
+				used_channels.append(channel_name)
 				""" Autofill for convenience in dev mode """
 				if os.environ['FLASK_MODE'] == 'DEV':
 					this_channel_form.tiling_scheme.data = "1x1"
@@ -490,7 +511,9 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 
 					# this_channel_form.rawdata_subfolder.data = '200221_20180220_jg_09_4x_647_008na_1hfds_z2um_100msec_15povlp_14-16-13'
 					this_channel_form.rawdata_subfolder.data = 'test488'
-
+			all_imaging_channels = current_app.config['IMAGING_CHANNELS']
+			available_channels = [x for x in all_imaging_channels if x not in used_channels]
+			this_resolution_form.new_channel_dropdown.choices = [(x,x) for x in available_channels]
 	rawdata_filepath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 		overview_dict['username'],overview_dict['request_name'],
 		overview_dict['sample_name'],

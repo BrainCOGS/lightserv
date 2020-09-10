@@ -562,7 +562,6 @@ def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_del
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_nonadmin fixture --------')
 	
-
 @pytest.fixture(scope='function') 
 def test_multisample_request_nonadmin_clearing_notes(test_client,test_login_nonadmin,test_delete_request_db_contents):
 	""" Submits a new request as 'lightserv-test' (a nonadmin) with multiple samples that can be used for various tests.
@@ -613,7 +612,6 @@ def test_multisample_request_nonadmin_clearing_notes(test_client,test_login_nona
 
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_nonadmin fixture --------')
-
 
 @pytest.fixture(scope='function') 
 def test_rat_request_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
@@ -1505,6 +1503,57 @@ def test_request_resolution_switched_nonadmin(test_client,test_cleared_request_n
 	# 	sess['user'] = 'lightserv-test'
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
+
+@pytest.fixture(scope='function') 
+def test_imaged_request_nonadmin_new_channel_added(test_client,test_cleared_request_nonadmin,
+	test_delete_request_db_contents,test_login_zmd):
+	""" In the imaging entry form, Zahra adds an imaging channel
+	and then submits the form """
+
+	print('----------Setup test_imaged_request_nonadmin_new_channel_added fixture ----------')
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'zmd'
+	data1 = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-new_channel_dropdown':'555',
+		'image_resolution_forms-0-new_channel_button': True,
+		}
+	response1 = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data1,
+		follow_redirects=True)
+
+	""" Now submit the form for both channels"""
+	data2 = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-1-z_step':10,
+		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+		'submit':True
+		}
+	response2 = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data2,
+		follow_redirects=True)
+	yield test_client
+	print('----------Teardown test_imaged_request_nonadmin_new_channel_added fixture ----------')
 
 
 @pytest.fixture(scope='function') 

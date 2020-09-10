@@ -777,7 +777,7 @@ def test_imager_changes_resolution(test_client,
 	test_cleared_request_nonadmin,
 	test_login_zmd):
 	""" Test that Zahra (zmd, an imaging admin) can change the image resolution
-	in the imaging entry form"""
+	in the imaging entry form and that this change is reflected in the database"""
 
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
@@ -833,8 +833,97 @@ def test_imager_submits_changed_resolution(test_client,test_request_resolution_s
 		'username="lightserv-test"' & 'sample_name="sample-001"' & 'imaging_request_number=1').fetch1(
 			'imaging_progress')
 	assert imaging_progress == 'complete'
-	
 
+def test_imager_adds_channel(test_client,
+	test_cleared_request_nonadmin,
+	test_login_zmd):
+	""" Test that Zahra (zmd, an imaging admin) can add a new imaging channel in 
+	imaging entry form and this channel is added to the database"""
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-new_channel_dropdown':'555',
+		'image_resolution_forms-0-new_channel_button': True,
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	""" Make sure we are still in imaging entry form """
+	assert b'Imaging Entry Form' in response.data
+	""" Make sure resolution table now reflects additional row """
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag = parsed_html.find('table',
+		attrs={'id':'resolution_1.3x_table'})
+	table_row_tags = table_tag.find_all('tr')
+	print(table_row_tags)
+	print(len(table_row_tags))
+	assert len(table_row_tags) == 4 # header, 488, 555, row for adding a new channel
+	header_row = table_row_tags[0].find_all('th')
+	# channel_488_row = table_row_tags[1].find_all('td')
+	channel_555_row = table_row_tags[2].find_all('td')
+	assert channel_555_row[0].text == "555"
+	""" Make sure new imaging entry exists in database for channel 555 """
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & 'request_name="nonadmin_request"' & \
+		'username="lightserv-test"' & 'sample_name="sample-001"' & 'imaging_request_number=1' & \
+		'channel_name="555"'
+	assert len(imaging_channel_contents) == 1
+
+def test_imager_adds_channel_then_submits(test_client,
+	test_cleared_request_nonadmin,
+	test_login_zmd):
+	""" Test that Zahra (zmd, an imaging admin) can add a new imaging channel in 
+	imaging entry form and then submit the form"""
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-new_channel_dropdown':'555',
+		'image_resolution_forms-0-new_channel_button': True,
+		}
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	""" Make sure we are still in imaging entry form """
+	assert b'Imaging Entry Form' in response.data
+
+	""" Now submit the form for both channels"""
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-1-z_step':10,
+		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+		'submit':True
+		}
+	response2 = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	""" Make sure this was successfully submitted and we landed back in imaging manager """
+	assert b'Imaging Entry Form' not in response2.data
+
+	""" Make sure new imaging entry exists in database for channel 555 """
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & 'request_name="nonadmin_request"' & \
+		'username="lightserv-test"' & 'sample_name="sample-001"' & 'imaging_request_number=1' & \
+		'channel_name="555"'
+	assert len(imaging_channel_contents) == 1
+	
 """ Test for imaging tasks """
 
 def test_raw_precomputed_pipeline_starts(test_client,):

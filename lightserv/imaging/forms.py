@@ -77,6 +77,9 @@ class ImageResolutionForm(FlaskForm):
 		choices=[('1.3x','1.3x'),
 	('4x','4x'),('1.1x','1.1x'),('2x','2x')],validators=[Optional()])
 	update_resolution_button = SubmitField('Update')
+	new_channel_dropdown = SelectField("Add additional channel?",choices=[('488','488'),
+	('555','555'),('647','647'),('790','790')],validators=[Optional()])
+	new_channel_button = SubmitField("Add channel")
 	channel_forms = FieldList(FormField(ChannelForm),min_entries=0,max_entries=max_number_of_channels)
 
 class ImagingForm(FlaskForm):

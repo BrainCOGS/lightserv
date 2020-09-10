@@ -31,7 +31,6 @@
 			{{ image_resolution_form.change_resolution.label(class="form-check-label") }}
 		</div>
 		
-		
 		<div class="form-group" id="new_image_resolution_field" style="display: none">
 			{{ image_resolution_form.new_image_resolution.label }}
 			{{ image_resolution_form.new_image_resolution(class="form-control form-control-lg") }}
@@ -51,7 +50,7 @@
 
 		<hr class='class-2'>
 
-		<table class="table table-bordered table-striped text-center mb-4">
+		<table id="resolution_{{image_resolution}}_table" class="table table-bordered table-striped text-center mb-4">
 	        <tr>
 	            <th>Channel wavelength(nm)</th>
 	            <th>Image resolution </th>
@@ -175,7 +174,19 @@
 						</div>
 					</td>
 				</tr>
+				
 		{% endfor %} <!-- loop over channel forms -->
+		{# Add additional imaging channel #}
+		{% if image_resolution_form.channel_forms|length < 4 %}
+			<tr>
+				<td>
+					{{ image_resolution_form.new_channel_dropdown.label(class="form-control-label")}}
+					{{ image_resolution_form.new_channel_dropdown(class="form-control form-control-sm mb-2")  }}
+					{{ image_resolution_form.new_channel_button(class="btn btn-sm btn-info") }}
+				</td>
+				<td>{{image_resolution}}</td>
+			</tr>
+		{% endif %}
 	    </table>
 	{% endfor %} <!-- loop over image resolution forms -->
     
