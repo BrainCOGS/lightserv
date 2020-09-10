@@ -169,3 +169,4 @@ class TestConfig(BaseConfig):
 	# CELERY_RESULT_BACKEND=f'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test'
 	MAIL_USERNAME = os.environ.get('EMAIL_USER')
 	MAIL_PASSWORD = os.environ.get('EMAIL_PASS')
+	CELERY_ALWAYS_EAGER = True # Forces celery tasks to be run synchronously -- will not spawn a separate process

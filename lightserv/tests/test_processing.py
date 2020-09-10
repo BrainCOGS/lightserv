@@ -656,9 +656,7 @@ def test_lightsheet_pipeline_starts(test_client,test_imaged_request_viz_nonadmin
 		& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
 		f'imaging_request_number="{imaging_request_number}"'
 	print(all_channel_contents)
-	# assert 4==4
-	tasks.run_lightsheet_pipeline.delay(**kwargs)
-	time.sleep(2)
+	tasks.run_lightsheet_pipeline.run(**kwargs)
 	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
 	print(table_contents)
 	assert len(table_contents) > 0
@@ -704,8 +702,7 @@ def test_stitched_precomputed_pipeline_starts(test_client,):
 				processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
 				z_step=z_step,lightsheet='left',viz_dir=this_viz_dir)
 	
-	tasks.make_precomputed_stitched_data.delay(**precomputed_kwargs) 
-	time.sleep(2)
+	tasks.make_precomputed_stitched_data.run(**precomputed_kwargs) 
 	table_contents = db_spockadmin.StitchedPrecomputedSpockJob() 
 	print(table_contents)
 	assert len(table_contents) > 0
@@ -755,9 +752,7 @@ def test_blended_precomputed_pipeline_starts(test_client,):
 				z_step=z_step,blended_data_path=blended_data_path)
 
 	precomputed_kwargs['viz_dir'] = channel_viz_dir
-	tasks.make_precomputed_blended_data.delay(**precomputed_kwargs)
-
-	time.sleep(2)
+	tasks.make_precomputed_blended_data.run(**precomputed_kwargs)
 	table_contents = db_spockadmin.BlendedPrecomputedSpockJob() 
 	print(table_contents)
 	assert len(table_contents) > 0
@@ -806,8 +801,7 @@ def test_downsized_precomputed_pipeline_starts(test_client,):
 	channel_viz_dir = os.path.join(downsized_viz_dir,
 				f'channel_{channel_name}')
 	precomputed_kwargs['viz_dir'] = channel_viz_dir
-	tasks.make_precomputed_downsized_data.delay(**precomputed_kwargs)
-	time.sleep(2)
+	tasks.make_precomputed_downsized_data.run(**precomputed_kwargs)
 	table_contents = db_spockadmin.DownsizedPrecomputedSpockJob() 
 	print(table_contents)
 	assert len(table_contents) > 0
@@ -867,8 +861,7 @@ def test_registered_precomputed_pipeline_starts(test_client,):
 	layer_name = f'channel{channel_name}_registered'
 	precomputed_kwargs['layer_name'] = layer_name
 
-	tasks.make_precomputed_registered_data.delay(**precomputed_kwargs)
-	time.sleep(2)
+	tasks.make_precomputed_registered_data.run(**precomputed_kwargs)
 	table_contents = db_spockadmin.RegisteredPrecomputedSpockJob() 
 	print(table_contents)
 	assert len(table_contents) > 0
