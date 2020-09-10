@@ -81,8 +81,6 @@ def test_ahoag_multiple_imaging_requests_imaging_manager(test_client,test_cleare
 	table_tag = parsed_html.find('table',
 		attrs={'id':'horizontal_ready_to_image_table'})
 	table_row_tags = table_tag.find_all('tr')
-	print(table_row_tags)
-	print(len(table_row_tags))
 	header_row = table_row_tags[0].find_all('th')
 	imaging_request_1_row = table_row_tags[1].find_all('td')
 	imaging_request_2_row = table_row_tags[2].find_all('td')

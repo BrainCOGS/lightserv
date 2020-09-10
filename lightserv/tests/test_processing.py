@@ -492,17 +492,17 @@ def test_new_channel_added_visible_in_processing_entry_form(test_client,test_ima
 		& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
 		f'imaging_request_number="{imaging_request_number}"'
 	print(all_channel_contents)
-	tasks.run_lightsheet_pipeline.delay(**kwargs)
-	time.sleep(2)
+	print("Starting light sheet pipeline job synchronously")
+	tasks.run_lightsheet_pipeline.run(**kwargs)
 	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
 	print(table_contents)
 	assert len(table_contents) > 0
 	# time.sleep(2) # sleep to allow celery task that starts light sheet pipeline to create the database entry
-	# processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
-	# 	'request_name="nonadmin_request"' & 'username="lightserv-test"' & \
-	# 	'sample_name="sample-001"' & 'imaging_request_number=1' & \
-	# 	'processing_request_number=1' &	'channel_name="555"'
-	# assert len(processing_channel_contents) == 1
+	processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
+		'request_name="nonadmin_request"' & 'username="lightserv-test"' & \
+		'sample_name="sample-001"' & 'imaging_request_number=1' & \
+		'processing_request_number=1' &	'channel_name="555"'
+	assert len(processing_channel_contents) == 1
 """ Tests for processing_table """
 
 def test_ahoag_access_processing_table(test_client,processing_request_ahoag):
