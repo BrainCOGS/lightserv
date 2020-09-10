@@ -444,7 +444,7 @@ def test_processing_entry_form_redirects_on_post_if_already_submitted(test_clien
                        "see your request page") 
 	assert warning_message.encode('utf-8') in response.data
 
-def test_new_channel_added_visible_in_processing_entry_form(test_client,test_imaged_request_nonadmin_new_channel_added,):
+def test_new_channel_added_is_processed(test_client,test_imaged_request_nonadmin_new_channel_added,):
 	""" Test that lightserv-test can submit processing for the original channel as well as the channel 
 	that was added by zmd (555) in the imaging entry form"""
 	import time
@@ -503,6 +503,7 @@ def test_new_channel_added_visible_in_processing_entry_form(test_client,test_ima
 		'sample_name="sample-001"' & 'imaging_request_number=1' & \
 		'processing_request_number=1' &	'channel_name="555"'
 	assert len(processing_channel_contents) == 1
+
 """ Tests for processing_table """
 
 def test_ahoag_access_processing_table(test_client,processing_request_ahoag):
