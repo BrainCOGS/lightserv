@@ -3399,6 +3399,9 @@ def jess_cfos_setup():
                 animal_id = animal_form.animal_id.data
                 dataset = animal_form.dataset.data
                 eroded_cells = animal_form.eroded_cells.data
+                logger.debug(animal_id)
+                logger.debug(dataset)
+                logger.debug(eroded_cells)
                 if viz:
                     selected_animal_id = animal_id
                     break
@@ -3477,7 +3480,7 @@ def jess_cfos_setup():
                        
             cv_number += 1              
             
-            if eroded_cells:
+            if eroded_cells == 'yes':
                 cv_container_name = f'{session_name}_rawcells_{selected_animal_id}_eroded_iso'
                 cv_name = f"rawcells_{selected_animal_id}_eroded_iso"
                 cv_path = os.path.join(layer_rootdir,f'rawcells_annotation_{selected_animal_id}_eroded_iso')      
