@@ -688,6 +688,12 @@ def new_request():
                             imaging_resolution_insert_dict['sample_name'] = sample_name
                             imaging_resolution_insert_dict['imaging_request_number'] = imaging_request_number
                             imaging_resolution_insert_dict['image_resolution'] = image_resolution
+                            if image_resolution in current_app.config['LAVISION_RESOLUTIONS']:
+                                microscope = 'LaVision'
+                                imaging_resolution_insert_dict['microscope'] = microscope
+                            elif image_resolution in current_app.config['SMARTSPIM_RESOLUTIONS']:
+                                microscope = 'SmartSPIM'
+                                imaging_resolution_insert_dict['microscope'] = microscope
                             imaging_resolution_insert_dict['notes_for_imager'] = resolution_dict['notes_for_imager']
                             imaging_resolution_insert_list.append(imaging_resolution_insert_dict)
                             """ now processing entry (if not 2x imaging request)"""
@@ -789,8 +795,8 @@ def new_request():
                                 clearing_batch_number = clearing_batch_insert_dict.get('clearing_batch_number')
                                 sample_insert_dict['clearing_batch_number'] = clearing_batch_number
 
-                    logger.info("ClearingBatch() insert ")
-                    logger.info(clearing_batch_insert_list)
+                    # logger.info("ClearingBatch() insert ")
+                    # logger.info(clearing_batch_insert_list)
                     db_lightsheet.Request.ClearingBatch().insert(clearing_batch_insert_list,)
                     # logger.info("Sample() insert:")
                     # logger.debug(sample_insert_list)

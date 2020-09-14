@@ -12,6 +12,8 @@ class BaseConfig(object):
 	IMAGING_ADMINS = ['ahoag','zmd']
 	PROCESSING_ADMINS = ['ahoag','jduva','zmd']
 	CLEARING_ADMINS = ['ahoag','ll3','zmd','jverpeut']
+	LAVISION_RESOLUTIONS = ["1.1x","1.3x","2x","4x"]
+	SMARTSPIM_RESOLUTIONS = ["3.6x","15x"]
 	TEMP_CLEARING_SUPERADMINS = ['ahoag','ll3','zmd','jverpeut']
 	IMAGING_MODES = ['registration','injection_detection','probe_detection','cell_detection','generic_imaging']
 	IMAGING_CHANNELS = ['488','555','647','790']

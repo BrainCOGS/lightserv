@@ -94,9 +94,8 @@ def test_ahoag_multiple_imaging_requests_imaging_manager(test_client,test_cleare
 	assert second_request_number == '2'
 
 def test_imaged_viz_fixture_worked(test_client,test_imaged_request_viz_nonadmin):
-	""" Test that ahoag can access the imaging task manager
+	""" Test that zmd can access the imaging task manager
 	and see both of their imaging requests  """
-	# First log ahoag back in
 	with test_client.session_transaction() as sess:
 		# have to log an imaging manager in because the imager was zmd, not the person who requested it
 		sess['user'] = 'zmd'
@@ -104,6 +103,18 @@ def test_imaged_viz_fixture_worked(test_client,test_imaged_request_viz_nonadmin)
 		, follow_redirects=True)
 	assert b'Imaging management GUI' in response.data
 	assert b'viz_processed' in response.data 
+
+def test_3p6x_clearing_worked(test_client,test_cleared_request_3p6x_smartspim_nonadmin):
+	""" Test that ahoag can access the imaging task manager
+	and see both of their imaging requests  """
+
+	with test_client.session_transaction() as sess:
+		# have to log an imaging manager in because the imager was zmd, not the person who requested it
+		sess['user'] = 'zmd'
+	response = test_client.get(url_for('imaging.imaging_manager')
+		, follow_redirects=True)
+	assert b'Imaging management GUI' in response.data
+	assert b'nonadmin_3p6x_smartspim_request' in response.data 
 
 
 """ Tests for imaging entry form """
@@ -926,7 +937,7 @@ def test_imager_adds_channel_then_submits(test_client,
 	
 """ Test for imaging tasks """
 
-def test_raw_precomputed_pipeline_starts(test_client,):
+def test_raw_precomputed_pipeline_starts(test_client,test_delete_spockadmin_db_contents):
 	""" Test that the raw precomputed pipeline task runs through,
 	given the correct input. Uses a test script on spock which just returns
 	job ids. Runs a celery task """
@@ -982,7 +993,9 @@ def test_raw_precomputed_pipeline_starts(test_client,):
 	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
 	assert len(table_contents) > 0
 
-def test_raw_precomputed_pipeline_starts_added_channel(test_client,test_imaged_request_nonadmin_new_channel_added):
+def test_raw_precomputed_pipeline_starts_added_channel(test_client,
+	test_imaged_request_nonadmin_new_channel_added,
+	test_delete_spockadmin_db_contents):
 	""" Test that the raw precomputed pipeline task runs through with 
 	the original imaging channel and a channel that is added by the imager during
 	the imaging entry form.
@@ -1036,6 +1049,7 @@ def test_raw_precomputed_pipeline_starts_added_channel(test_client,test_imaged_r
 	precomputed_kwargs['y_dim'] = y_dim
 	tasks.make_precomputed_rawdata.run(**precomputed_kwargs) 
 	spockjob_table_contents = db_spockadmin.RawPrecomputedSpockJob() 
+	print(spockjob_table_contents)
 	assert len(spockjob_table_contents) > 0
 	""" Make sure jobid in ImagingEntry() table and RawPrecomputedSpockJob() tables are the same """
 	restrict_dict = {'username':username,'request_name':request_name,

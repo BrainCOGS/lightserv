@@ -255,6 +255,25 @@ def test_take_down_cloudv_and_ng_containers(test_client):
 		requests.post('http://viewer-launcher:5005/container_killer',json=containers_to_kill_dict)
 	print('-------Teardown test_take_down_cloudv_and_ng_containers fixture --------')
 
+@pytest.fixture(scope='function') 
+def test_delete_spockadmin_db_contents(test_client):
+	""" A fixture to simply delete the db contents 
+	(starting at Request() as the root - does not delete User() contents)
+	after each test runs
+	"""
+	print('----------Setup test_delete_spockadmin_db_contents fixture ----------')
+
+
+	yield # this is where the test is run
+	print('-------Teardown test_delete_spockadmin_db_contents fixture --------')
+	db_spockadmin.ProcessingPipelineSpockJob().delete()	
+	db_spockadmin.RawPrecomputedSpockJob().delete()	
+	db_spockadmin.StitchedPrecomputedSpockJob().delete()	
+	db_spockadmin.BlendedPrecomputedSpockJob().delete()	
+	db_spockadmin.DownsizedPrecomputedSpockJob().delete()	
+	db_spockadmin.RegisteredPrecomputedSpockJob().delete()	
+
+
 """ Fixtures for requests """
 
 @pytest.fixture(scope='function') 
@@ -959,6 +978,43 @@ def test_request_viz_nonadmin(test_client,test_login_nonadmin,test_delete_reques
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_request_viz_nonadmin fixture --------')
 	
+@pytest.fixture(scope='function') 
+def test_request_3p6x_smartspim_nonadmin(test_client,
+	test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits a new request as 'lightserv-user' with a single sample requesting 
+	to use 3.6x resolution on the Smartspim
+	that can be used for various tests.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_request_3p6x_smartspim_nonadmin fixture ----------')
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"nonadmin_3p6x_smartspim_request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'username':test_login_nonadmin['user'],
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'3.6x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_request_3p6x_smartspim_nonadmin fixture --------')
 
 """ Fixtures for clearing """
 
@@ -996,7 +1052,7 @@ def test_cleared_request_4x_ahoag(test_client,
 	""" Clears the single request by 'ahoag' (with clearer='ahoag')
 	where 4x resolution was requested 
 
-	Uses test_single_sample_request_ahoag request so that a request is in the db
+	Uses test_single_sample_request_4x_ahoag request so that a request is in the db
 	when it comes time to do the clearing
 
 	Uses the test_delete_request_db_contents fixture, which means that 
@@ -1022,11 +1078,8 @@ def test_cleared_request_4x_ahoag(test_client,
 @pytest.fixture(scope='function') 
 def test_cleared_request_4x_nonadmin(test_client,
 	test_request_4x_nonadmin,test_login_ll3,test_delete_request_db_contents):
-	""" Clears the single request by 'lightserv-test' (with clearer='ahoag')
+	""" Clears the single request by 'lightserv-test' (with clearer='ll3')
 	where 4x resolution was requested 
-
-	Uses test_single_sample_request_ahoag request so that a request is in the db
-	when it comes time to do the clearing
 
 	Uses the test_delete_request_db_contents fixture, which means that 
 	all db entries are deleted upon teardown of this fixture
@@ -1416,6 +1469,33 @@ def test_cleared_request_viz_nonadmin(test_client,test_request_viz_nonadmin,
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_cleared_request_nonadmin fixture --------')
 
+@pytest.fixture(scope='function') 
+def test_cleared_request_3p6x_smartspim_nonadmin(test_client,
+	test_request_3p6x_smartspim_nonadmin,test_login_ll3,test_delete_request_db_contents):
+	""" Clears the single request by 'lightserv-test' (with clearer='ll3')
+	where 3p6x resolution was requested 
+
+	Uses the test_delete_request_db_contents fixture, which means that 
+	all db entries are deleted upon teardown of this fixture
+	"""
+	print('----------Setup test_cleared_request_4x_nonadmin fixture ----------')
+	now = datetime.now()
+	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		pbs_wash1_notes='some notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
+			request_name="nonadmin_3p6x_smartspim_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_cleared_request_4x_nonadmin fixture --------')
+
+
 """ Fixtures for imaging  """
 
 @pytest.fixture(scope='function') 
@@ -1556,7 +1636,6 @@ def test_imaged_request_nonadmin_new_channel_added(test_client,test_cleared_requ
 	yield test_client
 	print('----------Teardown test_imaged_request_nonadmin_new_channel_added fixture ----------')
 
-
 @pytest.fixture(scope='function') 
 def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_request_generic_imaging_nonadmin,
 	test_delete_request_db_contents,test_login_zmd):
@@ -1589,37 +1668,6 @@ def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_reques
 		sess['user'] = 'lightserv-test'
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
-
-# @pytest.fixture(scope='function') 
-# def test_imaged_4x_request_nonadmin(test_client,test_cleared_request_4x_nonadmin,
-# 	test_delete_request_db_contents,test_login_zmd):
-# 	""" Images the cleared 4x request by 'lightserv-test' (clearer='ll3')
-# 	with imager='zmd' """
-
-# 	print('----------Setup test_4x_imaging_request_nonadmin fixture ----------')
-# 	with test_client.session_transaction() as sess:
-# 		sess['user'] = 'zmd'
-# 	# print(db_lightsheet.Request.Sample())
-# 	data = {
-# 		'image_resolution_forms-0-image_resolution':'4x',
-# 		'image_resolution_forms-0-channel_forms-0-channel_name':'647',
-# 		'image_resolution_forms-0-channel_forms-0-image_orientation':'sagittal',
-# 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'2x3',
-# 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
-# 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.15,
-# 		'image_resolution_forms-0-channel_forms-0-z_step':2,
-# 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':682,
-# 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test647'
-# 		}
-# 	response = test_client.post(url_for('imaging.imaging_entry',
-# 			username='lightserv-test',request_name='test2',sample_name='test2-001',
-# 			imaging_request_number=1),
-# 		data=data,
-# 		follow_redirects=True)
-# 	with test_client.session_transaction() as sess:
-# 		sess['user'] = 'lightserv-test'
-# 	yield test_client
-# 	print('----------Teardown test_4x_imaging_request_nonadmin fixture ----------')
 
 @pytest.fixture(scope='function') 
 def imaged_request_lightserv_test(test_client,test_cleared_request_nonadmin,

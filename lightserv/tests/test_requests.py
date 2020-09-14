@@ -1309,7 +1309,47 @@ def test_expected_handoff_date_required_for_non_self_clearing(
 	assert b"Expected handoff date required for samples: sample-001" in response.data
 	assert b"core facility requests" not in response.data
 
+def test_submit_good_mouse_request_3p6x(test_client,test_login,test_delete_request_db_contents):
+	""" Ensure that entire new request form submits when good
+	data are used.
 
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"nonadmin_3p6x_smartspim_request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'username':test_login['user'],
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'3.6x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"core facility requests" in response.data
+	assert b"This is a demo request" in response.data
+	assert b"New Request Form" not in response.data
+
+	# Verify that the microscope entered into the db is the correct one
+	imaging_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
+		'request_name="nonadmin_3p6x_smartspim_request"'
+	microscope = imaging_resolution_request_contents.fetch1('microscope')
+	assert microscope == 'SmartSPIM'
+# 
 """ Testing all_requests() """
 
 def test_admin_sees_all_requests(test_client,test_single_sample_request_ahoag,test_login_zmd):
@@ -1499,7 +1539,7 @@ def test_two_channels_request_fixture(test_client,test_two_channels_request_nona
 	assert b"two_channels" in response.data
 
 def test_4x_multitile_request_fixture(test_client,test_4x_multitile_request_nonadmin):
-	""" Checks that the two channels request fixture actually submitted
+	""" Checks that the multitile 4x request fixture actually submitted
 	the correct request.
 	"""
 	response = test_client.get(url_for('requests.all_requests'),

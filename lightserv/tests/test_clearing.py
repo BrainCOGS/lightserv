@@ -102,8 +102,6 @@ def test_sort_clearing_manager_all_columns(test_client,test_two_requests_ahoag):
 			follow_redirects=True)
 		assert b'Clearing management GUI' in response.data
 
-
-
 """ Testing clearing_entry() """
 
 def test_abbreviated_clearing_entry_form_loads(test_client,test_single_sample_request_nonadmin,test_login_ll3):
