@@ -424,16 +424,19 @@ def new_request():
                 """ find which sample this came from """
                 submit_key = 'other'
                 for ii in range(len(form.imaging_samples.data)):
+                    image_resolution_forms = form.imaging_samples[ii].image_resolution_forms
                     imaging_dict = form.imaging_samples.data[ii]
+                    used_image_resolutions = [subform.image_resolution.data for subform in image_resolution_forms]
+                    logger.debug("Used image resolutions for this sample:")
+                    logger.debug(used_image_resolutions)
                     if imaging_dict['new_image_resolution_form_submit'] == True:
                         image_resolution_forsetup = imaging_dict['image_resolution_forsetup']
-                        image_resolution_forms = form.imaging_samples[ii].image_resolution_forms
                         image_resolution_forms.append_entry()
                         resolution_table_index = len(image_resolution_forms.data)-1
                         """ now pick out which form we currently just made """
                         image_resolution_form = image_resolution_forms[resolution_table_index]
                         image_resolution_form.image_resolution.data = image_resolution_forsetup
-                        
+                        used_image_resolutions.append(image_resolution_forsetup)
                         """ Set the focus point for javascript to scroll to """
                         if form.species.data == 'mouse' and image_resolution_forsetup !='2x':
                             column_name = f'imaging_samples-{ii}-image_resolution_forms-{resolution_table_index}-channel_forms-0-registration'
@@ -452,7 +455,15 @@ def new_request():
                             #     image_resolution_form.channel_forms[x].injection_detection.data = 1
                                 
                         logger.info(f"Column name is: {column_name}")
-            
+                        resolution_choices = form.imaging_samples[ii].image_resolution_forsetup.choices
+                        logger.debug(resolution_choices)
+                        new_choices = [x for x in resolution_choices if x[0] not in used_image_resolutions]
+                        logger.debug(new_choices)
+                        form.imaging_samples[ii].image_resolution_forsetup.choices = new_choices
+                        break
+                """Now remove the image resolution the user just chose 
+                from the list of choices for the next image resolution table """
+                
             """ Handle all of the different "*submit*" buttons pressed """
             if submit_key == 'sample_submit_button': # The sample setup button
                 logger.info("sample submit")

@@ -1347,9 +1347,59 @@ def test_submit_good_mouse_request_3p6x(test_client,test_login,test_delete_reque
 	# Verify that the microscope entered into the db is the correct one
 	imaging_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
 		'request_name="nonadmin_3p6x_smartspim_request"'
-	microscope = imaging_resolution_request_contents.fetch1('microscope')
+	microscope,image_resolution = imaging_resolution_request_contents.fetch1('microscope','image_resolution')
 	assert microscope == 'SmartSPIM'
-# 
+	assert image_resolution == '3.6x'
+
+def test_submit_all_image_resolutions(test_client,test_login_nonadmin,
+	test_delete_request_db_contents):
+	""" Test submitting a request using all available resolutions """
+	
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	# Simulate pressing the "Set up imaging parameters" button
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"nonadmin_allres_request",
+			'description':"This is a demo request to submit all image resolutions",
+			'species':"mouse",'number_of_samples':1,
+			'username':current_user,
+			'uniform_clearing':True,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-1-image_resolution':'1.1x',
+			'imaging_samples-0-image_resolution_forms-1-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-1-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-1-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-2-image_resolution':'2x',
+			'imaging_samples-0-image_resolution_forms-2-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-2-channel_forms-0-generic_imaging':True,
+			'imaging_samples-0-image_resolution_forms-2-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-3-image_resolution':'3.6x',
+			'imaging_samples-0-image_resolution_forms-3-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-3-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-3-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-4-image_resolution':'4x',
+			'imaging_samples-0-image_resolution_forms-4-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-4-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-4-channel_forms-0-channel_name':'488',
+			'submit':True
+			},
+			content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b"core facility requests" in response.data
+	assert b"This is a demo request" in response.data
+	assert b"New Request Form" not in response.data
+
 """ Testing all_requests() """
 
 def test_admin_sees_all_requests(test_client,test_single_sample_request_ahoag,test_login_zmd):

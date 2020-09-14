@@ -83,9 +83,10 @@ class ImagingForm(FlaskForm):
 	"""
 	image_resolution_forsetup = SelectField('Select an image resolution you want to use:', 
 		choices=[('1.1x','1.1x (LaVision)'),('1.3x','1.3x (LaVision, for continuity with older experiments)'),
-	('2x','2x (LaVision)'),('3.6x','3.6x (SmartSPIM)'),('4x','4x (LaVision, for continuity with older experiments)')],default='')   
+	('2x','2x (LaVision)'),('3.6x','3.6x (SmartSPIM)'),
+	('4x','4x (LaVision, for continuity with older experiments)')],validators=[Optional()],default='')   
 
-	image_resolution_forms = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=4)
+	image_resolution_forms = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=5)
 
 	new_image_resolution_form_submit = SubmitField('Set up imaging parameters') # renders a new resolution table
 

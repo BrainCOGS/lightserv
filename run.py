@@ -29,7 +29,7 @@ if __name__ == '__main__':
 	if flask_mode == 'DEV':
 		app.run(host='0.0.0.0',port='5000',debug=True) # 5000 inside the container
 	elif flask_mode == 'PROD':
-		app.run(host='0.0.0.0',port='5000') # 5000 inside the container
+		app.run(host='0.0.0.0',port='5000',debug=False) # 5000 inside the container
 
 
 	
