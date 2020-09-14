@@ -5,19 +5,23 @@
 
 {% if table_failed_processing.items %}
 	<h3>Failed processes:</h3>
-<div class="mb-4 tableFixHead">
-	{{ table_failed_processing }}
-</div>
+  {% if table_failed_processing.items|length > 3 %}
+    <div class="mb-4 tableFixHead">
+  {% else %}
+    <div class="mb-4 tableFixHeadShort">
+  {%endif %}
+  	{{ table_failed_processing }}
+  </div>
 
-<hr class="class-5">	
+  <hr class="class-5">	
 
 {% endif %}
 
 <h3>Samples currently being processed:</h3>
-{% if table_being_processed.items != [] %}
+{% if table_being_processed.items|length > 3 %}
   <div class="mb-4 tableFixHead">
 {% else %}
-  <div class="mb-4">
+  <div class="mb-4 tableFixHeadShort">
 {% endif %}
     {{ table_being_processed }}
   </div>
@@ -25,10 +29,10 @@
 <hr class="class-5" >	
 
 <h3>Samples ready to be processed:</h3>
-{% if table_ready_to_process.items != [] %}
+{% if table_ready_to_process.items|length > 3 %}
   <div class="mb-4 tableFixHead">
 {% else %}
-  <div class="mb-4">
+  <div class="mb-4 tableFixHeadShort">
 {% endif %}
     {{ table_ready_to_process }}
   </div>
@@ -36,10 +40,10 @@
 <hr class="class-5">	
 
 <h3>Samples already processed:</h3>
-{% if table_already_processed.items != [] %}
+{% if table_already_processed.items|length > 3 %}
   <div class="mb-4 tableFixHead">
 {% else %}
-  <div class="mb-4">
+  <div class="mb-4 tableFixHeadShort">
 {% endif %}
     {{ table_already_processed }}
   </div>

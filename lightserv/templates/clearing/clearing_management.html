@@ -6,10 +6,10 @@
 
 
 <h3>Batches currently being cleared:</h3>
-{% if table_being_cleared.items != [] %}
+{% if table_being_cleared.items|length > 3 %}
   <div class="mb-4 tableFixHead">
 {% else %}
-  <div class="mb-4">
+  <div class="mb-4 tableFixHeadShort">
 {% endif %}
     {{ table_being_cleared }}
   </div>
@@ -17,20 +17,20 @@
 <hr class="class-5">	
 
 <h3>Batches ready to be cleared:</h3>
-{% if table_ready_to_clear.items != [] %}
+{% if table_ready_to_clear.items|length > 3 %}
   <div class="mb-4 tableFixHead">
 {% else %}
-  <div class="mb-4">
+  <div class="mb-4 tableFixHeadShort">
 {% endif %}
     {{ table_ready_to_clear }}
   </div>
 <hr class="class-5">	
 
 <h3>Batches already cleared:</h3>
-{% if table_already_cleared.items != [] %}
+{% if table_already_cleared.items|length > 3 %}
   <div class="mb-4 tableFixHead">
 {% else %}
-  <div class="mb-4">
+  <div class="mb-4 tableFixHeadShort">
 {% endif %}
     {{ table_already_cleared }}
   </div>

@@ -4,10 +4,10 @@
 <hr class="class-5">	
 
 <h3>Samples currently being imaged:</h3>
-{% if table_being_imaged.items != [] %}
+{% if table_being_imaged.items|length > 3 %}
   <div class="mb-4 tableFixHead">
 {% else %}
-  <div class="mb-4">
+  <div class="mb-4 tableFixHeadShort">
 {% endif %}
     {{ table_being_imaged }}
   </div>
@@ -15,20 +15,20 @@
 <hr class="class-5">	
 
 <h3>Samples ready to be imaged:</h3>
-{% if table_ready_to_image.items != [] %}
+{% if table_ready_to_image.items|length > 3 %}
   <div class="mb-4 tableFixHead">
 {% else %}
-  <div class="mb-4">
+  <div class="mb-4 tableFixHeadShort">
 {% endif %}
     {{ table_ready_to_image }}
   </div>
 <hr class="class-5">	
 
 <h3>Samples still in clearing stage:</h3>
-{% if table_on_deck.items != [] %}
+{% if table_on_deck.items|length > 3 %}
   <div class="mb-4 tableFixHead">
 {% else %}
-  <div class="mb-4">
+  <div class="mb-4 tableFixHeadShort">
 {% endif %}
     {{ table_on_deck }}
   </div>
@@ -36,10 +36,10 @@
 <hr class="class-5">	
 
 <h3>Samples already imaged:</h3>
-{% if table_already_imaged.items != [] %}
+{% if table_already_imaged.items|length > 3%}
   <div class="mb-4 tableFixHead">
 {% else %}
-  <div class="mb-4">
+  <div class="mb-4 tableFixHeadShort">
 {% endif %}
     {{ table_already_imaged }}
   </div>

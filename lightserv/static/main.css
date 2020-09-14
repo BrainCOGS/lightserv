@@ -209,6 +209,8 @@ li.widespace {
             margin: 10px 0;
         } 
 
+.tableFixHeadShort     { overflow-y: auto }
+
 .tableFixHead          { overflow-y: auto; height: 450px; }
 .tableFixHead thead th { position: sticky; top: 0; }
 

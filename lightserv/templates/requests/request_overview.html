@@ -9,7 +9,11 @@
 		<hr class='class-4'>
 		<h3 align="center">Samples in this request: </h3>
 		{# Samples Section #}
-		<div class="tableFixHead">
+		{% if samples_table.items|length > 3 %}
+			<div class="tableFixHead">
+		{% else %}
+			<div class="tableFixHeadShort">
+		{% endif %}			
 			{{ samples_table }}
 		</div>
 		<hr class='class-4'>

@@ -1,8 +1,13 @@
 {% extends "layout.html" %}
 	{% block content %}
 	<legend class="border-bottom mb-4 mt-4">{{ legend }}:</legend>
+	{% if samples_table.items|length > 3 %}
 		<div class="mb-4 tableFixHead">
+	{% else %}
+		<div class="mb-4 tableFixHeadShort">
 			{{ samples_table }}
+	{% endif %}
 		</div>
+	}
 		
 	{% endblock content %}

@@ -2,8 +2,12 @@
 {% block content %}
 	<h1 class="mb-2" align="center">Confproxy overview:</h1>
 	<hr class='class-1'>
-	<div class="mb-4 tableFixHead">
-		{{table}}
+	{% if table.items|length > 3 %}
+		<div class="mb-4 tableFixHead">
+	{% else %}
+		<div class="mb-4 tableFixHeadShort">
+	{% endif %}
+	{{table}}
 	</div>	
 
 {% endblock content %}
