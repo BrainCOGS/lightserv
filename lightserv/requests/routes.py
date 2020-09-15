@@ -911,7 +911,7 @@ def new_request():
             if 'number_of_samples' in form.errors:
                 for error_str in form.errors['number_of_samples']:
                     flash(error_str,'danger')
-    """ Make default checkboxes -- can't be done in forms.py unfortunately: https://github.com/lepture/flask-wtf/issues/362 """
+
     if request.method=='GET':
         logger.info("GET request")
 

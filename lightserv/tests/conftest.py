@@ -1495,7 +1495,6 @@ def test_cleared_request_3p6x_smartspim_nonadmin(test_client,
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_cleared_request_4x_nonadmin fixture --------')
 
-
 """ Fixtures for imaging  """
 
 @pytest.fixture(scope='function') 
