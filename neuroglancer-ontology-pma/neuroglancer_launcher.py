@@ -75,9 +75,8 @@ for ii in range(cv_count):
 		    )
 	    
 with viewer.txn() as s:
-	s.cross_section_scale = 5
-	s.position=(1042.0,1250.0,335.5)
 	s.layout = 'xy'
+	s.crossSectionScale = 0.00001
 	s.selectedLayer.layer = seg_layer_name
 logging.debug("neuroglancer viewer is now available")
 
