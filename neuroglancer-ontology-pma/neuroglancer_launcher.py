@@ -76,7 +76,7 @@ for ii in range(cv_count):
 	    
 with viewer.txn() as s:
 	s.layout = 'xy'
-	s.crossSectionScale = 0.00001
+	s.crossSectionScale = 0.00002
 	s.selectedLayer.layer = seg_layer_name
 logging.debug("neuroglancer viewer is now available")
 
@@ -196,13 +196,13 @@ def init_tool(s):
 	logging.debug(s.selected_values)
 	logging.debug(type(s.selected_values))
 	logging.debug(type(selected_layer_name))
-	# try:
-	# 	region_map = s.selected_values[selected_layer_name]
-	# except KeyError:
-	# 	# you need to move your cursor to get the layer to be selectable again
-	# 	logging.debug(f"{selected_layer_name} not found as key in {s.selected_values}")
-	# 	logging.debug(f"{list(s.selected_values.keys())}")
-	# 	return None, None
+	try:
+		region_map = s.selected_values[selected_layer_name]
+	except KeyError:
+		# you need to move your cursor to get the layer to be selectable again
+		logging.debug(f"{selected_layer_name} not found as key in {s.selected_values}")
+		logging.debug(f"{list(s.selected_values.keys())}")
+		return None, None
 	region_map = s.selected_values[selected_layer_name]
 	logging.debug("end of init_tool()")
 	logging.debug("Keys of selected_values are:")
