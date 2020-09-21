@@ -46,7 +46,6 @@ cd ../neuroglancer-custom
 
 docker build -f ./neuroglancer.Dockerfile -t nglancer_custom_viewer:latest .
 
-
 ## build neuroglancer-sandbox latest tag
 cd ../neuroglancer-sandbox
 
@@ -56,6 +55,12 @@ docker build -f ./neuroglancer.Dockerfile -t nglancer_sandbox_viewer:latest .
 cd ../neuroglancer-ontology
 
 docker build -f ./neuroglancer.Dockerfile -t nglancer_ontology_viewer:latest .
+
+## build neuroglancer-ontology-pma latest tag
+cd ../neuroglancer-ontology-pma
+
+docker build -f ./neuroglancer.Dockerfile -t nglancer_ontology_pma_viewer:latest .
+
 
 
 
