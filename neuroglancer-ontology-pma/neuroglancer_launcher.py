@@ -173,7 +173,6 @@ def init_tool(s):
             del st.status_messages['hello']
         except KeyError:
             pass
-    logging.debug("made it here")
     """ first figure out the selected layer """
     with viewer.txn() as txn:
         if len(txn.layers) > 1:
@@ -189,13 +188,6 @@ def init_tool(s):
             with viewer.config_state.txn() as st:
                 st.status_messages['hello'] = 'No layers loaded. First load a layer to use this tool'        
                 return None, None
-    logging.debug("selecting region_map")
-    logging.debug("layer name:")
-    logging.debug(selected_layer_name)
-    logging.debug("selected values:")
-    logging.debug(s.selected_values)
-    logging.debug(type(s.selected_values))
-    logging.debug(type(selected_layer_name))
     try:
         region_map = s.selected_values[selected_layer_name]
     except KeyError:
@@ -204,19 +196,12 @@ def init_tool(s):
         logging.debug(f"{list(s.selected_values.keys())}")
         return None, None
     region_map = s.selected_values[selected_layer_name]
-    logging.debug("end of init_tool()")
-    logging.debug("Keys of selected_values are:")
-    logging.debug(f"{list(s.selected_values.keys())}")
-    logging.debug(f"{s.selected_values['rawatlas_an4_iso']}")
-    logging.debug("region map:")
-    logging.debug(region_map)
     named_tuple = region_map.value
-    logging.debug("named tuple:")
-    logging.debug(named_tuple)
     return named_tuple, selected_layer_name
 
 def contract_atlas(s):
     named_tuple, selected_layer_name = init_tool(s)
+    logging.debug("Contracting atlas")
     if not selected_layer_name:
         return
     if named_tuple:
@@ -255,6 +240,7 @@ def contract_atlas(s):
     
 def expand_atlas(s):
     named_tuple, selected_layer_name = init_tool(s)
+    logging.debug("expanding atlas")
     if not selected_layer_name:
         return
     
