@@ -301,7 +301,15 @@ def get_container_info():
 	logging.debug(container_names_to_id)
 	container_info_dict = {}
 	for container_name in container_names_to_id:
-		container = client.containers.get(container_name)
+		try:
+			container = client.containers.get(container_name)
+		except:
+			logging.debug("Error retrieving the container by name. It was manually deleted")
+			container_info_dict[container_name] = {
+				'container_id':None,
+				'container_image':None
+			}
+			continue
 		container_id = container.short_id
 		container_image =  container.attrs['Config']['Image']
 			

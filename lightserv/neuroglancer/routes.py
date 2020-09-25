@@ -4039,9 +4039,11 @@ def confproxy_table():
     reverse = (request.args.get('direction', 'asc') == 'desc')
     kv = redis.Redis(host="redis", decode_responses=True)
     proxy_h = pp.progproxy(target_hname='confproxy')
-    """ Make the timestamp against which we will compare the viewer timestamps """
+    """ Grab all of the confproxy routes from the proxy table """
     response_all = proxy_h.getroutes()
     proxy_dict = json.loads(response_all.text)
+    logger.debug("All current confproxy routes:")
+    logger.debug(proxy_dict)
     table_contents = []
     """ Figure out session name and
     whether there are other containers associated """
@@ -4067,10 +4069,7 @@ def confproxy_table():
         """ Now figure out container IDs """
         session_dict = kv.hgetall(session_name)
         # logger.debug(session_dict)
-        try: # there might not always be cloudvolumes
-            cv_count = int(session_dict['cv_count'])
-        except:
-            cv_count = 0
+        cv_count = len(cv_proxypaths)
         cv_container_names = [session_dict[f'cv{x+1}_container_name'] for x in range(cv_count)]
         ng_container_name = session_dict['ng_container_name']
         ng_table_entry['container_name'] = ng_container_name
@@ -4081,9 +4080,19 @@ def confproxy_table():
         ng_container_info_dict = container_info_dict[ng_container_name]
         ng_container_id = ng_container_info_dict['container_id']
         ng_container_image = ng_container_info_dict['container_image']
-        ng_table_entry['container_id'] = ng_container_id
-        ng_table_entry['image'] = ng_container_image
-        table_contents.append(ng_table_entry)
+        """ If the container was manually killed then ng_container_id and cv_container_name
+        will be set to None here """
+        if ng_container_id:
+            ng_table_entry['container_id'] = ng_container_id
+            ng_table_entry['image'] = ng_container_image
+            table_contents.append(ng_table_entry)
+        else:
+            # this container needs to be removed from the confproxy since it is no longer running
+            proxy_h.deleteroute(ng_proxypath)
+            logger.debug("After removing ng proxypath current confproxy routes are:")
+            updated_response = proxy_h.getroutes()
+            updated_proxy_dict = json.loads(updated_response.text)
+            logger.debug(updated_proxy_dict)
         for ii in range(cv_count):
             cv_table_entry = {
                 'session_name':session_name,
@@ -4101,10 +4110,17 @@ def confproxy_table():
             cv_table_entry['last_activity'] = cv_td_str
             cv_container_id = this_container_info_dict['container_id']
             cv_container_image = this_container_info_dict['container_image']
-            cv_table_entry['container_name'] = cv_container_name
-            cv_table_entry['container_id'] = cv_container_id
-            cv_table_entry['image'] = cv_container_image
-            table_contents.append(cv_table_entry)
+            """ If the container was manually killed then cv_container_id and cv_container_image
+            will be set to None here """
+            if cv_container_id:
+                cv_table_entry['container_name'] = cv_container_name
+                cv_table_entry['container_id'] = cv_container_id
+                cv_table_entry['image'] = cv_container_image
+                table_contents.append(cv_table_entry)
+            else:
+                # Then this container needs to be removed from the confproxy since it is no longer running
+                proxy_h.deleteroute(cv_proxypaths[ii])
+                logger.debug("deleted cv proxypath")
     sorted_table_contents = sorted(table_contents,
         key=partial(table_sorter,sort_key=sort),reverse=reverse) # partial allows you to pass in a parameter to the function
     table = ConfproxyAdminTable(sorted_table_contents,
