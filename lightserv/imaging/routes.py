@@ -190,37 +190,57 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					new_image_resolution = form_resolution_dict['new_image_resolution']
 					logger.debug("New image resolution is:")
 					logger.debug(new_image_resolution)
-					""" Update image resolution in the database """
-
+					
+					""" Update image resolution in all locations in the database """
 					image_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
 						f'username="{username}" ' & f'request_name="{request_name}" ' & \
 						f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}' & \
 						f'image_resolution="{this_image_resolution}"'
+					
 					image_resolution_request_insert_dict = image_resolution_request_contents.fetch1()
+					
 					imaging_channel_request_contents = db_lightsheet.Request.ImagingChannel() & \
 						f'username="{username}" ' & f'request_name="{request_name}" ' & \
 						f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}' & \
 						f'image_resolution="{this_image_resolution}" '
+					
 					imaging_channel_dicts = imaging_channel_request_contents.fetch(as_dict=True)
+					
 					""" First delete each ImagingChannel() entry """
 					imaging_channel_dicts_to_insert = [d for d in imaging_channel_dicts]
 					dj.config['safemode'] = False
 					imaging_channel_request_contents.delete(force=True)
-					""" And delete ProcessingChannel() entries tied to this imaging request as well """
+					
+					""" And delete ProcessingChannel() entries tied to this imaging request as well,
+					if they exist (they might not if somone had requested 2x imaging only) """
 					processing_channel_request_contents = db_lightsheet.Request.ProcessingChannel() & \
 						f'username="{username}" ' & f'request_name="{request_name}" ' & \
 						f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}' & \
 						f'image_resolution="{this_image_resolution}" '
 					processing_channel_dicts = processing_channel_request_contents.fetch(as_dict=True)
 					processing_channel_dicts_to_insert = [d for d in processing_channel_dicts]
-					processing_channel_request_contents.delete(force=True)
+					if len(processing_channel_request_contents) > 0:
+						processing_channel_request_contents.delete(force=True)
 					""" Now delete ProcessingResolutionRequest() entry """
 					processing_resolution_request_contents = db_lightsheet.Request.ProcessingResolutionRequest() & \
 						f'username="{username}" ' & f'request_name="{request_name}" ' & \
 						f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}' & \
 						f'image_resolution="{this_image_resolution}"'
-					processing_resolution_request_insert_dict = processing_resolution_request_contents.fetch1()
-					processing_resolution_request_contents.delete(force=True)
+					
+					if len(processing_resolution_request_contents) > 0: 
+						logger.debug("ProcessingResolutionRequest() entry already existed")
+						processing_resolution_request_insert_dict = processing_resolution_request_contents.fetch1()
+						processing_resolution_request_contents.delete(force=True)
+					else:
+						logger.debug("Making an entirely new ProcessingResolutionRequest() entry")
+						processing_resolution_request_insert_dict = {}
+						processing_resolution_request_insert_dict['request_name'] = request_name
+						processing_resolution_request_insert_dict['username'] = username 
+						processing_resolution_request_insert_dict['sample_name'] = sample_name
+						processing_resolution_request_insert_dict['imaging_request_number'] = imaging_request_number
+						processing_resolution_request_insert_dict['processing_request_number'] = 1
+						processing_resolution_request_insert_dict['image_resolution'] = new_image_resolution
+
 					""" Now delete ImagingResolutionRequest() entry """
 					image_resolution_request_contents.delete(force=True)
 					""" Reset to whatever safemode was before the switch """
@@ -234,15 +254,74 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 					""" Now ImagingChannel() """
 					[d.update({'image_resolution':new_image_resolution}) for d in imaging_channel_dicts_to_insert]
 					db_lightsheet.Request.ImagingChannel().insert(imaging_channel_dicts_to_insert)
-					""" Now ProcessingResolutionRequest() """
-					processing_resolution_request_insert_dict['image_resolution'] = new_image_resolution
-					db_lightsheet.Request.ProcessingResolutionRequest().insert1(
-						processing_resolution_request_insert_dict)
-					""" Finally ProcessingChannel() """
-					[d.update({'image_resolution':new_image_resolution}) for d in processing_channel_dicts_to_insert]
-					db_lightsheet.Request.ProcessingChannel().insert(processing_channel_dicts_to_insert)
-					logger.debug("Updated image resolution in all 4 tables: ")
-					logger.debug("ImagingChannel(), ImagingResolutionRequest(), ProcessingChannel(), ProcessingResolutionRequest ")
+					
+					""" For processing inserts, make sure that at least one image resolution
+					for this imaging requests including the new resolution merits a processing request,
+					i.e. it is in the list of resolutions we are capable processing.
+					If there are now no resolutions we can process, 
+					then we need to remove the processing request if it exists """
+					image_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
+						f'username="{username}" ' & f'request_name="{request_name}" ' & \
+						f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}'
+					image_resolutions_used = image_resolution_request_contents.fetch('image_resolution')
+					bad_image_resolutions = current_app.config['RESOLUTIONS_NO_PROCESSING']
+					any_good_resolutions = any([res not in bad_image_resolutions for res in image_resolutions_used])
+					logger.debug(any_good_resolutions)
+					logger.debug("image_resolutions_used:")
+					logger.debug(image_resolutions_used)
+
+					if not any_good_resolutions:
+						logger.debug("There are no image resolutions that we can process")
+						# Remove processing request entry if it exists
+						processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
+							f'username="{username}" ' & f'request_name="{request_name}" ' & \
+							f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}' & \
+							'processing_request_number=1'
+						if len(processing_request_contents) > 0:
+							dj.config['safemode'] = False
+							processing_request_contents.delete(force=True)
+							dj.config['safemode'] = current_app.config['DJ_SAFEMODE']
+					else:
+						""" There are some resolutions that we can process, so insert those 
+						entries """
+						
+						# First make sure that there is a processing request, if not then make one
+						
+						processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
+							f'username="{username}" ' & f'request_name="{request_name}" ' & \
+							f'sample_name="{sample_name}" ' & f'imaging_request_number={imaging_request_number}' & \
+							'processing_request_number=1'
+						
+						if len(processing_request_contents) == 0:
+							now = datetime.now()
+							date = now.strftime("%Y-%m-%d")
+							time = now.strftime("%H:%M:%S") 
+							processing_request_insert_dict = {}
+							processing_request_number = 1
+							processing_request_insert_dict['request_name'] = request_name
+							processing_request_insert_dict['username'] = username 
+							processing_request_insert_dict['sample_name'] = sample_name
+							processing_request_insert_dict['imaging_request_number'] = imaging_request_number
+							processing_request_insert_dict['processing_request_number'] = 1
+							processing_request_insert_dict['processing_request_date_submitted'] = date
+							processing_request_insert_dict['processing_request_time_submitted'] = time
+							processing_request_insert_dict['processing_progress'] = "incomplete"
+							
+							db_lightsheet.Request.ProcessingRequest().insert1(processing_request_insert_dict)
+							logger.debug("Inserted a ProcessingRequest() entry since one did not already exist")
+						""" If this new resolution is one we can process then add resolution and channel entries for it """
+						if new_image_resolution not in bad_image_resolutions:
+							""" Now ProcessingResolutionRequest() """
+							processing_resolution_request_insert_dict['image_resolution'] = new_image_resolution
+							logger.debug("Going to insert:")
+							logger.debug(processing_resolution_request_insert_dict)
+							db_lightsheet.Request.ProcessingResolutionRequest().insert1(
+								processing_resolution_request_insert_dict)
+							""" Finally ProcessingChannel() """
+							[d.update({'image_resolution':new_image_resolution}) for d in processing_channel_dicts_to_insert]
+							db_lightsheet.Request.ProcessingChannel().insert(processing_channel_dicts_to_insert)
+							logger.debug("Updated image resolution in all 4 tables: ")
+							logger.debug("ImagingChannel(), ImagingResolutionRequest(), ProcessingChannel(), ProcessingResolutionRequest ")
 					return redirect(url_for('imaging.imaging_entry',
 						username=username,request_name=request_name,sample_name=sample_name,imaging_request_number=imaging_request_number))
 		elif form.validate_on_submit():

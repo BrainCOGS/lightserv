@@ -105,8 +105,8 @@ def test_imaged_viz_fixture_worked(test_client,test_imaged_request_viz_nonadmin)
 	assert b'viz_processed' in response.data 
 
 def test_3p6x_clearing_worked(test_client,test_cleared_request_3p6x_smartspim_nonadmin):
-	""" Test that ahoag can access the imaging task manager
-	and see both of their imaging requests  """
+	""" Test that lightserv-test can access the imaging task manager
+	and see their imaging request """
 
 	with test_client.session_transaction() as sess:
 		# have to log an imaging manager in because the imager was zmd, not the person who requested it
@@ -116,6 +116,18 @@ def test_3p6x_clearing_worked(test_client,test_cleared_request_3p6x_smartspim_no
 	assert b'Imaging management GUI' in response.data
 	assert b'nonadmin_3p6x_smartspim_request' in response.data 
 
+def test_2x_clearing_worked(test_client,test_cleared_request_2x_nonadmin):
+	""" Test that lightserv-test can access the imaging task manager
+	and see their imaging request and that there is no ProcessingRequest() in the database  """
+
+	with test_client.session_transaction() as sess:
+		# have to log an imaging manager in because the imager was zmd, not the person who requested it
+		sess['user'] = 'zmd'
+	response = test_client.get(url_for('imaging.imaging_manager')
+		, follow_redirects=True)
+	assert b'Imaging management GUI' in response.data
+	assert b'test_2x_nonadmin' in response.data 
+	
 
 """ Tests for imaging entry form """
 
@@ -935,6 +947,153 @@ def test_imager_adds_channel_then_submits(test_client,
 		'channel_name="555"'
 	assert len(imaging_channel_contents) == 1
 	
+def test_imager_selects_smartspim_channel_not_present_processing_manager(
+	test_client,
+	test_cleared_request_nonadmin,
+	test_login_zmd):
+
+	""" Test that if Zahra (zmd, an imaging admin) changes an imaging resolution
+	in the imaging entry form from LaVision to SmartSpim (e.g. 3.6x), 
+	then after she submits the form an entry to process this channel
+	is not visible in the processing manager. """
+	
+	# First, a post request to change the resolution
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-change_resolution':True,
+		'image_resolution_forms-0-new_image_resolution':'3.6x',
+		'image_resolution_forms-0-update_resolution_button':True
+		}
+
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	# Then submit the form with the new resolution
+	data = {
+		'image_resolution_forms-0-image_resolution':'3.6x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_forms-0-channel_forms-0-z_step':10,
+		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'submit':True
+		}
+
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging management GUI' in response.data
+	assert b'admin_request' in response.data 
+
+	# Now check the processing manager
+	
+	response = test_client.get(url_for('processing.processing_manager',
+		follow_redirects=True))
+	assert b'nonadmin_request' not in response.data
+
+	# Make sure no ProcessingRequest() entity exists for this request, but ImagingRequest() still exists
+	imaging_restrict_dict = {
+		'username':'lightserv-test',
+		'request_name':'nonadmin_request',
+		'sample_name':'sample-001',
+		'imaging_request_number':1}
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & imaging_restrict_dict
+	assert len(imaging_request_contents) == 1
+	processing_restrict_dict = imaging_restrict_dict.copy()
+	processing_restrict_dict['processing_request_number'] = 1
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & processing_restrict_dict
+	assert len(processing_request_contents) == 0
+
+def test_2x_changed_to_1p3x_imaging_present_processing_manager(
+	test_client,
+	test_cleared_request_2x_nonadmin,
+	test_login_zmd):
+
+	""" Test that if Zahra (zmd, an imaging admin) changes an imaging resolution
+	in the imaging entry form 2x imaging (which doesn't generate a processing request originally)
+	to 1.3x, which does need to be processed, that the processing request shows up in the 
+	processing manager and in the database """
+	# First verify that no ProcessingRequest() entry exists
+	processing_restrict_dict = {
+		'username':'lightserv-test',
+		'request_name':'test_2x_nonadmin',
+		'sample_name':'sample-001',
+		'imaging_request_number':1,
+		'processing_request_number':1}
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & processing_restrict_dict
+	assert len(processing_request_contents) == 0
+	# First, a post request to change the resolution
+	data = {
+		'image_resolution_forms-0-image_resolution':'2x',
+		'image_resolution_forms-0-change_resolution':True,
+		'image_resolution_forms-0-new_image_resolution':'1.3x',
+		'image_resolution_forms-0-update_resolution_button':True
+		}
+
+	response = test_client.post(url_for('imaging.imaging_entry',
+			username='lightserv-test',request_name='test_2x_nonadmin',sample_name='sample-001',
+			imaging_request_number=1),
+		data=data,
+		follow_redirects=True)
+	# Make sure a ProcessingRequest() entry now exists 
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
+		processing_restrict_dict
+	assert len(processing_request_contents) == 1
+	processing_resolution_request_contents = db_lightsheet.Request.ProcessingResolutionRequest() & \
+		processing_restrict_dict
+	print(processing_resolution_request_contents)
+
+	# # Then submit the form with the new resolution
+	# data = {
+	# 	'image_resolution_forms-0-image_resolution':'1.3x',
+	# 	'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+	# 	'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+	# 	'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+	# 	'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+	# 	'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+	# 	'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+	# 	'image_resolution_forms-0-channel_forms-0-z_step':10,
+	# 	'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+	# 	'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+	# 	'submit':True
+	# 	}
+
+	# response = test_client.post(url_for('imaging.imaging_entry',
+	# 		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+	# 		imaging_request_number=1),
+	# 	data=data,
+	# 	follow_redirects=True)
+	# assert b'Imaging management GUI' in response.data
+	# assert b'admin_request' in response.data 
+
+	# # Now check the processing manager
+	
+	# response = test_client.get(url_for('processing.processing_manager',
+	# 	follow_redirects=True))
+	# assert b'nonadmin_request' not in response.data
+
+	# # Make sure no ProcessingRequest() entity exists for this request, but ImagingRequest() still exists
+	# imaging_restrict_dict = {
+	# 	'username':'lightserv-test',
+	# 	'request_name':'nonadmin_request',
+	# 	'sample_name':'sample-001',
+	# 	'imaging_request_number':1}
+	# imaging_request_contents = db_lightsheet.Request.ImagingRequest() & imaging_restrict_dict
+	# assert len(imaging_request_contents) == 1
+	# processing_restrict_dict = imaging_restrict_dict.copy()
+	# processing_restrict_dict['processing_request_number'] = 1
+	# processing_request_contents = db_lightsheet.Request.ProcessingRequest() & processing_restrict_dict
+	# assert len(processing_request_contents) == 0
+
+
 """ Test for imaging tasks """
 
 def test_raw_precomputed_pipeline_starts(test_client,test_delete_spockadmin_db_contents):
