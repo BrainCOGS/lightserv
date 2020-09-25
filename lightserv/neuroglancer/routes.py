@@ -3646,10 +3646,6 @@ def jess_cfos_merge_ontology_demo():
     
     return render_template('neuroglancer/single_link.html',
         neuroglancerurl=neuroglancerurl)
-       
-
-
-
 
 @neuroglancer.route("/neuroglancer/jess_cfos_setup",
     methods=['GET','POST'])
@@ -3875,6 +3871,163 @@ def jess_cfos_setup():
                 this_animal_form.eroded_cells.data = 'no'
 
     return render_template('neuroglancer/jess_cfos_setup.html',form=form)
+
+@neuroglancer.route("/neuroglancer/jess_tracing_setup",
+    methods=['GET','POST'])
+@logged_in
+@log_http_requests
+def jess_tracing_setup():
+    """ A route for Jess to select which of her available tracing brains
+    she wants to make links for in Neuroglancer """
+    form = CfosSetupForm(request.form)
+    animal_dataset_list = ['20170115_tp_bl6_lob6a_1000r_02','20170115_tp_bl6_lob6a_500r_01',
+        '20170204_tp_bl6_cri_1000r_02','20180417_jg60_bl6_cri_04'] 
+    if request.method == 'POST':
+        logger.debug("POST request")
+        if form.validate_on_submit():
+            logger.debug("form validated")
+            animal_forms = form.animal_forms
+            for animal_form in animal_forms:
+                viz = animal_form.viz.data
+                dataset = animal_form.dataset.data
+                logger.debug(dataset)
+                if viz:
+                    selected_dataset = dataset
+                    break
+            layer_rootdir = os.path.join('/jukebox/LightSheetData/lightserv_testing/neuroglancer',
+                'jess_tracing',selected_dataset)
+            config_proxy_auth_token = os.environ['CONFIGPROXY_AUTH_TOKEN']
+            # Redis setup for this session
+            kv = redis.Redis(host="redis", decode_responses=True)
+            hosturl = os.environ['HOSTURL'] # via dockerenv
+            
+            session_name = secrets.token_hex(6)
+            kv.hmset(session_name,{"cv_count":0}) # initialize the number of cloudvolumes in this ng session
+
+            # Set up environment to be shared by all cloudvolumes
+            cv_environment = {
+            'PYTHONPATH':'/opt/libraries',
+            'CONFIGPROXY_AUTH_TOKEN':f"{config_proxy_auth_token}",
+            'SESSION_NAME':session_name
+            }
+
+            """ CV 1: Raw data  """
+            layer_type = "image"
+                       
+            cv_number = 0 # to keep track of how many cloudvolumes in this viewer
+            cv_container_name = f'{session_name}_rawdata_{selected_dataset}'
+            cv_name = f"rawdata_{selected_dataset}"
+            cv_path = os.path.join(layer_rootdir,f'rawdata_{selected_dataset}')      
+            cv_number += 1              
+           
+            """ send the data to the viewer-launcher
+            to launch the cloudvolume """                       
+            cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
+                cv_container_name=cv_container_name,
+                layer_type=layer_type,session_name=session_name)
+            requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
+            logger.debug("Made post request to viewer-launcher to launch cloudvolume")
+
+            """ Enter the cv information into redis
+            so I can get it from within the neuroglancer container """
+            kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
+                f"cv{cv_number}_name": cv_name, f"layer{cv_number}_type":layer_type})
+            # increment the number of cloudvolumes so it is up to date
+            kv.hincrby(session_name,'cv_count',1)
+            
+            # register with the confproxy so that it can be seen from outside the nglancer network
+            proxy_h = pp.progproxy(target_hname='confproxy')
+            proxypath = os.path.join('cloudvols',session_name,cv_name)
+            proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
+
+            """ CV 2: Raw atlas  """
+            layer_type = "segmentation"
+                       
+            cv_number += 1              
+            cv_container_name = f'{session_name}_rawatlas_{selected_dataset}'
+            cv_name = f"rawatlas_{selected_dataset}"
+            cv_path = os.path.join(layer_rootdir,f'rawatlas_{selected_dataset}')      
+            """ send the data to the viewer-launcher
+            to launch the cloudvolume """                       
+            cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
+                cv_container_name=cv_container_name,
+                layer_type=layer_type,session_name=session_name)
+            requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
+            logger.debug("Made post request to viewer-launcher to launch cloudvolume")
+
+            """ Enter the cv information into redis
+            so I can get it from within the neuroglancer container """
+            kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
+                f"cv{cv_number}_name": cv_name, f"layer{cv_number}_type":layer_type})
+            # increment the number of cloudvolumes so it is up to date
+            kv.hincrby(session_name,'cv_count',1)
+            # register with the confproxy so that it can be seen from outside the nglancer network
+            proxy_h = pp.progproxy(target_hname='confproxy')
+            proxypath = os.path.join('cloudvols',session_name,cv_name)
+            proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
+
+            """ Neuroglancer viewer container """
+            ng_container_name = f'{session_name}_ng_container'
+            ng_dict = {}
+            ng_dict['hosturl'] = hosturl
+            ng_dict['ng_container_name'] = ng_container_name
+            ng_dict['session_name'] = session_name
+            """ send the data to the viewer-launcher
+            to launch the ng viewer """                       
+            
+            requests.post('http://viewer-launcher:5005/ng_ontology_pma_launcher',json=ng_dict)
+            logger.debug("Made post request to viewer-launcher to launch ng custom viewer")
+            
+            # Add the ng container name to redis session key level
+            kv.hmset(session_name, {"ng_container_name": ng_container_name})
+            # Add ng viewer url to config proxy so it can be seen from outside of the lightserv docker network 
+            proxy_h.addroute(proxypath=f'viewers/{session_name}', 
+                proxytarget=f"http://{ng_container_name}:8080/")
+            logger.debug(f"Added {ng_container_name} to redis and confproxy")
+            # Add the ng container name to redis session key level
+            kv.hmset(session_name, {"ng_container_name": ng_container_name})
+            # Add ng viewer url to config proxy so it can be seen from outside of the lightserv docker network 
+            proxy_h.addroute(proxypath=f'viewers/{session_name}', 
+                proxytarget=f"http://{ng_container_name}:8080/")
+
+            # Spin until the neuroglancer viewer token from redis becomes available (may be waiting on the neuroglancer container to finish writing to redis)
+            while True:
+                session_dict = kv.hgetall(session_name)
+                if 'viewer' in session_dict.keys():
+                    break
+                else:
+                    logging.debug("Still spinning; waiting for redis entry for neuoglancer viewer")
+                    time.sleep(0.25)
+            viewer_json_str = kv.hgetall(session_name)['viewer']
+            viewer_dict = json.loads(viewer_json_str)
+            logging.debug(f"Redis contents for viewer")
+            logging.debug(viewer_dict)
+            proxy_h.getroutes()
+            
+            neuroglancerurl = f"http://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
+            logger.debug(neuroglancerurl)
+            
+            return render_template('neuroglancer/single_link.html',
+                neuroglancerurl=neuroglancerurl)
+        else: # not validated
+            logger.debug("Form not validated")
+            flash("There were errors below. Correct them in order to proceed.",'danger')
+            logger.debug(form.errors)
+            for key in form.errors:
+                for error in form.errors[key]:
+                    flash(error,'danger')
+    """ First clear out any existing subforms from previous http requests """
+    while len(form.animal_forms) > 0:
+        form.animal_forms.pop_entry()
+    
+    animal_forms = form.animal_forms
+    for dataset in animal_dataset_list:
+        animal_forms.append_entry()
+        this_animal_form = animal_forms[-1]
+        this_animal_form.dataset.data = dataset
+
+    return render_template('neuroglancer/jess_tracing_setup.html',form=form)
+
 
 @neuroglancer.route("/admin/confproxy_table",methods=['GET'])
 @logged_in_as_admin

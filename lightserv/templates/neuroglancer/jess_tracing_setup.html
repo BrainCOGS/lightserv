@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block content %}
+	<h1 class="mb-2" align="center">Jess Verpeut's Tracing Visualization Setup Form</h1>
+
+	<hr class='class-2'>
+	
+	<div class="content-section">
+		<form method="POST" action="">
+			{{ form.hidden_tag() }}
+			<fieldset class="form-group">
+				<h3 class='border-bottom mb-4'>Setup</h3>
+				
+				<h4 > Select one dataset you would like to display in Neuroglancer</h4>
+				<table class="table table-bordered table-striped text-center mb-4">
+			        <tr>
+			            <th>Dataset </th>
+			            <th>Visualize?</th>
+			        </tr>
+			        {% for ii in range(form.animal_forms|length) %}
+						{% set animal_form = form.animal_forms[ii] %}
+						<!-- render the hidden fields -->
+						{{ animal_form.dataset() }}
+						{% set dataset = animal_form.dataset.data %}
+
+						<tr>   
+						    <td>{{dataset}}</td>
+						    <td> 
+					    		<div>							    		
+					    			{{ animal_form.viz }}
+					    		</div>
+							</td>
+						</tr>
+				    {% endfor %} <!-- Loop over animal forms -->
+				</table>
+				
+			</fieldset>
+			<!-- Final submit button -->
+			<hr class='class-3'>
+			<div class="form-group">
+				{{ form.submit(class="btn btn-success mt-2") }}
+			</div>
+		</form>
+
+	</div>
+
+
+{% endblock content %}

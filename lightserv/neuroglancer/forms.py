@@ -196,7 +196,7 @@ class GeneralDataSetupForm(FlaskForm):
 								  " You must choose at least one in order to proceed.")
 
 
-""" Brain selection form for Jess' c-Fos experiments """
+""" Brain selection form for Jess' c-Fos and tracing experiments """
 
 class AnimalForm(FlaskForm):
 	""" A sub-form for each image resolution in RawDataSetupForm """
@@ -210,6 +210,26 @@ class CfosSetupForm(FlaskForm):
 	their raw data for a given imaging request in Neuroglancer
 	"""
 	animal_forms = FieldList(FormField(AnimalForm),min_entries=0,max_entries=40)
+	submit = SubmitField('Submit')
+	
+	def validate_animal_forms(self,animal_forms):
+		""" Check to make sure at 1 checkbox was checked. No more no less."""
+		n_checked = [animal_form.data['viz']==True for animal_form in self.animal_forms].count(True)
+		if n_checked == 0:
+			raise ValidationError("No animal ids were checked when you hit submit. One needs to be checked")
+		elif n_checked >1:
+			raise ValidationError("Only one box can be checked when you hit submit.")
+		
+class TracingAnimalForm(FlaskForm):
+	""" A sub-form for each image resolution in RawDataSetupForm """
+	dataset = HiddenField('dataset')
+	viz = BooleanField("Visualize?")
+
+class TracingSetupForm(FlaskForm):
+	""" A form for setting up how user wants to visualize
+	their raw data for a given imaging request in Neuroglancer
+	"""
+	animal_forms = FieldList(FormField(TracingAnimalForm),min_entries=0,max_entries=4)
 	submit = SubmitField('Submit')
 	
 	def validate_animal_forms(self,animal_forms):
