@@ -79,6 +79,10 @@ def run_lightsheet_pipeline(username,request_name,
 	with connection.transaction:
 		unique_image_resolutions = sorted(list(set(all_channel_contents.fetch('image_resolution'))))
 		for image_resolution in unique_image_resolutions:
+			if image_resolution == '3.6x' or image_resolution == '15x':
+				logger.debug("Not running pipeline for Image resolution: {}".format(image_resolution))
+				logger.debug("This resolution is not supported yet!")
+				continue
 			logger.debug("Setting up param dicts for Image resolution: {}".format(image_resolution))
 			
 			this_image_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & \
