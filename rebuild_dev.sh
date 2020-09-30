@@ -61,7 +61,10 @@ cd ../neuroglancer-ontology-pma
 
 docker build -f ./neuroglancer.Dockerfile -t nglancer_ontology_pma_viewer:latest .
 
+## build neuroglancer-fiber latest tag
+cd ../neuroglancer-fiber
 
+docker build -f ./neuroglancer.Dockerfile -t nglancer_fiber_viewer:latest .
 
 
 

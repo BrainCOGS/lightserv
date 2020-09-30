@@ -3725,7 +3725,7 @@ def willmore_fiber_placement_demo():
     """ send the data to the viewer-launcher
     to launch the ng viewer """                       
     
-    requests.post('http://viewer-launcher:5005/ng_custom_launcher',json=ng_dict)
+    requests.post('http://viewer-launcher:5005/ng_fiber_launcher',json=ng_dict)
     logger.debug("Made post request to viewer-launcher to launch ng custom viewer")
     
     # Add the ng container name to redis session key level
