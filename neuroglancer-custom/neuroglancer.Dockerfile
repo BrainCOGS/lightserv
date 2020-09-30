@@ -8,7 +8,7 @@ WORKDIR /opt/repos
 RUN apt-get update -y && apt-get upgrade -y && \
     apt-get install bash git gcc 'g++' musl-dev -y
 
-RUN  pip install neuroglancer==1.1.6 redis
+RUN  pip install neuroglancer==2.10 redis
 
 COPY neuroglancer_launcher.py /opt/neuroglancer_launcher.py
 

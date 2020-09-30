@@ -90,8 +90,10 @@ for ii in range(cv_count):
 		    )
 		    
 with viewer.txn() as s:
-	s.navigation.zoomFactor = 40000
-	s.layout = '4panel'
+	s.layout = 'xy'
+	s.crossSectionOrientation = [0.5,0.5,-0.5,0.5]
+	s.crossSectionScale = 0.00002
+  
 logging.debug("neuroglancer viewer is now available")
 
 ## redis shared state segment

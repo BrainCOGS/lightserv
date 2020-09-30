@@ -3669,8 +3669,8 @@ def willmore_fiber_placement_demo():
                
     cv_number = 0 # to keep track of how many cloudvolumes in this viewer
     cv_container_name = f'{session_name}_data_{animal_id}'
-    cv_name = f"registered_{animal_id}"
-    cv_path = os.path.join(layer_rootdir,dataset,f'registered_data_{animal_id}')      
+    cv_name = f"registered_data_{animal_id}"
+    cv_path = os.path.join(layer_rootdir,dataset,f'registered_kimatlas_data_{animal_id}')      
     cv_number += 1              
     """ send the data to the viewer-launcher
     to launch the cloudvolume """                       
@@ -3691,14 +3691,14 @@ def willmore_fiber_placement_demo():
     proxypath = os.path.join('cloudvols',session_name,cv_name)
     proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
 
-    """ CV 2: Allen Mouse Brain Atlas """
+    """ CV 2: Kim et al. group Mouse Brain Atlas """
     cv_number += 1              
 
     layer_type = "segmentation"
                
-    cv_container_name = f'{session_name}_Allen_Mouse_Brain_Atlas'
-    cv_name = f"Allen_Mouse_Brain_Atlas"
-    cv_path = '/jukebox/LightSheetData/atlas/neuroglancer/atlas/allenatlas_2017_16bit_hierarch_labels_fillmissing'  
+    cv_container_name = f'{session_name}_paxinos_atlas'
+    cv_name = f"Paxinos_mouse_brain_atlas"
+    cv_path = '/jukebox/LightSheetData/atlas/neuroglancer/atlas/kimatlas'  
     cv_dict = dict(cv_number=cv_number,cv_path=cv_path,cv_name=cv_name,
         cv_container_name=cv_container_name,
         layer_type=layer_type,session_name=session_name)
@@ -3752,8 +3752,6 @@ def willmore_fiber_placement_demo():
     viewer_dict = json.loads(viewer_json_str)
     logging.debug(f"Redis contents for viewer")
     logging.debug(viewer_dict)
-    # logger.debug("Proxy contents:")
-    # logger.debug(proxy_contents)
     
     neuroglancerurl = f"http://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
     logger.debug(neuroglancerurl)
