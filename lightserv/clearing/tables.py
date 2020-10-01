@@ -439,6 +439,48 @@ class UdiscoTable(Table):
     clearing_babb_wash1_notes = Col('clearing_babb_wash1_notes')
     clearing_notes = Col('clearing_notes')
 
+class UdiscoRatTable(Table):
+    border = True
+    no_items = "No Clearing Yet"
+    html_attrs = {"style":'font-size:14px'} # gets assigned to table header
+    column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    username = Col('username',column_html_attrs=column_html_attrs)
+    request_name = Col('request_name',column_html_attrs=column_html_attrs)
+    exp_notes = Col('exp_notes')
+
+    time_dehydr_pbs_wash1 = Col('time_dehydr_pbs_wash1')
+    dehydr_pbs_wash1_notes = Col('dehydr_pbs_wash1_notes')
+    
+    time_dehydr_butanol_30percent = Col('time_dehydr_butanol_30percent')
+    dehydr_butanol_30percent_notes = Col('dehydr_butanol_30percent_notes')
+    
+    time_dehydr_butanol_50percent = Col('time_dehydr_butanol_50percent')
+    dehydr_butanol_50percent_notes = Col('dehydr_butanol_50percent_notes')
+    
+    time_dehydr_butanol_70percent = Col('time_dehydr_butanol_70percent')
+    dehydr_butanol_70percent_notes = Col('dehydr_butanol_70percent_notes')
+    
+    time_dehydr_butanol_80percent = Col('time_dehydr_butanol_80percent')
+    dehydr_butanol_80percent_notes = Col('dehydr_butanol_80percent_notes')
+    
+    time_dehydr_butanol_90percent = Col('time_dehydr_butanol_90percent')
+    dehydr_butanol_90percent_notes = Col('dehydr_butanol_90percent_notes')
+    
+    time_dehydr_butanol_96percent = Col('time_dehydr_butanol_96percent')
+    dehydr_butanol_96percent_notes = Col('dehydr_butanol_96percent_notes')
+    
+    time_dehydr_butanol_100percent = Col('time_dehydr_butanol_100percent')
+    dehydr_butanol_100percent_notes = Col('dehydr_butanol_100percent_notes')
+    
+    time_clearing_dcm_wash1 = Col('time_clearing_dcm_wash1')
+    clearing_dcm_wash1_notes = Col('clearing_dcm_wash1_notes')
+    
+    time_clearing_babb_wash1 = Col('time_clearing_babb_wash1')
+    clearing_babb_wash1_notes = Col('clearing_babb_wash1_notes')
+    clearing_notes = Col('clearing_notes')
+
+
 class IdiscoEdUTable(Table):
     border = True
     no_items = "No Clearing Yet"
@@ -577,3 +619,4 @@ class IdiscoEdUTable(Table):
     clearing_new_tubes_notes                     = Col('clearing_new_tubes_notes')
 
     clearing_notes                              = Col('clearing_notes')
+

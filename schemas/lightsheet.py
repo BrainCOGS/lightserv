@@ -59,7 +59,7 @@ class Request(dj.Manual):
     class ClearingBatch(dj.Part):
         definition = """ # Samples from a particular request
         -> Request
-        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","iDISCO_EdU","experimental")
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","uDISCO (rat)","iDISCO_EdU","experimental")
         antibody1 = ''               :   varchar(100)
         antibody2 = ''               :   varchar(100)
         clearing_batch_number        :   tinyint
@@ -390,7 +390,35 @@ class Request(dj.Manual):
         clearing_dcm_wash1_notes = ""                            :   varchar(250)
         time_clearing_babb_wash1 = NULL                          :   datetime
         clearing_babb_wash1_notes = ""                           :   varchar(250)
-        clearing_notes = ""                                      : varchar(500)
+        clearing_notes = ""                                      :   varchar(500)
+        """
+
+    class UdiscoRatClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data
+        definition = """ # uDISCO clearing table
+        -> master.ClearingBatch              
+        ----
+        exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
+        time_dehydr_pbs_wash1 = NULL                             :   datetime
+        dehydr_pbs_wash1_notes = ""                              :   varchar(250)
+        time_dehydr_butanol_30percent = NULL                     :   datetime
+        dehydr_butanol_30percent_notes = ""                      :   varchar(250)
+        time_dehydr_butanol_50percent = NULL                     :   datetime
+        dehydr_butanol_50percent_notes = ""                      :   varchar(250)
+        time_dehydr_butanol_70percent = NULL                     :   datetime
+        dehydr_butanol_70percent_notes = ""                      :   varchar(250)
+        time_dehydr_butanol_80percent = NULL                     :   datetime
+        dehydr_butanol_80percent_notes = ""                      :   varchar(250)
+        time_dehydr_butanol_90percent = NULL                     :   datetime
+        dehydr_butanol_90percent_notes = ""                      :   varchar(250)
+        time_dehydr_butanol_96percent = NULL                     :   datetime
+        dehydr_butanol_96percent_notes = ""                      :   varchar(250)
+        time_dehydr_butanol_100percent = NULL                    :   datetime
+        dehydr_butanol_100percent_notes = ""                     :   varchar(250)
+        time_clearing_dcm_wash1 = NULL                           :   datetime
+        clearing_dcm_wash1_notes = ""                            :   varchar(250)
+        time_clearing_babb_wash1 = NULL                          :   datetime
+        clearing_babb_wash1_notes = ""                           :   varchar(250)
+        clearing_notes = ""                                      :   varchar(500)
         """
 
     class IdiscoEdUClearing(dj.Part): # dj.Manual is one of the 4 datajoint table types - Manual corresponds to externally inputted data

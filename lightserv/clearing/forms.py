@@ -450,7 +450,7 @@ class iDiscoAbbreviatedRatForm(FlaskForm):
 	submit = SubmitField('Submit')
 
 class uDiscoForm(FlaskForm):
-	""" The form for requesting a new experiment/dataset """
+	""" The form for entering clearing information """
 	title = 'uDISCO'
 	exp_notes = TextAreaField('Experiment Notes: If anything unusual happened \
 		during the experiment that might affect clearing, please note it here:',validators=[Length(max=500)])
@@ -515,6 +515,73 @@ class uDiscoForm(FlaskForm):
 	clearing_notes_submit = SubmitField('Update Notes')
 
 	submit = SubmitField('Submit')
+
+class uDiscoRatForm(FlaskForm):
+	""" The form for entering clearing information """
+	title = 'Rat uDISCO'
+	exp_notes = TextAreaField('Experiment Notes: If anything unusual happened \
+		during the experiment that might affect clearing, please note it here:',validators=[Length(max=500)])
+	exp_notes_submit = SubmitField('Update')
+	
+	dehydr_date = OptionalDateField('Dehydration')
+	dehydr_date_submit = SubmitField('Push date to calendar (optional)')
+	time_dehydr_pbs_wash1 = OptionalDateTimeLocalField('0.1M PBS R@RT 30 mins')
+	time_dehydr_pbs_wash1_submit = SubmitField('Update')
+	dehydr_pbs_wash1_notes = TextAreaField('Notes:',validators=[Length(max=250)])
+	dehydr_pbs_wash1_notes_submit = SubmitField('Update Notes')
+
+	time_dehydr_butanol_30percent = OptionalDateTimeLocalField('30% t-butanol R@35C O/N 24 hrs')
+	time_dehydr_butanol_30percent_submit = SubmitField('Update')
+	dehydr_butanol_30percent_notes = TextAreaField('Notes:',validators=[Length(max=250)])
+	dehydr_butanol_30percent_notes_submit = SubmitField('Update Notes')
+
+	time_dehydr_butanol_50percent = OptionalDateTimeLocalField('50% t-butanol R@35C 24 hrs')
+	time_dehydr_butanol_50percent_submit = SubmitField('Update')
+	dehydr_butanol_50percent_notes = TextAreaField('Notes:',validators=[Length(max=250)])
+	dehydr_butanol_50percent_notes_submit = SubmitField('Update Notes')
+
+	time_dehydr_butanol_70percent = OptionalDateTimeLocalField('70% t-butanol R@35C O/N 24 hrs')
+	time_dehydr_butanol_70percent_submit = SubmitField('Update')
+	dehydr_butanol_70percent_notes = TextAreaField('Notes:',validators=[Length(max=250)])
+	dehydr_butanol_70percent_notes_submit = SubmitField('Update Notes')
+
+	time_dehydr_butanol_80percent = OptionalDateTimeLocalField('80% t-butanol R@35C 24 hrs')
+	time_dehydr_butanol_80percent_submit = SubmitField('Update')
+	dehydr_butanol_80percent_notes = TextAreaField('Notes:',validators=[Length(max=250)])
+	dehydr_butanol_80percent_notes_submit = SubmitField('Update Notes')
+
+	time_dehydr_butanol_90percent = OptionalDateTimeLocalField('90% t-butanol R@35C O/N 24 hrs')
+	time_dehydr_butanol_90percent_submit = SubmitField('Update')
+	dehydr_butanol_90percent_notes = TextAreaField('Notes:',validators=[Length(max=250)])
+	dehydr_butanol_90percent_notes_submit = SubmitField('Update Notes')
+
+	time_dehydr_butanol_96percent = OptionalDateTimeLocalField('96% t-butanol R@35C 24 hrs')
+	time_dehydr_butanol_96percent_submit = SubmitField('Update')
+	dehydr_butanol_96percent_notes = TextAreaField('Notes:',validators=[Length(max=250)])
+	dehydr_butanol_96percent_notes_submit = SubmitField('Update Notes')
+
+	time_dehydr_butanol_100percent = OptionalDateTimeLocalField('100% t-butanol R@35C O/N 24 hrs')
+	time_dehydr_butanol_100percent_submit = SubmitField('Update')
+	dehydr_butanol_100percent_notes = TextAreaField('Notes:',validators=[Length(max=250)])
+	dehydr_butanol_100percent_notes_submit = SubmitField('Update Notes')
+
+	clearing_date = OptionalDateField('Clearing')
+	clearing_date_submit = SubmitField('Push date to calendar (optional)')
+	time_clearing_dcm_wash1 = OptionalDateTimeLocalField('100% DCM R@RT 2.5-3 hrs')
+	time_clearing_dcm_wash1_submit = SubmitField('Update')
+	clearing_dcm_wash1_notes = TextAreaField('Notes:',validators=[Length(max=250)])
+	clearing_dcm_wash1_notes_submit = SubmitField('Update Notes')
+
+	time_clearing_babb_wash1 = OptionalDateTimeLocalField('BABB-D15 > 3hrs')
+	time_clearing_babb_wash1_submit = SubmitField('Update')
+	clearing_babb_wash1_notes = TextAreaField('Notes:',validators=[Length(max=250)])
+	clearing_babb_wash1_notes_submit = SubmitField('Update Notes')
+
+	clearing_notes = TextAreaField('Clearing Notes',validators=[Length(max=500)])
+	clearing_notes_submit = SubmitField('Update Notes')
+
+	submit = SubmitField('Submit')
+
 
 class iDiscoEduForm(FlaskForm):
 	""" The form for entering clearing information """

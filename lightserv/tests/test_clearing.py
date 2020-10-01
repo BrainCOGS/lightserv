@@ -562,6 +562,58 @@ def test_clearing_notes_appear_in_clearing_entry_form(test_client,test_multisamp
 	assert b'sample 1 notes' in response.data
 	assert b'sample 2 notes' in response.data
 	
+def test_rat_udisco_clearing_entry_form_submits(test_client,
+	test_rat_udisco_clearing_request_nonadmin,test_login_ll3):
+	""" Test that ll3 can submit a clearing entry form 
+	and it redirects her back to the clearing task manager  """
+	# response = test_client.get(url_for('requests.all_requests'))
+	now = datetime.now()
+	data = dict(time_dehydr_butanol_30percent=now.strftime('%Y-%m-%dT%H:%M'),
+		dehydr_butanol_30percent_notes='some notes',submit=True)
+	response = test_client.post(url_for('clearing.clearing_entry',
+			username="lightserv-test",
+			request_name="nonadmin_udisco_rat_request",
+			clearing_protocol="uDISCO (rat)",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+	
+	assert b'Clearing management GUI' in response.data
+	
+	""" Make sure clearing_progress is now updated """
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & 'username="lightserv-test"' & \
+	'request_name="nonadmin_udisco_rat_request"' & 'clearing_protocol="uDISCO (rat)"' & \
+			'antibody1=""' & 'antibody2=""'
+	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
+	assert clearing_progress == 'complete'
+	
+	""" Make sure the clearing batch is now in the correct table in the manager """
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag = parsed_html.body.find('table',attrs={'id':'horizontal_already_cleared_table'})
+	table_row_tag = [1] # the 0th row is the headers
+	table_rows = table_tag.find_all('tr')
+	header_row = table_rows[0].find_all('th')
+	data_row = table_rows[1].find_all('td')
+	for ii,col in enumerate(header_row):
+		if col.text == 'clearing protocol':
+			clearing_protocol_column_index = ii
+		elif col.text == 'antibody1':
+			antibody1_column_index = ii
+		elif col.text == 'antibody2':
+			antibody2_column_index = ii
+		elif col.text == 'request name':
+			request_name_column_index = ii
+	clearing_protocol_retrieved = data_row[clearing_protocol_column_index].text
+	antibody1_retrieved = data_row[antibody1_column_index].text
+	antibody2_retrieved = data_row[antibody2_column_index].text
+	request_name_retrieved = data_row[request_name_column_index].text
+
+	assert clearing_protocol_retrieved == "uDISCO (rat)"
+	assert antibody1_retrieved == ""
+	assert antibody2_retrieved == ""
+	assert request_name_retrieved == "nonadmin_udisco_rat_request"
 
 """ Test clearing_table() """
 

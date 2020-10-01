@@ -1050,6 +1050,43 @@ def test_request_2x_nonadmin(test_client,test_login_nonadmin,test_delete_request
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_request_4x_nonadmin fixture --------')
 
+@pytest.fixture(scope='function') 
+def test_rat_udisco_clearing_request_nonadmin(test_client,test_login_nonadmin,
+	test_delete_request_db_contents):
+	""" Submits a new request as lightserv-test with a single sample
+	that can be used for various tests.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_single_request_ahoag fixture ----------')
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Tank/Brody",'correspondence_email':"lightserv-test@princeton.edu",
+			'request_name':"nonadmin_udisco_rat_request",
+			'description':"This is a request by lightserv-test, a non admin",
+			'species':"rat",'number_of_samples':1,
+			'username':current_user,
+			'clearing_samples-0-clearing_protocol':'uDISCO (rat)',
+			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_single_request_ahoag fixture --------')
+
 
 """ Fixtures for clearing """
 

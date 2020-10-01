@@ -1400,6 +1400,42 @@ def test_submit_all_image_resolutions(test_client,test_login_nonadmin,
 	assert b"This is a demo request" in response.data
 	assert b"New Request Form" not in response.data
 
+def test_submit_rat_udisco_request(test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Ensure that entire new request form successfully 
+	submits for a rat uDISCO request for lightserv-test user.
+
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"rat_udisco_request",
+			'description':"This is a demo request",
+			'species':"rat",'number_of_samples':1,
+			'username':test_login_nonadmin['user'],
+			'clearing_samples-0-clearing_protocol':'uDISCO (rat)',
+			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"core facility requests" in response.data
+	assert b"rat_udisco_request" in response.data
+	assert b"New Request Form" not in response.data
+
+
 """ Testing all_requests() """
 
 def test_admin_sees_all_requests(test_client,test_single_sample_request_ahoag,test_login_zmd):
