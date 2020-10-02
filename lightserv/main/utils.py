@@ -133,9 +133,9 @@ def logged_in_as_clearer(f):
 				if current_user == clearer:
 					logger.info(f"{current_user} is the rightful clearer and accessed the clearing entry form")
 					return f(*args, **kwargs)
-				elif current_user in current_app.config['TEMP_CLEARING_SUPERADMINS']:
-					logger.info(f"{current_user} is not the original clearer but is a temporary super clearing admin and accessed the clearing entry form")
-					return f(*args, **kwargs)
+				# elif current_user in current_app.config['TEMP_CLEARING_SUPERADMINS']:
+				# 	logger.info(f"{current_user} is not the original clearer but is a temporary super clearing admin and accessed the clearing entry form")
+				# 	return f(*args, **kwargs)
 				else:
 					logger.info(f"Current user: {current_user} is not the clearer, who has already been assigned."
 					             "Denying them access")

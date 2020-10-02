@@ -10,12 +10,11 @@ from datetime import timedelta
 class BaseConfig(object):
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	IMAGING_ADMINS = ['ahoag','zmd']
-	PROCESSING_ADMINS = ['ahoag','jduva','zmd']
-	CLEARING_ADMINS = ['ahoag','ll3','zmd','jverpeut']
+	PROCESSING_ADMINS = ['ahoag','zmd']
+	CLEARING_ADMINS = ['ahoag','ll3','zmd']
 	LAVISION_RESOLUTIONS = ["1.1x","1.3x","2x","4x"]
 	SMARTSPIM_RESOLUTIONS = ["3.6x","15x"]
 	RESOLUTIONS_NO_PROCESSING = ["2x","3.6x","15x"] # resolutions we are not able to process
-	TEMP_CLEARING_SUPERADMINS = ['ahoag','ll3','zmd','jverpeut']
 	IMAGING_MODES = ['registration','injection_detection','probe_detection','cell_detection','generic_imaging']
 	IMAGING_CHANNELS = ['488','555','647','790']
 	ADMINS_TO_EMAIL = ['ahoag'] # for problems with requests/spock jobs
