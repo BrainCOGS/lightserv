@@ -10,8 +10,8 @@ dj.config['database.port'] = 3306
 dj.config['database.user'] = os.environ['DJ_DB_USER']
 dj.config['database.password'] = os.environ['DJ_DB_PASS']
 
-spockadmin_schema = dj.schema('u19lightserv_appcore')
-lightsheet_schema = dj.schema('u19lightserv_lightsheet')
+# spockadmin_schema = dj.schema('u19lightserv_appcore')
+# lightsheet_schema = dj.schema('u19lightserv_lightsheet')
 # admin_schema = dj.schema('u19lightserv_appcore')
 # microscope_schema = dj.schema('ahoag_microscope_demo')
 
