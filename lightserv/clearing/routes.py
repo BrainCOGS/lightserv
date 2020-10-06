@@ -3,7 +3,8 @@ from flask import (render_template, url_for, flash,
 				   Markup,current_app)
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 									  iDiscoAbbreviatedRatForm, uDiscoForm,  iDiscoEduForm )
-from lightserv.clearing.tables import ClearingTable,IdiscoPlusTable, dynamic_clearing_management_table
+from lightserv.clearing.tables import (ClearingTable,IdiscoPlusTable,
+	dynamic_clearing_management_table,SamplesTable)
 from lightserv import db_lightsheet, smtp_connect
 from .utils import (determine_clearing_form, add_clearing_calendar_entry,
 				   determine_clearing_dbtable, determine_clearing_table) 
@@ -98,7 +99,14 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 			f'clearing_batch_number={clearing_batch_number}'				
 	antibody1,antibody2 = clearing_batch_contents.fetch1('antibody1','antibody2')
 	clearing_table = ClearingTable(clearing_batch_contents)
-	
+	""" Make the samples table to sit directly underneath the clearing table """
+	sample_keys = {'username':username,'request_name':request_name,
+							   'clearing_protocol':clearing_protocol,'antibody1':antibody1,
+							   'antibody2':antibody2,'clearing_batch_number':clearing_batch_number}
+	samples_this_clearing_batch = (db_lightsheet.Request.Sample() & sample_keys).fetch('sample_name')
+	samples_str = ', '.join(sample for sample in samples_this_clearing_batch)
+	samples_contents = [dict(samples=samples_str)]
+	samples_table = SamplesTable(samples_contents)
 	clearing_dbTable = determine_clearing_dbtable(clearing_protocol)
 	''' Check to see if there is an entry in the db yet. If not create one with all NULL values.
 	They will get updated as the user fills out the form '''
@@ -165,11 +173,7 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 							""" Send email to user and imaging managers """
 							
 							""" Figure out all of the samples that are in this batch """
-							sample_keys = {'username':username,'request_name':request_name,
-							   'clearing_protocol':clearing_protocol,'antibody1':antibody1,
-							   'antibody2':antibody2,'clearing_batch_number':clearing_batch_number}
-							samples_this_clearing_batch = (db_lightsheet.Request.Sample() & sample_keys).fetch('sample_name')
-							samples_str = ', '.join(sample for sample in samples_this_clearing_batch)
+							
 							# logger.debug(samples_this_clearing_batch)	
 							hosturl = os.environ['HOSTURL']
 							imaging_manager_url = f'https://{hosturl}' + url_for('imaging.imaging_manager')
@@ -270,7 +274,8 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 	form_id = '_'.join([username,request_name,'clearing_batch',str(clearing_batch_number)]) 
 	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,
 		antibody1=antibody1,antibody2=antibody2,
-		form=form,clearing_table=clearing_table,column_name=column_name,form_id=form_id,
+		form=form,clearing_table=clearing_table,samples_table=samples_table,
+		column_name=column_name,form_id=form_id,
 		notes_for_clearer=notes_for_clearer)
 
 @clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/",

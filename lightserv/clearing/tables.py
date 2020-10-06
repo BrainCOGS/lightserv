@@ -130,6 +130,17 @@ class ClearingTable(Table):
     clearer = Col('clearer',column_html_attrs=column_html_attrs)
     clearing_progress = Col('clearing progress',column_html_attrs=column_html_attrs)
 
+class SamplesTable(Table):
+    border = True
+    no_items = "No Samples"
+    html_attrs = {"style":'font-size:14px'} # gets assigned to table header
+    # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px; background: white;'}
+    
+    # column_html_attrs=column_html_attrs
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    samples = Col('samples',column_html_attrs=column_html_attrs)
+
 class IdiscoPlusTable(Table):
     border = True
     no_items = "No Clearing Yet"
