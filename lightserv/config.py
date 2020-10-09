@@ -9,9 +9,9 @@ from datetime import timedelta
 # Base class which I will inherit for use with DEV and TEST configs
 class BaseConfig(object):
 	SECRET_KEY = os.environ.get('SECRET_KEY')
+	CLEARING_ADMINS = ['ahoag','ll3','zmd','aichen']
 	IMAGING_ADMINS = ['ahoag','zmd','aichen']
 	PROCESSING_ADMINS = ['ahoag','zmd','aichen']
-	CLEARING_ADMINS = ['ahoag','ll3','zmd','aichen']
 	LAVISION_RESOLUTIONS = ["1.1x","1.3x","2x","4x"]
 	SMARTSPIM_RESOLUTIONS = ["3.6x","15x"]
 	RESOLUTIONS_NO_PROCESSING = ["2x","3.6x","15x"] # resolutions we are not able to process

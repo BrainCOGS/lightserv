@@ -50,6 +50,14 @@ def test_viz_processed_fixture_worked(test_client,test_login,test_request_viz_no
 	assert b'core facility requests:' in response.data 
 	assert b'viz_processed' in response.data
 
+def test_aichen_sees_nonadmin_request(test_client,test_single_sample_request_nonadmin,test_login_aichen):
+	""" Check that Annie can see requests from all users """
+	response = test_client.get(url_for('requests.all_requests'),
+		follow_redirects=True)
+
+	assert b'All core facility requests:' in response.data 
+	assert b'nonadmin_request' in response.data
+
 """ Testing new_request() """
 
 def test_two_sheets_request_submits(test_client,test_login_nonadmin,test_delete_request_db_contents):

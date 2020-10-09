@@ -144,6 +144,22 @@ def test_login_zmd(test_client):
 	pass
 
 @pytest.fixture(scope='function')
+def test_login_aichen(test_client):
+	""" Log Annie in. Requires a test_client fixture to do this. """
+	print('----------Setup login_zmd response----------')
+	username = 'aichen'
+	with test_client.session_transaction() as sess:
+		sess['user'] = username
+	all_usernames = db_lightsheet.User().fetch('username') 
+	if username not in all_usernames:
+		email = username + '@princeton.edu'
+		user_dict = {'username':username,'princeton_email':email}
+		db_lightsheet.User().insert1(user_dict)
+	yield sess
+	print('----------Teardown login_zmd response----------')
+	pass
+
+@pytest.fixture(scope='function')
 def test_login_nonadmin(test_client):
 	""" Log the user in. Requires a test_client fixture to do this. """
 	print('----------Setup login_nonadmin response----------')
@@ -273,7 +289,6 @@ def test_delete_spockadmin_db_contents(test_client):
 	db_spockadmin.DownsizedPrecomputedSpockJob().delete()	
 	db_spockadmin.RegisteredPrecomputedSpockJob().delete()	
 
-
 """ Fixtures for requests """
 
 @pytest.fixture(scope='function') 
@@ -312,6 +327,43 @@ def test_single_sample_request_ahoag(test_client,test_login,test_delete_request_
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_ahoag fixture --------')
 
+@pytest.fixture(scope='function') 
+def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits a new request as 'lightserv-test' (a nonadmin) that can be used for various tests.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_single_request_nonadmin fixture ----------')
+	
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+		print(f"Current user is {current_user}")
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Tank/Brody",'correspondence_email':"lightserv-test@princeton.edu",
+			'request_name':"nonadmin_request",
+			'description':"This is a request by lightserv-test, a non admin",
+			'species':"mouse",'number_of_samples':1,
+			'username':current_user,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_single_request_nonadmin fixture --------')
+	
 @pytest.fixture(scope='function') 
 def test_single_sample_request_4x_ahoag(test_client,test_login,test_delete_request_db_contents):
 	""" Submits a new request as 'ahoag' with a single sample requesting 4x resolution
@@ -544,43 +596,7 @@ def test_request_all_mouse_clearing_protocols_ahoag(test_client,test_login,test_
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_ahoag fixture --------')
 
-@pytest.fixture(scope='function') 
-def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
-	""" Submits a new request as 'lightserv-test' (a nonadmin) that can be used for various tests.
 
-	It uses the test_delete_request_db_contents fixture, which means that 
-	the entry is deleted as soon as the test has been run
-	"""
-	print('----------Setup test_single_request_nonadmin fixture ----------')
-	
-	with test_client.session_transaction() as sess:
-		current_user = sess['user']
-		print(f"Current user is {current_user}")
-	response = test_client.post(
-		url_for('requests.new_request'),data={
-			'labname':"Tank/Brody",'correspondence_email':"lightserv-test@princeton.edu",
-			'request_name':"nonadmin_request",
-			'description':"This is a request by lightserv-test, a non admin",
-			'species':"mouse",'number_of_samples':1,
-			'username':current_user,
-			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
-			'clearing_samples-0-sample_name':'sample-001',
-			'clearing_samples-0-expected_handoff_date':today_proper_format,
-			'clearing_samples-0-perfusion_date':today_proper_format,
-			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
-			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
-			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
-			'imaging_samples-0-image_resolution_forsetup':'1.3x',
-			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
-			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
-			'submit':True
-			},content_type='multipart/form-data',
-			follow_redirects=True
-		)	
-
-	yield test_client # this is where the testing happens
-	print('-------Teardown test_single_request_nonadmin fixture --------')
-	
 @pytest.fixture(scope='function') 
 def test_multisample_request_nonadmin_clearing_notes(test_client,test_login_nonadmin,test_delete_request_db_contents):
 	""" Submits a new request as 'lightserv-test' (a nonadmin) with multiple samples that can be used for various tests.

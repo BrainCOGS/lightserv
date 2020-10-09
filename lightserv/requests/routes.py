@@ -56,7 +56,7 @@ def all_requests():
     clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
     imaging_request_contents = db_lightsheet.Request.ImagingRequest()
     processing_request_contents = db_lightsheet.Request.ProcessingRequest()
-    if current_user in ['ahoag','zmd','ll3']:
+    if current_user in current_app.config['CLEARING_ADMINS']:
         legend = 'All core facility requests'
     else:
         legend = 'Your core facility requests'
