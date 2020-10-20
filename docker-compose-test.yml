@@ -18,7 +18,7 @@ services:
     env_file: .testdockerenv
     hostname: docker_lightserv
     image: flaskcelery:latest
-    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_requests.py::test_aichen_sees_nonadmin_request"
+    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_imaging.py::test_multisample_multichannel_request_in_imaging_manager"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData

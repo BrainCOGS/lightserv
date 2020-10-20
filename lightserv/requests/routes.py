@@ -592,11 +592,13 @@ def new_request():
                     ''' Now loop through all samples and make the insert lists '''
                     sample_insert_list = []
                     clearing_batch_insert_list = []
+                    imaging_batch_insert_list = []
                     imaging_request_insert_list = []
                     imaging_resolution_insert_list = []
                     processing_request_insert_list = []
                     processing_resolution_insert_list = [] 
                     channel_insert_list = []
+                    sample_imaging_dict = {} # keep track of what imaging needs to be done for each sample -- used for making imaging batches later 
                     for ii in range(number_of_samples):
                         clearing_sample_form_dict = form.clearing_samples[ii].data      
                         sample_name = clearing_sample_form_dict['sample_name']              
@@ -637,6 +639,23 @@ def new_request():
                             clearing_batch_insert_dict['expected_handoff_date'] = expected_handoff_date
                         clearing_batch_insert_dict['notes_for_clearer'] = clearing_sample_form_dict['notes_for_clearer']
                         clearing_batch_insert_list.append(clearing_batch_insert_dict)
+
+                        """ Now imaging batch """
+                        imaging_batch_insert_dict = {}
+                        imaging_batch_insert_dict['username'] = username 
+                        imaging_batch_insert_dict['request_name'] = form.request_name.data
+                        imaging_batch_insert_dict['imaging_request_date_submitted'] = date
+                        imaging_batch_insert_dict['imaging_request_time_submitted'] = time
+                        # imaging_batch_insert_dict['imaging_request_number'] = 1
+                        if form.self_imaging.data == True:
+                            logger.debug("Self imaging selected!")
+                            imaging_batch_insert_dict['imager'] = username
+                        else:
+                            logger.debug("Self imaging not selected")
+                        imaging_batch_insert_dict['imaging_progress'] = 'incomplete'
+                        imaging_res_channel_dict = {} 
+                        
+                       
                         """ Set up ImagingRequest and ProcessingRequest insert dicts """
                         imaging_sample_form_dict = form.imaging_samples[ii].data
                         """ When user submits this request form it is always 
@@ -692,6 +711,7 @@ def new_request():
                         for resolution_dict in imaging_sample_form_dict['image_resolution_forms']:
                             # logger.debug(resolution_dict)
                             image_resolution = resolution_dict['image_resolution']
+                            imaging_res_channel_dict[image_resolution] = []
                             """ imaging entry first """
                             imaging_resolution_insert_dict = {}
                             imaging_resolution_insert_dict['request_name'] = form.request_name.data
@@ -730,10 +750,13 @@ def new_request():
                             for imaging_channel_dict in resolution_dict['channel_forms']:
                                 """ The way to tell which channels were picked is to see 
                                 which have at least one imaging mode selected """
+                                
                                 used_imaging_modes = [key for key in all_imaging_modes if imaging_channel_dict[key] == True]
                                 if not any(used_imaging_modes):
                                     continue
                                 else:
+                                    channel_name = imaging_channel_dict['channel_name']
+                                    imaging_res_channel_dict[image_resolution].append(channel_name)
                                     channel_insert_dict = {}
                                     channel_insert_dict['imaging_request_number'] = imaging_request_number 
                                     channel_insert_dict['request_name'] = form.request_name.data    
@@ -746,6 +769,9 @@ def new_request():
                                         channel_insert_dict[key] = val
                                     channel_insert_list.append(channel_insert_dict)
                             # logger.info(channel_insert_list)
+                            imaging_batch_insert_dict['imaging_dict'] = imaging_res_channel_dict
+                        sample_imaging_dict[sample_name] = imaging_res_channel_dict
+                        imaging_batch_insert_list.append(imaging_batch_insert_dict)
                     
                     """ Now figure out the number in each clearing batch.
                     A clearing batch is determined by unique combination of 
@@ -805,10 +831,61 @@ def new_request():
                                     clearing_batch_antibody2 == sample_antibody2):
                                 clearing_batch_number = clearing_batch_insert_dict.get('clearing_batch_number')
                                 sample_insert_dict['clearing_batch_number'] = clearing_batch_number
-
+                    
+                    """ Now figure out the ImagingBatch entries.
+                    An imaging batch is determined by a set of samples
+                    that need to be imaged at the same resolutions and same 
+                    imaging channels at those resolutions """
+                   
+                    # Loop over existing imaging batch dictionaries in 
+                    new_list = [] # dummy list of imaging dicts ('resolution1':[channel_name1,channel_name2,...],....)
+                    good_indices = [] # indices of original imaging_batch_insert_list that we will use in the end
+                    counts = [] # number in each batch, index shared with new_list
+                    notes_for_clearer_each_batch = [] # concatenated 
+                    for index,dict_ in enumerate(imaging_batch_insert_list):
+                        imaging_dict = dict_['imaging_dict']
+                        sample_name = sample_insert_list[index]['sample_name']
+                        try: 
+                            # if it does then find the index of new_list corresponding to this batch
+                            i = new_list.index(imaging_dict)
+                        except ValueError: 
+                            # if it doesn't, then this is a new unique combo of keys
+                            counts.append(1)
+                            new_list.append(imaging_dict)
+                            good_indices.append(index)
+                            # notes_for_clearer_each_batch.append(notes_for_clearer_string)
+                        else: # only gets executed if try block doesn't generate an error
+                            counts[i] += 1 
+                            # notes_for_clearer_each_batch[i]+=notes_for_clearer_string
+                    
+                    """ remake imaging_batch_insert_list to only have unique entries """
+                    imaging_batch_insert_list = [imaging_batch_insert_list[index] for index in good_indices]
+                    for ii in range(len(imaging_batch_insert_list)):
+                        insert_dict = imaging_batch_insert_list[ii]
+                        insert_dict['number_in_imaging_batch'] = counts[ii]
+                        insert_dict['imaging_batch_number'] = ii+1
+                        # insert_dict['notes_for_clearer'] = notes_for_clearer_each_batch[ii]
+                        # imaging_str = ''.joininsert_dict['imaging_dict']
+                    # logger.debug("imaging_batch_insert_list:")
+                    # logger.debug(imaging_batch_insert_list)
+                    """ Now loop through all sample insert dicts and assign clearing batch number
+                    and imaging batch number  """
+                    for sample_insert_dict in sample_insert_list:
+                        sample_name = sample_insert_dict['sample_name']
+                        this_sample_imaging_dict = sample_imaging_dict[sample_name]
+                        """ Figure out which imaging batch this corresponds to """
+                        for imaging_batch_insert_dict in imaging_batch_insert_list:
+                            imaging_batch_imaging_dict = imaging_batch_insert_dict['imaging_dict']
+                            if imaging_batch_imaging_dict == this_sample_imaging_dict:
+                                imaging_batch_number = imaging_batch_insert_dict.get('imaging_batch_number')
+                                sample_insert_dict['imaging_batch_number'] = imaging_batch_number                   
+                    
                     # logger.info("ClearingBatch() insert ")
                     # logger.info(clearing_batch_insert_list)
                     db_lightsheet.Request.ClearingBatch().insert(clearing_batch_insert_list,)
+                    logger.info("ImagingBatch() insert ")
+                    logger.info(imaging_batch_insert_list)
+                    db_lightsheet.Request.ImagingBatch().insert(imaging_batch_insert_list,)
                     # logger.info("Sample() insert:")
                     # logger.debug(sample_insert_list)
                     db_lightsheet.Request.Sample().insert(sample_insert_list)
@@ -834,6 +911,8 @@ def new_request():
                     
                     db_lightsheet.Request.ImagingChannel().insert(channel_insert_list)
                     
+
+
                     flash("Request submitted successfully. You will receive an email at "
                           f"{form.correspondence_email.data} with further instructions " 
                           "for handing off your sample, if necessary.","success")

@@ -18,11 +18,11 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
         next_url += f'?sort={col_key}&direction={direction}&table_id={table_id}'
         return next_url
     
-    def dynamic_get_tr_attrs(self, item, reverse=False):
-        if item['imaging_request_number'] > 1:
-            return {'bgcolor':'#757680'} # gray
-        else:
-            return {}
+    # def dynamic_get_tr_attrs(self, item, reverse=False):
+    #     if item['imaging_request_number'] > 1:
+    #         return {'bgcolor':'#757680'} # gray
+    #     else:
+    #         return {}
 
     options = dict(
         border = True,
@@ -35,7 +35,7 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     column_html_attrs = {'style':'word-wrap: break-word; max-width:150px;'}
 
     table_class = create_table(name,options=options)
-    table_class.get_tr_attrs = dynamic_get_tr_attrs
+    # table_class.get_tr_attrs = dynamic_get_tr_attrs
     table_class.sort_url = dynamic_sort_url
     sort = sort_kwargs.get('sort_by','datetime_submitted')
     reverse = sort_kwargs.get('sort_reverse',False)
@@ -45,7 +45,7 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
     imaging_url_kwargs = {'username':'username','request_name':'request_name',
-        'sample_name':'sample_name','imaging_request_number':'imaging_request_number'}
+        'imaging_batch_number':'imaging_batch_number'}
 
     # anchor_attrs = {'target':"_blank",}
     anchor_attrs = {}
@@ -54,33 +54,35 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
          'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False,
             column_html_attrs=column_html_attrs))
-    elif table_id == 'horizontal_being_imaged_table':
-        table_class.add_column('continue_imaging_link',LinkCol('Continue imaging',
-         'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False,
-            column_html_attrs=column_html_attrs))
-    elif table_id == 'horizontal_already_imaged_table':
-        table_class.add_column('view_imaging_link',LinkCol('View Imaging log',
-         'imaging.imaging_table',url_kwargs=imaging_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False,
-            column_html_attrs=column_html_attrs))
+    # elif table_id == 'horizontal_being_imaged_table':
+    #     table_class.add_column('continue_imaging_link',LinkCol('Continue imaging',
+    #      'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
+    #         anchor_attrs=anchor_attrs,allow_sort=False,
+    #         column_html_attrs=column_html_attrs))
+    # elif table_id == 'horizontal_already_imaged_table':
+    #     table_class.add_column('view_imaging_link',LinkCol('View Imaging log',
+    #      'imaging.imaging_table',url_kwargs=imaging_url_kwargs,
+    #         anchor_attrs=anchor_attrs,allow_sort=False,
+    #         column_html_attrs=column_html_attrs))
 
-    table_class.add_column('imaging_progress',Col('imaging progress',
-        column_html_attrs=column_html_attrs))
+    # table_class.add_column('imaging_progress',Col('imaging progress',
+    #     column_html_attrs=column_html_attrs))
     table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted',
         column_html_attrs=column_html_attrs))
     table_class.add_column('request_name',Col('request name',
         column_html_attrs=column_html_attrs))
-    table_class.add_column('sample_name',Col('sample name',
-        column_html_attrs=column_html_attrs))
+    # table_class.add_column('sample_name',Col('sample name',
+    #     column_html_attrs=column_html_attrs))
     table_class.add_column('username',Col('username',
         column_html_attrs=column_html_attrs))    
-    table_class.add_column('imaging_request_number',Col('imaging request number',
-        column_html_attrs=column_html_attrs))    
-    
-    if table_class.table_id != 'horizontal_already_imaged_table':
-        table_class.add_column('clearing_progress',Col('clearing progress',
+    # table_class.add_column('imaging_request_number',Col('imaging request number',
+    #     column_html_attrs=column_html_attrs))
+    if table_id == 'horizontal_ready_to_image_table':
+        table_class.add_column('imaging_batch_number',Col('imaging batch number',
             column_html_attrs=column_html_attrs))
+        table_class.add_column('number_in_imaging_batch',Col('number in batch',
+            column_html_attrs=column_html_attrs))
+
     if table_class.table_id == 'horizontal_on_deck_table':
         table_class.add_column('clearer',DesignatedRoleCol('clearer',
             column_html_attrs=column_html_attrs))
@@ -92,7 +94,7 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
 
    
          
-    sorted_contents = sorted(contents.fetch(as_dict=True),
+    sorted_contents = sorted(contents,
             key=partial(table_sorter,sort_key=sort),reverse=reverse)
     table = table_class(sorted_contents)
     table.sort_by = sort

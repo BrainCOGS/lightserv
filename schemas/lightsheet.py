@@ -73,14 +73,29 @@ class Request(dj.Manual):
         link_to_clearing_spreadsheet = NULL : varchar(256)
         """  
 
-    class Sample(dj.Part):
-        definition = """ # Samples from a request, belonging to a clearing batch
+    class ImagingBatch(dj.Part):
+        definition = """ # Batch of Samples to image the same way
+        -> Request
+        imaging_batch_number                      :   tinyint
+        ----
+        -> [nullable] User.proj(imager='username') # defines a new column here called "imager" whose value must be one of the "username" entries in the User() table
+        number_in_imaging_batch                   :   tinyint # date that the imaging form was submitted by the imager
+        imaging_request_date_submitted            :   date # date that the user submitted the request for imaging
+        imaging_request_time_submitted            :   time # time that the user submitted the request for imaging
+        imaging_performed_date = NULL             :   date # date that the imaging form was submitted by the imager
+        imaging_progress                          :   enum("incomplete","in progress","complete")
+        imaging_dict                              :   blob
+        """
+
+    class SampleCopy(dj.Part):
+        definition = """ # Samples from a request, belonging to a clearing batch or imaging batch
         -> Request
         sample_name                  :   varchar(64)                
         ----
         -> master.ClearingBatch
+        -> master.ImagingBatch
         subject_fullname = NULL      :   varchar(64)
-        """  
+        """ 
 
     class ImagingRequest(dj.Part):
         definition = """ # Imaging request

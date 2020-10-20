@@ -128,6 +128,18 @@ def test_2x_clearing_worked(test_client,test_cleared_request_2x_nonadmin):
 	assert b'Imaging management GUI' in response.data
 	assert b'test_2x_nonadmin' in response.data 
 	
+def test_multisample_multichannel_request_in_imaging_manager(test_client,test_cleared_multisample_multichannel_request_nonadmin):
+	""" Test that lightserv-test can access the imaging task manager
+	and see their imaging request and that there is no ProcessingRequest() in the database  """
+
+	with test_client.session_transaction() as sess:
+		# have to log an imaging manager in because the imager was zmd, not the person who requested it
+		sess['user'] = 'zmd'
+	response = test_client.get(url_for('imaging.imaging_manager')
+		, follow_redirects=True)
+	assert b'Imaging management GUI' in response.data
+	assert b'nonadmin_manysamp_request' in response.data 
+	
 
 """ Tests for imaging entry form """
 

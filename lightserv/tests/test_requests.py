@@ -1443,6 +1443,19 @@ def test_submit_rat_udisco_request(test_client,test_login_nonadmin,test_delete_r
 	assert b"rat_udisco_request" in response.data
 	assert b"New Request Form" not in response.data
 
+def test_submit_multisample_multichannel_request(test_client,test_login_nonadmin,
+	test_multisample_multichannel_request_nonadmin):
+	""" Test submitting a request for 3 samples 
+	and multiple channels. 
+	Samples 1 and 2 use 1.3x with 488,555
+	Sample 3 uses 1.3x with 488 and 647"""
+	
+	response = test_client.get(url_for('requests.all_requests'),
+		content_type='html/text')
+	assert b"core facility requests" in response.data
+	assert b"nonadmin_manysamp_request" in response.data
+	assert b"New Request Form" not in response.data
+
 
 """ Testing all_requests() """
 

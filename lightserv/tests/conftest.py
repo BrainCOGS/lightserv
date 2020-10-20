@@ -289,7 +289,9 @@ def test_delete_spockadmin_db_contents(test_client):
 	db_spockadmin.DownsizedPrecomputedSpockJob().delete()	
 	db_spockadmin.RegisteredPrecomputedSpockJob().delete()	
 
-""" Fixtures for requests """
+################################
+""" Fixtures for requests    """
+################################
 
 @pytest.fixture(scope='function') 
 def test_single_sample_request_ahoag(test_client,test_login,test_delete_request_db_contents):
@@ -595,7 +597,6 @@ def test_request_all_mouse_clearing_protocols_ahoag(test_client,test_login,test_
 
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_ahoag fixture --------')
-
 
 @pytest.fixture(scope='function') 
 def test_multisample_request_nonadmin_clearing_notes(test_client,test_login_nonadmin,test_delete_request_db_contents):
@@ -1103,6 +1104,71 @@ def test_rat_udisco_clearing_request_nonadmin(test_client,test_login_nonadmin,
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_ahoag fixture --------')
 
+@pytest.fixture(scope='function') 
+def test_multisample_multichannel_request_nonadmin(test_client,
+	test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits a new request as 'lightserv-test' (a nonadmin) that can be used for various tests.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_single_request_nonadmin fixture ----------')
+	
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+		print(f"Current user is {current_user}")
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"nonadmin_manysamp_request",
+			'description':"This is a demo request to submit many samples with many channels each",
+			'species':"mouse",'number_of_samples':3,
+			'username':current_user,
+			'uniform_clearing':True,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-injection_detection':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+
+			'clearing_samples-1-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-1-sample_name':'sample-002',
+			'clearing_samples-1-expected_handoff_date':today_proper_format,
+			'clearing_samples-1-perfusion_date':today_proper_format,
+			'imaging_samples-1-image_resolution_forsetup':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-1-injection_detection':True,
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+
+			'clearing_samples-2-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-2-sample_name':'sample-003',
+			'clearing_samples-2-expected_handoff_date':today_proper_format,
+			'clearing_samples-2-perfusion_date':today_proper_format,
+			'imaging_samples-2-image_resolution_forsetup':'1.3x',
+			'imaging_samples-2-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-2-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			'submit':True
+			},
+			content_type='multipart/form-data',
+			follow_redirects=True
+		)		
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_single_request_nonadmin fixture --------')
+	
 
 """ Fixtures for clearing """
 
@@ -1599,6 +1665,32 @@ def test_cleared_request_2x_nonadmin(test_client,
 
 	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
 			request_name="test_2x_nonadmin",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_cleared_request_4x_nonadmin fixture --------')
+
+@pytest.fixture(scope='function') 
+def test_cleared_multisample_multichannel_request_nonadmin(test_client,
+	test_multisample_multichannel_request_nonadmin,test_login_ll3,test_delete_request_db_contents):
+	""" Clears the single request by 'lightserv-test' (with clearer='ll3')
+	where multiple channels are requested for multiple samples
+
+	Uses the test_delete_request_db_contents fixture, which means that 
+	all db entries are deleted upon teardown of this fixture
+	"""
+	print('----------Setup test_cleared_request_4x_nonadmin fixture ----------')
+	now = datetime.now()
+	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		pbs_wash1_notes='some notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
+			request_name="nonadmin_manysamp_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),

@@ -53,18 +53,49 @@ def imaging_manager():
 	request_contents = db_lightsheet.Request()
 	sample_contents = db_lightsheet.Request.Sample()
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
+	imaging_batch_contents = db_lightsheet.Request.ImagingBatch()
+	# imaging_channel_contents = db_lightsheet.Request.ImagingChannel()
 
-	imaging_request_contents = (db_lightsheet.Request.ImagingRequest() \
-		* clearing_batch_contents * sample_contents * request_contents).\
+	imaging_request_contents = (clearing_batch_contents * request_contents * imaging_batch_contents).\
 		proj('clearer','clearing_progress',
 		'imaging_request_date_submitted','imaging_request_time_submitted',
-		'imaging_progress','imager','species',
+		'imaging_progress','imager','species','number_in_imaging_batch',
 		datetime_submitted='TIMESTAMP(imaging_request_date_submitted,imaging_request_time_submitted)')
+
 	if current_user not in imaging_admins:
 		logger.info(f"{current_user} is not an imaging admin."
 					 " They can see only entries where they designated themselves as the imager")
 		imaging_request_contents = imaging_request_contents & f'imager="{current_user}"'
+	# replicated_args = dict(username='username',request_name='request_name',
+	# 	species='species',
+	# 	datetime_submitted='datetime_submitted',
+	# 	clearing_progress='clearing_progress',
+	# 	imager='imager',imaging_progress='imaging_progress',
+	# 	imaging_request_number='imaging_request_number',
+	# 	image_resolution='image_resolution')
+	# interm=dj.U("username","request_name","sample_name","imaging_request_number","image_resolution").aggr(
+	# 	imaging_request_contents,sample_name='MIN(sample_name)',new_col='GROUP_CONCAT(channel_name ORDER BY channel_name)',
+	# 	**replicated_args).\
+	# 	proj(sample_name='sample_name',comb_col='CONCAT(image_resolution,",",new_col)',**replicated_args)
 	
+	# grouped_imaging_requests = dj.U('request_name','comb_col').aggr(
+	# 	interm,
+	#     **replicated_args,
+	#     sample_name='sample_name',
+	#     number_in_batch='COUNT(*)')
+
+	# grouped_imaging_results = grouped_imaging_requests.fetch(as_dict=True)
+	# used_request_names = []
+	# counter=0
+	# for imaging_dict in grouped_imaging_results:
+	# 	request_name = imaging_dict['request_name']
+	# 	if request_name not in used_request_names:
+	# 		used_request_names.append(request_name)
+	# 		counter = 0
+
+	# 	imaging_dict['imaging_batch_number'] = counter
+	# 	counter+=1
+	# logger.debug(grouped_imaging_results)
 	# ''' First get all entities that are currently being imaged '''
 	""" Get all entries currently being imaged """
 	contents_being_imaged = imaging_request_contents & 'imaging_progress="in progress"'
@@ -73,6 +104,8 @@ def imaging_manager():
 		table_id=being_imaged_table_id,
 		sort_by=sort,sort_reverse=reverse)
 	''' Next get all entities that are ready to be imaged '''
+	# contents_ready_to_image = [x for x in grouped_imaging_results \
+	# 	if x['clearing_progress']=='complete' and x['imaging_progress'] == 'incomplete']
 	contents_ready_to_image = imaging_request_contents & 'clearing_progress="complete"' & \
 	 'imaging_progress="incomplete"'
 	ready_to_image_table_id = 'horizontal_ready_to_image_table'
@@ -96,12 +129,12 @@ def imaging_manager():
 		table_ready_to_image=table_ready_to_image,table_on_deck=table_on_deck,
 		table_already_imaged=table_already_imaged)
 
-@imaging.route("/imaging/imaging_entry/<username>/<request_name>/<sample_name>/<imaging_request_number>",methods=['GET','POST'])
+@imaging.route("/imaging/imaging_entry/<username>/<request_name>/<imaging_batch_number>",methods=['GET','POST'])
 @logged_in
 @logged_in_as_imager
 @check_clearing_completed
 @log_http_requests
-def imaging_entry(username,request_name,sample_name,imaging_request_number): 
+def imaging_entry(username,request_name,imaging_batch_number): 
 	""" Route for handling form data for
 	parameters used to image a dataset.
 	"""
@@ -113,6 +146,7 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 	form.imaging_request_number.data = imaging_request_number
 	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' 
+	imaging_batch_number = sample_contents.fetch1('imaging_batch_number')
 	clearing_protocol,antibody1,antibody2,clearing_batch_number = sample_contents.fetch1(
 		'clearing_protocol',
 		'antibody1','antibody2','clearing_batch_number')
@@ -124,12 +158,20 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 		clearing_batch_number=clearing_batch_number)
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & clearing_batch_restrict_dict
 	notes_for_clearer = clearing_batch_contents.fetch1('notes_for_clearer')
-	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
-			f'username="{username}"' & f'sample_name="{sample_name}"' & \
-			f'imaging_request_number="{imaging_request_number}"' 
+	# imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
+	# 		f'username="{username}"' & f'sample_name="{sample_name}"' & \
+	# 		f'imaging_request_number="{imaging_request_number}"' 
+
+	""" Figure out how many samples in this imaging batch """
+	imaging_batch_restrict_dict = dict(userame=username,request_name=request_name,
+		imaging_batch_number=imaging_batch_number)
+	imaging_batch_contents = db_lightsheet.Request.ImagingBatch() & imaging_batch_restrict_dict
+	number_in_batch = imaging_batch_contents.fetch1('number_in_batch')
+	logger.debug("Number in batch:")
+	logger.debug(number_in_batch)
 	
 	''' If imaging is already complete (from before), then dont change imaging_progress '''
-	imaging_progress = imaging_request_contents.fetch1('imaging_progress')
+	imaging_progress = imaging_batch_contents.fetch1('imaging_progress')
 	
 	channel_contents = (db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"')
@@ -150,8 +192,8 @@ def imaging_entry(username,request_name,sample_name,imaging_request_number):
 		for jj in range(len(channel_contents_list_this_resolution)):
 			channel_content = channel_contents_list_this_resolution[jj]
 			channel_contents_lists[ii].append(channel_content)
-	overview_dict = imaging_request_contents.fetch1()
-	imaging_table = ImagingTable(imaging_request_contents*sample_contents)
+	overview_dict = imaging_batch_contents.fetch1()
+	imaging_table = ImagingTable(imaging_batch_contents*sample_contents)
 
 
 	if request.method == 'POST':
