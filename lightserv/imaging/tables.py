@@ -51,14 +51,14 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     anchor_attrs = {}
     if table_id == 'horizontal_ready_to_image_table':
         table_class.add_column('start_imaging_link',LinkCol('Start imaging',
-         'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
+         'imaging.imaging_setup',url_kwargs=imaging_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False,
             column_html_attrs=column_html_attrs))
-    # elif table_id == 'horizontal_being_imaged_table':
-    #     table_class.add_column('continue_imaging_link',LinkCol('Continue imaging',
-    #      'imaging.imaging_entry',url_kwargs=imaging_url_kwargs,
-    #         anchor_attrs=anchor_attrs,allow_sort=False,
-    #         column_html_attrs=column_html_attrs))
+    elif table_id == 'horizontal_being_imaged_table':
+        table_class.add_column('continue_imaging_link',LinkCol('Continue imaging',
+         'imaging.imaging_setup',url_kwargs=imaging_url_kwargs,
+            anchor_attrs=anchor_attrs,allow_sort=False,
+            column_html_attrs=column_html_attrs))
     # elif table_id == 'horizontal_already_imaged_table':
     #     table_class.add_column('view_imaging_link',LinkCol('View Imaging log',
     #      'imaging.imaging_table',url_kwargs=imaging_url_kwargs,
@@ -77,11 +77,11 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
         column_html_attrs=column_html_attrs))    
     # table_class.add_column('imaging_request_number',Col('imaging request number',
     #     column_html_attrs=column_html_attrs))
-    if table_id == 'horizontal_ready_to_image_table':
-        table_class.add_column('imaging_batch_number',Col('imaging batch number',
-            column_html_attrs=column_html_attrs))
-        table_class.add_column('number_in_imaging_batch',Col('number in batch',
-            column_html_attrs=column_html_attrs))
+    # if table_id == 'horizontal_ready_to_image_table':
+    table_class.add_column('imaging_batch_number',Col('imaging batch number',
+        column_html_attrs=column_html_attrs))
+    table_class.add_column('number_in_imaging_batch',Col('number in batch',
+        column_html_attrs=column_html_attrs))
 
     if table_class.table_id == 'horizontal_on_deck_table':
         table_class.add_column('clearer',DesignatedRoleCol('clearer',
@@ -119,6 +119,20 @@ class ImagingTable(Table):
     antibody1 = Col('antibody1',column_html_attrs=column_html_attrs)
     antibody2 = Col('antibody2',column_html_attrs=column_html_attrs)
     imaging_progress = ProgressCol('imaging progress',column_html_attrs=column_html_attrs)
+
+
+class ImagingBatchTable(Table):
+    border = True
+    no_items = "No Batch Yet"
+    html_attrs = {"style":'font-size:18px'} # gets assigned to table header
+    # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
+
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    username = Col('username',column_html_attrs=column_html_attrs)
+    request_name = Col('request name',column_html_attrs=column_html_attrs)
+    imaging_batch_number = Col('imaging batch number',column_html_attrs=column_html_attrs)
+    number_in_imaging_batch = Col('number of samples in batch',column_html_attrs=column_html_attrs)
 
 
 class SampleTable(Table):

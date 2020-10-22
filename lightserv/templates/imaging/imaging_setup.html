@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+{% block content %}
+	<h1 align="center"> Imaging Setup Form </h1>
+	<hr class='class-1'>
+	<div align="center">
+		<h2>Imaging batch overview:</h2>
+		{{ imaging_batch_table }}
+	</div>
+
+	<div class='mt-2'>
+		<h5 align="left"> Samples in this batch to be imaged: </h5>
+		<ul> 
+			{% for ii in range(sample_dict_list|length) %}
+				{% set sample_dict = sample_dict_list[ii] %}
+				<li> {{ sample_dict['sample_name']}} </li>
+			{% endfor %}
+		</ul>
+	</div>
+	<hr class='class-2'>
+
+	<form method="POST" action="">
+		{{ form.hidden_tag() }}
+		<h3 align="left" class="mb-2"> Choose how you want to enter the imaging info for these samples: </h3>
+		<fieldset class="form-group">
+		<table class="table-striped" border="1">
+			<tr>
+				<th style="text-align:center">Enter together</th>
+				<th style="text-align:center">OR</th>
+				<th style="text-align:center">Enter separately</th>
+			</tr>
+			<tr>
+				<td style="text-align:center">
+					<div class="checkbox form-group" >
+						{{ form.image_together(class="form-check-input") }}
+						{{ form.image_together.label(class="form-check-label") }}
+					</div>
+
+				</td>
+				<td></td>
+				<td style="text-align:center">
+					<div class="form-group">
+						{{ form.sample_dropdown.label(class="form-control-label") }}
+						{{ form.sample_dropdown(class="form-control") }}
+					</div>
+				</td>
+		</table>
+		<div class="form-group mt-2">
+			{{ form.submit(class="btn btn-lg btn-info mt-2") }}
+		</div>
+		</fieldset>
+	</form>
+
+
+{% endblock content %}
