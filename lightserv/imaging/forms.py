@@ -16,7 +16,7 @@ class ImagingSetupForm(FlaskForm):
 	sample_dropdown = SelectField('Select sample to image',choices=[],validators=[Optional()])
 	submit = SubmitField('Submit')
 
-""" For the imaging entry form """
+""" For the imaging BATCH entry form """
 
 class ChannelForm(FlaskForm):
 	""" A form that is used in ImagingForm() via a FormField Fieldlist
@@ -26,16 +26,17 @@ class ChannelForm(FlaskForm):
 	image_resolution = HiddenField('Image resolution')
 	zoom_body_magnification = DecimalField('Zoom body magnification',default=1.0,validators=[Optional()])
 	image_orientation = SelectField('Image orientation',choices=[('sagittal','sagittal'),('coronal','coronal'),
-				 ('horizontal','horizontal')],default='horizontal',validators=[InputRequired()])
+				 ('horizontal','horizontal')],default='horizontal',
+				 validators=[Optional()])
 	left_lightsheet_used = BooleanField('Left',default=False)
 	right_lightsheet_used = BooleanField('Right',default=False)
-	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',validators=[InputRequired()])
+	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --')
 	tiling_overlap = StringField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
 		validators=[Optional()]) 
-	z_step = StringField('Z resolution (microns)',validators=[InputRequired()])
+	z_step = StringField('Z resolution (microns)',validators=[Optional()])
 	number_of_z_planes = IntegerField('Number of z planes',
-		widget=html5.NumberInput(),validators=[InputRequired()])
-	rawdata_subfolder = TextAreaField('channel subfolder',validators=[InputRequired()])
+		widget=html5.NumberInput(),validators=[Optional()])
+	rawdata_subfolder = TextAreaField('channel subfolder',validators=[Optional()])
 
 	def validate_tiling_overlap(self,tiling_overlap):
 		try:
@@ -106,7 +107,7 @@ class ImagingForm(FlaskForm):
 	notes_from_imaging = TextAreaField("Note down anything additional about the imaging"
 									   " of this sample that you would like recorded:")
 	image_resolution_forms = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=max_number_of_image_resolutions)
-	submit = SubmitField('Click when imaging is complete and data are on bucket')
+	submit = SubmitField('Click when imaging for this sample is complete and data are on bucket')
 
 	def validate_image_resolution_forms(self,image_resolution_forms):
 		""" Make sure that for each channel within 
@@ -203,23 +204,25 @@ class ImagingForm(FlaskForm):
 			or (not all([x==all_tiling_schemes[0] for x in all_tiling_schemes]))):
 				raise ValidationError("All tiling parameters must be the same for each channel of a given resolution")
 
-""" For the imaging BATCH entry form """
-
 class ChannelBatchForm(FlaskForm):
 	""" A form that is used in ImagingForm() via a FormField Fieldlist
 	so I dont have to write the imaging parameters out for each channel
 	"""
 	channel_name = HiddenField('Channel name')
 	image_resolution = HiddenField('Image resolution')
-	zoom_body_magnification = DecimalField('Zoom body magnification',default=1.0,validators=[Optional()])
-	image_orientation = SelectField('Image orientation',choices=[('sagittal','sagittal'),('coronal','coronal'),
-				 ('horizontal','horizontal')],default='horizontal',validators=[InputRequired()])
+	zoom_body_magnification = DecimalField('Zoom body magnification',
+		default=1.0,validators=[Optional()])
+	image_orientation = SelectField('Image orientation',
+		choices=[('sagittal','sagittal'),('coronal','coronal'),
+				 ('horizontal','horizontal')],default='horizontal',
+				 validators=[Optional()])
 	left_lightsheet_used = BooleanField('Left',default=False)
 	right_lightsheet_used = BooleanField('Right',default=False)
-	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',validators=[InputRequired()])
+	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',
+		validators=[Optional()])
 	tiling_overlap = StringField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
 		validators=[Optional()]) 
-	z_step = StringField('Z resolution (microns)',validators=[InputRequired()])
+	z_step = StringField('Z resolution (microns)',validators=[Optional()])
 	# number_of_z_planes = IntegerField('Number of z planes',
 	# 	widget=html5.NumberInput(),validators=[InputRequired()])
 	# rawdata_subfolder = TextAreaField('channel subfolder',validators=[InputRequired()])
@@ -261,7 +264,8 @@ class ImageBatchResolutionForm(FlaskForm):
 		choices=[('1.3x','1.3x'),
 	('4x','4x'),('1.1x','1.1x'),('2x','2x')],validators=[Optional()])
 	update_resolution_button = SubmitField('Update')
-	new_channel_dropdown = SelectField("Add additional channel?",choices=[('488','488'),
+	new_channel_dropdown = SelectField("Add additional channel?",
+		choices=[('488','488'),
 	('555','555'),('647','647'),('790','790')],validators=[Optional()])
 	new_channel_purpose = SelectField("What type of imaging?",choices=[('registration','registration'),
 	('injection_detection','injection_detection'),('probe_detection','probe_detection'),
@@ -271,7 +275,7 @@ class ImageBatchResolutionForm(FlaskForm):
 	channel_forms = FieldList(FormField(ChannelBatchForm),min_entries=0,max_entries=max_number_of_channels)
 
 class ImagingBatchForm(FlaskForm):
-	""" The form for entering imaging information """
+	""" The form for entering batch imaging information """
 	username = HiddenField('username')
 	request_name = HiddenField('request_name')
 	sample_name = HiddenField('sample_name')
@@ -281,11 +285,20 @@ class ImagingBatchForm(FlaskForm):
 	max_number_of_samples = 50 # per request and therefore per imaging batch
 	notes_from_imaging = TextAreaField("Note down anything additional about the imaging"
 									   " that you would like recorded:")
-	image_resolution_batch_forms = FieldList(FormField(ImageBatchResolutionForm),min_entries=0,max_entries=max_number_of_image_resolutions)
+	image_resolution_batch_forms = FieldList(
+		FormField(ImageBatchResolutionForm),
+		min_entries=0,max_entries=max_number_of_image_resolutions)
 	apply_batch_parameters_button = SubmitField('Apply these parameters to all samples') # setting default=True does not do anything, so I have to do it in the view function:  https://github.com/lepture/flask-wtf/issues/362
 	sample_forms = FieldList(FormField(ImagingForm),min_entries=0,max_entries=max_number_of_samples)
 
-	submit = SubmitField('Click when imaging is complete and data are on bucket')
+	submit = SubmitField('Click when done imaging all samples')
+
+# class ImagingSampleForm(FlaskForm):
+# 	""" The form for entering sample imaging information """
+# 	max_number_of_samples = 50 # per request and therefore per imaging batch
+
+# 	sample_forms = FieldList(FormField(ImagingForm),
+# 		min_entries=0,max_entries=max_number_of_samples)
 
 """ For new imaging requests """
 

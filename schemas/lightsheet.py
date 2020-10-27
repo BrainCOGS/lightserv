@@ -87,7 +87,7 @@ class Request(dj.Manual):
         imaging_dict                              :   blob
         """
 
-    class SampleCopy(dj.Part):
+    class Sample(dj.Part):
         definition = """ # Samples from a request, belonging to a clearing batch or imaging batch
         -> Request
         sample_name                  :   varchar(64)                

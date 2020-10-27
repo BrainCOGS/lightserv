@@ -1,5 +1,5 @@
-from flask import url_for, current_app
-import os, glob
+from flask import url_for, current_app,Markup	
+import os, shutil, glob
 from PIL import Image
 import tempfile
 import webbrowser
@@ -139,7 +139,6 @@ def test_multisample_multichannel_request_in_imaging_manager(test_client,test_cl
 		, follow_redirects=True)
 	assert b'Imaging management GUI' in response.data
 	assert b'nonadmin_manysamp_request' in response.data 
-	
 
 """ Tests for imaging entry form """
 
@@ -1104,6 +1103,98 @@ def test_2x_changed_to_1p3x_imaging_present_processing_manager(
 	# processing_restrict_dict['processing_request_number'] = 1
 	# processing_request_contents = db_lightsheet.Request.ProcessingRequest() & processing_restrict_dict
 	# assert len(processing_request_contents) == 0
+
+def test_imaging_batch_entry_form_submits_single_sample(test_client,
+	test_cleared_multisample_multichannel_request_nonadmin,
+	test_login_zmd):
+	""" Test that Zahra (zmd, an imaging admin) can submit the imaging entry form
+	for a single sample within the imaging batch entry form """
+	data = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':10,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':10,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-z_step':10,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-z_step':10,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+		'sample_forms-0-submit':True
+		}
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging Entry Form' in response.data
+	restrict_dict = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			image_resolution='1.3x',
+			channel_name='488')
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict
+	number_of_z_planes = imaging_channel_contents.fetch1('number_of_z_planes')
+	assert number_of_z_planes == 657
+	imaging_request_restrict_dict = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			imaging_request_number=1)
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & imaging_request_restrict_dict
+	assert imaging_request_contents.fetch1('imaging_progress') == "complete"
+	""" Check that the sample subform is no longer available in the form upon reaccessing"""
+	response2 = test_client.get(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			imaging_batch_number=1),
+		follow_redirects=True)
+
+	# response = test_client.post(url_for('imaging.imaging_batch_entry',
+	# 		username='lightserv-test',
+	# 		request_name='nonadmin_manysamp_request',
+	# 		sample_name='sample-001',
+	# 		imaging_batch_number=1),
+	# 	data=data,
+	# 	follow_redirects=True)
+
+	assert b'Sample has been imaged' in response2.data
+	assert b'sample_forms-0' not in response2.data
+	# print(url)
+	# webbrowser.open(url)
+	# imaging_progress = (db_lightsheet.Request.ImagingRequest() & 'request_name="admin_request"' & \
+	# 	'username="ahoag"' & 'sample_name="sample-001"' & 'imaging_request_number=1').fetch1('imaging_progress')
+	# assert imaging_progress == 'complete'
 
 
 """ Test for imaging tasks """

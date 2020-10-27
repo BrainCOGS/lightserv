@@ -51,12 +51,12 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     anchor_attrs = {}
     if table_id == 'horizontal_ready_to_image_table':
         table_class.add_column('start_imaging_link',LinkCol('Start imaging',
-         'imaging.imaging_setup',url_kwargs=imaging_url_kwargs,
+         'imaging.imaging_batch_entry',url_kwargs=imaging_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False,
             column_html_attrs=column_html_attrs))
     elif table_id == 'horizontal_being_imaged_table':
         table_class.add_column('continue_imaging_link',LinkCol('Continue imaging',
-         'imaging.imaging_setup',url_kwargs=imaging_url_kwargs,
+         'imaging.imaging_batch_entry',url_kwargs=imaging_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False,
             column_html_attrs=column_html_attrs))
     # elif table_id == 'horizontal_already_imaged_table':
