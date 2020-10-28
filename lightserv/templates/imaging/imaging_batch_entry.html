@@ -71,7 +71,7 @@
 				</div>			
 			</div>
 			
-			<table id="resolution_{{image_resolution}}_table" class="table table-bordered table-striped text-center mb-4">
+			<table id="batch_resolution_{{image_resolution}}_table" class="table table-bordered table-striped text-center mb-4">
 		        <tr>
 		            <th>Channel wavelength(nm)</th>
 		            <th>Image resolution </th>
@@ -264,7 +264,7 @@
 				{% if image_resolution == '2x' %}
 					<h3 class='infolink' data-toggle="tooltip" title="Make sure to use organic dipping cap on 2x objective if sample went through oil-based clearing protocol like iDISCO or uDISCO."> ({{ ii + 1 }}/{{sample_form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
 		        {% else %}
-					<h3 class='infolink' data-toggle="tooltip" title="Do NOT use the zoom body (at a value other than 1) for this objective. If you do, we will very likely not be able to process the images. An exception is if no processing is needed (i.e. only raw images are required)."> ({{ ii + 1 }}/{{sample_form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+					<h3 id="sample_{{kk}}_image_resolution_header_{{ii}}" class='infolink' data-toggle="tooltip" title="Do NOT use the zoom body (at a value other than 1) for this objective. If you do, we will very likely not be able to process the images. An exception is if no processing is needed (i.e. only raw images are required).">({{ ii + 1 }}/{{sample_form.image_resolution_forms|length }}) Image resolution: {{ image_resolution}}</h3>
 				{% endif %}
 
 
@@ -312,7 +312,7 @@
 
 				<hr class='class-2'>
 				<p>* Indicates a required field </p>	
-				<table id="resolution_{{image_resolution}}_table" class="table table-bordered table-striped text-center mb-4">
+				<table id="sample_{{kk}}_resolution_{{image_resolution}}_table" class="table table-bordered table-striped text-center mb-4">
 			        <tr>
 			            <th>Channel wavelength(nm)</th>
 			            <th>Image resolution </th>

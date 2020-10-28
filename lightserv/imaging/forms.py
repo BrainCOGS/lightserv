@@ -288,17 +288,10 @@ class ImagingBatchForm(FlaskForm):
 	image_resolution_batch_forms = FieldList(
 		FormField(ImageBatchResolutionForm),
 		min_entries=0,max_entries=max_number_of_image_resolutions)
-	apply_batch_parameters_button = SubmitField('Apply these parameters to all samples') # setting default=True does not do anything, so I have to do it in the view function:  https://github.com/lepture/flask-wtf/issues/362
+	apply_batch_parameters_button = SubmitField('Apply these parameters to all samples') 
 	sample_forms = FieldList(FormField(ImagingForm),min_entries=0,max_entries=max_number_of_samples)
 
 	submit = SubmitField('Click when done imaging all samples')
-
-# class ImagingSampleForm(FlaskForm):
-# 	""" The form for entering sample imaging information """
-# 	max_number_of_samples = 50 # per request and therefore per imaging batch
-
-# 	sample_forms = FieldList(FormField(ImagingForm),
-# 		min_entries=0,max_entries=max_number_of_samples)
 
 """ For new imaging requests """
 

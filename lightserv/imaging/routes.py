@@ -171,8 +171,8 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 						batch_validated=True # switch to false if any not validated
 						""" Left and right light sheets """
 						channel_name = batch_channel_form.channel_name.data
-						flash_str_prefix = (f"Batch parameters for image resolution: {batch_image_resolution},"
-											f" channel: {channel_name} ")
+						flash_str_prefix = (f"Issue with batch parameters for image resolution: {batch_image_resolution},"
+											f" channel: {channel_name}. ")
 						left_lightsheet_used = batch_channel_form.left_lightsheet_used.data
 						right_lightsheet_used = batch_channel_form.right_lightsheet_used.data
 						if not (left_lightsheet_used or right_lightsheet_used):
@@ -255,38 +255,65 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 							all_batch_channels_validated = False
 
 				""" If validation of all batch channels passed then
-				copy over all batch parameters to all samples """
+				try to make db inserts. It is possible that 
+				sample forms are not homogenous anymore (due to user
+				changing the individual imaging resolution of a single
+				sample). In this case, don't batch apply.
+				"""
 				if all_batch_channels_validated:
-					for sample_form in form.sample_forms:
-						this_sample_name = sample_form.sample_name.data
+					logger.debug("All batch channels validated")
+					logger.debug("Sample forms:")
+					logger.debug(form.sample_forms.data)
+					connection = db_lightsheet.Request.ImagingChannel.connection
+					issues_applying_batch_parameters=False
+					with connection.transaction:
+						for sample_form in form.sample_forms:
+							this_sample_name = sample_form.sample_name.data
+							logger.debug("this sample name:")
+							logger.debug(this_sample_name)
 
-						for ii in range(len(batch_image_resolution_forms)):
-							batch_image_resolution_form = batch_image_resolution_forms[ii]
-							batch_image_resolution = batch_image_resolution_form.image_resolution.data
-							sample_image_resolution_form = sample_form.image_resolution_forms[ii]
-							batch_channel_forms = batch_image_resolution_form.channel_forms
-							sample_channel_forms = sample_image_resolution_form.channel_forms
-							all_batch_channels_validated = True 
-							for jj in range(len(batch_channel_forms)):
-								batch_channel_form = batch_channel_forms[jj]
-								this_channel_name = batch_channel_form.channel_name.data
-								channel_insert_dict = {
-									'username':username,
-									'request_name':request_name,
-									'sample_name':this_sample_name,
-									'imaging_request_number':imaging_request_number,
-									'image_resolution':batch_image_resolution,
-									'channel_name':this_channel_name,
-									'zoom_body_magnification':batch_channel_form.zoom_body_magnification.data,
-									'image_orientation':batch_channel_form.image_orientation.data,
-									'left_lightsheet_used':batch_channel_form.left_lightsheet_used.data,
-									'right_lightsheet_used':batch_channel_form.right_lightsheet_used.data,
-									'tiling_scheme':batch_channel_form.tiling_scheme.data,
-									'tiling_overlap':batch_channel_form.tiling_overlap.data,
-									'z_step':batch_channel_form.z_step.data
-								}
-								db_lightsheet.Request.ImagingChannel().insert1(channel_insert_dict,replace=True)
-					flash("Batch parameters successfully applied to all samples","success")
+							for ii in range(len(batch_image_resolution_forms)):
+								batch_image_resolution_form = batch_image_resolution_forms[ii]
+								batch_image_resolution = batch_image_resolution_form.image_resolution.data
+								sample_image_resolution_form = sample_form.image_resolution_forms[ii]
+								batch_channel_forms = batch_image_resolution_form.channel_forms
+								sample_channel_forms = sample_image_resolution_form.channel_forms
+								all_batch_channels_validated = True 
+								for jj in range(len(batch_channel_forms)):
+									batch_channel_form = batch_channel_forms[jj]
+									this_channel_name = batch_channel_form.channel_name.data
+									channel_insert_dict = {
+										'username':username,
+										'request_name':request_name,
+										'sample_name':this_sample_name,
+										'imaging_request_number':imaging_request_number,
+										'image_resolution':batch_image_resolution,
+										'channel_name':this_channel_name,
+										'zoom_body_magnification':batch_channel_form.zoom_body_magnification.data,
+										'image_orientation':batch_channel_form.image_orientation.data,
+										'left_lightsheet_used':batch_channel_form.left_lightsheet_used.data,
+										'right_lightsheet_used':batch_channel_form.right_lightsheet_used.data,
+										'tiling_scheme':batch_channel_form.tiling_scheme.data,
+										'tiling_overlap':batch_channel_form.tiling_overlap.data,
+										'z_step':batch_channel_form.z_step.data
+									}
+									try:
+										db_lightsheet.Request.ImagingChannel().insert1(channel_insert_dict,replace=True)
+									except:
+										issues_applying_batch_parameters=True
+										logger.debug("Issue making channel insert: ")
+										logger.debug(channel_insert_dict)
+										flash_str = (f"Issue applying batch parameters from "
+													 f"image resolution: {batch_image_resolution}, "
+													 f"channel: {this_channel_name} "
+													 f"to sample_name: {this_sample_name}")
+										flash(flash_str,"warning")
+					if not issues_applying_batch_parameters:
+						flash("Batch parameters successfully applied to samples","success")
+					else:
+						flash("Otherwise parameters were applied OK ","warning")
+				else:
+					logger.debug("Batch channel validation failed. Not applying batch parameters to all samples")
 				return redirect(url_for('imaging.imaging_batch_entry',
 							username=username,request_name=request_name,
 							imaging_batch_number=imaging_batch_number))
@@ -702,6 +729,12 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 								mymkdir(imaging_dir)
 								for form_channel_dict in form_resolution_dict['channel_forms']:
 									channel_name = form_channel_dict['channel_name']
+									channel_content = channel_contents_all_samples & \
+										f'sample_name="{this_sample_name}"' & \
+										f'channel_name="{channel_name}"' & \
+										f'image_resolution="{image_resolution}"' & \
+										f'imaging_request_number={imaging_request_number}'
+									channel_content_dict = channel_content.fetch1()
 									logger.debug(channel_name)
 									rawdata_subfolder = form_channel_dict['rawdata_subfolder']
 									number_of_z_planes = form_channel_dict['number_of_z_planes']
@@ -716,9 +749,6 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 									logger.info(f" channel {channel_name} with image_resolution \
 										 {image_resolution} has channel_index = {channel_index}")
 									
-									channel_content = channel_contents & f'channel_name="{channel_name}"' & \
-									f'image_resolution="{image_resolution}"' & f'imaging_request_number=1'
-									channel_content_dict = channel_content.fetch1()
 									''' Make a copy of the current row in a new dictionary which we will insert '''
 									channel_insert_dict = {}
 								
@@ -939,222 +969,181 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 									username=username,request_name=request_name,
 									imaging_batch_number=imaging_batch_number))	
 		else: # final submit button pressed. No validation necessary since all done in each sample form
-			pass
-		# 	logger.info("Final submit button pressed")
-		# 	logger.info("form validated")
-		# 	imaging_progress = imaging_batch_contents.fetch1('imaging_progress')
 			
-		# 	if imaging_progress == 'complete':
-		# 		logger.info("Imaging is already complete so hitting the submit button again did nothing")
-		# 		return redirect(url_for('imaging.imaging_entry',username=username,
-		# 		request_name=request_name,sample_name=sample_name,imaging_request_number=imaging_request_number))
+			logger.info("Final submit button pressed")
+			imaging_progress = imaging_batch_contents.fetch1('imaging_progress')
 			
-		# 	""" loop through the image resolution forms and find all channel entries"""
+			if imaging_progress == 'complete':
+				logger.info("Imaging is already complete so hitting the submit button again did nothing")
+				return redirect(url_for('imaging.imaging_batch_entry',username=username,
+					request_name=request_name,sample_name=sample_name,
+					imaging_batch_number=imaging_batch_number))
+			""" For each sample, start the raw data precomputed pipeline 
+			if no stitching necessary """
+			for sample_dict in sample_dict_list:
+				this_sample_name = sample_dict['sample_name']
+				logger.debug("Sample name:")
+				logger.debug(this_sample_name)
+				restrict_dict = {'username':username,'request_name':request_name,
+					'sample_name':this_sample_name,'imaging_request_number':imaging_request_number}
+				imaging_channel_contents_this_sample = db_lightsheet.Request.ImagingChannel() & restrict_dict
+				for imaging_channel_dict in imaging_channel_contents_this_sample:
 
-		# 	""" Loop through the image resolution forms and find all channels in the form  
-		# 	and update the existing table entries with the new imaging information """
-			
-		# 	for form_resolution_dict in form.image_resolution_forms.data:
-		# 		subfolder_dict = {}
-		# 		image_resolution = form_resolution_dict['image_resolution']
-		# 		""" Make rawdata/ subdirectories for this resolution """
-		# 		imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-		# 						 request_name,sample_name,f"imaging_request_{imaging_request_number}",
-		# 						 "rawdata",f"resolution_{image_resolution}")
-		# 		mymkdir(imaging_dir)
-		# 		for form_channel_dict in form_resolution_dict['channel_forms']:
-		# 			channel_name = form_channel_dict['channel_name']
-		# 			rawdata_subfolder = form_channel_dict['rawdata_subfolder']
-		# 			number_of_z_planes = form_channel_dict['number_of_z_planes']
-		# 			tiling_scheme = form_channel_dict['tiling_scheme']
-		# 			z_step = form_channel_dict['z_step']
-		# 			left_lightsheet_used = form_channel_dict['left_lightsheet_used']
-		# 			right_lightsheet_used = form_channel_dict['right_lightsheet_used']
-		# 			if rawdata_subfolder in subfolder_dict.keys():
-		# 				subfolder_dict[rawdata_subfolder].append(channel_name)
-		# 			else:
-		# 				subfolder_dict[rawdata_subfolder] = [channel_name]
-		# 			channel_index = subfolder_dict[rawdata_subfolder].index(channel_name)
-		# 			logger.info(f" channel {channel_name} with image_resolution \
-		# 				 {image_resolution} has channel_index = {channel_index}")
+					tiling_scheme = imaging_channel_dict['tiling_scheme']
+					if tiling_scheme == '1x1':
+						logger.info("Only one tile. Creating precomputed data for neuroglancer visualization. ")
+						logger.debug(imaging_channel_dict)
+						image_resolution = imaging_channel_dict['image_resolution']
+						channel_name = imaging_channel_dict['channel_name']
+						channel_index = imaging_channel_dict['imspector_channel_index']
+						number_of_z_planes = imaging_channel_dict['number_of_z_planes']
+						left_lightsheet_used = imaging_channel_dict['left_lightsheet_used']
+						right_lightsheet_used = imaging_channel_dict['right_lightsheet_used']
+						z_step = imaging_channel_dict['z_step']
+						rawdata_subfolder = imaging_channel_dict['rawdata_subfolder']
+						precomputed_kwargs = dict(username=username,request_name=request_name,
+												sample_name=this_sample_name,imaging_request_number=imaging_request_number,
+												image_resolution=image_resolution,channel_name=channel_name,
+												channel_index=channel_index,number_of_z_planes=number_of_z_planes,
+												left_lightsheet_used=left_lightsheet_used,
+												right_lightsheet_used=right_lightsheet_used,
+												z_step=z_step,rawdata_subfolder=rawdata_subfolder)
+						imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+										 request_name,this_sample_name,f"imaging_request_1",
+										 "rawdata",f"resolution_{image_resolution}")
+						raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
+								 f"{request_name}/{this_sample_name}/"
+								 f"imaging_request_{imaging_request_number}/viz/raw")
 
-		# 			""" Now look for the number of z planes in the raw data subfolder on bucket
-		# 				and validate that it is the same as the user specified 
-		# 			"""
-					
-		# 			channel_content = channel_contents & f'channel_name="{channel_name}"' & \
-		# 			f'image_resolution="{image_resolution}"' & f'imaging_request_number={imaging_request_number}'
-		# 			channel_content_dict = channel_content.fetch1()
-		# 			''' Make a copy of the current row in a new dictionary which we will insert '''
-		# 			channel_insert_dict = {}
-				
-		# 			for key,val in channel_content_dict.items():
-		# 				channel_insert_dict[key] = val
-
-		# 			''' Now replace (some of) the values in the dict from whatever we 
-		# 			get from the form '''
-		# 			for key,val in form_channel_dict.items():
-		# 				if key in channel_content_dict.keys() and key not in ['channel_name','image_resolution','imaging_request_number']:
-		# 					channel_insert_dict[key] = val
-		# 			channel_insert_dict['imspector_channel_index'] = channel_index
-			
-		# 			db_lightsheet.Request.ImagingChannel().insert1(channel_insert_dict,replace=True)
-		# 			""" Kick off celery task for creating precomputed data from this
-		# 			raw data image dataset if there is more than one tile.
-		# 			"""
-		# 			if tiling_scheme == '1x1':
-		# 				logger.info("Only one tile. Creating precomputed data for neuroglancer visualization. ")
-		# 				precomputed_kwargs = dict(username=username,request_name=request_name,
-		# 										sample_name=sample_name,imaging_request_number=imaging_request_number,
-		# 										image_resolution=image_resolution,channel_name=channel_name,
-		# 										channel_index=channel_index,number_of_z_planes=number_of_z_planes,
-		# 										left_lightsheet_used=left_lightsheet_used,
-		# 										right_lightsheet_used=right_lightsheet_used,
-		# 										z_step=z_step,rawdata_subfolder=rawdata_subfolder)
-		# 				raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
-		# 						 f"{request_name}/{sample_name}/"
-		# 						 f"imaging_request_{imaging_request_number}/viz/raw")
-
-		# 				mymkdir(raw_viz_dir)
-		# 				channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
-		# 				mymkdir(channel_viz_dir)
-		# 				raw_data_dir = os.path.join(imaging_dir,rawdata_subfolder)
-		# 				logger.debug("raw data dir:")
-		# 				logger.debug(raw_data_dir)
-		# 				if left_lightsheet_used:
-		# 					this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
-		# 					mymkdir(this_viz_dir)
-		# 					precomputed_kwargs['lightsheet'] = 'left'
-		# 					precomputed_kwargs['viz_dir'] = this_viz_dir
-		# 					layer_name = f'channel{channel_name}_raw_left_lightsheet'
-		# 					precomputed_kwargs['layer_name'] = layer_name
-		# 					layer_dir = os.path.join(this_viz_dir,layer_name)
-		# 					mymkdir(layer_dir)
-		# 					# Figure out what x and y dimensions are
-		# 					lightsheet_index_code = 'C00' # always for left lightsheet
-		# 					precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
-		# 					all_slices = glob.glob(
-		# 						f"{raw_data_dir}/*RawDataStack[00 x 00*{lightsheet_index_code}*Filter000{channel_index}*tif")
-		# 					first_slice = all_slices[0]
-		# 					first_im = Image.open(first_slice)
-		# 					x_dim,y_dim = first_im.size
-		# 					precomputed_kwargs['x_dim'] = x_dim
-		# 					precomputed_kwargs['y_dim'] = y_dim
-		# 					first_im.close() 
-		# 					if not os.environ['FLASK_MODE'] == 'TEST': 
-		# 						tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
-		# 				if right_lightsheet_used:
-		# 					this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
-		# 					mymkdir(this_viz_dir)
-		# 					precomputed_kwargs['lightsheet'] = 'right'
-		# 					precomputed_kwargs['viz_dir'] = this_viz_dir
-		# 					layer_name = f'channel{channel_name}_raw_right_lightsheet'
-		# 					precomputed_kwargs['layer_name'] = layer_name
-		# 					layer_dir = os.path.join(this_viz_dir,layer_name)
-		# 					mymkdir(layer_dir)
+						mymkdir(raw_viz_dir)
+						channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
+						mymkdir(channel_viz_dir)
+						raw_data_dir = os.path.join(imaging_dir,rawdata_subfolder)
+						logger.debug("raw data dir:")
+						logger.debug(raw_data_dir)
+						if left_lightsheet_used:
+							this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
+							mymkdir(this_viz_dir)
+							precomputed_kwargs['lightsheet'] = 'left'
+							precomputed_kwargs['viz_dir'] = this_viz_dir
+							layer_name = f'channel{channel_name}_raw_left_lightsheet'
+							precomputed_kwargs['layer_name'] = layer_name
+							layer_dir = os.path.join(this_viz_dir,layer_name)
+							mymkdir(layer_dir)
+							# Figure out what x and y dimensions are
+							lightsheet_index_code = 'C00' # always for left lightsheet
+							precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
+							all_slices = glob.glob(
+								f"{raw_data_dir}/*RawDataStack[00 x 00*{lightsheet_index_code}*Filter000{channel_index}*tif")
+							first_slice = all_slices[0]
+							first_im = Image.open(first_slice)
+							x_dim,y_dim = first_im.size
+							precomputed_kwargs['x_dim'] = x_dim
+							precomputed_kwargs['y_dim'] = y_dim
+							first_im.close() 
+							if not os.environ['FLASK_MODE'] == 'TEST': 
+								tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
+						if right_lightsheet_used:
+							this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
+							mymkdir(this_viz_dir)
+							precomputed_kwargs['lightsheet'] = 'right'
+							precomputed_kwargs['viz_dir'] = this_viz_dir
+							layer_name = f'channel{channel_name}_raw_right_lightsheet'
+							precomputed_kwargs['layer_name'] = layer_name
+							layer_dir = os.path.join(this_viz_dir,layer_name)
+							mymkdir(layer_dir)
 							
-		# 					# figure out whether to look for C00 or C01 files
-		# 					if left_lightsheet_used:
-		# 						lightsheet_index_code = 'C01'
-		# 					else: 
-		# 						# right light sheet was the only one used so looking for C00 files
-		# 						lightsheet_index_code = 'C00'
-		# 					precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
-		# 					# Figure out what x and y dimensions are
-		# 					all_slices = glob.glob(f"{raw_data_dir}/*RawDataStack[00 x 00*{lightsheet_index_code}*Filter000{channel_index}*tif")
-		# 					first_slice = all_slices[0]
-		# 					first_im = Image.open(first_slice)
-		# 					x_dim,y_dim = first_im.size
-		# 					precomputed_kwargs['x_dim'] = x_dim
-		# 					precomputed_kwargs['y_dim'] = y_dim
-		# 					first_im.close()
-		# 					if not os.environ['FLASK_MODE'] == 'TEST': 
-		# 						tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
-		# 			else:
-		# 				logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
-		# 							 "Not creating precomputed data for neuroglancer visualization.")
+							# figure out whether to look for C00 or C01 files
+							if left_lightsheet_used:
+								lightsheet_index_code = 'C01'
+							else: 
+								# right light sheet was the only one used so looking for C00 files
+								lightsheet_index_code = 'C00'
+							precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
+							# Figure out what x and y dimensions are
+							all_slices = glob.glob(f"{raw_data_dir}/*RawDataStack[00 x 00*{lightsheet_index_code}*Filter000{channel_index}*tif")
+							first_slice = all_slices[0]
+							first_im = Image.open(first_slice)
+							x_dim,y_dim = first_im.size
+							precomputed_kwargs['x_dim'] = x_dim
+							precomputed_kwargs['y_dim'] = y_dim
+							first_im.close()
+							if not os.environ['FLASK_MODE'] == 'TEST': 
+								tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
+					else:
+						logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
+									 "Not creating precomputed data for neuroglancer visualization.")
 				
-		# 	correspondence_email = (db_lightsheet.Request() & f'username="{username}"' & \
-		# 	 f'request_name="{request_name}"').fetch1('correspondence_email')
-		# 	data_rootpath = current_app.config["DATA_BUCKET_ROOTPATH"]
-		# 	path_to_data = (f'{data_rootpath}/{username}/{request_name}/'
-		# 					 f'{sample_name}/imaging_request_number_{imaging_request_number}/rawdata')
-		# 	""" Send email """
-		# 	subject = 'Lightserv automated email: Imaging complete'
-		# 	hosturl = os.environ['HOSTURL']
+			correspondence_email = (db_lightsheet.Request() & f'username="{username}"' & \
+			 f'request_name="{request_name}"').fetch1('correspondence_email')
+			data_rootpath = current_app.config["DATA_BUCKET_ROOTPATH"]
+			path_to_data = os.path.join(data_rootpath,username,request_name,
+							 '{sample_name}',f'imaging_request_number_{imaging_request_number}', # sample_name is intentionally left in brackets 
+							 'rawdata')
+			""" Send email """
+			subject = 'Lightserv automated email: Imaging complete'
+			hosturl = os.environ['HOSTURL']
 
-		# 	processing_manager_url = f'https://{hosturl}' + url_for('processing.processing_manager')
-
-		# 	message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
-		# 				'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
-		# 				'The raw data for your request:\n'
-		# 				f'request_name: "{request_name}"\n'
-		# 				f'sample_name: "{sample_name}"\n'
-		# 				f'are now available on bucket here: {path_to_data}\n\n'
-		# 				 'To start processing your data, '
-		# 				f'go to the processing management GUI: {processing_manager_url} '
-		# 				'and find your sample to process.\n\n'
-		# 				 'Thanks,\n\nThe Core Facility')
-		# 	request_contents = db_lightsheet.Request() & \
-		# 						{'username':username,'request_name':request_name}
-		# 	correspondence_email = request_contents.fetch1('correspondence_email')
-		# 	recipients = [correspondence_email]
-		# 	if not os.environ['FLASK_MODE'] == 'TEST':
-		# 		send_email.delay(subject=subject,body=message_body,recipients=recipients) # pragma: no cover - used to exclude this line from calculating test coverage
-		# 	flash(f"""Imaging is complete. An email has been sent to {correspondence_email} 
-		# 		informing them that their raw data is now available on bucket.
-		# 		The processing pipeline is now ready to run. ""","success")
-		# 	dj.Table._update(imaging_request_contents,'imaging_progress','complete')
-		# 	now = datetime.now()
-		# 	date = now.strftime('%Y-%m-%d')
-		# 	dj.Table._update(imaging_request_contents,'imaging_performed_date',date)
+			processing_manager_url = f'https://{hosturl}' + url_for('processing.processing_manager')
+			samples_str = ', '.join(x for x in sorted(list(samples_imaging_progress_dict.keys())))
+			message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
+						'The raw data your request:\n'
+						f'request_name: "{request_name}"\n'
+						f'sample names: "{samples_str}"\n'
+						f'are now available on bucket here: {path_to_data}\n\n'
+						 'To start processing your data, '
+						f'go to the processing management GUI: {processing_manager_url} '
+						'and find your sample to process.\n\n'
+						 'Thanks,\n\nThe Core Facility')
 			
-		# 	""" Finally, set up the 4-day reminder email that will be sent if 
-		# 	user still has not submitted processing request (provided that there exists a processing 
-		# 	request for this imaging request) """
+			recipients = [correspondence_email]
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				send_email.delay(subject=subject,body=message_body,recipients=recipients) # pragma: no cover - used to exclude this line from calculating test coverage
+			flash(f"""Imaging for this batch is complete. An email has been sent to {correspondence_email} 
+				informing them that their raw data is now available on bucket.
+				The processing pipeline is now ready to run. ""","success")
+			dj.Table._update(imaging_batch_contents,'imaging_progress','complete')
+			now = datetime.now()
+			date = now.strftime('%Y-%m-%d')
+			dj.Table._update(imaging_batch_contents,'imaging_performed_date',date)
+			
+			""" Finally, set up the 4-day reminder email that will be sent if 
+			user still has not submitted processing request (provided that there exists a processing 
+			request for this imaging request) """
 
-		# 	""" First check if there is a processing request for this imaging request.
-		# 	This will be processing_request_number=1 because we are in the imaging entry
-		# 	form here. """
-		# 	restrict_dict = dict(username=username,request_name=request_name,
-		# 		sample_name=sample_name,imaging_request_number=imaging_request_number,
-		# 		processing_request_number=1)
-		# 	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & restrict_dict
-		# 	if len(processing_request_contents) > 0:
-		# 		subject = 'Lightserv automated email. Reminder to start processing.'
-		# 		body = ('Hello, this is a reminder that you still have not started '
-		# 				'the data processing pipeline for your sample:.\n\n'
-		# 				f'request_name: {request_name}\n'
-		# 				f'sample_name: {sample_name}\n\n'
-		# 				'To start processing your data, '
-		# 				f'go to the processing management GUI: {processing_manager_url} '
-		# 				'and find your sample to process.\n\n'
-		# 				'Thanks,\nThe Brain Registration and Histology Core Facility')    
-		# 		logger.debug("Sending reminder email 4 days in the future")
-		# 		request_contents = db_lightsheet.Request() & \
-		# 						{'username':username,'request_name':request_name}
-		# 		correspondence_email = request_contents.fetch1('correspondence_email')
-		# 		recipients = [correspondence_email]
-		# 		future_time = datetime.utcnow() + timedelta(days=4)
-		# 		reminder_email_kwargs = restrict_dict.copy()
-		# 		reminder_email_kwargs['subject'] = subject
-		# 		reminder_email_kwargs['body'] = body
-		# 		reminder_email_kwargs['recipients'] = recipients
-		# 		if not os.environ['FLASK_MODE'] == 'TEST': # pragma: no cover - used to exclude this line from calculating test coverage
-		# 			# tasks.send_processing_reminder_email.apply_async(
-		# 			# 	kwargs=reminder_email_kwargs,eta=future_time) 
-		# 			logger.debug("Not running celery task for reminder email while debugging.")
-		# 	return redirect(url_for('imaging.imaging_manager'))
-		# else:
-		# 	logger.info("Not validated")
-		# 	logger.info(form.errors)
-		# 	flash_str = 'There were errors below. Correct them before proceeding'
-		# 	flash(flash_str,'danger')
-		# 	if 'image_resolution_forms' in form.errors:
-		# 		for error in form.errors['image_resolution_forms']:
-		# 			if isinstance(error,dict):
-		# 				continue
-		# 			flash(error,'danger')
+			# """ First check if there is a processing request for this imaging request.
+			# This will be processing_request_number=1 because we are in the imaging entry
+			# form here. """
+			# restrict_dict = dict(username=username,request_name=request_name,
+			# 	sample_name=sample_name,imaging_request_number=imaging_request_number,
+			# 	processing_request_number=1)
+			# processing_request_contents = db_lightsheet.Request.ProcessingRequest() & restrict_dict
+			# if len(processing_request_contents) > 0:
+			# 	subject = 'Lightserv automated email. Reminder to start processing.'
+			# 	body = ('Hello, this is a reminder that you still have not started '
+			# 			'the data processing pipeline for your sample:.\n\n'
+			# 			f'request_name: {request_name}\n'
+			# 			f'sample_name: {sample_name}\n\n'
+			# 			'To start processing your data, '
+			# 			f'go to the processing management GUI: {processing_manager_url} '
+			# 			'and find your sample to process.\n\n'
+			# 			'Thanks,\nThe Brain Registration and Histology Core Facility')    
+			# 	logger.debug("Sending reminder email 4 days in the future")
+			# 	request_contents = db_lightsheet.Request() & \
+			# 					{'username':username,'request_name':request_name}
+			# 	correspondence_email = request_contents.fetch1('correspondence_email')
+			# 	recipients = [correspondence_email]
+			# 	future_time = datetime.utcnow() + timedelta(days=4)
+			# 	reminder_email_kwargs = restrict_dict.copy()
+			# 	reminder_email_kwargs['subject'] = subject
+			# 	reminder_email_kwargs['body'] = body
+			# 	reminder_email_kwargs['recipients'] = recipients
+			# 	if not os.environ['FLASK_MODE'] == 'TEST': # pragma: no cover - used to exclude this line from calculating test coverage
+			# 		# tasks.send_processing_reminder_email.apply_async(
+			# 		# 	kwargs=reminder_email_kwargs,eta=future_time) 
+			# 		logger.debug("Not running celery task for reminder email while debugging.")
+			return redirect(url_for('imaging.imaging_manager'))
 
 	elif request.method == 'GET': # get request
 		logger.debug("GET request")
@@ -1218,8 +1207,6 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 			form.sample_forms.pop_entry() 
 		for sample_dict in sample_dict_list:
 			this_sample_name = sample_dict['sample_name']
-			logger.debug("Initializing sample form for:")
-			logger.debug(this_sample_name)
 			channel_contents_this_sample = channel_contents_all_samples & \
 				f'sample_name="{this_sample_name}"'
 			""" Figure out clearing batch and if there were notes_for_clearer """
@@ -1246,8 +1233,6 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 			for ii in range(len(unique_image_resolutions_this_sample)):
 				
 				this_image_resolution = unique_image_resolutions_this_sample[ii]
-				logger.debug("Initializing resolution form for:")
-				logger.debug(this_image_resolution)
 				this_image_resolution_request_contents = image_resolution_request_contents_this_sample & \
 					f'image_resolution="{this_image_resolution}" '
 				
@@ -1274,8 +1259,6 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 				for jj in range(len(channel_contents_list_this_resolution)):
 					channel_content = channel_contents_list_this_resolution[jj]
 					channel_name = channel_content['channel_name']
-					logger.debug("Initializing channel form for:")
-					logger.debug(channel_name)
 					registration_channel = channel_content['registration']
 					if registration_channel:
 						registration_channel_used = True

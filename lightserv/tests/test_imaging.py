@@ -1153,7 +1153,6 @@ def test_imaging_batch_entry_form_submits_single_sample(test_client,
 	response = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='nonadmin_manysamp_request',
-			sample_name='sample-001',
 			imaging_batch_number=1),
 		data=data,
 		follow_redirects=True)
@@ -1166,6 +1165,8 @@ def test_imaging_batch_entry_form_submits_single_sample(test_client,
 	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict
 	number_of_z_planes = imaging_channel_contents.fetch1('number_of_z_planes')
 	assert number_of_z_planes == 657
+	rawdata_subfolder = imaging_channel_contents.fetch1('rawdata_subfolder')
+	assert rawdata_subfolder == 'test488'
 	imaging_request_restrict_dict = dict(username='lightserv-test',
 			request_name='nonadmin_manysamp_request',
 			sample_name='sample-001',
@@ -1176,26 +1177,486 @@ def test_imaging_batch_entry_form_submits_single_sample(test_client,
 	response2 = test_client.get(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='nonadmin_manysamp_request',
-			sample_name='sample-001',
 			imaging_batch_number=1),
 		follow_redirects=True)
 
-	# response = test_client.post(url_for('imaging.imaging_batch_entry',
-	# 		username='lightserv-test',
-	# 		request_name='nonadmin_manysamp_request',
-	# 		sample_name='sample-001',
-	# 		imaging_batch_number=1),
-	# 	data=data,
-	# 	follow_redirects=True)
-
 	assert b'Sample has been imaged' in response2.data
-	assert b'sample_forms-0' not in response2.data
-	# print(url)
-	# webbrowser.open(url)
-	# imaging_progress = (db_lightsheet.Request.ImagingRequest() & 'request_name="admin_request"' & \
-	# 	'username="ahoag"' & 'sample_name="sample-001"' & 'imaging_request_number=1').fetch1('imaging_progress')
-	# assert imaging_progress == 'complete'
 
+def test_apply_batch_parameters_successful(test_client,
+	test_cleared_multisample_multichannel_request_nonadmin,
+	test_login_zmd):
+	""" Test that hitting the apply batch parameters button 
+	updates the database for each sample in the batch and 
+	the sample forms are correctly autofilled with the batch parameters
+	"""
+	data = {
+		'image_resolution_batch_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_batch_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_batch_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_batch_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'image_resolution_batch_forms-0-channel_forms-0-z_step':5.5,
+		'image_resolution_batch_forms-0-channel_forms-1-channel_name':'555',
+		'image_resolution_batch_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'image_resolution_batch_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'image_resolution_batch_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'image_resolution_batch_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'image_resolution_batch_forms-0-channel_forms-1-z_step':7.5,
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'apply_batch_parameters_button':True,
+		}
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging Entry Form' in response.data
+	""" Check that the sample channel entry in the db was updated """
+	restrict_dict_ch488 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			image_resolution='1.3x',
+			channel_name='488')
+	restrict_dict_ch555 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			image_resolution='1.3x',
+			channel_name='555')
+	imaging_channel_contents_ch488 = db_lightsheet.Request.ImagingChannel() & restrict_dict_ch488
+	assert imaging_channel_contents_ch488.fetch1('z_step') == 5.5
+	imaging_channel_contents_ch555 = db_lightsheet.Request.ImagingChannel() & restrict_dict_ch555
+	assert imaging_channel_contents_ch555.fetch1('z_step') == 7.5
+
+def test_apply_batch_parameters_validates(test_client,
+	test_cleared_multisample_multichannel_request_nonadmin,
+	test_login_zmd):
+	""" Test that hitting the apply batch parameters with
+	bad batch parameters is subject to validation and does not 
+	go through
+	"""
+	data = {
+		'image_resolution_batch_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_batch_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_batch_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'image_resolution_batch_forms-0-channel_forms-0-tiling_scheme':'1x8',
+		'image_resolution_batch_forms-0-channel_forms-0-z_step':5.5,
+		'image_resolution_batch_forms-0-channel_forms-1-channel_name':'555',
+		'image_resolution_batch_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'image_resolution_batch_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'image_resolution_batch_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'image_resolution_batch_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'image_resolution_batch_forms-0-channel_forms-1-z_step':7.5,
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'apply_batch_parameters_button':True,
+		}
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+	error_str = ("Issue with batch parameters for image resolution: 1.3x, "
+				 "channel: 488. Tiling scheme must not exceed 2x2 for this resolution")
+	assert error_str.encode('utf-8') in response.data
+	""" Check that the sample channel entries in the db were NOT updated """
+	restrict_dict_ch488 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			image_resolution='1.3x',
+			channel_name='488')
+	restrict_dict_ch555 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			image_resolution='1.3x',
+			channel_name='555')
+	imaging_channel_contents_ch488 = db_lightsheet.Request.ImagingChannel() & restrict_dict_ch488
+	assert imaging_channel_contents_ch488.fetch1('z_step') == 10
+	imaging_channel_contents_ch555 = db_lightsheet.Request.ImagingChannel() & restrict_dict_ch555
+	assert imaging_channel_contents_ch555.fetch1('z_step') == 10
+
+def test_change_image_resolution_batch_parameters(test_client,
+	test_cleared_multisample_multichannel_request_nonadmin,
+	test_login_zmd):
+	""" Test that changing the image resolution in the batch
+	section of the batch entry form results in all samples 
+	having their image resolution changed in the db and subsequent form.
+	"""
+	data = {
+		'image_resolution_batch_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-new_image_resolution':'1.1x',
+		'image_resolution_batch_forms-0-update_resolution_button':True,
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		}
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging Entry Form' in response.data
+	""" Check that the sample channel entries in the db were updated """
+	restrict_dict_ch488 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			channel_name='488')
+	restrict_dict_ch555 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			channel_name='555')
+	imaging_channel_contents_ch488 = db_lightsheet.Request.ImagingChannel() & restrict_dict_ch488
+	assert imaging_channel_contents_ch488.fetch1('image_resolution') == '1.1x'
+	imaging_channel_contents_ch555 = db_lightsheet.Request.ImagingChannel() & restrict_dict_ch555
+	assert imaging_channel_contents_ch555.fetch1('image_resolution') == '1.1x'
+	""" Now check that the image resolution shown in the form is correct """
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	header_tag_sample1 = parsed_html.find('h3',
+		attrs={'id':'sample_0_image_resolution_header_0'})
+	assert header_tag_sample1.text == '(1/1) Image resolution: 1.1x'
+	header_tag_sample2 = parsed_html.find('h3',
+		attrs={'id':'sample_1_image_resolution_header_0'})
+	assert header_tag_sample2.text == '(1/1) Image resolution: 1.1x'
+
+def test_add_channel_batch_parameters(test_client,
+	test_cleared_multisample_multichannel_request_nonadmin,
+	test_login_zmd):
+	""" Test that adding a channel in the batch
+	section of the batch entry form results in all samples 
+	also adding this channel and the new channel appearing in 
+	the sample forms.
+	"""
+	data = {
+		'image_resolution_batch_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-new_channel_dropdown':'647',
+		'image_resolution_batch_forms-0-new_channel_purpose':'cell_detection',
+		'image_resolution_batch_forms-0-new_channel_button':True,
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		}
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging Entry Form' in response.data
+	""" Check that the sample channel entries in the db were updated """
+	restrict_dict_sample1 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			image_resolution='1.3x',
+			channel_name='647')
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample1
+	assert len(imaging_channel_contents) == 1
+	restrict_dict_sample2 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-002',
+			image_resolution='1.3x',
+			channel_name='647')
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample2
+	assert len(imaging_channel_contents) == 1
+	""" Now check that the new channel is shown in the sample resolution forms """
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag_sample1 = parsed_html.find('table',
+		attrs={'id':'sample_0_resolution_1.3x_table'})
+	table_row_tags_sample1 = table_tag_sample1.find_all('tr')
+	assert len(table_row_tags_sample1) == 11
+	ch647_row_sample1 = table_row_tags_sample1[-4].find_all('td')
+	channel_name_ch647_sample1 = ch647_row_sample1[0].text
+	assert channel_name_ch647_sample1 == '647'
+
+	table_tag_sample2 = parsed_html.find('table',
+		attrs={'id':'sample_1_resolution_1.3x_table'})
+	table_row_tags_sample2 = table_tag_sample2.find_all('tr')
+	assert len(table_row_tags_sample2) == 11
+	ch647_row_sample2 = table_row_tags_sample2[-4].find_all('td')
+	channel_name_ch647_sample2 = ch647_row_sample2[0].text
+	assert channel_name_ch647_sample2 == '647'
+
+def test_change_image_resolution_individual_sample(test_client,
+	test_cleared_multisample_multichannel_request_nonadmin,
+	test_login_zmd):
+	""" Test that changing the image resolution in an
+	individual sample section of the imaging batch form 
+	works and only affects the single sample
+	"""
+	data = {
+		'image_resolution_batch_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-new_image_resolution':'1.1x',
+		'sample_forms-0-image_resolution_forms-0-update_resolution_button':True,
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		}
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging Entry Form' in response.data
+	""" Check that the sample-001 image resolution was updated in the db 
+	and that sample-001 image resolution was NOT updated in the db"""
+	restrict_dict_sample1 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			channel_name='488')
+	restrict_dict_sample2 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-002',
+			channel_name='488')
+	imaging_channel_contents_sample1 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample1
+	assert imaging_channel_contents_sample1.fetch1('image_resolution') == '1.1x'
+	imaging_channel_contents_sample2 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample2
+	assert imaging_channel_contents_sample2.fetch1('image_resolution') == '1.3x'
+
+def test_add_channel_individual_sample(test_client,
+	test_cleared_multisample_multichannel_request_nonadmin,
+	test_login_zmd):
+	""" Test that adding a new channel in an
+	individual sample section of the imaging batch form 
+	works and only affects the single sample
+	"""
+	data = {
+		'image_resolution_batch_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-new_channel_dropdown':'790',
+		'sample_forms-0-image_resolution_forms-0-new_channel_purpose':'cell_detection',
+		'sample_forms-0-image_resolution_forms-0-new_channel_button':True,
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		}
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging Entry Form' in response.data
+	""" Check that the sample1 channel entry was added in the db """
+	restrict_dict_sample1 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			image_resolution='1.3x',
+			channel_name='790')
+	imaging_channel_contents_sample1 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample1
+	assert len(imaging_channel_contents_sample1) == 1
+	restrict_dict_sample2 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-002',
+			image_resolution='1.3x',
+			channel_name='790')
+	imaging_channel_contents_sample2 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample2
+	assert len(imaging_channel_contents_sample2) == 0
+	""" Now check that the new channel is shown in the sample resolution forms """
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag_sample1 = parsed_html.find('table',
+		attrs={'id':'sample_0_resolution_1.3x_table'})
+	table_row_tags_sample1 = table_tag_sample1.find_all('tr')
+	assert len(table_row_tags_sample1) == 11
+	ch647_row_sample1 = table_row_tags_sample1[-4].find_all('td')
+	channel_name_ch647_sample1 = ch647_row_sample1[0].text
+	assert channel_name_ch647_sample1 == '790'
+
+	table_tag_sample2 = parsed_html.find('table',
+		attrs={'id':'sample_1_resolution_1.3x_table'})
+	table_row_tags_sample2 = table_tag_sample2.find_all('tr')
+	assert len(table_row_tags_sample2) == 8
+
+def test_imaging_batch_entry_entire_form_submits(test_client,
+	test_cleared_multisample_multichannel_request_nonadmin,
+	test_login_zmd):
+	""" Test that Zahra (zmd, an imaging admin) can submit the entire imaging entry form
+	for both samples and then the final submit button works and imaging_progress
+	is updated in the db """
+
+	""" First need to submit sample 1 """
+	data1 = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':10,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':10,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-z_step':10,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-z_step':10,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+		'sample_forms-0-submit':True
+		}
+	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_batch_number=1),
+		data=data1,
+		follow_redirects=True)
+	assert b'Imaging Entry Form' in response1.data
+	restrict_dict = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			image_resolution='1.3x',
+			channel_name='488')
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict
+	number_of_z_planes = imaging_channel_contents.fetch1('number_of_z_planes')
+	assert number_of_z_planes == 657
+	rawdata_subfolder = imaging_channel_contents.fetch1('rawdata_subfolder')
+	assert rawdata_subfolder == 'test488'
+	data2 = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':10,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':10,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-z_step':10,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-z_step':10,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+		'sample_forms-1-submit':True
+		}
+	
+	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_batch_number=1),
+		data=data2,
+		follow_redirects=True)
+	restrict_dict = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-002',
+			image_resolution='1.3x',
+			channel_name='555')
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict
+	number_of_z_planes = imaging_channel_contents.fetch1('number_of_z_planes')
+	assert number_of_z_planes == 657
+	rawdata_subfolder = imaging_channel_contents.fetch1('rawdata_subfolder')
+	assert rawdata_subfolder == 'test555'
+	assert b'Imaging Entry Form' in response2.data
+
+	data3 = {
+		'submit':True
+		}
+
+	response3 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_batch_number=1),
+		data=data3,
+		follow_redirects=True)
+	assert b'Imaging Entry Form' not in response3.data
+	assert b'Imaging management GUI'  in response3.data
+
+	restrict_dict = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_batch_number=1)
+	imaging_batch_contents = db_lightsheet.Request.ImagingBatch() & restrict_dict
+	assert imaging_batch_contents.fetch1('imaging_progress') == 'complete'
 
 """ Test for imaging tasks """
 
