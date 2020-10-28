@@ -51,46 +51,8 @@
 <div id='new_imaging_request'>
 	<h4 align="center"> Q: How do I request additional imaging for a sample I already submitted?</h4>
 	<p>
-		<b>A:</b> The easiest way to do this is to go to <a href="{{url_for('requests.all_samples')}}">Your Samples</a> page, and find the sample in the table for which you want additional imaging. In the same row as your sample, there is a "Request additonal imaging" link. You can review the imaging you have already requested by clicking the imaging request numbers in that table. Clicking "Request additional imaging" link will take you to a form where you can request additional imaging for a <i>single sample at a time</i>. If you have multiple samples that require additional imaging, please follow the above process for each sample. Note that creating a new imaging request automatically creates a processing request for that imaging request. To better understand the structure of requests, see:  <a href="{{ url_for('main.FAQ',_anchor='request_structure') }}">Q: What are imaging request numbers and processing request numbers?</a>
+		<b>A:</b> This is currently not supported through this portal. If you need additional imaging for a sample after you have submitted your request, please contact us right away at lightservhelper@gmail.com. 
 	</p>
-</div>
-
-<hr class='class-1'>
-
-<div id='new_processing_request'>
-	<h4 align="center"> Q: How do I request additional processing for a set of images?</h4>
-	<p>
-		<b>A:</b> The easiest way to do this is to go to <a href="{{url_for('requests.all_samples')}}">Your Samples</a> page, and find the sample in the table for which you want additional imaging. Then find the imaging request for that sample for which you want to request additional processing. In the same row as your imaging request, there is a "Request additonal processing" link. Clicking that link will take you to a form where you can request additional processing. This form only works for a single sample/imaging request at a time. To better understand the structure of requests, see:  <a href="{{ url_for('main.FAQ',_anchor='request_structure') }}">Q: What are imaging request numbers and processing request numbers?</a> 
-	</p>
-</div>
-
-<hr class='class-1'>
-
-<div id='request_structure'>
-<h4 align="center"> Q: What are imaging request numbers and processing request numbers?</h4>
-	<p>
-		<b>A:</b> When you submit a request via the "New Request" form, you provide all of the information that allows us to clear, image and process your collection of samples. Ideally, this request encompasses all of the steps you ever want done for this collection of samples. But what if you get your images back at one resolution and then decide you would like to image that sample at a different, perhaps higher resolution? Rather than having you resubmit an entire new request form, we instead have you fill out a "New Imaging Request" form. This makes it so you don't have to re-enter a bunch of information about the request, sample and clearing parameters. Because the sample is the same as in the original request, we can tie this new imaging request back to same sample. We do this using the imaging request number. Your original request has imaging_request_number=1 by default. Any subsequent imaging requests are assigned an increasing integer from the highest pre-existing imaging request number. The number of imaging requests you can make for a single sample is unlimited.
-	</p>
-	<p>
-		Likewise, it is possible that after we have processed your images using the processing parameters you requested in your original request, you decide that you would like to try new parameters. Or maybe you want to align to a different atlas than in your first request. Rather than have you fill out an entire new request form, we instead have you fill out a "New Processing Request" form. Since processing is done on images, multiple processing requests can tie back to the imaging request. Your original request has processing_request_number=1 by default. Any subsequent processing requests are assigned an increasing integer from the highest pre-existing processing request number. The following diagrams illustrate the hierarchy of requests, samples, imaging requests and processing requests for different scenarios.
-	</p>
-	<div align="center" class='mb-2'>
-		<img src="{{ url_for('static',filename='FAQ/simple_request_structure_graph.png') }}">	
-		</br>
-		<b>Fig 2.1</b>: The original request structure when you submit a request via the "New Request Form". In this example the request has two samples. Each sample has a single imaging request, and each imaging request has a single processing request.
-	</div>
-	<hr class='class-2'>
-	<div align="center" class='mb-2 mt-4'>
-		<img src="{{ url_for('static',filename='FAQ/two_imaging_request_structure_graph.png') }}">	
-		</br>
-		<b>Fig 2.2</b>: A request structure with two samples, where Sample 1 has two imaging requests. In this example, the user requested additional imaging for Sample 1, but Sample 2 has the original request structure. Each imaging request has a single processing request (this is the default). To learn how to make an additional imaging request for a single sample, see: <a href="{{ url_for('main.FAQ',_anchor='new_imaging_request') }}">Q: How do I request additional imaging for a sample I already submitted?</a>
-	</div>
-
-	<div align="center" class='mb-2 mt-4'>
-		<img src="{{ url_for('static',filename='FAQ/two_processing_request_structure_graph.png') }}">	
-		</br>
-		<b>Fig 2.3</b>: A request structure with two samples, where Sample 1 has two imaging requests and Imaging Request 2 for this sample has two processing requests. In this example, the user requested additional imaging for Sample 1 and then additional processing for this additional batch of images. Their original set of images are unchanged. Sample 2 has the original request structure. To learn how to make an additional processing request for a set of images, see: <a href="{{ url_for('main.FAQ',_anchor='new_processing_request') }}">Q: How do I request additional processing for a set of images?</a>
-	</div>
 </div>
 
 <hr class='class-1'>
