@@ -172,9 +172,9 @@ class AllSamplesTable(Table):
 		 'If this field shows "N/A" it is because no processing is possible for this sample.')
 	new_imaging_request_html_attrs = {'class':'infolink','title':new_imaging_request_tooltip_text}
 
-	new_imaging_request = NewImagingRequestLinkCol('Request additional imaging',
-		'imaging.new_imaging_request',url_kwargs=imaging_url_kwargs,
-		th_html_attrs=new_imaging_request_html_attrs,allow_sort=False)
+	# new_imaging_request = NewImagingRequestLinkCol('Request additional imaging',
+	# 	'imaging.new_imaging_request',url_kwargs=imaging_url_kwargs,
+	# 	th_html_attrs=new_imaging_request_html_attrs,allow_sort=False)
 
 	""" Imaging requests subtable setup """
 	imaging_request_subtable_options = {
@@ -202,10 +202,10 @@ class AllSamplesTable(Table):
 		 'click on the existing processing request number(s) corresponding to this imaging request. '
 		 'If this field shows "N/A" it is because no processing is possible for this sample.')
 	new_processing_request_html_attrs = {'class':'infolink','title':new_processing_request_tooltip_text}
-	imaging_requests_subtable_class.add_column('new processing request',
-		NewProcessingRequestLinkCol('request additional processing',
-			'processing.new_processing_request',url_kwargs=processing_url_kwargs,
-			allow_sort=False,th_html_attrs=new_processing_request_html_attrs))
+	# imaging_requests_subtable_class.add_column('new processing request',
+	# 	NewProcessingRequestLinkCol('request additional processing',
+	# 		'processing.new_processing_request',url_kwargs=processing_url_kwargs,
+	# 		allow_sort=False,th_html_attrs=new_processing_request_html_attrs))
 	
 	""" Processing requests subtable setup """
 	processing_request_subtable_options = {
@@ -355,10 +355,10 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 		 'If this field shows "N/A" it is because no additional imaging is possible for this sample.')
 	new_imaging_request_html_attrs = {'class':'infolink','title':new_imaging_request_tooltip_text}
 
-	table_class.add_column('new imaging request',
-		NewImagingRequestLinkCol('request additional imaging','imaging.new_imaging_request',
-			url_kwargs=imaging_url_kwargs,th_html_attrs=new_imaging_request_html_attrs,
-			allow_sort=False,column_html_attrs=column_html_attrs))
+	# table_class.add_column('new imaging request',
+	# 	NewImagingRequestLinkCol('request additional imaging','imaging.new_imaging_request',
+	# 		url_kwargs=imaging_url_kwargs,th_html_attrs=new_imaging_request_html_attrs,
+	# 		allow_sort=False,column_html_attrs=column_html_attrs))
 
 	processing_request_subtable_options = {
 	'table_id':f'processing_requests',
@@ -396,10 +396,10 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 		 'If this field shows "N/A" it is because no processing is possible for this sample.')
 	new_processing_request_html_attrs = {'class':'infolink','title':new_processing_request_tooltip_text}
 	
-	imaging_requests_subtable_class.add_column('new processing request',
-		NewProcessingRequestLinkCol('request additional processing','processing.new_processing_request',
-			url_kwargs=processing_url_kwargs,th_html_attrs=new_processing_request_html_attrs,
-			column_html_attrs=column_html_attrs))
+	# imaging_requests_subtable_class.add_column('new processing request',
+	# 	NewProcessingRequestLinkCol('request additional processing','processing.new_processing_request',
+	# 		url_kwargs=processing_url_kwargs,th_html_attrs=new_processing_request_html_attrs,
+	# 		column_html_attrs=column_html_attrs))
 	imaging_requests_subtable_class.add_column('processing_requests',
 		NestedTableCol('Processing Requests',processing_requests_subtable_class))
 
