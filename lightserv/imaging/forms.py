@@ -8,14 +8,6 @@ from wtforms.validators import (DataRequired, Length, InputRequired, ValidationE
 from wtforms.widgets import html5
 import os, glob
 
-""" For imaging setup """
-
-class ImagingSetupForm(FlaskForm):
-	""" The form for entering imaging information """
-	image_together = BooleanField('Check if using same setup for all samples',default=True)
-	sample_dropdown = SelectField('Select sample to image',choices=[],validators=[Optional()])
-	submit = SubmitField('Submit')
-
 """ For the imaging BATCH entry form """
 
 class ChannelForm(FlaskForm):
@@ -37,6 +29,7 @@ class ChannelForm(FlaskForm):
 	number_of_z_planes = IntegerField('Number of z planes',
 		widget=html5.NumberInput(),validators=[Optional()])
 	rawdata_subfolder = TextAreaField('channel subfolder',validators=[Optional()])
+	delete_channel_button = SubmitField("Delete channel")
 
 	def validate_tiling_overlap(self,tiling_overlap):
 		try:
@@ -223,6 +216,7 @@ class ChannelBatchForm(FlaskForm):
 	tiling_overlap = StringField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
 		validators=[Optional()]) 
 	z_step = StringField('Z resolution (microns)',validators=[Optional()])
+	delete_channel_button = SubmitField("Delete channel")
 	# number_of_z_planes = IntegerField('Number of z planes',
 	# 	widget=html5.NumberInput(),validators=[InputRequired()])
 	# rawdata_subfolder = TextAreaField('channel subfolder',validators=[InputRequired()])

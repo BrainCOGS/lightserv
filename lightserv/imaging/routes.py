@@ -10,8 +10,7 @@ from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 								  check_imaging_completed)
 from lightserv.imaging.tables import (ImagingTable, dynamic_imaging_management_table,
 	SampleTable, ExistingImagingTable, ImagingChannelTable,ImagingBatchTable)
-from .forms import (ImagingForm, NewImagingRequestForm, ImagingSetupForm,
-	ImagingBatchForm)
+from .forms import (ImagingForm, NewImagingRequestForm, ImagingBatchForm)
 from . import tasks
 from lightserv.main.tasks import send_email
 import numpy as np
@@ -320,11 +319,11 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 			else:
 				""" A few possibilites: 
 				1) A sample submit button was pressed
-				2) A batch update resolution or new image channel button was pressed
-				3) A sample update resolution or new image channel button was pressed
+				2) A batch update resolution or add/delete image channel button was pressed
+				3) A sample update resolution or add/delete image channel button was pressed
 				"""
 
-				""" First check if BATCH new channel button pressed or 
+				""" First check if BATCH add/delete channel button pressed or 
 				BATCH update resolution was pressed
 				in any of the resolution subforms """
 				for image_resolution_form in form.image_resolution_batch_forms:
@@ -337,9 +336,9 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 					new_channel_button_pressed = form_resolution_dict['new_channel_button']
 					
 					if new_channel_button_pressed:
-						""" ########################## """
-						""" NEW CHANNEL BUTTON PRESSED """
-						""" ########################## """
+						""" ################################ """
+						""" BATCH ADD CHANNEL BUTTON PRESSED """
+						""" ################################ """
 						logger.debug("New channel button pressed!")
 						new_channel_name = form_resolution_dict['new_channel_dropdown']
 						new_channel_purpose = form_resolution_dict['new_channel_purpose']
@@ -353,15 +352,32 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 						batch_channel_entry_dict['image_resolution'] = this_image_resolution
 						batch_channel_entry_dict['channel_name'] = new_channel_name
 						batch_channel_entry_dict[new_channel_purpose] = 1
+						issues_adding_channels = False
 						""" Now go through all of the samples in this batch 
 						and make an insert in the db for a new channel """
-						imaging_channel_entry_list = []
 						for sample_dict in sample_dict_list:
 							this_sample_name = sample_dict['sample_name']
 							imaging_channel_entry_dict = batch_channel_entry_dict.copy()
 							imaging_channel_entry_dict['sample_name'] = this_sample_name
-							imaging_channel_entry_list.append(imaging_channel_entry_dict)
-						db_lightsheet.Request.ImagingChannel().insert(imaging_channel_entry_list)
+							logger.debug("Attempting to insert:")
+							logger.debug(imaging_channel_entry_dict)
+							try:					
+								db_lightsheet.Request.ImagingChannel().insert1(imaging_channel_entry_dict)
+							except:
+								issues_adding_channels = True
+								logger.debug(f"Issue adding channel entry to sample: {this_sample_name}")
+								flash_str = (f"Issue adding channel to "
+											 f"image resolution: {this_image_resolution}, "
+											 f"channel: {new_channel_name} "
+											 f"for sample_name: {this_sample_name}")
+								flash(flash_str,"warning")
+									
+						""" restore safemode to whatever it was before we did the deletes """
+						dj.config['safemode'] = current_app.config['DJ_SAFEMODE']
+						if not issues_adding_channels:
+							flash(f"Channel {channel_name_to_delete} successfully added to all samples","success")
+						else:
+							flash("Otherwise channel was added OK","warning")
 						return redirect(url_for('imaging.imaging_batch_entry',
 							username=username,request_name=request_name,
 							imaging_batch_number=imaging_batch_number))
@@ -521,11 +537,59 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 						return redirect(url_for('imaging.imaging_batch_entry',
 							username=username,request_name=request_name,
 							imaging_batch_number=imaging_batch_number))	
-				
+					else:
+						""" Search the channel forms of this image resolution form to see
+						if a channel delete button was pressed """
+						for channel_form in image_resolution_form.channel_forms:
+							channel_form_dict = channel_form.data
+							delete_channel_button_pressed = channel_form_dict['delete_channel_button']
+							if delete_channel_button_pressed:
+								""" ################################### """
+								""" BATCH DELETE CHANNEL BUTTON PRESSED """
+								""" ################################### """
+								logger.debug("delete channel button pressed!")
+								channel_name_to_delete = channel_form_dict['channel_name']
+								this_image_resolution = channel_form_dict['image_resolution']
+								logger.debug("Deleting channel:")
+								logger.debug(channel_name_to_delete)
+
+								""" Create a new ImagingChannel() entry for this channel """
+								dj.config['safemode'] = False # disables integrity checks so delete can take place
+								issues_deleting_channels = False
+								for sample_dict in sample_dict_list:
+									this_sample_name = sample_dict['sample_name']
+									restrict_dict = {'sample_name':this_sample_name,
+										'image_resolution':this_image_resolution,
+										'channel_name':channel_name_to_delete}
+									imaging_channel_contents_to_delete = channel_contents_all_samples & restrict_dict
+									logger.debug("Deleting entry:")
+									logger.debug(imaging_channel_contents_to_delete.fetch1())
+									if len(imaging_channel_contents_to_delete) > 0:
+										try:
+											imaging_channel_contents_to_delete.delete(force=True)
+										except:
+											issues_deleting_channels=True
+											logger.debug("Issue deleting channel entry")
+											flash_str = (f"Issue deleting channel from "
+														 f"image resolution: {image_resolution}, "
+														 f"channel: {channel_name_to_delete} "
+														 f"for sample_name: {this_sample_name}")
+											flash(flash_str,"warning")
+									
+								""" restore safemode to whatever it was before we did the deletes """
+								dj.config['safemode'] = current_app.config['DJ_SAFEMODE']
+								if not issues_deleting_channels:
+									flash(f"Channel {channel_name_to_delete} successfully deleted for all samples","success")
+								else:
+									flash("Otherwise channel was deleted OK","warning")
+								return redirect(url_for('imaging.imaging_batch_entry',
+									username=username,request_name=request_name,
+									imaging_batch_number=imaging_batch_number))
 				""" Figure out if button press came from sample subforms """
 				for sample_form in form.sample_forms:
-					logger.debug("checking sample forms")
 					this_sample_name = sample_form.sample_name.data
+					logger.debug("checking sample forms for sample:")
+					logger.debug(this_sample_name)
 					""" Check if sample submit button pressed """
 					if sample_form.submit.data == True:
 						""" ############################ """
@@ -781,7 +845,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 									imaging_batch_number=imaging_batch_number))
 					else:
 						""" Either a sample update resolution or 
-						new image channel button was pressed.
+						add/delete image channel button was pressed.
 						Loop through image resolution forms to find
 						out which one """
 						for image_resolution_form in sample_form.image_resolution_forms:
@@ -968,6 +1032,52 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 								return redirect(url_for('imaging.imaging_batch_entry',
 									username=username,request_name=request_name,
 									imaging_batch_number=imaging_batch_number))	
+							else:
+								""" Search the channel forms of this image resolution form to see
+								if a channel delete button was pressed """
+								for channel_form in image_resolution_form.channel_forms:
+									channel_form_dict = channel_form.data
+									delete_channel_button_pressed = channel_form_dict['delete_channel_button']
+									if delete_channel_button_pressed:
+										""" #################################### """
+										""" SAMPLE DELETE CHANNEL BUTTON PRESSED """
+										""" #################################### """
+										logger.debug("sample delete channel button pressed!")
+										channel_name_to_delete = channel_form_dict['channel_name']
+										logger.debug("Deleting channel:")
+										logger.debug(channel_name_to_delete)
+
+										""" Create a new ImagingChannel() entry for this channel """
+										dj.config['safemode'] = False # disables integrity checks so delete can take place
+										issues_deleting_channels = False
+										
+										restrict_dict = {'sample_name':this_sample_name,
+											'image_resolution':this_image_resolution,
+											'channel_name':channel_name_to_delete}
+										imaging_channel_contents_to_delete = channel_contents_all_samples & restrict_dict
+										logger.debug("Deleting entry:")
+										logger.debug(imaging_channel_contents_to_delete.fetch1())
+										if len(imaging_channel_contents_to_delete) > 0:
+											try:
+												imaging_channel_contents_to_delete.delete(force=True)
+											except:
+												issues_deleting_channels=True
+												logger.debug("Issue deleting channel entry")
+												flash_str = (f"Issue deleting channel from "
+															 f"image resolution: {this_image_resolution}, "
+															 f"channel: {channel_name_to_delete} "
+															 f"for sample_name: {this_sample_name}")
+												flash(flash_str,"warning")
+											
+										""" restore safemode to whatever it was before we did the deletes """
+										dj.config['safemode'] = current_app.config['DJ_SAFEMODE']
+										if not issues_deleting_channels:
+											flash(f"Channel {channel_name_to_delete} successfully deleted for sample: {this_sample_name}","success")
+										else:
+											flash("Otherwise channel was deleted OK","warning")
+										return redirect(url_for('imaging.imaging_batch_entry',
+											username=username,request_name=request_name,
+											imaging_batch_number=imaging_batch_number))
 		else: # final submit button pressed. No validation necessary since all done in each sample form
 			
 			logger.info("Final submit button pressed")

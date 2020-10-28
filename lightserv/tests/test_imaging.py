@@ -1409,6 +1409,66 @@ def test_add_channel_batch_parameters(test_client,
 	channel_name_ch647_sample2 = ch647_row_sample2[0].text
 	assert channel_name_ch647_sample2 == '647'
 
+def test_delete_channel_batch_parameters(test_client,
+	test_cleared_multisample_multichannel_request_nonadmin,
+	test_login_zmd):
+	""" Test that deleting a channel in the batch
+	section of the batch entry form results in all samples 
+	also deleting this channel and the deleted channel no longer 
+	appears in the sample forms.
+	"""
+
+	""" Check that originally there are ch555 entries for both samples """
+	restrict_dict_sample1 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			image_resolution='1.3x',
+			channel_name='555')
+	imaging_channel_contents_sample1 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample1
+	assert len(imaging_channel_contents_sample1) == 1
+	restrict_dict_sample2 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-002',
+			image_resolution='1.3x',
+			channel_name='555')
+	imaging_channel_contents_sample2 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample2
+	assert len(imaging_channel_contents_sample2) == 1
+
+	data = {
+		'image_resolution_batch_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-1-channel_name':'555',
+		'image_resolution_batch_forms-0-channel_forms-1-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-1-delete_channel_button':True,
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
+		}
+
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging Entry Form' in response.data
+	""" Now check that the ImagingChannel() db entries 
+	that previously existed above are now absent """
+	imaging_channel_contents_sample1 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample1
+	assert len(imaging_channel_contents_sample1) == 0
+	imaging_channel_contents_sample2 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample2
+	assert len(imaging_channel_contents_sample2) == 0
+
 def test_change_image_resolution_individual_sample(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
 	test_login_zmd):
@@ -1512,6 +1572,63 @@ def test_add_channel_individual_sample(test_client,
 		attrs={'id':'sample_1_resolution_1.3x_table'})
 	table_row_tags_sample2 = table_tag_sample2.find_all('tr')
 	assert len(table_row_tags_sample2) == 8
+
+def test_delete_channel_individual_sample(test_client,
+	test_cleared_multisample_multichannel_request_nonadmin,
+	test_login_zmd):
+	""" Test that deleting a channel in an
+	individual sample section of the imaging batch form 
+	works and only affects the single sample
+	"""
+
+	""" Check that originally there is a ch555 entry for both samples """
+	restrict_dict_sample1 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			image_resolution='1.3x',
+			channel_name='555')
+	imaging_channel_contents_sample1 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample1
+	assert len(imaging_channel_contents_sample1) == 1
+	restrict_dict_sample2 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-002',
+			image_resolution='1.3x',
+			channel_name='555')
+	imaging_channel_contents_sample2 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample2
+	assert len(imaging_channel_contents_sample2) == 1
+
+	data = {
+		'image_resolution_batch_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',		
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-delete_channel_button':True,
+		}
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging Entry Form' in response.data
+	""" Check that the sample1 channel entry was NOT deleted in the db """
+	imaging_channel_contents_sample1 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample1
+	assert len(imaging_channel_contents_sample1) == 1
+	""" Check that the sample2 channel entry was deleted in the db """
+	imaging_channel_contents_sample2 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample2
+	assert len(imaging_channel_contents_sample2) == 0
+
 
 def test_imaging_batch_entry_entire_form_submits(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
