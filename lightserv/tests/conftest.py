@@ -1717,26 +1717,37 @@ def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
 	""" Images the cleared request by 'ahoag' (clearer='ahoag')
 	with imager='zmd' """
 	print('----------Setup test_imaged_request_ahoag fixture ----------')
-
-	data = {
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
-		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_step':10,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
-		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+	data1 = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':10,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-submit':True
+		}
+	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='ahoag',
+			request_name='admin_request',
+			imaging_batch_number=1),
+		data=data1,
+		follow_redirects=True)
+	
+	data2 = {
 		'submit':True
 		}
-	response = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='admin_request',sample_name='sample-001',
-			imaging_request_number=1),
-		data=data,
-		follow_redirects=True)
 
+	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='ahoag',
+			request_name='admin_request',
+			imaging_batch_number=1),
+		data=data2,
+		follow_redirects=True)
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 
