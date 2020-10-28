@@ -113,12 +113,12 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 	logger.info(f"{current_user} accessed imaging_batch_entry")
 
 	form = ImagingBatchForm(request.form)
-	form_id = '_'.join([username,request_name,'imaging_batch',str(imaging_batch_number)]) 
 	rawdata_rootpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 		username,request_name)
 	imaging_request_number = 1 # TODO - make this variable to allow follow up imaging requests
 	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'imaging_batch_number={imaging_batch_number}' 
+	
 	sample_dict_list = sample_contents.fetch(as_dict=True)
 
 	""" Figure out how many samples in this imaging batch """
@@ -375,7 +375,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 						""" restore safemode to whatever it was before we did the deletes """
 						dj.config['safemode'] = current_app.config['DJ_SAFEMODE']
 						if not issues_adding_channels:
-							flash(f"Channel {channel_name_to_delete} successfully added to all samples","success")
+							flash(f"Channel {new_channel_name} successfully added to all samples","success")
 						else:
 							flash("Otherwise channel was added OK","warning")
 						return redirect(url_for('imaging.imaging_batch_entry',
@@ -862,7 +862,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 								logger.debug("New channel button pressed!")
 								new_channel_name = form_resolution_dict['new_channel_dropdown']
 								new_channel_purpose = form_resolution_dict['new_channel_purpose']
-								logger.debug("Have new channel:")
+								logger.debug("Adding new channel:")
 								logger.debug(new_channel_name)
 								""" Create a new ImagingChannel() entry for this channel """
 								channel_entry_dict = {}
@@ -873,7 +873,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 								channel_entry_dict['image_resolution'] = this_image_resolution
 								channel_entry_dict['channel_name'] = new_channel_name
 								channel_entry_dict[new_channel_purpose] = 1
-								
+								logger.debug(channel_entry_dict)
 								db_lightsheet.Request.ImagingChannel().insert1(channel_entry_dict)
 								return redirect(url_for('imaging.imaging_batch_entry',
 									username=username,request_name=request_name,
@@ -1317,6 +1317,8 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 			form.sample_forms.pop_entry() 
 		for sample_dict in sample_dict_list:
 			this_sample_name = sample_dict['sample_name']
+			logger.debug("Initializing sample form:")
+			logger.debug(this_sample_name)
 			channel_contents_this_sample = channel_contents_all_samples & \
 				f'sample_name="{this_sample_name}"'
 			""" Figure out clearing batch and if there were notes_for_clearer """
@@ -1341,8 +1343,9 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 			unique_image_resolutions_this_sample = sorted(set(image_resolution_request_contents_this_sample.fetch(
 				'image_resolution')))
 			for ii in range(len(unique_image_resolutions_this_sample)):
-				
 				this_image_resolution = unique_image_resolutions_this_sample[ii]
+				logger.debug("initializing image resolution form:")
+				logger.debug(this_image_resolution)
 				this_image_resolution_request_contents = image_resolution_request_contents_this_sample & \
 					f'image_resolution="{this_image_resolution}" '
 				
@@ -1350,7 +1353,6 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 
 				channel_contents_list_this_resolution = (channel_contents_this_sample & \
 					f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
-				
 				this_sample_form.image_resolution_forms.append_entry()
 				this_resolution_form = this_sample_form.image_resolution_forms[-1]
 				this_resolution_form.image_resolution.data = this_image_resolution
@@ -1369,6 +1371,8 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 				for jj in range(len(channel_contents_list_this_resolution)):
 					channel_content = channel_contents_list_this_resolution[jj]
 					channel_name = channel_content['channel_name']
+					logger.debug("initializing channel form:")
+					logger.debug(channel_name)
 					registration_channel = channel_content['registration']
 					if registration_channel:
 						registration_channel_used = True
@@ -1393,7 +1397,6 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 					available_imaging_modes = [x for x in available_imaging_modes if x != 'registration']
 				this_resolution_form.new_channel_purpose.choices = [(x,x) for x in available_imaging_modes]	
 	n_active_samples = len([x for x in samples_imaging_progress_dict if samples_imaging_progress_dict[x] != 'complete'])
-	
 	return render_template('imaging/imaging_batch_entry.html',form=form,
 		rawdata_rootpath=rawdata_rootpath,imaging_table=imaging_table,
 		sample_dict_list=sample_dict_list,

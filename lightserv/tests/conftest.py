@@ -777,9 +777,15 @@ def test_archival_request_nonadmin(test_client,test_login_nonadmin,test_delete_r
 	'link_to_clearing_spreadsheet': 'https://docs.google.com/spreadsheets/d/1A83HVyy1bEhctqArwt4EiT637M8wBxTFodobbt1jrXI/edit#gid=895577002',
 	'antibody1': '', 'antibody2': '',
 	 'clearing_batch_number': 1, 'clearing_progress': 'complete', 'number_in_batch': 1, 'notes_for_clearer': ''}
+	imaging_batch_insert_dict = {
+	'username': 'lightserv-test', 'request_name': 'test_archival_request', 
+	 'imaging_batch_number': 1, 'imaging_progress': 'complete', 
+	 'number_in_imaging_batch': 1,'imaging_request_date_submitted':'2019-02-26',
+	 'imaging_request_time_submitted':'12:55:22','imaging_dict':{}}
 	sample_insert_dict = {
 	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'clearing_protocol': 'iDISCO abbreviated clearing',
-	 'antibody1': '', 'antibody2': '', 'clearing_batch_number': 1, 'sample_name': 'sample-001'}
+	 'antibody1': '', 'antibody2': '', 'clearing_batch_number': 1, 'sample_name': 'sample-001',
+	 'imaging_batch_number':1}
 	imaging_request_insert_dict = {
 	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'imaging_request_number': 1,
 	 'imaging_progress': 'complete', 'imaging_request_date_submitted': '2019-02-26',
@@ -788,12 +794,13 @@ def test_archival_request_nonadmin(test_client,test_login_nonadmin,test_delete_r
 	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'imaging_request_number': 1,
 	'notes_for_imager': '', 'notes_from_imaging': 'Processed files are here: /somewhere/on/bucket',
 	'sample_name': 'sample-001', 'image_resolution': '1.3x'}
-	processing_request_insert_dict= {
+	processing_request_insert_dict = {
 	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'imaging_request_number': 1,
 	'processing_request_number': 1, 'processor': 'lightserv-test', 'processing_request_date_submitted': '2019-02-26',
 	'processing_request_time_submitted': '12:55:22', 'processing_progress': 'complete', 'sample_name': 'sample-001'}
 	db_lightsheet.Request.insert1(request_insert_dict)
 	db_lightsheet.Request.ClearingBatch.insert1(clearing_batch_insert_dict)
+	db_lightsheet.Request.ImagingBatch.insert1(imaging_batch_insert_dict)
 	db_lightsheet.Request.Sample.insert1(sample_insert_dict)
 	db_lightsheet.Request.ImagingRequest.insert1(imaging_request_insert_dict)
 	db_lightsheet.Request.ImagingResolutionRequest.insert1(imaging_resolution_request_insert_dict)
@@ -1742,23 +1749,37 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'zmd'
-	data = {
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
-		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_step':10,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
-		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+	""" First submit sample 1 """
+	data1 = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':10,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-submit':True
+		}
+	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_request',
+			imaging_batch_number=1),
+		data=data1,
+		follow_redirects=True)
+	
+	data2 = {
 		'submit':True
 		}
-	response = test_client.post(url_for('imaging.imaging_entry',
-			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
-			imaging_request_number=1),
-		data=data,
+
+	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_request',
+			imaging_batch_number=1),
+		data=data2,
 		follow_redirects=True)
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'lightserv-test'
@@ -1790,57 +1811,57 @@ def test_request_resolution_switched_nonadmin(test_client,test_cleared_request_n
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 
-@pytest.fixture(scope='function') 
-def test_imaged_request_nonadmin_new_channel_added(test_client,test_cleared_request_nonadmin,
-	test_delete_request_db_contents,test_login_zmd):
-	""" In the imaging entry form, Zahra adds an imaging channel
-	and then submits the form """
+# @pytest.fixture(scope='function') 
+# def test_imaged_request_nonadmin_new_channel_added(test_client,test_cleared_request_nonadmin,
+# 	test_delete_request_db_contents,test_login_zmd):
+# 	""" In the imaging entry form, Zahra adds an imaging channel
+# 	and then submits the form """
 
-	print('----------Setup test_imaged_request_nonadmin_new_channel_added fixture ----------')
-	with test_client.session_transaction() as sess:
-		sess['user'] = 'zmd'
-	data1 = {
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'image_resolution_forms-0-new_channel_dropdown':'555',
-		'image_resolution_forms-0-new_channel_purpose':'injection_detection',
-		'image_resolution_forms-0-new_channel_button': True,
-		}
-	response1 = test_client.post(url_for('imaging.imaging_entry',
-			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
-			imaging_request_number=1),
-		data=data1,
-		follow_redirects=True)
+# 	print('----------Setup test_imaged_request_nonadmin_new_channel_added fixture ----------')
+# 	with test_client.session_transaction() as sess:
+# 		sess['user'] = 'zmd'
+# 	data1 = {
+# 		'image_resolution_forms-0-image_resolution':'1.3x',
+# 		'image_resolution_forms-0-new_channel_dropdown':'555',
+# 		'image_resolution_forms-0-new_channel_purpose':'injection_detection',
+# 		'image_resolution_forms-0-new_channel_button': True,
+# 		}
+# 	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
+# 			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+# 			imaging_request_number=1),
+# 		data=data1,
+# 		follow_redirects=True)
 
-	""" Now submit the form for both channels"""
-	data2 = {
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
-		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_step':10,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
-		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
-		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
-		'image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
-		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
-		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-1-z_step':10,
-		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
-		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
-		'submit':True
-		}
-	response2 = test_client.post(url_for('imaging.imaging_entry',
-			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
-			imaging_request_number=1),
-		data=data2,
-		follow_redirects=True)
-	yield test_client
-	print('----------Teardown test_imaged_request_nonadmin_new_channel_added fixture ----------')
+# 	""" Now submit the form for both channels"""
+# 	data2 = {
+# 		'image_resolution_forms-0-image_resolution':'1.3x',
+# 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+# 		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+# 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+# 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+# 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+# 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+# 		'image_resolution_forms-0-channel_forms-0-z_step':10,
+# 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+# 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+# 		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
+# 		'image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+# 		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+# 		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+# 		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+# 		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+# 		'image_resolution_forms-0-channel_forms-1-z_step':10,
+# 		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+# 		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+# 		'submit':True
+# 		}
+# 	response2 = test_client.post(url_for('imaging.imaging_entry',
+# 			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+# 			imaging_request_number=1),
+# 		data=data2,
+# 		follow_redirects=True)
+# 	yield test_client
+# 	print('----------Teardown test_imaged_request_nonadmin_new_channel_added fixture ----------')
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_request_generic_imaging_nonadmin,
@@ -2041,33 +2062,49 @@ def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadm
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'zmd'
-	data = {
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
-		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_step':5,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':1258,
-		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
-		'image_resolution_forms-0-channel_forms-1-channel_name':'647',
-		'image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
-		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
-		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-1-z_step':5,
-		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':1258,
-		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test647',
+	""" First submit sample 1 """
+	data1 = {
+		'sample_forms-0-sample_name':'viz_processed-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':5,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':1258,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':5,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':1258,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test647',
+		'sample_forms-0-submit':True
+		}
+	
+	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='viz_processed',
+			imaging_batch_number=1),
+		data=data1,
+		follow_redirects=True)
+	
+	data2 = {
 		'submit':True
 		}
-	response = test_client.post(url_for('imaging.imaging_entry',
-			username='lightserv-test',request_name='viz_processed',sample_name='viz_processed-001',
-			imaging_request_number=1),
-		data=data,
+
+	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='viz_processed',
+			imaging_batch_number=1),
+		data=data2,
 		follow_redirects=True)
+	
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'lightserv-test'
 	yield test_client

@@ -361,28 +361,31 @@
 					{{ channel_form.image_resolution() }}
 
 						<tr>   
-						    <td>{{channel_name}}</br>
-					    	<input id="sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_delete_channel_modal" name="sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_delete_channel_modal" value="Delete channel" type="button" class="btn btn-sm btn-danger mt-2" data-toggle="modal" data-target="#sampleDeleteChannelModal_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}"></input>	
-					    	<!-- Modal for delete channel button -->
-							<div class="modal fade" id="sampleDeleteChannelModal_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}" tabindex="-1" role="dialog" aria-labelledby="sampleDeleteChannelModalLabel_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}" aria-hidden="true">
-								<div class="modal-dialog" role="document">
-								<div class="modal-content">
-								<div class="modal-header">
-								<h5 class="modal-title" id="sampleDeleteChannelModalLabel_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}">Are you sure you want to delete this channel? </h5>
-								<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-								<span aria-hidden="true">&times;</span>
-								</button>
-								</div>
-								<div class="modal-body">
-								<p>This will delete channel: {{channel_name}} for this sample only: {{sample_name}} </p>
-								</div>
-								<div class="modal-footer">
-								<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>           
-								{{ channel_form.delete_channel_button(class="btn btn-success") }}
-								</div>
-								</div>
-								</div>
-							</div>	</td>
+						    <td>{{channel_name}} 
+						    	<div>
+							    	<input id="sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_delete_channel_modal" name="sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_delete_channel_modal" value="Delete channel" type="button" class="btn btn-sm btn-danger mt-2" data-toggle="modal" data-target="#sampleDeleteChannelModal_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}"></input>	
+							    </div>
+						    	<!-- Modal for delete channel button -->
+								<div class="modal fade" id="sampleDeleteChannelModal_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}" tabindex="-1" role="dialog" aria-labelledby="sampleDeleteChannelModalLabel_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}" aria-hidden="true">
+									<div class="modal-dialog" role="document">
+									<div class="modal-content">
+									<div class="modal-header">
+									<h5 class="modal-title" id="sampleDeleteChannelModalLabel_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}">Are you sure you want to delete this channel? </h5>
+									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+									</button>
+									</div>
+									<div class="modal-body">
+									<p>This will delete channel: {{channel_name}} for this sample only: {{sample_name}} </p>
+									</div>
+									<div class="modal-footer">
+									<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>           
+									{{ channel_form.delete_channel_button(class="btn btn-success") }}
+									</div>
+									</div>
+									</div>
+								</div>	
+							</td>
 						    <td>{{image_resolution}}</td>
 						    {% if image_resolution == '2x' %}
 					        	<td>

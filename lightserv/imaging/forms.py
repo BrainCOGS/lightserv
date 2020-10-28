@@ -217,9 +217,6 @@ class ChannelBatchForm(FlaskForm):
 		validators=[Optional()]) 
 	z_step = StringField('Z resolution (microns)',validators=[Optional()])
 	delete_channel_button = SubmitField("Delete channel")
-	# number_of_z_planes = IntegerField('Number of z planes',
-	# 	widget=html5.NumberInput(),validators=[InputRequired()])
-	# rawdata_subfolder = TextAreaField('channel subfolder',validators=[InputRequired()])
 
 	def validate_tiling_overlap(self,tiling_overlap):
 		try:
