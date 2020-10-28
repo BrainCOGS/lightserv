@@ -3,7 +3,7 @@
 <h1 align="center"> Imaging management GUI </h1>
 <hr class="class-5">	
 
-<h3>Samples currently being imaged:</h3>
+<h3>Batches currently being imaged:</h3>
 {% if table_being_imaged.items|length > 3 %}
   <div class="mb-4 tableFixHead">
 {% else %}
@@ -14,7 +14,7 @@
 
 <hr class="class-5">	
 
-<h3>Samples ready to be imaged:</h3>
+<h3>Batches ready to be imaged:</h3>
 {% if table_ready_to_image.items|length > 3 %}
   <div class="mb-4 tableFixHead">
 {% else %}
@@ -24,7 +24,7 @@
   </div>
 <hr class="class-5">	
 
-<h3>Samples still in clearing stage:</h3>
+<h3>Batches still in clearing stage:</h3>
 {% if table_on_deck.items|length > 3 %}
   <div class="mb-4 tableFixHead">
 {% else %}
@@ -35,7 +35,7 @@
 
 <hr class="class-5">	
 
-<h3>Samples already imaged:</h3>
+<h3>Batches already imaged:</h3>
 {% if table_already_imaged.items|length > 3%}
   <div class="mb-4 tableFixHead">
 {% else %}
