@@ -5,9 +5,10 @@
 	<p>
 		The Brain Registration and Histology Core Facility is one of the five cores 
 		of <a href="https://www.braincogs.org/">BRAIN CoGS</a>. 
-		In this core, we perform whole-brain clearing and imaging
+		In this core, we perform whole-brain clearing and light-sheet imaging
 		for a variety of tissue types upon request.
-		See our <a target="_blank" href="{{ url_for('main.gallery') }}">gallery</a> for example tissue types.
+		See our <a target="_blank" href="{{ url_for('main.gallery') }}">gallery</a> for example tissue types 
+		and applications.
 		The Core Facility currently supports the following clearing protocols:
 		<a target="_blank" href="https://docs.google.com/document/d/1SD7Em1Hig9eqgY01sz32iqfu-SBjG9YyEk1p3b87P64/edit"> 
 		iDISCO+ (adapted from Renier et al. 2016) </a> | 
@@ -16,15 +17,36 @@
 		<a target="_blank" href="https://docs.google.com/document/d/1VZ9Gb4zZ2XE8hVll51anp1W9twEeV55qpHd4lH6DJIo/edit"> 
 		iDISCO for nonoxidizable fluorophores (for rats) </a> | 
 		<a target="_blank" href="https://docs.google.com/document/d/1FNjP-gRaAzC5M_o6v68njg0njyqg2I3DRVzlUveIqm0/edit"> 
-		uDISCO (adapted from Pan et al. 2017) </a>. If you are interested in using immunostaining, please
-		read this <a target="_blank" href="https://docs.google.com/document/d/1Ir2ENpMxsSAflIeCYpuDCuhr8ImlZsPB4Uk1LGIh9lY/edit">
-		Note on antibody labeling </a>.
-		The imaging facility consists of a 
-		<a target="_blank" href="https://www.lavisionbiotec.com/products/UltraMicroscope.html">
-		Lavision Biotec UltraMicroscope II</a> light sheet microscope to provide
-		aligned, volumetric images. 
-		This optical microscope has four imaging resolutions (1.1x, 1.3x, 2x and 4x) 
-		and four wavelength channels (centered at 488, 555, 647 and 790 nm).
+		uDISCO (adapted from Pan et al. 2017) </a> | <a target="_blank" href="https://docs.google.com/document/d/1XifTGU7y7GbjlG_UBgc8NkbSoQeyOpGf/edit"> 
+		uDISCO (for rats). If you are interested in using immunostaining, please
+		read this <a target="_blank" href="https://docs.google.com/document/d/1Ir2ENpMxsSAflIeCYpuDCuhr8ImlZsPB4Uk1LGIh9lY/edit">. Experimental protocols are also allowed, but please communicate with us before submitting a request if you plan to try a protocol not in the above list. 
+		Note on antibody labeling</a>.
+		
+		The imaging facility consists of two light sheet microscopes: 
+		<table id="microscope_overview_table" class="table table-bordered table-striped text-center mb-2 mt-2">
+		        <tr>
+		            <th>Microscope</th>
+		            <th>Available resolutions </th>
+		            <th>Available wavelengths </th>
+		            <th>Example use cases </th>
+		            <th>link for addtl details </th>
+		        </tr>
+		        <tr>
+		        	<td>Miltenyi Biotec UltraMicroscope II</td>
+		        	<td>1.1x, 2x (also 1.3x, 4x for continuity with previous experiments)</td>
+		        	<td>488, 555, 647, 790 nm</td>
+		        	<td>large probe site detection, injection site localization</td>
+		        	<td><a target="_blank" href=https://www.miltenyibiotec.com/US-en/products/ultramicroscope-ii.html">documentation</a></td>
+		        </tr>
+		        <tr>
+		        	<td>LifeCanvas SmartSPIM</td>
+		        	<td>3.6x, 15x</td>
+		        	<td>488, 561, 642, 785 nm</td>
+		        	<td>whole-brain c-Fos, viral tracing</td>
+		        	<td><a target="_blank" href="https://drive.google.com/drive/folders/1u6lYmdwUB94U22jJ3Oe8P9hKt9vUTSlJ?usp=sharing">
+				documentation</a></td>
+		        </tr>
+		</table>
 	</p>
 
 	<h5> How to use this portal? </h5>
@@ -40,6 +62,9 @@
 		For example, a single request could be brains from 10 mouse subjects 
 		coming from multiple experimental groups that underwent the same behavioral task. 
 		You may request up to 50 tubes in a single request.
+
+		If this is your first time using the core facility, please read these instructions regarding 
+		where and when to physically hand off your samples: <a target="_blank" href="{{ url_for('main.pre_handoff') }}">Pre-handoff instructions</a>.
 	</p>
 
 	<h5> What data products do we provide? </h5>
@@ -51,7 +76,7 @@
 		stitches multiple tiles together if present, 
 		then downsamples and registers the images to a reference atlas, 
 		provided that an atlas is available for the species in your request. 
-		The Core Facility currently supports two versions of the Allen Brain atlas 
+		The Core Facility currently supports two versions of the Allen Mouse Brain atlas 
 		(pre and post-2017) as well as an in-house light sheet atlas
 		(the "Princeton Mouse Atlas"; Pisano et al., in prep.) 
 		that provides superior registration accuracy and precision for light sheet data. 
@@ -60,10 +85,10 @@
 
 	<p>
 		At your <a href="{{url_for('requests.all_requests')}}">Requests</a> page,
-		you will see an overview and status updates on all of your ongoing and completed requests.
+		you will see an overview and the status of all of your ongoing and completed requests.
 		The parameters of your clearing and imaging data are automatically stored in a
 		Datajoint database upon your completion of the new request form for access external
-		to this site. Visualizations of your data at various stages in the pipeline are also
+		to this site. This <a href="https://github.com/BrainCOGS/U19-pipeline_python/blob/master/tutorials/lightsheet_202010/lightsheet_datajoint_tutorial%20(Python).ipynb">jupyter notebook</a> explains how to access your light sheet data and metadata via Datajoint/Python. Visualizations of your data at various stages in the pipeline are also
 		available. See the <a href="{{url_for('main.FAQ')}}">FAQ</a> or contact us for more details.  
 	</p>
 
