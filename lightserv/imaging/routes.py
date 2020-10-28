@@ -122,9 +122,10 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 	sample_dict_list = sample_contents.fetch(as_dict=True)
 
 	""" Figure out how many samples in this imaging batch """
-	imaging_batch_restrict_dict = dict(userame=username,request_name=request_name,
+	imaging_batch_restrict_dict = dict(username=username,request_name=request_name,
 		imaging_batch_number=imaging_batch_number)
 	imaging_batch_contents = db_lightsheet.Request.ImagingBatch() & imaging_batch_restrict_dict
+	logger.debug(imaging_batch_contents.fetch(as_dict=True))
 	number_in_batch = imaging_batch_contents.fetch1('number_in_imaging_batch')
 	
 	imaging_progress = imaging_batch_contents.fetch1('imaging_progress')
@@ -1324,7 +1325,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 			""" Figure out clearing batch and if there were notes_for_clearer """
 			this_sample_contents = sample_contents & {'sample_name':this_sample_name}
 			clearing_batch_number = this_sample_contents.fetch1('clearing_batch_number')
-			clearing_batch_restrict_dict = dict(userame=username,request_name=request_name,
+			clearing_batch_restrict_dict = dict(username=username,request_name=request_name,
 				clearing_batch_number=clearing_batch_number)
 			clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & clearing_batch_restrict_dict
 			notes_for_clearer = clearing_batch_contents.fetch1('notes_for_clearer')
@@ -1423,7 +1424,7 @@ def imaging_entry(username,request_name,imaging_batch_number):
 	clearing_protocol,antibody1,antibody2,clearing_batch_number = sample_contents.fetch1(
 		'clearing_protocol',
 		'antibody1','antibody2','clearing_batch_number')
-	clearing_batch_restrict_dict = dict(userame=username,request_name=request_name,
+	clearing_batch_restrict_dict = dict(username=username,request_name=request_name,
 		sample_name=sample_name,
 		clearing_protocol=clearing_protocol,
 		antibody1=antibody1,
@@ -1436,7 +1437,7 @@ def imaging_entry(username,request_name,imaging_batch_number):
 	# 		f'imaging_request_number="{imaging_request_number}"' 
 
 	""" Figure out how many samples in this imaging batch """
-	imaging_batch_restrict_dict = dict(userame=username,request_name=request_name,
+	imaging_batch_restrict_dict = dict(username=username,request_name=request_name,
 		imaging_batch_number=imaging_batch_number)
 	imaging_batch_contents = db_lightsheet.Request.ImagingBatch() & imaging_batch_restrict_dict
 	number_in_batch = imaging_batch_contents.fetch1('number_in_batch')
