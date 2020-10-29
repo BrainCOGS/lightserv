@@ -120,6 +120,13 @@ class NewRequestForm(FlaskForm):
 	# subject_fullnames = FieldList(StringField('subject name - the subject_fullname entry in the u19_subject database table (leave blank if unknown) --',
 		# validators=[InputRequired(),Length(max=100)]),min_entries=0,max_entries=max_number_of_samples)
 	testing = BooleanField("Check if this request is for testing purposes (e.g. new clearing protocol, processing technique)")
+	raw_data_retention_str = ("How important to you is it that we keep your "
+							  "raw light-sheet data indefinitely after it is processed? "
+							  "(We will never delete your processed data)")
+	raw_data_retention_preference = SelectField(raw_data_retention_str,
+		choices=[('important','important'),('kind of important','kind of important'),
+		('not important','not important'),('not sure','not sure')],
+		validators=[InputRequired()])
 	""" Clearing """
 	self_clearing = BooleanField('Check if you plan to do the clearing yourself',default=False)
 	clearing_samples = FieldList(FormField(ClearingForm),min_entries=0,max_entries=max_number_of_samples)

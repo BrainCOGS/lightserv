@@ -575,6 +575,7 @@ def new_request():
                         correspondence_email=form.correspondence_email.data.lower(),
                         description=form.description.data,species=form.species.data,
                         number_of_samples=form.number_of_samples.data,
+                        raw_data_retention_preference=form.raw_data_retention_preference.data,
                         testing=form.testing.data)
                     now = datetime.now()
                     date = now.strftime("%Y-%m-%d")
