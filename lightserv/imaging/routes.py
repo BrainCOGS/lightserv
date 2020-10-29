@@ -47,7 +47,7 @@ def imaging_manager():
 	current_user = session['user']
 	logger.info(f"{current_user} accessed imaging manager")
 	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
-	reverse = (request.args.get('direction', 'asc') == 'desc')
+	reverse = (request.args.get('direction', 'desc') == 'desc')
 
 	imaging_admins = current_app.config['IMAGING_ADMINS']
 
@@ -90,7 +90,8 @@ def imaging_manager():
 	table_on_deck = dynamic_imaging_management_table(contents_on_deck,table_id=on_deck_table_id,
 		sort_by=sort,sort_reverse=reverse)
 	''' Finally get all entities that have already been imaged '''
-	contents_already_imaged = imaging_request_contents & 'imaging_progress="complete"'
+	contents_already_imaged = (imaging_request_contents & 'imaging_progress="complete"').fetch(
+		as_dict=True,order_by='datetime_submitted DESC',limit=10,)
 	already_imaged_table_id = 'horizontal_already_imaged_table'
 	table_already_imaged = dynamic_imaging_management_table(contents_already_imaged,
 		table_id=already_imaged_table_id,

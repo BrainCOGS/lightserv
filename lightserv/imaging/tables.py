@@ -93,9 +93,12 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
         column_html_attrs=column_html_attrs))    
 
    
-         
-    sorted_contents = sorted(contents,
-            key=partial(table_sorter,sort_key=sort),reverse=reverse)
+    if type(contents) != list:
+        sorted_contents = sorted(contents.fetch(as_dict=True),
+                key=partial(table_sorter,sort_key=sort),reverse=reverse)
+    else:
+        sorted_contents = sorted(contents,
+                key=partial(table_sorter,sort_key=sort),reverse=reverse)
     table = table_class(sorted_contents)
     table.sort_by = sort
     table.sort_reverse = reverse
