@@ -46,7 +46,7 @@ def clearing_manager():
 	by the researcher) or by a researcher to handle their own clearing batches if they claimed 
 	them in their request form """
 	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
-	reverse = (request.args.get('direction', 'asc') == 'desc')
+	reverse = (request.args.get('direction', 'desc') == 'desc')
 	current_user = session['user']
 	logger.info(f"{current_user} accessed clearing manager")
 
@@ -61,7 +61,6 @@ def clearing_manager():
 		'clearing_protocol','species',
 		'clearer','clearing_progress','clearing_protocol','antibody1','antibody2',
 		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
-
 	''' First get all entities that are currently being cleared '''
 	contents_being_cleared = combined_contents & 'clearing_progress="in progress"'
 	being_cleared_table_id = 'horizontal_being_cleared_table'
@@ -76,7 +75,8 @@ def clearing_manager():
 		sort_by=sort,sort_reverse=reverse)
 	''' Now get all entities on deck (currently being cleared) '''
 	''' Finally get all entities that have already been imaged '''
-	contents_already_cleared = combined_contents & 'clearing_progress="complete"'
+	contents_already_cleared = (combined_contents & 'clearing_progress="complete"').fetch(
+		as_dict=True,order_by='datetime_submitted DESC',limit=10)
 	already_cleared_table_id = 'horizontal_already_cleared_table'
 	table_already_cleared = dynamic_clearing_management_table(contents_already_cleared,
 		table_id=already_cleared_table_id,
