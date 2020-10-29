@@ -104,6 +104,7 @@ def imaging_manager():
 @imaging.route("/imaging/imaging_batch_entry/<username>/<request_name>/<imaging_batch_number>",
 	methods=['GET','POST'])
 @logged_in
+@logged_in_as_imager
 @log_http_requests
 def imaging_batch_entry(username,request_name,imaging_batch_number): 
 	""" Route for handling form data entered for imaging 

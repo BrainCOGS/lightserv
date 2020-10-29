@@ -209,23 +209,22 @@ def logged_in_as_imager(f):
 			logger.debug(f"User is logged in as: {current_user}")
 			username = kwargs['username']
 			request_name = kwargs['request_name']
-			sample_name = kwargs['sample_name']
-			imaging_request_number = kwargs['imaging_request_number']
-			imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
-			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
-			 	f'imaging_request_number="{imaging_request_number}"'
-			if len(imaging_request_contents) == 0:
-				flash("No imaging request exists with those parameters. Please try again.","danger")
+			imaging_batch_number = kwargs['imaging_batch_number']
+			imaging_batch_contents = db_lightsheet.Request.ImagingBatch() & f'request_name="{request_name}"' & \
+			 	f'username="{username}"' & \
+			 	f'imaging_batch_number="{imaging_batch_number}"'
+			if len(imaging_batch_contents) == 0:
+				flash("No imaging batch exists with those parameters. Please try again.","danger")
 				logger.debug("No imaging request exists with those parameters. Redirecting to all requests page")
 				return redirect(url_for('requests.all_requests'))
-			imager = imaging_request_contents.fetch1('imager')
+			imager = imaging_batch_contents.fetch1('imager')
 			logger.debug(f"Imager is: {imager}")
 			''' check to see if user assigned themself as imager '''
 			if imager == None: # not yet assigned
 				logger.info("Imaging entry form accessed with imager not yet assigned. ")
 				''' now check to see if user is a designated imager ''' 
-				if current_user in  current_app.config['IMAGING_ADMINS']: # 
-					dj.Table._update(imaging_request_contents,'imager',current_user)
+				if current_user in current_app.config['IMAGING_ADMINS']: 
+					dj.Table._update(imaging_batch_contents,'imager',current_user)
 					logger.info(f"{current_user} is a designated imager and is now assigned as the imager")
 					return f(*args, **kwargs)
 				else: # user is not a designated imager and did not self assign
