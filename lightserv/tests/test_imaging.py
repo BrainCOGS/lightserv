@@ -57,33 +57,6 @@ def test_admin_can_see_self_imaging_request(test_client,test_self_cleared_reques
 	assert b'self_clearing_and_imaging_request' in response.data 
 	# assert b'admin_request' not in response.data 
 
-# def test_ahoag_multiple_imaging_requests_imaging_manager(test_client,test_cleared_two_imaging_requests_ahoag):
-# 	""" Test that ahoag can access the imaging task manager
-# 	and see both of their imaging requests  """
-# 	# First log ahoag back in
-# 	with test_client.session_transaction() as sess:
-# 		sess['user'] = 'ahoag'
-# 	response = test_client.get(url_for('imaging.imaging_manager')
-# 		, follow_redirects=True)
-# 	assert b'Imaging management GUI' in response.data
-# 	assert b'admin_request' in response.data 
-
-# 	parsed_html = BeautifulSoup(response.data,features="html.parser")
-# 	table_tag = parsed_html.find('table',
-# 		attrs={'id':'horizontal_ready_to_image_table'})
-# 	table_row_tags = table_tag.find_all('tr')
-# 	header_row = table_row_tags[0].find_all('th')
-# 	imaging_request_1_row = table_row_tags[1].find_all('td')
-# 	imaging_request_2_row = table_row_tags[2].find_all('td')
-# 	for ii,col in enumerate(header_row):
-# 		if col.text == 'imaging request number':
-# 			request_number_column_index = ii
-# 			break
-# 	first_request_number = imaging_request_1_row[request_number_column_index].text
-# 	second_request_number = imaging_request_2_row[request_number_column_index].text
-# 	assert first_request_number == '1'
-# 	assert second_request_number == '2'
-
 def test_imaged_viz_fixture_worked(test_client,test_imaged_request_viz_nonadmin):
 	""" Test that zmd can access the imaging task manager
 	and see both of their imaging requests  """
@@ -699,6 +672,97 @@ def test_imaging_batch_entry_form_submits_single_sample(test_client,
 		follow_redirects=True)
 
 	assert b'Sample has been imaged' in response2.data
+
+def test_imaging_batch_entry_form_validates_single_sample(test_client,
+	test_cleared_request_nonadmin,
+	test_login_zmd):
+	""" Test that submitting an individual sample section of the 
+	batch entry form validates against bad data
+	"""
+	data = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':99,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x5',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':'ab',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':680,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-submit':True
+		}
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_request',
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Tiling scheme must not exceed 2x2 for this resolution' in response.data
+	assert b'z_step must be a number between 2 and 1000 microns' in response.data
+	assert b'Tiling overlap must be a number between 0 and 1' in response.data
+
+def test_imaging_batch_entry_form_validates_3p6x_smartspim(test_client,
+	test_cleared_request_3p6x_smartspim_nonadmin,
+	test_login_zmd):
+	""" Test that both the batch entry and an individual sample entry of the 
+	imaging batch entry form validates against bad data for 
+	a SmartSPIM 3.6x request
+	"""
+
+	""" First test the batch validation """
+	batch_data = {
+		'image_resolution_batch_forms-0-image_resolution':'3.6x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'3.6x',
+		'image_resolution_batch_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_batch_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_batch_forms-0-channel_forms-0-tiling_overlap':99,
+		'image_resolution_batch_forms-0-channel_forms-0-tiling_scheme':'9x11',
+		'image_resolution_batch_forms-0-channel_forms-0-z_step':'',
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
+		'apply_batch_parameters_button':True,
+		}
+
+	batch_response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_3p6x_smartspim_request',
+			imaging_batch_number=1),
+		data=batch_data,
+		follow_redirects=True)
+	assert b'Tiling scheme must not exceed 10x10 for this resolution' in batch_response.data
+	assert b'z_step required' in batch_response.data
+	assert b'Tiling overlap must be a number between 0 and 1' in batch_response.data
+
+	""" Now test the individual sample validation """
+	sample_data = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':99,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'9x11',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':'ab',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3600,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-submit':True
+		}
+	sample_response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_3p6x_smartspim_request',
+			imaging_batch_number=1),
+		data=sample_data,
+		follow_redirects=True)
+	assert b'Tiling scheme must not exceed 10x10 for this resolution' in sample_response.data
+	assert b'z_step must be a number between 2 and 1000 microns' in sample_response.data
+	assert b'Tiling overlap must be a number between 0 and 1' in sample_response.data
+
 
 def test_apply_batch_parameters_successful(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
