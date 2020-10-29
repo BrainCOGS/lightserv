@@ -338,15 +338,21 @@
 				                {% for channel_entry in image_resolution_form.channel_forms %}
 					                <!-- Render the channel_name which is a hidden field just so it is set -->
 				                	{{ channel_entry.channel_name() }} 
+				                	{% set channel_name = channel_entry.channel_name.data %}
 					                <tr>   
-					                    <td>{{channel_entry.channel_name.data}}</td>
+					                    <td>{{channel_name}}</td>
 					                    <td>{{image_resolution_form.image_resolution.data }}</td>
 					                    {% if form.species.data != 'mouse' or image_resolution_form.image_resolution.data == '2x' %}
 					                    	{% set disable_detection_methods = true %}
+					                    	{% set disable_registration = true %}
 					                    {% else %}
 					                    	{% set disable_detection_methods = false %}
+					                    	{% set disable_registration = false %}
 					                    {% endif %}
-					                    <td>{{channel_entry.registration(disabled=disable_detection_methods)}}</td>
+					                    {% if channel_name == "647" or channel_name == "790" %}
+					                    	{% set disable_registration = true %}
+					                    {% endif %}
+					                    <td>{{channel_entry.registration(disabled=disable_registration)}}</td>
 					                    <td>{{channel_entry.injection_detection(disabled=disable_detection_methods)}}</td>
 					                    <td>{{channel_entry.probe_detection(disabled=disable_detection_methods)}}</td>
 					                    <td>{{channel_entry.cell_detection(disabled=disable_detection_methods)}}</td>
