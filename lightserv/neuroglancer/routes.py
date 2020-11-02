@@ -3716,7 +3716,33 @@ def willmore_fiber_placement_demo():
     proxy_h = pp.progproxy(target_hname='confproxy')
     proxypath = os.path.join('cloudvols',session_name,cv_name)
     proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
+
+    """ CV 3: Kim et al. group Mouse Brain Atlas segment boundaries """
+    cv_number += 1              
+    layer_type = "segmentation"
+               
+    cv_container_name = f'{session_name}_paxinos_atlas_boundaries'
+    cv_name = f"Paxinos_mouse_brain_atlas_boundaries"
+    cv_path = '/jukebox/LightSheetData/atlas/neuroglancer/atlas/kimatlas_segment_boundaries_test'  
+    cv_dict = dict(cv_number=cv_number,cv_path=cv_path,cv_name=cv_name,
+        cv_container_name=cv_container_name,
+        layer_type=layer_type,session_name=session_name)
     
+    requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
+    logger.debug("Made post request to viewer-launcher to launch cloudvolume")
+
+    """ Enter the cv information into redis
+    so I can get it from within the neuroglancer container """
+    kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
+        f"cv{cv_number}_name": cv_name, f"layer{cv_number}_type":layer_type})
+    # increment the number of cloudvolumes so it is up to date
+    kv.hincrby(session_name,'cv_count',1)
+    # register with the confproxy so that it can be seen from outside the nglancer network
+    proxy_h = pp.progproxy(target_hname='confproxy')
+    proxypath = os.path.join('cloudvols',session_name,cv_name)
+    proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
+    
+    """ Neuroglancer viewer """
     ng_container_name = f'{session_name}_ng_container'
     ng_dict = {}
     ng_dict['hosturl'] = hosturl

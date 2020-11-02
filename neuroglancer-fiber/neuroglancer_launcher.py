@@ -22,11 +22,11 @@ logging.info("configuring neuroglancer defaults")
 flask_mode = os.environ['FLASK_MODE']
 if flask_mode == 'DEV':
 	neuroglancer.set_static_content_source(
-	    url="http://nglancerstatic-dev:8080"
+		url="http://nglancerstatic-dev:8080"
 	)
 elif flask_mode == 'PROD':
 	neuroglancer.set_static_content_source(
-	    url="http://nglancerstatic-prod:8080"
+		url="http://nglancerstatic-prod:8080"
 	)
 ## neuroglancer setup segment:	
 ## set the tornado server that is launched to talk on all ips and at port 8080
@@ -77,22 +77,31 @@ for ii in range(cv_count):
 		logging.debug("Loading in source: ")
 		logging.debug(f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}")
 		if layer_type == 'image':
-		    s.layers[cv_name] = neuroglancer.ImageLayer(
-		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}") # this needs to be visible outside of the container in the browser
+			s.layers[cv_name] = neuroglancer.ImageLayer(
+				source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}") # this needs to be visible outside of the container in the browser
+			image_layer_name = cv_name
 		elif layer_type == 'segmentation':
 			
 			s.layers[cv_name] = neuroglancer.SegmentationLayer(
-		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
-		    )
+				source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
+			)
 		elif layer_type == 'annotation':
 			s.layers[cv_name] = neuroglancer.AnnotationLayer(
-		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
-		    )
-		    
+				source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
+			)
+			
 with viewer.txn() as s:
-	s.layout = 'xy'
-	s.crossSectionOrientation = [0.5,0.5,-0.5,0.5]
-	s.crossSectionScale = 0.00002
+	s.layout = 'xz'
+	s.crossSectionOrientation = [0,0.7071067690849304,0,0.7071067690849304]
+	boundaries_layer = s.layers['Paxinos_mouse_brain_atlas_boundaries'].layer
+	boundaries_layer.segments = ['1']
+	boundaries_layer.segment_colors = {"1":'#000000'}
+	atlas_layer = s.layers['Paxinos_mouse_brain_atlas']
+	atlas_layer.selected_alpha = 0.0
+	image_layer = s.layers[image_layer_name]
+	image_layer.shader =  "void main() {\n  emitGrayscale(1.0-toNormalized(getDataValue())*25.0);\n}\n"
+	s.position = [400.5, 31.5, 570.5]
+	s.crossSectionScale=0.00002
   
 logging.debug("neuroglancer viewer is now available")
 
@@ -103,4 +112,4 @@ kv.hmset(session_name,{'viewer': viewer_json_str})
 
 # Keep the viewer running
 while 1:
-    sleep(0.1)
+	sleep(0.1)
