@@ -3723,7 +3723,7 @@ def willmore_fiber_placement_demo():
                
     cv_container_name = f'{session_name}_paxinos_atlas_boundaries'
     cv_name = f"Paxinos_mouse_brain_atlas_boundaries"
-    cv_path = '/jukebox/LightSheetData/atlas/neuroglancer/atlas/kimatlas_segment_boundaries_test'  
+    cv_path = '/jukebox/LightSheetData/atlas/neuroglancer/atlas/kimatlas_segment_boundaries_indiv'  
     cv_dict = dict(cv_number=cv_number,cv_path=cv_path,cv_name=cv_name,
         cv_container_name=cv_container_name,
         layer_type=layer_type,session_name=session_name)

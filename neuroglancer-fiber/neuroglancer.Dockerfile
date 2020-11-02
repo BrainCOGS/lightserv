@@ -12,4 +12,6 @@ RUN  pip install neuroglancer==2.15 redis
 
 COPY neuroglancer_launcher.py /opt/neuroglancer_launcher.py
 
+COPY kimatlas_segments.npy kimatlas_segments.npy 
+
 CMD ["python","/opt/neuroglancer_launcher.py"]

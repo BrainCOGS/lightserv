@@ -7,6 +7,7 @@ from time import sleep
 import redis
 import os
 import json
+import numpy as np
 
 hosturl = os.environ['HOSTURL']
 
@@ -89,22 +90,22 @@ for ii in range(cv_count):
 			s.layers[cv_name] = neuroglancer.AnnotationLayer(
 				source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
 			)
-			
+# Load segments from atlas
+kimsegments_file = 'kimatlas_segments.npy'
+segments = np.load(kimsegments_file)	
 with viewer.txn() as s:
 	s.layout = 'xz'
 	s.crossSectionOrientation = [0,0.7071067690849304,0,0.7071067690849304]
 	boundaries_layer = s.layers['Paxinos_mouse_brain_atlas_boundaries'].layer
-	boundaries_layer.segments = ['1']
-	boundaries_layer.segment_colors = {"1":'#000000'}
 	atlas_layer = s.layers['Paxinos_mouse_brain_atlas']
 	atlas_layer.selected_alpha = 0.0
 	image_layer = s.layers[image_layer_name]
 	image_layer.shader =  "void main() {\n  emitGrayscale(1.0-toNormalized(getDataValue())*25.0);\n}\n"
 	s.position = [400.5, 31.5, 570.5]
-	s.crossSectionScale=0.00002
+	s.crossSectionScale = 0.00002
+	for segment_id in segments:
+		boundaries_layer.segment_colors[segment_id] = "#000000"
   
-logging.debug("neuroglancer viewer is now available")
-
 ## redis shared state segment
 viewer_dict = {"host": "nglancer", "port": "8080", "token": viewer.token}
 viewer_json_str = json.dumps(viewer_dict)
