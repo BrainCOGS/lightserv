@@ -784,62 +784,77 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 							logger.debug("Sample form validated")
 							""" Loop through the image resolution forms and find all channels in the form  
 							and update the existing table entries with the new imaging information """
-							
-							for form_resolution_dict in sample_form.image_resolution_forms.data:
-								image_resolution = form_resolution_dict['image_resolution']
-								subfolder_dict = sample_subfolder_dicts[image_resolution]
-								""" Make rawdata/ subdirectories for this resolution """
-								imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-												 request_name,this_sample_name,f"imaging_request_1",
-												 "rawdata",f"resolution_{image_resolution}")
-								mymkdir(imaging_dir)
-								for form_channel_dict in form_resolution_dict['channel_forms']:
-									channel_name = form_channel_dict['channel_name']
-									channel_content = channel_contents_all_samples & \
-										f'sample_name="{this_sample_name}"' & \
-										f'channel_name="{channel_name}"' & \
-										f'image_resolution="{image_resolution}"' & \
-										f'imaging_request_number={imaging_request_number}'
-									channel_content_dict = channel_content.fetch1()
-									logger.debug(channel_name)
-									rawdata_subfolder = form_channel_dict['rawdata_subfolder']
-									number_of_z_planes = form_channel_dict['number_of_z_planes']
-									tiling_scheme = form_channel_dict['tiling_scheme']
-									z_step = form_channel_dict['z_step']
-									left_lightsheet_used = form_channel_dict['left_lightsheet_used']
-									right_lightsheet_used = form_channel_dict['right_lightsheet_used']
-									logger.debug(subfolder_dict[rawdata_subfolder])
-									channel_names_this_subfolder = [x['channel_name'] for x in subfolder_dict[rawdata_subfolder]]
+							notes_from_imaging = sample_form.notes_from_imaging.data
 
-									channel_index = channel_names_this_subfolder.index(channel_name)
-									logger.info(f" channel {channel_name} with image_resolution \
-										 {image_resolution} has channel_index = {channel_index}")
+							connection =  db_lightsheet.Request.ImagingResolutionRequest.connection 
+							with connection.transaction:
+								for form_resolution_dict in sample_form.image_resolution_forms.data:
+									image_resolution = form_resolution_dict['image_resolution']
+									imaging_request_restrict_dict = {'username':username,
+										'request_name':request_name,
+										'sample_name':this_sample_name,
+										'imaging_request_number':imaging_request_number,
+										'image_resolution':image_resolution}
+									imaging_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest & \
+										imaging_request_restrict_dict
+									""" Update notes_from_imaging field """ 
 									
-									''' Make a copy of the current row in a new dictionary which we will insert '''
-									channel_insert_dict = {}
-								
-									for key,val in channel_content_dict.items():
-										channel_insert_dict[key] = val
+									dj.Table._update(imaging_resolution_request_contents,
+										'notes_from_imaging',notes_from_imaging)
+									subfolder_dict = sample_subfolder_dicts[image_resolution]
+									""" Make rawdata/ subdirectories for this resolution """
+									imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+													 request_name,this_sample_name,f"imaging_request_1",
+													 "rawdata",f"resolution_{image_resolution}")
+									mymkdir(imaging_dir)
+									for form_channel_dict in form_resolution_dict['channel_forms']:
+										channel_name = form_channel_dict['channel_name']
+										channel_content = channel_contents_all_samples & \
+											f'sample_name="{this_sample_name}"' & \
+											f'channel_name="{channel_name}"' & \
+											f'image_resolution="{image_resolution}"' & \
+											f'imaging_request_number={imaging_request_number}'
+										channel_content_dict = channel_content.fetch1()
+										rawdata_subfolder = form_channel_dict['rawdata_subfolder']
+										number_of_z_planes = form_channel_dict['number_of_z_planes']
+										tiling_scheme = form_channel_dict['tiling_scheme']
+										z_step = form_channel_dict['z_step']
+										left_lightsheet_used = form_channel_dict['left_lightsheet_used']
+										right_lightsheet_used = form_channel_dict['right_lightsheet_used']
+										channel_names_this_subfolder = [x['channel_name'] for x in subfolder_dict[rawdata_subfolder]]
 
-									''' Now replace (some of) the values in the dict from whatever we 
-									get from the form '''
-									for key,val in form_channel_dict.items():
-										if key in channel_content_dict.keys() and key not in ['channel_name','image_resolution','imaging_request_number']:
+										channel_index = channel_names_this_subfolder.index(channel_name)
+										logger.info(f" channel {channel_name} with image_resolution \
+											 {image_resolution} has channel_index = {channel_index}")
+										
+										''' Make a copy of the current row in a new dictionary which we will insert '''
+										channel_insert_dict = {}
+									
+										for key,val in channel_content_dict.items():
 											channel_insert_dict[key] = val
-									channel_insert_dict['imspector_channel_index'] = channel_index
-									
-									db_lightsheet.Request.ImagingChannel().insert1(channel_insert_dict,replace=True)
-									""" Set imaging progress complete for this sample """
-									imaging_request_contents_this_sample = imaging_request_contents & \
-										f'sample_name="{this_sample_name}"'
-									dj.Table._update(imaging_request_contents_this_sample,'imaging_progress','complete')
 
-									
-									samples_imaging_progress_dict[this_sample_name] = 'complete'
-									""" Kick off celery task for creating precomputed data from this
-									raw data image dataset if there is more than one tile.
-									"""
-							flash(f"Imaging entry for sample {this_sample_name} successful","success")
+										''' Now replace (some of) the values in the dict from whatever we 
+										get from the form '''
+										for key,val in form_channel_dict.items():
+											if key in channel_content_dict.keys() and key not in ['channel_name','image_resolution','imaging_request_number']:
+												channel_insert_dict[key] = val
+										channel_insert_dict['imspector_channel_index'] = channel_index
+										
+										db_lightsheet.Request.ImagingChannel().insert1(channel_insert_dict,replace=True)
+										""" Set imaging progress complete for this sample """
+										imaging_request_contents_this_sample = imaging_request_contents & \
+											f'sample_name="{this_sample_name}"'
+										dj.Table._update(imaging_request_contents_this_sample,'imaging_progress','complete')
+										today = datetime.now()
+										today_proper_format = today.date().strftime('%Y-%m-%d')
+										dj.Table._update(imaging_request_contents_this_sample,'imaging_performed_date',
+											today_proper_format)
+										
+										samples_imaging_progress_dict[this_sample_name] = 'complete'
+										""" Kick off celery task for creating precomputed data from this
+										raw data image dataset if there is more than one tile.
+										"""
+								flash(f"Imaging entry for sample {this_sample_name} successful","success")
 						else:
 							logger.debug("Sample form not validated")
 						return redirect(url_for('imaging.imaging_batch_entry',

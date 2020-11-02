@@ -620,6 +620,7 @@ def test_imaging_batch_entry_form_submits_single_sample(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':10,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+		'sample_forms-0-notes_from_imaging':'some custom notes',
 		'sample_forms-1-sample_name':'sample-002',
 		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
@@ -672,6 +673,26 @@ def test_imaging_batch_entry_form_submits_single_sample(test_client,
 		follow_redirects=True)
 
 	assert b'Sample has been imaged' in response2.data
+	restrict_dict_resolution = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			image_resolution='1.3x')
+	""" Check that notes from imaging for that sample were recorded in db """
+	imaging_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
+		restrict_dict_resolution
+	notes_from_imaging = imaging_resolution_request_contents.fetch1('notes_from_imaging')
+	assert notes_from_imaging == 'some custom notes'
+	""" Check that imaging progress and imaging performed date were updated """
+	imaging_request_restrict_dict = restrict_dict_resolution = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			imaging_request_number=1)
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & \
+		imaging_request_restrict_dict
+	imaging_progress, imaging_performed_date = imaging_request_contents.fetch1(
+		'imaging_progress','imaging_performed_date')
+	assert imaging_progress == 'complete'
+	assert imaging_performed_date == datetime.now().date()
 
 def test_imaging_batch_entry_form_validates_single_sample(test_client,
 	test_cleared_request_nonadmin,
@@ -762,7 +783,6 @@ def test_imaging_batch_entry_form_validates_3p6x_smartspim(test_client,
 	assert b'Tiling scheme must not exceed 10x10 for this resolution' in sample_response.data
 	assert b'z_step must be a number between 2 and 1000 microns' in sample_response.data
 	assert b'Tiling overlap must be a number between 0 and 1' in sample_response.data
-
 
 def test_apply_batch_parameters_successful(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
