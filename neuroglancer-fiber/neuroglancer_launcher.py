@@ -103,6 +103,7 @@ with viewer.txn() as s:
 	image_layer.shader =  "void main() {\n  emitGrayscale(1.0-toNormalized(getDataValue())*25.0);\n}\n"
 	s.position = [400.5, 31.5, 570.5]
 	s.crossSectionScale = 0.00002
+	boundaries_layer.saturation=0.0
 	# for segment_id in segments:
 	# 	boundaries_layer.segment_colors[segment_id] = "#000000"
   
