@@ -15,11 +15,10 @@ from . import tasks
 from lightserv.main.tasks import send_email
 import numpy as np
 import datajoint as dj
-import re
+import os,re
 from datetime import datetime, timedelta
 import logging
 import glob
-import os
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -718,30 +717,54 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 									subfolder_dict[rawdata_subfolder] = [channel_dict]
 								
 								channel_index = len(subfolder_dict[rawdata_subfolder]) - 1
-								
+								""" Check that number of files is correct """
 								if validated:
 									logger.debug("Checking validation on rawdata subfolder")
-									number_of_rawfiles_expected = number_of_z_planes*(left_lightsheet_used+right_lightsheet_used)*n_rows*n_columns
-									""" calculate the number we find. We have to be careful here
-									because the raw data filenames will include C00 if there
-									is only one light sheet used, regardless of whether it is
-									left or right. If both are used,
-									then the left lightsheet files always have C00 in filenames
-									and right lightsheet files always have C01 in filenames. """
+									""" Count the number of files we actually find. """
 									number_of_rawfiles_found = 0
-									if left_lightsheet_used and right_lightsheet_used:
-										number_of_rawfiles_found_left_lightsheet = \
-											len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
-										number_of_rawfiles_found += number_of_rawfiles_found_left_lightsheet
-										number_of_rawfiles_found_right_lightsheet = \
-											len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C01_*Filter000{channel_index}*'))	
-										number_of_rawfiles_found += number_of_rawfiles_found_right_lightsheet
+									if image_resolution in ['3.6x','15x']:
+										number_of_rawfiles_expected = number_of_z_planes*n_rows*n_columns
+
+										""" For SmartSPIM
+										Add up all the files in the deepest directories """
+										walker = os.walk(rawdata_fullpath)
+										try:
+											channel_dir, subdirs, files = next(walker)
+											regex = re.compile(r'\d{6}')
+											good_subdirs = [x for x in subdirs if regex.match(x)] # don't want to search through corrected/ or stitched/ dirs for example
+											
+											for subdir in good_subdirs:
+												walker = os.walk(os.path.join(channel_dir,subdir)) 
+												for curdir,sub_subdirs,filenames in walker:
+													if len(sub_subdirs) == 0:
+														number_of_rawfiles_found += len(filenames)
+										except:
+											logger.debug("Problem checking raw data directory. Most likely directory doesn't exist")
+										
 									else:
-										# doesn't matter if its left or right lightsheet. Since there is only one, their glob patterns will be identical
-										number_of_rawfiles_found = \
-											len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
-									logger.debug(number_of_rawfiles_expected)
-									logger.debug(number_of_rawfiles_found)
+										""" For LaVision
+										We have to be careful here
+										because the raw data filenames will include C00 if there
+										is only one light sheet used, regardless of whether it is
+										left or right. If both are used,
+										then the left lightsheet files always have C00 in filenames
+										and right lightsheet files always have C01 in filenames.
+										"""
+										number_of_rawfiles_expected = number_of_z_planes*(left_lightsheet_used+right_lightsheet_used)*n_rows*n_columns
+
+										if left_lightsheet_used and right_lightsheet_used:
+											number_of_rawfiles_found_left_lightsheet = \
+												len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
+											number_of_rawfiles_found += number_of_rawfiles_found_left_lightsheet
+											number_of_rawfiles_found_right_lightsheet = \
+												len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C01_*Filter000{channel_index}*'))	
+											number_of_rawfiles_found += number_of_rawfiles_found_right_lightsheet
+										else:
+											# doesn't matter if its left or right lightsheet. Since there is only one, their glob patterns will be identical
+											number_of_rawfiles_found = \
+												len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
+										logger.debug(number_of_rawfiles_expected)
+										logger.debug(number_of_rawfiles_found)
 									if number_of_rawfiles_found != number_of_rawfiles_expected:
 										error_str = (f"There should be {number_of_rawfiles_expected} raw files in rawdata folder, "
 											  f"but found {number_of_rawfiles_found}")
