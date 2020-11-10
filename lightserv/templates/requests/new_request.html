@@ -360,7 +360,7 @@
 					                </tr>
 				               {% endfor %}
 				            </table>
-
+				            
 				             <div class="form-group infolink" data-toggle="tooltip" title="While this notes field is not required, we strongly recommend that you fill it out if you want your images taken of a specific brain region only or at a specific orientation (e.g. sagittal). Otherwise, we will assume that you want the entire brain imaged, and we will image it in a sagittal orientation. ">
 								{% if image_resolution_form.notes_for_imager.flags.required %}*{% endif %}
 								{{ image_resolution_form.notes_for_imager.label(class="form-control-label") }} <a id='imaging_samples-{{ii}}-image_resolution_forms-{{jj}}-notes_for_imager_charbox'></a>
@@ -394,7 +394,8 @@
 
 								<div class="form-group">
 									{% if image_resolution_form.final_orientation.flags.required %}*{% endif %}
-									<a data-toggle="tooltip" title="How you want your output volume oriented. If registration is requested, this must be 'sagittal'">
+									<a data-toggle="tooltip" title="How you want your output volume oriented. If registration is requested, this must be 'sagittal'. We can also 
+									reorient your brain during post processing. ">
 									{{ image_resolution_form.final_orientation.label(class="form-control-label infolink") }}
 									</a>
 									{% if image_resolution_form.final_orientation.errors %}

@@ -94,7 +94,7 @@
 
 					<tr>   
 					    <td>{{channel_name}}</br>
-					    	<input id="batch_delete_channel_modal" name="batch_delete_channel_modal" value="Delete channel" type="button" class="btn btn-sm btn-danger mt-2" data-toggle="modal" data-target="#batchDeleteChannelModal_res_{{image_resolution}}_ch_{{channel_name}}"></input>	
+					    	<input id="batch_delete_channel_modal" name="batch_delete_channel_modal" value="Delete channel" type="button" class="btn btn-sm btn-danger mt-2" data-toggle="modal" data-target="#batchDeleteChannelModal_res_{{image_resolution}}_ch_{{channel_name}}"></input>
 					    	<!-- Modal for delete channel button -->
 							<div class="modal fade" id="batchDeleteChannelModal_res_{{image_resolution}}_ch_{{channel_name}}" tabindex="-1" role="dialog" aria-labelledby="batchDeleteChannelModalLabel_res_{{image_resolution}}_ch_{{channel_name}}" aria-hidden="true">
 								<div class="modal-dialog" role="document">
@@ -343,7 +343,8 @@
 			            {% if image_resolution == '2x' %}
 				            <th class="infolink" data-toggle="tooltip" title="Set to a discrete value on the dial. Otherwise, it will be impossible to accurately calculate the resulting image pixel size.">Zoom body magnification</th>
 				        {% endif %}
-			            <th>*Image orientation </th>
+			            <th>*Image orientation</th>
+			            <th>Dorsal up or ventral up? </th>
 			            <th>*Lightsheets used </th>
 			           	<th>*Tiling scheme (e.g. 1x1, 3x3)  </th>
 			           	<th class="infolink" data-toggle="tooltip" title="Only matters if tiling scheme is not 1x1">*Tiling overlap (e.g. 0.2) </th>
@@ -359,18 +360,36 @@
 					{{ channel_form.channel_name() }}
 					{% set channel_name = channel_form.channel_name.data %}
 					{{ channel_form.image_resolution() }}
+					{{ channel_form.ventral_up(hidden=true) }}
+					{% set ventral_up = channel_form.ventral_up.data %}
+					<!-- Figure out if flipped channel already appears in this image resolution form -->
+					{% set flipped_dict = {'flipped': False} %}
+					{% if not ventral_up %}
 
+						{% for ch_form in image_resolution_form.channel_forms %}
+							{% set ch_name = ch_form.channel_name.data %}
+							{% if ch_name == channel_name and ch_form.ventral_up.data %}
+								{% if flipped_dict.update({'flipped': True}) %} {% endif %}
+							{% endif %}
+						{% endfor %}
+
+					{% endif %}
 						<tr>   
-						    <td>{{channel_name}} 
+						    <td>{{channel_name}}
+						    	<!-- Add flipped channel button only if one doesn't already exist in the form for this channel already -->
+						    	{% if (not ventral_up) and (not flipped_dict.flipped) %}
+							    	{{channel_form.add_flipped_channel_button(class="btn btn-sm btn-info mt-2")}} 
+							    {% endif %}
+
 						    	<div>
-							    	<input id="sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_delete_channel_modal" name="sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_delete_channel_modal" value="Delete channel" type="button" class="btn btn-sm btn-danger mt-2" data-toggle="modal" data-target="#sampleDeleteChannelModal_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}"></input>	
+							    	<input id="sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{ventral_up}}_delete_channel_modal" name="sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{ventral_up}}_delete_channel_modal" value="Delete channel" type="button" class="btn btn-sm btn-danger mt-2" data-toggle="modal" data-target="#sampleDeleteChannelModal_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{ventral_up}}"></input>	
 							    </div>
 						    	<!-- Modal for delete channel button -->
-								<div class="modal fade" id="sampleDeleteChannelModal_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}" tabindex="-1" role="dialog" aria-labelledby="sampleDeleteChannelModalLabel_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}" aria-hidden="true">
+								<div class="modal fade" id="sampleDeleteChannelModal_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{ventral_up}}" tabindex="-1" role="dialog" aria-labelledby="sampleDeleteChannelModalLabel_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{ventral_up}}" aria-hidden="true">
 									<div class="modal-dialog" role="document">
 									<div class="modal-content">
 									<div class="modal-header">
-									<h5 class="modal-title" id="sampleDeleteChannelModalLabel_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}">Are you sure you want to delete this channel? </h5>
+									<h5 class="modal-title" id="sampleDeleteChannelModalLabel_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{ventral_up}}">Are you sure you want to delete this channel? </h5>
 									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 									<span aria-hidden="true">&times;</span>
 									</button>
@@ -405,17 +424,34 @@
 					        {% endif %}
 						    <td>
 						    	<div class="form-group">
-									{% if channel_form.image_orientation.errors %}
-										{{ channel_form.image_orientation(class="form-control form-control-sm is-invalid") }}
-										<div class="invalid-feedback">
-											{% for error in channel_form.image_orientation.errors %}
-												<span>{{ error }}</span>
-											{% endfor %}
-										</div>
-									{% else %}
-										{{ channel_form.image_orientation(class="form-control form-control-sm") }}
+						    		{% if ventral_up %}	
+							    		{{ channel_form.image_orientation(class="form-control form-control-sm",
+							    		disabled=true) }}
+							    	
+						    		{% else %}
+										{% if channel_form.image_orientation.errors %}
+											{{ channel_form.image_orientation(class="form-control form-control-sm is-invalid") }}
+											<div class="invalid-feedback">
+												{% for error in channel_form.image_orientation.errors %}
+													<span>{{ error }}</span>
+												{% endfor %}
+											</div>
+										{% else %}
+											{{ channel_form.image_orientation(class="form-control form-control-sm") }}
+										{% endif %}
 									{% endif %}
 								</div>
+							</td>
+							<td>
+								<div>
+									<p>
+								    	{% if ventral_up %}
+								    		Ventral
+								    	{% else %}
+								    		Dorsal
+								    	{% endif %}
+								    </p>	
+							    </div>
 							</td>
 							{% if channel_form.left_lightsheet_used.errors or channel_form.right_lightsheet_used.errors %}
 							    <td class="table-danger">

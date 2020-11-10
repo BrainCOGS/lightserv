@@ -126,7 +126,6 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 	imaging_batch_restrict_dict = dict(username=username,request_name=request_name,
 		imaging_batch_number=imaging_batch_number)
 	imaging_batch_contents = db_lightsheet.Request.ImagingBatch() & imaging_batch_restrict_dict
-	logger.debug(imaging_batch_contents.fetch(as_dict=True))
 	number_in_batch = imaging_batch_contents.fetch1('number_in_imaging_batch')
 	
 	imaging_progress = imaging_batch_contents.fetch1('imaging_progress')
@@ -1074,29 +1073,33 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 									imaging_batch_number=imaging_batch_number))	
 							else:
 								""" Search the channel forms of this image resolution form to see
-								if a channel delete button was pressed """
-								for channel_form in image_resolution_form.channel_forms:
+								if a channel delete button or add flipped channel button
+								was pressed """
+								for ii,channel_form in enumerate(image_resolution_form.channel_forms):
 									channel_form_dict = channel_form.data
+									channel_name = channel_form_dict['channel_name']
 									delete_channel_button_pressed = channel_form_dict['delete_channel_button']
+									add_flipped_channel_button_pressed = channel_form_dict[
+										'add_flipped_channel_button']
 									if delete_channel_button_pressed:
 										""" #################################### """
 										""" SAMPLE DELETE CHANNEL BUTTON PRESSED """
 										""" #################################### """
 										logger.debug("sample delete channel button pressed!")
 										channel_name_to_delete = channel_form_dict['channel_name']
+										ventral_up = channel_form_dict['ventral_up']
+										logger.debug(channel_form_dict)
 										logger.debug("Deleting channel:")
 										logger.debug(channel_name_to_delete)
 
-										""" Create a new ImagingChannel() entry for this channel """
 										dj.config['safemode'] = False # disables integrity checks so delete can take place
 										issues_deleting_channels = False
 										
 										restrict_dict = {'sample_name':this_sample_name,
 											'image_resolution':this_image_resolution,
-											'channel_name':channel_name_to_delete}
+											'channel_name':channel_name_to_delete,
+											'ventral_up':ventral_up}
 										imaging_channel_contents_to_delete = channel_contents_all_samples & restrict_dict
-										logger.debug("Deleting entry:")
-										logger.debug(imaging_channel_contents_to_delete.fetch1())
 										if len(imaging_channel_contents_to_delete) > 0:
 											try:
 												imaging_channel_contents_to_delete.delete(force=True)
@@ -1115,6 +1118,53 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 											flash(f"Channel {channel_name_to_delete} successfully deleted for sample: {this_sample_name}","success")
 										else:
 											flash("Otherwise channel was deleted OK","warning")
+										return redirect(url_for('imaging.imaging_batch_entry',
+											username=username,request_name=request_name,
+											imaging_batch_number=imaging_batch_number))
+									elif add_flipped_channel_button_pressed:
+										""" ######################################### """
+										""" SAMPLE ADD FLIPPED CHANNEL BUTTON PRESSED """
+										""" ######################################### """
+										logger.debug("add flipped channel button pressed!")
+										channel_name_to_flip = channel_form_dict['channel_name']
+										logger.debug("Addding flipped copy of channel:")
+										logger.debug(channel_name_to_flip)
+										""" Validation """
+										logger.debug(channel_form_dict)
+										image_orientation = channel_form_dict['image_orientation'] 
+										if image_orientation != 'horizontal':
+											flash_str = (f"Can only add flipped imaging channel if "
+															 "image orientation is horizontal for: "
+															 f"sample_name: {this_sample_name}, "
+															 f"image resolution: {this_image_resolution}, "
+															 f"channel: {channel_name_to_flip}")
+											flash(flash_str,"danger")
+										else:
+											""" Create a new ImagingChannel() entry for this channel,
+											which is just a duplicate of the current db entry """
+
+											restrict_channel_dict = {}
+											restrict_channel_dict['username'] = username
+											restrict_channel_dict['request_name'] = request_name
+											restrict_channel_dict['sample_name'] = this_sample_name
+											restrict_channel_dict['imaging_request_number'] = imaging_request_number
+											restrict_channel_dict['image_resolution'] = this_image_resolution
+											restrict_channel_dict['channel_name'] = channel_name_to_flip
+											restrict_channel_dict['ventral_up'] = False
+											existing_channel_dict = (db_lightsheet.Request.ImagingChannel() & \
+												restrict_channel_dict).fetch1()
+											flipped_channel_dict = existing_channel_dict.copy()
+											flipped_channel_dict['ventral_up'] = 1
+											logger.debug("inserting: ")
+											logger.debug(flipped_channel_dict)
+											db_lightsheet.Request.ImagingChannel().insert1(
+												flipped_channel_dict)
+											
+											flash_str = (f"Successfully created flipped channel for: "
+															 f"sample_name: {this_sample_name}, "
+															 f"image resolution: {this_image_resolution}, "
+															 f"channel: {channel_name_to_flip}")
+											flash(flash_str,"success")
 										return redirect(url_for('imaging.imaging_batch_entry',
 											username=username,request_name=request_name,
 											imaging_batch_number=imaging_batch_number))
@@ -1317,7 +1367,8 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 				f'image_resolution="{this_image_resolution}" '
 			notes_for_imager = image_resolution_request_contents.fetch1('notes_for_imager')
 
-			channel_contents_list_this_resolution = (batch_channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
+			channel_contents_list_this_resolution = (
+				batch_channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
 			
 			form.image_resolution_batch_forms.append_entry()
 			this_resolution_form = form.image_resolution_batch_forms[-1]
@@ -1413,6 +1464,8 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 					channel_name = channel_content['channel_name']
 					logger.debug("initializing channel form:")
 					logger.debug(channel_name)
+					logger.debug("With channel content:")
+					logger.debug(channel_content)
 					registration_channel = channel_content['registration']
 					if registration_channel:
 						registration_channel_used = True
@@ -1422,6 +1475,9 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 					this_channel_form.image_resolution.data = this_image_resolution
 					used_channels.append(channel_name)
 					""" Autofill based on current db contents """
+					this_channel_form.ventral_up.data = channel_content['ventral_up']
+					logger.debug("ventral up for this channel is:")
+					logger.debug(this_channel_form.ventral_up.data)
 					this_channel_form.tiling_scheme.data = channel_content['tiling_scheme']
 					this_channel_form.tiling_overlap.data = channel_content['tiling_overlap']
 					this_channel_form.z_step.data = channel_content['z_step']
