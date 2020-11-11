@@ -32,7 +32,7 @@ class ChannelForm(FlaskForm):
 		widget=html5.NumberInput(),validators=[Optional()])
 	rawdata_subfolder = TextAreaField('channel subfolder',validators=[Optional()])
 	delete_channel_button = SubmitField("Delete channel")
-	add_flipped_channel_button = SubmitField("Add flipped channel")
+	add_flipped_channel_button = SubmitField("Add ventral up channel")
 
 	def validate_tiling_overlap(self,tiling_overlap):
 		try:
@@ -222,8 +222,8 @@ class ChannelBatchForm(FlaskForm):
 		validators=[Optional()]) 
 	z_step = StringField('Z resolution (microns)',validators=[Optional()])
 	delete_channel_button = SubmitField("Delete channel")
-	add_flipped_channel_button = SubmitField("Add flipped channel")
-	
+	add_flipped_channel_button = SubmitField("Add ventral up channel")
+
 	def validate_tiling_overlap(self,tiling_overlap):
 		try:
 			fl_val = float(tiling_overlap.data)
