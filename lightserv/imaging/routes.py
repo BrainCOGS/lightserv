@@ -706,10 +706,15 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 									channel_form.rawdata_subfolder.errors = ['This field is required']
 									flash(flash_str,"danger")
 									validated=False
-								rawdata_fullpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
-									username,request_name,this_sample_name,'imaging_request_1',
-									'rawdata',f'resolution_{image_resolution}',rawdata_subfolder)
-								
+								ventral_up = channel_form.ventral_up.data
+								if ventral_up:
+									rawdata_fullpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+										username,request_name,this_sample_name,'imaging_request_1',
+										'rawdata',f'resolution_{image_resolution}_ventral_up',rawdata_subfolder)
+								else:
+									rawdata_fullpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+										username,request_name,this_sample_name,'imaging_request_1',
+										'rawdata',f'resolution_{image_resolution}',rawdata_subfolder)
 								if rawdata_subfolder in subfolder_dict.keys():
 									subfolder_dict[rawdata_subfolder].append(channel_dict)
 								else:
@@ -831,11 +836,13 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 									mymkdir(imaging_dir)
 									for form_channel_dict in form_resolution_dict['channel_forms']:
 										channel_name = form_channel_dict['channel_name']
+										ventral_up = form_channel_dict['ventral_up']
 										channel_content = channel_contents_all_samples & \
 											f'sample_name="{this_sample_name}"' & \
-											f'channel_name="{channel_name}"' & \
 											f'image_resolution="{image_resolution}"' & \
-											f'imaging_request_number={imaging_request_number}'
+											f'imaging_request_number={imaging_request_number}' & \
+											f'channel_name="{channel_name}"' & \
+											f'ventral_up="{ventral_up}"' 
 										channel_content_dict = channel_content.fetch1()
 										rawdata_subfolder = form_channel_dict['rawdata_subfolder']
 										number_of_z_planes = form_channel_dict['number_of_z_planes']
@@ -876,7 +883,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 										""" Kick off celery task for creating precomputed data from this
 										raw data image dataset if there is more than one tile.
 										"""
-								flash(f"Imaging entry for sample {this_sample_name} successful","success")
+								flash(f"Imaging entry for sample {this_sample_name} was successful","success")
 						else:
 							logger.debug("Sample form not validated")
 						return redirect(url_for('imaging.imaging_batch_entry',
@@ -1464,8 +1471,6 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 					channel_name = channel_content['channel_name']
 					logger.debug("initializing channel form:")
 					logger.debug(channel_name)
-					logger.debug("With channel content:")
-					logger.debug(channel_content)
 					registration_channel = channel_content['registration']
 					if registration_channel:
 						registration_channel_used = True
@@ -1476,8 +1481,6 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 					used_channels.append(channel_name)
 					""" Autofill based on current db contents """
 					this_channel_form.ventral_up.data = channel_content['ventral_up']
-					logger.debug("ventral up for this channel is:")
-					logger.debug(this_channel_form.ventral_up.data)
 					this_channel_form.tiling_scheme.data = channel_content['tiling_scheme']
 					this_channel_form.tiling_overlap.data = channel_content['tiling_overlap']
 					this_channel_form.z_step.data = channel_content['z_step']

@@ -212,6 +212,8 @@ class ChannelBatchForm(FlaskForm):
 		choices=[('sagittal','sagittal'),('coronal','coronal'),
 				 ('horizontal','horizontal')],default='horizontal',
 				 validators=[Optional()])
+	ventral_up = BooleanField('Imaged ventral side up?',validators=[Optional()],
+		default=False)
 	left_lightsheet_used = BooleanField('Left',default=False)
 	right_lightsheet_used = BooleanField('Right',default=False)
 	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',
@@ -220,7 +222,8 @@ class ChannelBatchForm(FlaskForm):
 		validators=[Optional()]) 
 	z_step = StringField('Z resolution (microns)',validators=[Optional()])
 	delete_channel_button = SubmitField("Delete channel")
-
+	add_flipped_channel_button = SubmitField("Add flipped channel")
+	
 	def validate_tiling_overlap(self,tiling_overlap):
 		try:
 			fl_val = float(tiling_overlap.data)

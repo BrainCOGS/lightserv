@@ -444,13 +444,7 @@
 							</td>
 							<td>
 								<div>
-									<p>
-								    	{% if ventral_up %}
-								    		Ventral
-								    	{% else %}
-								    		Dorsal
-								    	{% endif %}
-								    </p>	
+									<p>{% if ventral_up %}Ventral{% else %}Dorsal{% endif %}</p>	
 							    </div>
 							</td>
 							{% if channel_form.left_lightsheet_used.errors or channel_form.right_lightsheet_used.errors %}
@@ -587,10 +581,12 @@
 			<h3 class="infolink" data-toggle='tooltip' title='Make sure not to overwrite folders and do not put data from two different imaging channels into the same subfolder unless they were read-out from the microscope that way'>
 			Move or copy all raw data folders from the microscope computer to the correct folder on bucket: </h3>
 			<p>
-				<code>{{rawdata_filepath}}resolution_<b>XX</b></code></br></br>
-				where <b>XX</b> is the resolution of the images, e.g. "1.1x", "1.3x", "2x", "3.6x" or "4x".</br></br>
-				The resolution_XX/ folder may not already exist inside of the rawdata/ folder. If it does not already exist,
-				first make the resolution folder before moving the rawdata subfolder. 
+				<code>{{rawdata_filepath}}resolution_<b>XX</b></code></br>or</br>
+				 
+				<code>{{rawdata_filepath}}resolution_<b>XX</b>_ventral_up</code></br></br>
+				if the channel was imaged ventral up. <b>XX</b> is the resolution of the images, e.g. "1.1x", "1.3x", "2x", "3.6x" or "4x".</br></br>
+				The resolution_XX/ or resolution_XX_ventral_up/ folders may not already exist inside of the rawdata/ folder. If they do not already exist,
+				first make these folders before moving the rawdata subfolders. 
 			</p>
 			<p>
 				For example, say you took images in channel 488 for image resolution 1.3x for this brain and you saved
