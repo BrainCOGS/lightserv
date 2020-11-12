@@ -228,6 +228,7 @@ def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_cl
 	now_proper_format = now.strftime('%Y-%m-%dT%H:%M')
 	data_abbreviated_clearing = dict(time_pbs_wash1=now_proper_format,time_pbs_wash1_submit=True)
 	
+	""" iDISCO abbreviated """
 	response_abbreviated_clearing = test_client.post(url_for('clearing.clearing_entry',
 			username="ahoag",
 			request_name="All_mouse_clearing_protocol_request",
@@ -254,6 +255,34 @@ def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_cl
 	assert b'Clearing Entry Form' in response_idiscoplus_immuno_clearing.data
 	assert b'Protocol: iDISCO+_immuno' in response_idiscoplus_immuno_clearing.data
 	assert now_proper_format.encode('utf-8') in response_idiscoplus_immuno_clearing.data
+
+	data_idiscoplus_immuno_clearing2 = dict(antibody1_lot='abc-123',antibody1_lot_submit=True)
+	response_idiscoplus_immuno_clearing2 = test_client.post(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="All_mouse_clearing_protocol_request",
+			clearing_protocol="iDISCO+_immuno",
+			antibody1="test antibody for immunostaining",antibody2="",
+			clearing_batch_number=2),
+			follow_redirects=True,
+		data=data_idiscoplus_immuno_clearing2
+		)	
+	assert b'Clearing Entry Form' in response_idiscoplus_immuno_clearing2.data
+	assert b'Protocol: iDISCO+_immuno' in response_idiscoplus_immuno_clearing2.data
+	assert b"abc-123" in response_idiscoplus_immuno_clearing2.data
+
+	data_idiscoplus_immuno_clearing3 = dict(antibody2_lot='def-654',antibody2_lot_submit=True)
+	response_idiscoplus_immuno_clearing3 = test_client.post(url_for('clearing.clearing_entry',
+			username="ahoag",
+			request_name="All_mouse_clearing_protocol_request",
+			clearing_protocol="iDISCO+_immuno",
+			antibody1="test antibody for immunostaining",antibody2="",
+			clearing_batch_number=2),
+			follow_redirects=True,
+		data=data_idiscoplus_immuno_clearing3
+		)	
+	assert b'Clearing Entry Form' in response_idiscoplus_immuno_clearing3.data
+	assert b'Protocol: iDISCO+_immuno' in response_idiscoplus_immuno_clearing3.data
+	assert b"def-654" in response_idiscoplus_immuno_clearing3.data
 
 	data_udisco_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,time_dehydr_pbs_wash1_submit=True)
 	response_udisco_clearing = test_client.post(url_for('clearing.clearing_entry',
@@ -282,6 +311,66 @@ def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_cl
 	assert b'Clearing Entry Form' in response_idisco_edu_clearing.data
 	assert b'Protocol: iDISCO_EdU' in response_idisco_edu_clearing.data
 	assert now_proper_format.encode('utf-8') in response_idisco_edu_clearing.data
+ 
+def test_idiscoplus_clearing_entry_form_submits(test_client,
+	test_single_sample_idiscoplus_request_nonadmin,test_login_ll3):
+	""" Test that ll3 can submit a clearing entry form 
+	for the iDISCO+ immunostaining protocol 
+	and it redirects her back to the clearing task manager
+	and properly updates the db with antibody lot in clearing batch table
+	"""
+	now = datetime.now()
+	print(now)
+	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		dehydr_pbs_wash1_notes='some notes',
+		antibody1_lot='abcd-1234',antibody2_lot='ghi-1027',submit=True)
+	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
+			request_name="nonadmin_idisco_request",
+			clearing_protocol="iDISCO+_immuno",
+			antibody1="test_antibody1",antibody2="test_antibody2",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+	
+	assert b'Clearing management GUI' in response.data
+	
+	""" Make sure clearing_progress is now updated """
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & 'username="lightserv-test"' & \
+	'request_name="nonadmin_idisco_request"' & 'clearing_protocol="iDISCO+_immuno"' & \
+			'antibody1="antibody1"' & 'antibody2="antibody2"'
+	clearing_progress,antibody1_lot,antibody2_lot = clearing_batch_contents.fetch1(
+		'clearing_progress','antibody1_lot','antibody2_lot')
+	assert clearing_progress == 'complete'
+	assert antibody1_lot == 'abcd-1234'
+	assert antibody2_lot == 'ghi-1027'
+	
+	""" Make sure the clearing batch is now in the correct table in the manager """
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	table_tag = parsed_html.body.find('table',attrs={'id':'horizontal_already_cleared_table'})
+	table_row_tag = [1] # the 0th row is the headers
+	table_rows = table_tag.find_all('tr')
+	header_row = table_rows[0].find_all('th')
+	data_row = table_rows[1].find_all('td')
+	for ii,col in enumerate(header_row):
+		if col.text == 'clearing protocol':
+			clearing_protocol_column_index = ii
+		elif col.text == 'antibody1':
+			antibody1_column_index = ii
+		elif col.text == 'antibody2':
+			antibody2_column_index = ii
+		elif col.text == 'request name':
+			request_name_column_index = ii
+	clearing_protocol_retrieved = data_row[clearing_protocol_column_index].text
+	antibody1_retrieved = data_row[antibody1_column_index].text
+	antibody2_retrieved = data_row[antibody2_column_index].text
+	request_name_retrieved = data_row[request_name_column_index].text
+	# td_tags = table_row_tag.find_all('td')
+	assert clearing_protocol_retrieved == "iDISCO+_immuno"
+	assert antibody1_retrieved == "antibody1"
+	assert antibody2_retrieved == "antibody2"
+	assert request_name_retrieved == "nonadmin_idisco_request"
+
 
 def test_rat_clearing_entry_forms_load(test_client,test_rat_request_nonadmin,test_login_ll3):
 	""" Test that ll3 can access the clearing entry form

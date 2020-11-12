@@ -126,6 +126,8 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	""" Primary Antibody """
 	antibody1_date = OptionalDateField('Primary Antibody')
 	antibody1_date_submit = SubmitField('Push date to calendar (optional)')
+	antibody1_lot = TextAreaField('Enter the primary antibody lot code:',validators=[Length(max=64)])
+	antibody1_lot_submit = SubmitField('Update lot')
 	time_antibody1_start_roomtemp = OptionalDateTimeLocalField('Sample R@RT for ~1.5hrs')
 	time_antibody1_start_roomtemp_submit = SubmitField('Update')
 	antibody1_start_roomtemp_notes = TextAreaField('Notes',validators=[Length(max=250)])
@@ -178,6 +180,8 @@ class iDiscoPlusImmunoForm(FlaskForm):
 	""" Secondary Antibody """
 	antibody2_date = OptionalDateField('Secondary Antibody')
 	antibody2_date_submit = SubmitField('Push date to calendar (optional)')
+	antibody2_lot = TextAreaField('Enter the secondary antibody lot code:',validators=[Length(max=64)])
+	antibody2_lot_submit = SubmitField('Update lot')
 	time_antibody2_added = OptionalDateTimeLocalField('2nd antibody solution R@37°C for 7 days (3% donkey serum/PTwH)')
 	time_antibody2_added_submit = SubmitField('Update')
 	antibody2_added_notes = TextAreaField('Notes',validators=[Length(max=250)])

@@ -82,8 +82,36 @@
 							{{ form[thisday_date_submit](class="btn btn-sm btn-danger") }}
 							{% if thisday == 'antibody1' %}
 								<p> {{antibody1}} </p>
+								<div>
+									{{ form.antibody1_lot.label(id='larger')}}
+									{% if form.antibody1_lot.errors %}
+										{{ form.antibody1_lot(class="form-control form-control-lg is-invalid") }}
+										<div class="invalid-feedback">
+											{% for error in form.antibody1_lot.errors %}
+												<span>{{ error }}</span>
+											{% endfor %}
+										</div>
+									{% else %}
+										{{ form.antibody1_lot(class="form-control form-control-lg") }}
+									{% endif %}
+									{{ form.antibody1_lot_submit(class="btn btn-sm btn-info mt-2") }}
+								</div>
 							{% elif thisday == 'antibody2' %}
 								<p> {{antibody2}} </p>
+								<div>
+									{{ form.antibody2_lot.label(id='larger')}}
+									{% if form.antibody2_lot.errors %}
+										{{ form.antibody2_lot(class="form-control form-control-lg is-invalid") }}
+										<div class="invalid-feedback">
+											{% for error in form.antibody2_lot.errors %}
+												<span>{{ error }}</span>
+											{% endfor %}
+										</div>
+									{% else %}
+										{{ form.antibody2_lot(class="form-control form-control-lg") }}
+									{% endif %}
+									{{ form.antibody2_lot_submit(class="btn btn-sm btn-info mt-2") }}
+								</div>
 							{% endif %}
 							{% set new_counter = current_counter + 1 %}
 							<!-- Update the dictionary to store the new day and counter.

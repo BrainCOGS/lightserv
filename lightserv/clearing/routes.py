@@ -164,6 +164,10 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 							for k in base_insert_dict.keys():
 								clearing_insert_dict[k] = base_insert_dict[k]
 
+							if clearing_protocol == 'iDISCO+_immuno':
+								''' update the antibody1_lot and antibody2_lot fields based on the form data '''
+								dj.Table._update(clearing_batch_contents,'antibody1_lot',form_data_dict['antibody1_lot'])
+								dj.Table._update(clearing_batch_contents,'antibody2_lot',form_data_dict['antibody2_lot'])
 							''' update the clearing progress to "complete" for this sample entry '''
 							dj.Table._update(clearing_batch_contents,'clearing_progress','complete')
 
@@ -246,12 +250,16 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 						column_name = key.split('_submit')[0]
 						clearing_entry_dict = clearing_contents.fetch1() # returns as a dict
 						clearing_entry_dict[column_name]=form[column_name].data
+						logger.debug("inserting clearing entry:")
+						logger.debug(clearing_entry_dict)
 						# clearing_contents.delete_quick()
 						clearing_dbTable().insert1(clearing_entry_dict,replace=True)
 						logger.debug(f"Entered into database: {column_name}:{form[column_name].data}")
 						this_index = submit_keys.index(key)
 						next_index = this_index + 1 if 'notes' in column_name else this_index+2
 						column_name = submit_keys[next_index].split('_submit')[0]
+						logger.debug("Moving screen to colum name:")
+						logger.debug(column_name)
 						break
 			else: # if none of the submit keys were found
 				abort(500)

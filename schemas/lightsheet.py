@@ -65,6 +65,8 @@ class Request(dj.Manual):
         antibody2 = ''               :   varchar(100)
         clearing_batch_number        :   tinyint
         ----
+        antibody1_lot = NULL         :   varchar(64)
+        antibody2_lot = NULL         :   varchar(64)
         clearing_progress            :   enum("incomplete","in progress","complete")
         number_in_batch              :   tinyint
         perfusion_date = NULL        :   date
@@ -254,6 +256,7 @@ class Request(dj.Manual):
         antibody1_ptwh_wash2_notes = ""                          :   varchar(250)
         time_antibody1_added = NULL                              :   datetime
         antibody1_added_notes = ""                               :   varchar(250)
+        antibody1_lot = ""                                       :   varchar(64)
         time_wash1_start_roomtemp = NULL                         :   datetime
         wash1_start_roomtemp_notes = ""                          :   varchar(250)
         time_wash1_ptwh_wash1 = NULL                             :   datetime
@@ -270,6 +273,7 @@ class Request(dj.Manual):
         wash1_ptwh_wash6_notes = ""                              :   varchar(250)
         time_antibody2_added = NULL                              :   datetime
         antibody2_added_notes = ""                               :   varchar(250)
+        antibody2_lot = ""                                       :   varchar(64)
         time_wash2_start_roomtemp = NULL                         :   datetime
         wash2_start_roomtemp_notes = ""                          :   varchar(250)
         time_wash2_ptwh_wash1 = NULL                             :   datetime
