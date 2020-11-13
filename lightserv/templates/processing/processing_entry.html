@@ -28,12 +28,16 @@
 				<!-- Render hiddenfield for image resolution -->
 				{{ image_resolution_form.image_resolution() }}
 				{% set image_resolution = image_resolution_form.image_resolution.data %}
+				{% set resolution_ventral_up = image_resolution_form.ventral_up.data %}
 				
 				<hr class='class-1'>
 				<h2 class='mb-2'> Summary of processing to be completed for each image resolution:  </h2>
 				<hr class='class-2'>
-				<h3 class='mb-4'> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
-				
+				{% if resolution_ventral_up %}
+					<h3 class='mb-4'> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }}_ventral_up </h3>
+				{% else %}
+					<h3 class='mb-4'> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+				{% endif %}
 				{% for jj in range(image_resolution_form.channel_forms|length) %}
 					{% set channel_form = image_resolution_form.channel_forms[jj] %}
 					{% set channel_content = channel_contents_lists[ii][jj] %}
@@ -43,12 +47,17 @@
 
 					{% set channel_name = channel_form.channel_name.data %}
 					{% set channel_purposes_str = channel_form.channel_purposes_str.data %}
+					{% set channel_ventral_up = channel_form.ventral_up.data %}
 					
 					<!-- Channel processing params -->
 					<div class="content-section">
 					
 						<div>
-							<a id='larger' class='font-weight-bold'>Channel: {{  channel_name }} </a>
+							{% if resolution_ventral_up %}
+								<a id='larger' class='font-weight-bold'>Channel: {{  channel_name }}_ventral_up </a>
+							{% else %}
+								<a id='larger' class='font-weight-bold'>Channel: {{  channel_name }} </a>
+							{% endif %}
 						</div>
 
 						<div>

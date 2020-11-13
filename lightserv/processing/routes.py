@@ -1,7 +1,7 @@
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup, current_app)
-from lightserv.processing.forms import StartProcessingForm, NewProcessingRequestForm
+from lightserv.processing.forms import StartProcessingForm
 from lightserv.processing.tables import (create_dynamic_processing_overview_table,
 	dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable,
 	ProcessingChannelTable)
@@ -123,11 +123,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 	sample_contents = (db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"')
 	sample_dict = sample_contents.fetch1()
-	# image_resolution_request_contents = db_lightsheet.Sample.ImagingResolutionRequest() & f'request_name="{request_name}"' & \
-	# 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
-	# 			f'imaging_request_number="{imaging_request_number}"'
 
-	# logger.debug(f'{username}, {request_name}, {sample_name}, {imaging_request_number}, {processing_request_number}')
 	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			 f'imaging_request_number="{imaging_request_number}"' & \
@@ -137,7 +133,6 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 				f'username="{username}"' & f'sample_name="{sample_name}"' & \
 				f'imaging_request_number="{imaging_request_number}"' & \
 				f'processing_request_number="{processing_request_number}"'
-	# logger.debug(processing_request_contents)
 	channel_contents = db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			f'imaging_request_number="{imaging_request_number}"' # all of the channels for this sample
@@ -197,43 +192,80 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 		else:
 			logger.debug(form.errors) # pragma: no cover - used to exclude this line from calculating test coverage
 	
-	
-	channel_contents_lists = []
+	channel_contents_lists = [] # list of lists. [resolution1_list,resolution2_list,...]
 	no_registration=True # start it out as True, set to false if we find any registration channels
 	while len(form.image_resolution_forms) > 0:
 		form.image_resolution_forms.pop_entry() # pragma: no cover - used to exclude this line from calculating test coverage
 	""" Figure out the unique number of image resolutions """
 	unique_image_resolutions = sorted(list(set(channel_contents.fetch('image_resolution'))))
-
+	""" for each unique image resolution figure out if there is ventral up imaging.
+	If there is, then we need to create a new image resolution subform """
+	resolution_list_index = 0
 	for ii in range(len(unique_image_resolutions)):
 		this_image_resolution = unique_image_resolutions[ii]
 		processing_resolution_request_content = processing_resolution_request_contents & \
 		 f'image_resolution="{this_image_resolution}"'
+		atlas_name_this_resolution = processing_resolution_request_content.fetch1('atlas_name') 
+		channel_contents_this_resolution = channel_contents & f'image_resolution="{this_image_resolution}"'
+		dorsal_channel_contents = channel_contents_this_resolution & 'ventral_up=0'
+		ventral_channel_contents = channel_contents_this_resolution & 'ventral_up=1'
+		if dorsal_channel_contents:
+			dorsal_channel_list = dorsal_channel_contents.fetch(as_dict=True)
+			channel_contents_lists.append([])
+			form.image_resolution_forms.append_entry()
+			this_resolution_form = form.image_resolution_forms[-1]
+			this_resolution_form.image_resolution.data = this_image_resolution
+			this_resolution_form.atlas_name.data = atlas_name_this_resolution
+			this_resolution_form.ventral_up.data = False 
 
-		channel_contents_list_this_resolution = (channel_contents & f'image_resolution="{this_image_resolution}"').fetch(as_dict=True)
-		channel_contents_lists.append([])
-		form.image_resolution_forms.append_entry()
-		this_resolution_form = form.image_resolution_forms[-1]
-		this_resolution_form.image_resolution.data = this_image_resolution
-		this_resolution_form.atlas_name.data = processing_resolution_request_content.fetch1('atlas_name')
+			''' Now go and add the channel subforms to the image resolution form '''
+			for jj in range(len(dorsal_channel_list)):
+				channel_content = dorsal_channel_list[jj]
+				channel_contents_lists[resolution_list_index].append(channel_content)
+				this_resolution_form.channel_forms.append_entry()
+				this_channel_form = this_resolution_form.channel_forms[-1]
+				this_channel_form.channel_name.data = channel_content['channel_name']
+				this_channel_form.ventral_up.data = False
 
-		''' Now go and add the channel subforms to the image resolution form '''
-		for jj in range(len(channel_contents_list_this_resolution)):
-			channel_content = channel_contents_list_this_resolution[jj]
-			channel_contents_lists[ii].append(channel_content)
-			this_resolution_form.channel_forms.append_entry()
-			this_channel_form = this_resolution_form.channel_forms[-1]
-			this_channel_form.channel_name.data = channel_content['channel_name']
+				""" figure out the channel purposes """
+				used_imaging_modes = []
+				for imaging_mode in current_app.config['IMAGING_MODES']:
+					if channel_content[imaging_mode]:
+						used_imaging_modes.append(imaging_mode)
+				channel_purposes_str = ', '.join(mode for mode in used_imaging_modes)
+				if 'registration' in channel_purposes_str:
+					no_registration=False
+				this_channel_form.channel_purposes_str.data = channel_purposes_str
+				resolution_list_index+=1
+		if ventral_channel_contents:
 
-			""" figure out the channel purposes """
-			used_imaging_modes = []
-			for imaging_mode in current_app.config['IMAGING_MODES']:
-				if channel_content[imaging_mode]:
-					used_imaging_modes.append(imaging_mode)
-			channel_purposes_str = ', '.join(mode for mode in used_imaging_modes)
-			if 'registration' in channel_purposes_str:
-				no_registration=False
-			this_channel_form.channel_purposes_str.data = channel_purposes_str
+			ventral_channel_list = ventral_channel_contents.fetch(as_dict=True)
+			channel_contents_lists.append([])
+			form.image_resolution_forms.append_entry()
+			this_resolution_form = form.image_resolution_forms[-1]
+			this_resolution_form.image_resolution.data = this_image_resolution
+			this_resolution_form.atlas_name.data = atlas_name_this_resolution
+			this_resolution_form.ventral_up.data = True
+
+			''' Now go and add the channel subforms to the image resolution form '''
+			for jj in range(len(ventral_channel_list)):
+				channel_content = ventral_channel_list[jj]
+				channel_contents_lists[resolution_list_index].append(channel_content)
+				this_resolution_form.channel_forms.append_entry()
+				this_channel_form = this_resolution_form.channel_forms[-1]
+				this_channel_form.channel_name.data = channel_content['channel_name']
+				this_channel_form.ventral_up.data = True
+
+				""" figure out the channel purposes """
+				used_imaging_modes = []
+				for imaging_mode in current_app.config['IMAGING_MODES']:
+					if channel_content[imaging_mode]:
+						used_imaging_modes.append(imaging_mode)
+				channel_purposes_str = ', '.join(mode for mode in used_imaging_modes)
+				if 'registration' in channel_purposes_str:
+					no_registration=False
+				this_channel_form.channel_purposes_str.data = channel_purposes_str
+				resolution_list_index+=1
 
 	if processing_progress != 'incomplete':
 		logger.info(f"Processing is currently {processing_progress} but accessing the processing entry page anyway")
