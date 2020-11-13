@@ -1522,6 +1522,7 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		data=data6,
 		follow_redirects=True)	
 	assert b"Imaging entry for sample sample-001 was successful" in response6.data
+	
 
 """ Test for imaging tasks """
 
@@ -1580,6 +1581,78 @@ def test_raw_precomputed_pipeline_starts(test_client,test_delete_spockadmin_db_c
 	tasks.make_precomputed_rawdata.run(**precomputed_kwargs) 
 	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
 	assert len(table_contents) > 0
+
+def test_raw_precomputed_pipeline_starts_ventral_up_imaging(test_client,
+	test_imaged_request_dorsal_up_and_ventral_up_nonadmin,
+	test_delete_spockadmin_db_contents):
+	""" Test that the raw precomputed pipeline task runs through
+	for a request with ventral up and dorsal up imaging,
+	
+	Uses a test script on spock which just returns
+	job ids. Runs a celery task """
+	from lightserv.imaging import tasks
+	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
+	username='lightserv-test'
+	request_name='nonadmin_request'
+	sample_name='sample-001'
+	imaging_request_number=1
+	image_resolution='1.3x'
+	channel_name='488'
+	ventral_up=1
+	channel_index=0
+	number_of_z_planes=657
+	left_lightsheet_used=True
+	right_lightsheet_used=False
+	z_step=10
+	rawdata_subfolder='test488'
+	precomputed_kwargs = dict(username=username,request_name=request_name,
+							sample_name=sample_name,imaging_request_number=imaging_request_number,
+							image_resolution=image_resolution,channel_name=channel_name,
+							ventral_up=ventral_up,
+							channel_index=channel_index,number_of_z_planes=number_of_z_planes,
+							left_lightsheet_used=left_lightsheet_used,
+							right_lightsheet_used=right_lightsheet_used,
+							z_step=z_step,rawdata_subfolder=rawdata_subfolder)
+	raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
+			 f"{request_name}/{sample_name}/"
+			 f"imaging_request_{imaging_request_number}/viz/raw")
+
+	if ventral_up:
+		channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}_ventral_up')
+		raw_data_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+						request_name,sample_name,
+						f"imaging_request_{imaging_request_number}","rawdata",
+						f"resolution_{image_resolution}_ventral_up",f"{rawdata_subfolder}")
+		layer_name = f'channel{channel_name}_raw_left_lightsheet_ventral_up'
+	else:
+		channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
+		raw_data_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+						request_name,sample_name,
+						f"imaging_request_{imaging_request_number}","rawdata",
+						f"resolution_{image_resolution}",f"{rawdata_subfolder}")	
+		layer_name = f'channel{channel_name}_raw_left_lightsheet'
+	
+	this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
+	precomputed_kwargs['lightsheet'] = 'left'
+	precomputed_kwargs['viz_dir'] = this_viz_dir
+	
+	precomputed_kwargs['layer_name'] = layer_name
+	layer_dir = os.path.join(this_viz_dir,layer_name)
+	# Figure out what x and y dimensions are
+	lightsheet_index_code = 'C00' # always for left lightsheet
+	precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
+	all_slices = glob.glob(
+		f"{raw_data_dir}/*RawDataStack[00 x 00*{lightsheet_index_code}*Filter000{channel_index}*tif")
+	first_slice = all_slices[0]
+	first_im = Image.open(first_slice)
+	x_dim,y_dim = first_im.size
+	first_im.close() 
+	precomputed_kwargs['x_dim'] = x_dim
+	precomputed_kwargs['y_dim'] = y_dim
+	tasks.make_precomputed_rawdata.run(**precomputed_kwargs) 
+	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
+	assert len(table_contents) > 0
+
 
 """ Tests for Imaging table """	
 

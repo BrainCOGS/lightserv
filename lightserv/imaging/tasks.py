@@ -45,6 +45,7 @@ def make_precomputed_rawdata(**kwargs):
 	sample_name=kwargs['sample_name']
 	imaging_request_number=kwargs['imaging_request_number']
 	channel_name=kwargs['channel_name']
+	ventral_up=kwargs['ventral_up']
 	channel_index=kwargs['channel_index']
 	image_resolution=kwargs['image_resolution']
 	number_of_z_planes=kwargs['number_of_z_planes']
@@ -54,14 +55,22 @@ def make_precomputed_rawdata(**kwargs):
 
 	restrict_dict = dict(username=username,request_name=request_name,
 		sample_name=sample_name,imaging_request_number=imaging_request_number,
-		image_resolution=image_resolution,channel_name=channel_name)
+		image_resolution=image_resolution,channel_name=channel_name,
+		ventral_up=ventral_up)
 	this_imaging_channel_content = db_lightsheet.Request.ImagingChannel() & restrict_dict
 	logger.debug(this_imaging_channel_content)
 	""" Now append to kwargs to make the parameter dictionary
 	to save on /jukebox so spock can see it """
 	# x_dim,y_dim,z_dim = 2160,2560,int(number_of_z_planes)
 
-	rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+	if ventral_up:
+		rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+								 request_name,sample_name,
+								 f"imaging_request_{imaging_request_number}","rawdata",
+								 f"resolution_{image_resolution}_ventral_up",f"{rawdata_subfolder}")
+
+	else:
+		rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
 								 request_name,sample_name,
 								 f"imaging_request_{imaging_request_number}","rawdata",
 								 f"resolution_{image_resolution}",f"{rawdata_subfolder}")
@@ -77,7 +86,7 @@ def make_precomputed_rawdata(**kwargs):
 
 	""" Now set up the connection to spock """
 	
-	if os.environ['FLASK_MODE'] == 'TEST' or os.environ['FLASK_MODE'] == 'DEV':
+	if os.environ['FLASK_MODE'] == 'TEST':
 		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_imaging_script.sh"
 	else:
 		command = ("cd /jukebox/wang/ahoag/precomputed/raw_pipeline; "

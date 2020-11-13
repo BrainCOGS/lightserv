@@ -800,6 +800,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 								""" Check that number of files is correct """
 								if validated:
 									logger.debug("Checking validation on rawdata subfolder")
+									logger.debug(rawdata_fullpath)
 									""" Count the number of files we actually find. """
 									number_of_rawfiles_found = 0
 									if image_resolution in ['3.6x','15x']:
@@ -1292,15 +1293,23 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 												left_lightsheet_used=left_lightsheet_used,
 												right_lightsheet_used=right_lightsheet_used,
 												z_step=z_step,rawdata_subfolder=rawdata_subfolder)
-						imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-										 request_name,this_sample_name,f"imaging_request_1",
-										 "rawdata",f"resolution_{image_resolution}")
+
+						
 						raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
 								 f"{request_name}/{this_sample_name}/"
 								 f"imaging_request_{imaging_request_number}/viz/raw")
 
 						mymkdir(raw_viz_dir)
-						channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
+						if ventral_up:
+							imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+										 request_name,this_sample_name,f"imaging_request_1",
+										 "rawdata",f"resolution_{image_resolution}_ventral_up")
+							channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}_ventral_up')
+						else:
+							imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+										 request_name,this_sample_name,f"imaging_request_1",
+										 "rawdata",f"resolution_{image_resolution}")
+							channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
 						mymkdir(channel_viz_dir)
 						raw_data_dir = os.path.join(imaging_dir,rawdata_subfolder)
 						logger.debug("raw data dir:")

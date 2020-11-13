@@ -1842,6 +1842,84 @@ def test_request_resolution_switched_nonadmin(test_client,test_cleared_request_n
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 
+@pytest.fixture(scope='function') 
+def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_cleared_request_nonadmin,
+	test_delete_request_db_contents,test_login_zmd):
+	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
+	with imager='zmd' and adds a ventral up 488 channel in addition to dorsal up 488 channel """
+
+	print('----------Setup test_imaged_request_dorsal_up_and_ventral_up_nonadmin fixture ----------')
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'zmd'
+
+	""" First add flipped channel in sample section since we only have 1 sample """
+	data1 = {
+		'image_resolution_batch_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-add_flipped_channel_button':True,
+		}
+	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_request',
+			imaging_batch_number=1),
+		data=data1,
+		follow_redirects=True)
+	
+	""" Submit the sample form """
+	data2 = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':10,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-ventral_up':1,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':10,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test488',
+		'sample_forms-0-notes_from_imaging':'some custom notes',
+		'sample_forms-0-submit':True
+	}
+	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_request',
+			imaging_batch_number=1),
+		data=data2,
+		follow_redirects=True)	
+
+	""" submit the entire form """
+	data3 = {
+		'submit':True
+		}
+
+	response3 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_request',
+			imaging_batch_number=1),
+		data=data3,
+		follow_redirects=True)
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
+	yield test_client
+	print('----------Teardown test_imaged_request_dorsal_up_and_ventral_up_nonadmin fixture ----------')
+
+
 # @pytest.fixture(scope='function') 
 # def test_imaged_request_nonadmin_new_channel_added(test_client,test_cleared_request_nonadmin,
 # 	test_delete_request_db_contents,test_login_zmd):
