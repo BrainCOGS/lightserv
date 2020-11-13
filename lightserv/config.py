@@ -67,10 +67,10 @@ class DevConfig(BaseConfig):
 		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
 		'schedule': timedelta(minutes=5)
 		},
-		# 'rawprecomp_job_status_checker': {
-		# 'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
-		# 'schedule': timedelta(seconds=15)
-		# },
+		'rawprecomp_job_status_checker': {
+		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
+		'schedule': timedelta(seconds=15)
+		},
 		# 'blendedprecomp_job_ready_checker': {
 		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
 		# 'schedule': timedelta(seconds=30)

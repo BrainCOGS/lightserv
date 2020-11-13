@@ -842,6 +842,8 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 											number_of_rawfiles_found += number_of_rawfiles_found_right_lightsheet
 										else:
 											# doesn't matter if its left or right lightsheet. Since there is only one, their glob patterns will be identical
+											logger.debug("channel index:")
+											logger.debug(channel_index)
 											number_of_rawfiles_found = \
 												len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
 										logger.debug(number_of_rawfiles_expected)
@@ -1292,6 +1294,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 												channel_index=channel_index,number_of_z_planes=number_of_z_planes,
 												left_lightsheet_used=left_lightsheet_used,
 												right_lightsheet_used=right_lightsheet_used,
+												ventral_up=ventral_up,
 												z_step=z_step,rawdata_subfolder=rawdata_subfolder)
 
 						
