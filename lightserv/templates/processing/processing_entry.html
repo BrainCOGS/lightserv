@@ -27,6 +27,7 @@
 				{% set image_resolution_form = form.image_resolution_forms[ii] %}
 				<!-- Render hiddenfield for image resolution -->
 				{{ image_resolution_form.image_resolution() }}
+				{{ image_resolution_form.ventral_up() }}
 				{% set image_resolution = image_resolution_form.image_resolution.data %}
 				{% set resolution_ventral_up = image_resolution_form.ventral_up.data %}
 				
@@ -44,6 +45,7 @@
 					<!-- Render hiddenfields for channel_form -->
 					{{ channel_form.channel_name() }}
 					{{ channel_form.channel_purposes_str() }}
+					{{ channel_form.ventral_up() }}
 
 					{% set channel_name = channel_form.channel_name.data %}
 					{% set channel_purposes_str = channel_form.channel_purposes_str.data %}
@@ -61,10 +63,18 @@
 						</div>
 
 						<div>
-							<a id='larger' >Raw data folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/rawdata/{{channel_content['rawdata_subfolder']}} </span>
+							{% if resolution_ventral_up %}
+								<a id='larger' >Raw data folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/rawdata/resolution_{{image_resolution}}_ventral_up/{{channel_content['rawdata_subfolder']}} </span>
+							{% else %}
+								<a id='larger' >Raw data folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/rawdata/resolution_{{image_resolution}}/{{channel_content['rawdata_subfolder']}} </span>
+							{% endif %}
 						</div>
 						<div>
-							<a id='larger' >Output folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/output/processing_request_{{processing_request_number}}/resolution_{{channel_content['image_resolution']}} </span>
+							{% if resolution_ventral_up %}
+								<a id='larger' >Output folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/output/processing_request_{{processing_request_number}}/resolution_{{channel_content['image_resolution']}}_ventral_up </span>
+							{% else %}
+								<a id='larger' >Output folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/output/processing_request_{{processing_request_number}}/resolution_{{channel_content['image_resolution']}} </span>
+							{% endif %}
 						</div>
 
 						<div>

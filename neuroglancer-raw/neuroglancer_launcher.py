@@ -77,11 +77,12 @@ for ii in range(cv_count):
 	cv_name = session_dict[f'cv{cv_number}_name']
 	channel_name = cv_name.split('_')[0]
 	lightsheet = cv_name.split('_')[1]
-
-	if channel_name not in layer_dict.keys():
-		layer_dict[channel_name] = {lightsheet:cv_name}
+	ventral_up = True if 'ventral_up' in cv_name else False
+	adjusted_channel_name = channel_name + '_ventral_up' if ventral_up else channel_name + '_dorsal_up'
+	if adjusted_channel_name not in layer_dict.keys():
+		layer_dict[adjusted_channel_name] = {lightsheet:cv_name}
 	else:
-		layer_dict[channel_name][lightsheet] = cv_name
+		layer_dict[adjusted_channel_name][lightsheet] = cv_name
 	layer_type = session_dict[f'layer{cv_number}_type']
 	with viewer.txn() as s:
 		logging.debug("Loading in source: ")

@@ -166,6 +166,7 @@ class Request(dj.Manual):
         definition = """ # Processing parameters at the image resolution level for a given ProcessingRequest(). These represent spock jobs
         -> master.ProcessingRequest
         image_resolution                          :   enum("1.3x","4x","1.1x","2x","3.6x")
+        ventral_up = 0                            :   boolean # whether brain was flipped upside down to be imaged
         ----        
         atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
         final_orientation                         :   enum("sagittal","coronal","horizontal")

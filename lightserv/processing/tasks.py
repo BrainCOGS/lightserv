@@ -53,7 +53,7 @@ def run_lightsheet_pipeline(username,request_name,
 	import tifffile
 	from xml.etree import ElementTree as ET 
 	
-	''' Fetch the processing params from the table to run the code '''
+	''' Fetch the processing params from the db table to run the code '''
 	sample_contents = db_lightsheet.Request.Sample() & f'username="{username}"' \
 	& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"'
 	all_channel_contents = db_lightsheet.Request.ImagingChannel() & f'username="{username}"' \
@@ -77,20 +77,24 @@ def run_lightsheet_pipeline(username,request_name,
 	all_imaging_modes = current_app.config['IMAGING_MODES']
 	connection = db_lightsheet.Request.Sample.connection
 	with connection.transaction:
-		unique_image_resolutions = sorted(list(set(all_channel_contents.fetch('image_resolution'))))
-		for image_resolution in unique_image_resolutions:
+		results_list=all_channel_contents.fetch('image_resolution','ventral_up',as_dict=True)
+		tup_list = sorted(set([(d['image_resolution'],d['ventral_up']) for d in results_list]))
+		for image_resolution,ventral_up in tup_list:
 			if image_resolution == '3.6x' or image_resolution == '15x':
 				logger.debug("Not running pipeline for Image resolution: {}".format(image_resolution))
 				logger.debug("This resolution is not supported yet!")
 				continue
-			logger.debug("Setting up param dicts for Image resolution: {}".format(image_resolution))
+			logger.debug(f"Setting up param dicts for Image resolution: {image_resolution}, \
+				ventral_up: {bool(ventral_up)}")
 			
-			this_image_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & \
+			this_processing_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & \
 			 f'request_name="{request_name}"' & f'username="{username}"' & \
 			 f'sample_name="{sample_name}"' & f'imaging_request_number="{imaging_request_number}"' & \
 			 f'processing_request_number="{processing_request_number}"' & \
-			 f'image_resolution="{image_resolution}"'  
-			atlas_name,final_orientation = this_image_resolution_content.fetch1('atlas_name','final_orientation')
+			 f'image_resolution="{image_resolution}"'  &  f'ventral_up={ventral_up}'
+
+			logger.debug("grabbing atlas name and final_orientation") 
+			atlas_name,final_orientation = this_processing_resolution_content.fetch1('atlas_name','final_orientation')
 	
 			atlas_file = atlas_dict[atlas_name]
 			atlas_annotation_file = atlas_annotation_dict[atlas_name]
@@ -105,9 +109,14 @@ def run_lightsheet_pipeline(username,request_name,
 			param_dict['AtlasFile'] = atlas_file
 			param_dict['annotationfile'] = atlas_annotation_file
 
-			output_directory = os.path.join(sample_basepath,'output',
-				f'processing_request_{processing_request_number}',
-				f'resolution_{image_resolution}')
+			if ventral_up:
+				output_directory = os.path.join(sample_basepath,'output',
+					f'processing_request_{processing_request_number}',
+					f'resolution_{image_resolution}_ventral_up')
+			else:
+				output_directory = os.path.join(sample_basepath,'output',
+					f'processing_request_{processing_request_number}',
+					f'resolution_{image_resolution}')
 			param_dict['outputdirectory'] = output_directory
 
 			""" figure out the resize factor based on resolution """
@@ -131,8 +140,9 @@ def run_lightsheet_pipeline(username,request_name,
 
 			""" Need to find the channels belonging to the same rawdata_subfolder so I can  
 			fill out the inputdictionary properly """
-			channel_contents_this_resolution = \
-				(all_channel_contents & f'image_resolution="{image_resolution}"')
+			restrict_dict = {'image_resolution':image_resolution,
+					'ventral_up':ventral_up}
+			channel_contents_this_resolution = all_channel_contents & restrict_dict
 			channel_contents_list_this_resolution = channel_contents_this_resolution.fetch(as_dict=True)
 
 			unique_rawdata_subfolders = list(set(channel_contents_this_resolution.fetch('rawdata_subfolder')))
@@ -141,8 +151,14 @@ def run_lightsheet_pipeline(username,request_name,
 			for ii in range(len(unique_rawdata_subfolders)):
 				rawdata_subfolder = unique_rawdata_subfolders[ii]
 				# this_rawdata_dict['rawdata_subfolder']=rawdata_subfolder
-				rawdata_fullpath = os.path.join(raw_basepath,f'resolution_{image_resolution}',
-					rawdata_subfolder)
+				if ventral_up:
+					rawdata_fullpath = os.path.join(raw_basepath,
+						f'resolution_{image_resolution}_ventral_up',
+						rawdata_subfolder)
+				else:
+					rawdata_fullpath = os.path.join(raw_basepath,
+						f'resolution_{image_resolution}',
+						rawdata_subfolder)
 				inputdictionary[rawdata_fullpath] = []	
 
 				""" Loop through the channels themselves to make the input dictionary
@@ -157,13 +173,14 @@ def run_lightsheet_pipeline(username,request_name,
 					processing_channel_insert_dict = {'username':username,'request_name':request_name,
 					'sample_name':sample_name,'imaging_request_number':imaging_request_number,
 					'processing_request_number':processing_request_number,
+					'ventral_up':ventral_up,
 					'image_resolution':image_resolution,'channel_name':channel_name,
 					'intensity_correction':True,'datetime_processing_started':now}
 
 					""" Figure out which imaging modes were selected for this channel, 
 					e.g. registration, injection detection """
 					channel_imaging_modes = [key for key in all_imaging_modes if channel_dict[key] == True]
-					this_channel_content = all_channel_contents & f'channel_name="{channel_name}"'
+					this_channel_content = channel_contents_this_resolution & f'channel_name="{channel_name}"'
 		
 					""" grab the tiling, number of z planes info from the first entry
 					since the parameter dictionary only needs one value for 
@@ -308,7 +325,8 @@ def run_lightsheet_pipeline(username,request_name,
 			command_get_commit = f'cd {processing_code_dir}; git rev-parse --short HEAD'
 
 			
-			if os.environ['FLASK_MODE'] == 'TEST' or os.environ['FLASK_MODE'] == 'DEV' :
+			# if os.environ['FLASK_MODE'] == 'TEST' or os.environ['FLASK_MODE'] == 'DEV' :
+			if os.environ['FLASK_MODE'] == 'TEST':
 				if n_channels_reg > 0:
 					command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline.sh"""
 				else:	
@@ -336,7 +354,7 @@ def run_lightsheet_pipeline(username,request_name,
 				client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
 			except paramiko.ssh_exception.AuthenticationException:
 				logger.info(f"Failed to connect to spock to start job. ")
-				dj.Table._update(this_image_resolution_content,'lightsheet_pipeline_spock_job_progress','NOT_SUBMITTED')	
+				dj.Table._update(this_processing_resolution_content,'lightsheet_pipeline_spock_job_progress','NOT_SUBMITTED')	
 				flash("Error submitting your job to spock. "
 					  "Most likely the ssh key was not copied correctly to your account on spock. "
 					  "The key can be found in an email that was sent to you from "
@@ -384,9 +402,9 @@ def run_lightsheet_pipeline(username,request_name,
 			else:
 				jobid_final_step = jobid_step3 
 
-			dj.Table._update(this_image_resolution_content,'lightsheet_pipeline_spock_jobid',jobid_final_step)
+			dj.Table._update(this_processing_resolution_content,'lightsheet_pipeline_spock_jobid',jobid_final_step)
 			logger.debug("Updated spock jobid in ProcessingResolutionRequest() table")
-			dj.Table._update(this_image_resolution_content,'lightsheet_pipeline_spock_job_progress','SUBMITTED')
+			dj.Table._update(this_processing_resolution_content,'lightsheet_pipeline_spock_job_progress','SUBMITTED')
 			logger.debug("Updated spock job progress in ProcessingResolutionRequest() table")
 
 			""" Get the brainpipe commit and add it to processing request contents table """
@@ -395,7 +413,7 @@ def run_lightsheet_pipeline(username,request_name,
 			brainpipe_commit = str(stdout_commit.read().decode("utf-8").strip('\n'))
 			logger.debug("BRAINPIPE COMMIT")
 			logger.debug(brainpipe_commit)
-			dj.Table._update(this_image_resolution_content,'brainpipe_commit',brainpipe_commit)
+			dj.Table._update(this_processing_resolution_content,'brainpipe_commit',brainpipe_commit)
 			logger.debug("Updated brainpipe_commit in ProcessingResolutionRequest() table")
 
 			client.close()
@@ -550,10 +568,12 @@ def make_precomputed_blended_data(**kwargs):
 	sample_name=kwargs['sample_name']
 	imaging_request_number=kwargs['imaging_request_number']
 	processing_request_number=kwargs['processing_request_number']
+	ventral_up=kwargs['ventral_up']
 	channel_name=kwargs['channel_name']
 	channel_index=kwargs['channel_index']
 	image_resolution=kwargs['image_resolution']
 	z_step=kwargs['z_step']
+
 	viz_dir = kwargs['viz_dir'] 
 	logger.debug("Visualization directory:")
 	logger.debug(viz_dir)
@@ -627,7 +647,8 @@ def make_precomputed_blended_data(**kwargs):
 		username=username,request_name=request_name,
 		sample_name=sample_name,imaging_request_number=imaging_request_number,
 		processing_request_number=processing_request_number,
-		image_resolution=image_resolution,channel_name=channel_name)
+		image_resolution=image_resolution,channel_name=channel_name,
+		ventral_up=ventral_up)
 	this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict 
 	try:
 		dj.Table._update(this_processing_channel_content,'blended_precomputed_spock_jobid',str(jobid_step2))
@@ -943,6 +964,7 @@ def processing_job_status_checker():
 		job_status_indices_dict_earlier_steps = {jobid:[i for i, x in enumerate(jobids_received_earlier_steps) \
 			if x == jobid] for jobid in set(jobids_received_earlier_steps)} 
 		""" Loop through the earlier steps and figure out their statuses """
+		logger.debug("looping through steps 0-2 to figure out statuses")
 		for step_counter in range(3):
 		# for jobid_earlier_step,indices_list_earlier_step in job_status_indices_dict_earlier_steps.items():
 			step = f'step{step_counter}'
@@ -952,8 +974,9 @@ def processing_job_status_checker():
 			status = determine_status_code(status_codes_earlier_step)
 			status_step_str = f'status_step{step_counter}'
 			job_insert_dict[status_step_str] = status
+			logger.debug(f"status of {step} is {status}")
 			step_counter +=1 
-
+		logger.debug("done with earlier steps")
 		""" If this pipeline run is now 100 percent complete,
 		figure out if all of the other pipeline runs 
 		that exist for this same processing request
@@ -966,33 +989,25 @@ def processing_job_status_checker():
 			"imaging_request_number","processing_request_number",
 			"image_resolution")
 		if status_step3 == 'COMPLETED':
-			""" Find all processing channels from this same processing request """
+			""" Find all processing channels from this same processing resolution request """
+			logger.debug("checking to see whether all processing resolution requests "
+						 "are complete in this processing request are complete")
 			restrict_dict_processing = dict(username=username,request_name=request_name,
 				sample_name=sample_name,imaging_request_number=imaging_request_number,
 				processing_request_number=processing_request_number)
 			processing_request_contents = all_processing_request_contents & restrict_dict_processing
-			logger.debug("processing_request_contents:")
-			logger.debug(processing_request_contents)
 			processing_resolution_contents = db_lightsheet.Request.ProcessingResolutionRequest() & \
 				restrict_dict_processing
-			processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
-				restrict_dict_processing
-			""" First update that the processing is complete for each entry """
-			now = datetime.now()
-			for processing_channel_dict in processing_channel_contents:
-				channel_name = processing_channel_dict['channel_name']
-				this_processing_channel_content = processing_channel_contents & \
-					f'channel_name="{channel_name}"'
-				dj.Table._update(this_processing_channel_content,
-					'datetime_processing_completed',now)
-			# logger.debug(processing_channel_contents)
+			
 			""" Loop through and pool all of the job statuses """
 			processing_request_job_statuses = []
+			
 			for processing_resolution_dict in processing_resolution_contents:
 				job_status = processing_resolution_dict['lightsheet_pipeline_spock_job_progress']
 				processing_request_job_statuses.append(job_status)
 
 			logger.debug("job statuses for this processing request:")
+			logger.debug(processing_request_job_statuses)
 			# print(username,)
 			# logger.debug(processing_request_job_statuses)
 			# logger.debug(username,request_name,sample_name,imaging_request_number,processing_request_number)
@@ -1855,12 +1870,23 @@ def check_for_spock_jobs_ready_for_making_precomputed_blended_data():
 			imaging_request_number = this_processing_channel_contents['imaging_request_number']
 			processing_request_number = this_processing_channel_contents['processing_request_number']
 			image_resolution = this_processing_channel_contents['image_resolution']
+			ventral_up = this_processing_channel_contents['ventral_up']
 			channel_name = this_processing_channel_contents['channel_name']
 			channel_index = this_processing_channel_contents['imspector_channel_index']
 			rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder']
 			data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
 			channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
-			blended_data_path = os.path.join(data_bucket_rootpath,username,
+			if ventral_up:
+				blended_data_path = os.path.join(data_bucket_rootpath,username,
+							 request_name,sample_name,
+							 f"imaging_request_{imaging_request_number}",
+							 "output",
+							 f"processing_request_{processing_request_number}",
+							 f"resolution_{image_resolution}_ventral_up",
+							 "full_sizedatafld",
+							 f"{rawdata_subfolder}_ch{channel_index_padded}")
+			else:
+				blended_data_path = os.path.join(data_bucket_rootpath,username,
 							 request_name,sample_name,
 							 f"imaging_request_{imaging_request_number}",
 							 "output",
@@ -1878,9 +1904,11 @@ def check_for_spock_jobs_ready_for_making_precomputed_blended_data():
 				sample_name=sample_name,imaging_request_number=imaging_request_number,
 				processing_request_number=processing_request_number,
 				image_resolution=image_resolution,channel_name=channel_name,
+				ventral_up=ventral_up,
 				channel_index=channel_index,
 				processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
 				z_step=z_step,blended_data_path=blended_data_path)
+
 			blended_viz_dir = os.path.join(data_bucket_rootpath,username,
 							 request_name,sample_name,
 							 f"imaging_request_{imaging_request_number}",
@@ -1889,13 +1917,16 @@ def check_for_spock_jobs_ready_for_making_precomputed_blended_data():
 							 "blended")
 			mymkdir(blended_viz_dir)
 			logger.debug(f"Created directory {blended_viz_dir}")
-			channel_viz_dir = os.path.join(blended_viz_dir,f'channel_{channel_name}')
+			if ventral_up:
+				channel_viz_dir = os.path.join(blended_viz_dir,f'channel_{channel_name}_ventral_up')
+			else:
+				channel_viz_dir = os.path.join(blended_viz_dir,f'channel_{channel_name}')
 			mymkdir(channel_viz_dir)
 			logger.debug(f"Created directory {channel_viz_dir}")
 			precomputed_kwargs['viz_dir'] = channel_viz_dir
 			if not os.environ['FLASK_MODE'] == 'TEST':
 				make_precomputed_blended_data.delay(**precomputed_kwargs)
-				logger.info("Sent precomputed task for tiling blended data")
+				logger.info("Sent precomputed task for blended data")
 
 	return "Checked for light sheet pipeline jobs whose data have been blended"
 
@@ -2006,6 +2037,7 @@ def blended_precomputed_job_status_checker():
 		
 		""" Loop through the jobids from the earlier steps
 		and figure out their statuses from their array job statuses"""
+		logger.debug("Looping over earlier steps")
 		for step_counter in range(2):
 			step = f'step{step_counter}'
 			jobid_earlier_step = jobid_step_dict[step]
@@ -2013,6 +2045,7 @@ def blended_precomputed_job_status_checker():
 			status_codes_earlier_step = [status_codes_received_earlier_steps[ii] for ii in indices_list_earlier_step]
 			status = determine_status_code(status_codes_earlier_step)
 			status_step_str = f'status_step{step_counter}'
+			logger.debug(f"{step} with status: {status}")
 			job_insert_dict[status_step_str] = status
 			step_counter +=1 
 
@@ -2067,7 +2100,7 @@ def blended_precomputed_job_status_checker():
 			if all(x=='COMPLETED' for x in processing_request_job_statuses):
 				neuroglancer_form_relative_url = os.path.join(
 					'/neuroglancer',
-					'blended_data_setup',
+					'general_data_setup',
 					username,
 					request_name,
 					sample_name,

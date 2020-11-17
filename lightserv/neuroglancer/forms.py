@@ -14,6 +14,7 @@ class ChannelForm(FlaskForm):
 	channel_name = HiddenField('Channel Name')
 	viz_left_lightsheet = BooleanField("Visualize?")
 	viz_right_lightsheet = BooleanField("Visualize?")
+	ventral_up = HiddenField("ventral_up")
 
 class ImageResolutionForm(FlaskForm):
 	""" A sub-form for each image resolution in RawDataSetupForm """

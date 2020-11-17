@@ -3,7 +3,7 @@ from flask_table import Table, Col, LinkCol, ButtonCol, create_table
 from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import (DateTimeCol, DesignatedRoleCol,
-    BooltoStringCol, ProgressCol,ChannelPurposeCol)
+    BooltoStringCol, ProgressCol,ChannelPurposeCol,DorsalOrVentralCol)
 import os
 
 def dynamic_processing_management_table(contents,table_id,ignore_columns=[],
@@ -109,11 +109,11 @@ def create_dynamic_processing_overview_table(contents,table_id,ignore_columns=[]
     table_class.add_column('image_resolution',Col('image resolution'))
     table_class.add_column('imaging_request_number',Col('imaging request number'))
     table_class.add_column('processing_request_number',Col('processing request number'))
+    table_class.add_column('ventral_up',DorsalOrVentralCol('Dorsal up or Ventral up?'))
     # table_class.add_column('channel_name',Col('channel name'))
     # table_class.add_column('tiling_scheme',Col('tiling scheme'))
     table_class.add_column('processor',Col('processor'))
     table_class.add_column('processing_progress',ProgressCol('processing progress'))
-    table_class.add_column('lightsheet_pipeline_spock_jobid',Col('spock jobid'))
 
     table = table_class(contents)
     

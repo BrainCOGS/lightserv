@@ -24,6 +24,7 @@
 				        <tr>
 				            <th>Image resolution </th>
 				            <th>Channel wavelength(nm)</th>
+				            <th>Dorsal up or Ventral up?</th>
 				            <th>Left lightsheet</th>
 				            <th>Right lightsheet </th>
 				        </tr>
@@ -33,13 +34,16 @@
 							{% set this_channel_content = channel_contents_lists[ii][jj] %}
 							{% set left_lightsheet_used = this_channel_content['left_lightsheet_used'] %}
 							{% set right_lightsheet_used = this_channel_content['right_lightsheet_used'] %}
-							<!-- render the hidden field -->
+							{% set ventral_up = this_channel_content['ventral_up'] %}
+							<!-- render the hidden fields -->
 							{{ channel_form.channel_name() }}
+							{{ channel_form.ventral_up() }}
 							{% set channel_name = channel_form.channel_name.data %}
 
 							<tr>   
 							    <td>{{image_resolution}}</td>
 							    <td>{{channel_name}}</td>
+							    <td>{% if ventral_up %}Ventral{% else %}Dorsal{%endif%}</td>
 							    <td> 
 							    	{% if left_lightsheet_used %}
 							    		<div>							    		

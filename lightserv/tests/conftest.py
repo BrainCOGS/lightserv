@@ -1919,59 +1919,6 @@ def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_clear
 	yield test_client
 	print('----------Teardown test_imaged_request_dorsal_up_and_ventral_up_nonadmin fixture ----------')
 
-
-# @pytest.fixture(scope='function') 
-# def test_imaged_request_nonadmin_new_channel_added(test_client,test_cleared_request_nonadmin,
-# 	test_delete_request_db_contents,test_login_zmd):
-# 	""" In the imaging entry form, Zahra adds an imaging channel
-# 	and then submits the form """
-
-# 	print('----------Setup test_imaged_request_nonadmin_new_channel_added fixture ----------')
-# 	with test_client.session_transaction() as sess:
-# 		sess['user'] = 'zmd'
-# 	data1 = {
-# 		'image_resolution_forms-0-image_resolution':'1.3x',
-# 		'image_resolution_forms-0-new_channel_dropdown':'555',
-# 		'image_resolution_forms-0-new_channel_purpose':'injection_detection',
-# 		'image_resolution_forms-0-new_channel_button': True,
-# 		}
-# 	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
-# 			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
-# 			imaging_request_number=1),
-# 		data=data1,
-# 		follow_redirects=True)
-
-# 	""" Now submit the form for both channels"""
-# 	data2 = {
-# 		'image_resolution_forms-0-image_resolution':'1.3x',
-# 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-# 		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
-# 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-# 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
-# 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
-# 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-# 		'image_resolution_forms-0-channel_forms-0-z_step':10,
-# 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
-# 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
-# 		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
-# 		'image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
-# 		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
-# 		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
-# 		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
-# 		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
-# 		'image_resolution_forms-0-channel_forms-1-z_step':10,
-# 		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
-# 		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
-# 		'submit':True
-# 		}
-# 	response2 = test_client.post(url_for('imaging.imaging_entry',
-# 			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
-# 			imaging_request_number=1),
-# 		data=data2,
-# 		follow_redirects=True)
-# 	yield test_client
-# 	print('----------Teardown test_imaged_request_nonadmin_new_channel_added fixture ----------')
-
 @pytest.fixture(scope='function') 
 def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_request_generic_imaging_nonadmin,
 	test_delete_request_db_contents,test_login_zmd):
@@ -2439,6 +2386,46 @@ def completed_processing_request_viz_nonadmin(test_client,processing_request_viz
 	yield test_client
 
 	print('----------Teardown completed_processing_request_viz_nonadmin fixture ----------')
+
+@pytest.fixture(scope='function')
+def processing_form_submitted_dorsal_up_ventral_up(test_client,
+	test_imaged_request_dorsal_up_and_ventral_up_nonadmin,
+	test_delete_request_db_contents):
+	""" A fixture for having a completely cleared and imaged request
+	and the processing form has been submitted - this just makes a ProcessingResolutionRequest()
+	entry and sets the processing_progress="running" in ProcessingRequest
+
+	Request called "test_dorsal_ventral" by lightserv-test, a nonadmin """
+
+	print('----------Setup processing_form_submitted_dorsal_up_ventral_up fixture----------')
+
+	username = "lightserv-test"
+	request_name = "nonadmin_request"
+	sample_name = "sample-001"
+	imaging_request_number = 1
+	processing_request_number = 1
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-atlas_name':'allen_2017',
+		'image_resolution_forms-1-image_resolution':'1.3x_ventral_up',
+		'image_resolution_forms-1-ventral_up':True,
+		'image_resolution_forms-1-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-1-channel_forms-0-ventral_up':True,
+		'image_resolution_forms-1-atlas_name':'allen_2017',
+		'submit':True
+		}
+
+	response = test_client.post(url_for('processing.processing_entry',
+			username=username,request_name=request_name,sample_name=sample_name,
+			imaging_request_number=imaging_request_number,
+			processing_request_number=processing_request_number),
+		data=data,
+		follow_redirects=True)
+	yield test_client
+
+	print('----------Teardown processing_form_submitted_dorsal_up_ventral_up fixture ----------')
+
 
 """ Fixtures for neuroglancer """
 

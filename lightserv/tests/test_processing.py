@@ -136,7 +136,6 @@ def test_nonadmin_can_see_completed_processing_request(test_client,completed_pro
 	processing_progress = processing_request_1_row[request_number_column_index].text
 	assert processing_progress == 'complete'
 
-
 """ Tests for processing entry form """
 
 def test_processing_entry_form_loads(test_client,test_imaged_request_ahoag):
@@ -414,6 +413,63 @@ def test_new_channel_added_is_processed(test_client,test_imaged_request_nonadmin
 		'processing_request_number=1' &	'channel_name="555"'
 	assert len(processing_channel_contents) == 1
 
+def test_dorsal_up_and_ventral_up_appear_in_processing_entry_form(test_client,test_imaged_request_dorsal_up_and_ventral_up_nonadmin):
+	""" Test that a request which has both dorsal up and ventral up imaging 
+	has a dorsal up section and a separate ventral up section in the processing entry form
+	"""
+	response = test_client.get(url_for('processing.processing_entry',
+		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+		imaging_request_number=1,processing_request_number=1)
+		, follow_redirects=True)
+
+	assert b'Processing Entry Form' in response.data
+	assert b'nonadmin_request' in response.data 
+	assert b'(1/2) Image resolution: 1.3x' in response.data 
+	assert b'(2/2) Image resolution: 1.3x_ventral_up' in response.data 
+	assert b'Channel: 488_ventral_up' in response.data 
+
+def test_dorsal_up_and_ventral_up_processing_submits(test_client,
+	test_imaged_request_dorsal_up_and_ventral_up_nonadmin):
+	""" Test that submitting the processing entry form for a request 
+	which has both dorsal up and ventral up imaging 
+	launches a separate job for the single dorsal up 488 channel
+	and a separate job for the the ventral up 488 channel  
+	"""
+
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-atlas_name':'allen_2017',
+		'image_resolution_forms-1-image_resolution':'1.3x_ventral_up',
+		'image_resolution_forms-1-ventral_up':True,
+		'image_resolution_forms-1-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-1-channel_forms-0-ventral_up':True,
+		'image_resolution_forms-1-atlas_name':'allen_2017',
+		'submit':True
+		}
+
+	username = "lightserv-test"
+	request_name = "nonadmin_request"
+	sample_name = "sample-001"
+	imaging_request_number = 1
+	processing_request_number = 1
+	response = test_client.post(url_for('processing.processing_entry',
+			username=username,request_name=request_name,sample_name=sample_name,
+			imaging_request_number=imaging_request_number,
+			processing_request_number=processing_request_number),
+		data=data,
+		follow_redirects=True)
+	assert b"core facility requests" in response.data
+	assert b"Processing entry form" not in response.data
+
+	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
+			f'request_name="{request_name}"' & \
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			f'imaging_request_number="{imaging_request_number}"' & \
+			f'processing_request_number="{processing_request_number}"'
+	processing_progress = processing_request_contents.fetch1('processing_progress')
+	assert processing_progress == 'running'
+
 """ Tests for processing_table """
 
 def test_ahoag_access_processing_table(test_client,processing_request_ahoag):
@@ -475,7 +531,7 @@ def test_lightsheet_pipeline_starts(test_client,
 	test_delete_spockadmin_db_contents):
 	""" Test that the light sheet pipeline starts,
 	given the correct input. Uses a test script on spock which just returns
-	job ids. Runs a celery task """
+	job ids. Runs a celery task synchronously """
 	from lightserv.processing import tasks
 	import time
 	username='lightserv-test'
@@ -490,6 +546,28 @@ def test_lightsheet_pipeline_starts(test_client,
 		& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
 		f'imaging_request_number="{imaging_request_number}"'
 	print(all_channel_contents)
+	tasks.run_lightsheet_pipeline.run(**kwargs)
+	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
+	print(table_contents)
+	assert len(table_contents) > 0
+
+def test_lightsheet_pipeline_starts_dorsal_up_ventral_up(test_client,
+	processing_form_submitted_dorsal_up_ventral_up,
+	test_delete_spockadmin_db_contents):
+	""" Test that the light sheet pipeline starts two jobs
+	for a request that has dorsal up and ventral up imaging
+	Uses a test script on spock which just returns
+	job ids. Runs a celery task synchronously """
+	from lightserv.processing import tasks
+	import time
+	username='lightserv-test'
+	request_name='nonadmin_request'
+	sample_name='sample-001'
+	imaging_request_number=1
+	processing_request_number=1
+	kwargs = dict(username=username,request_name=request_name,
+		sample_name=sample_name,imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number)
 	tasks.run_lightsheet_pipeline.run(**kwargs)
 	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
 	print(table_contents)

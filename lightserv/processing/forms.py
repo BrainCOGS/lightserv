@@ -8,7 +8,7 @@ from wtforms.widgets import html5, HiddenInput
 
 class ChannelProcessingForm(FlaskForm):
 	channel_name = HiddenField('Channel name')
-	ventral_up = BooleanField('Dorsal up or ventral up?')
+	ventral_up = HiddenField('Dorsal up or ventral up?')
 	channel_purposes_str = HiddenField('Channel purposes')
 	registration = BooleanField('Registration',default=False)
 	injection_detection = BooleanField('Injection Detection',default=False)
@@ -26,7 +26,7 @@ class SubProcessingForm(FlaskForm):
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
 				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[Optional()],default='allen_2017')
 	image_resolution = HiddenField('Image resolution')
-	ventral_up = BooleanField('Dorsal up or ventral up?')
+	ventral_up = HiddenField('Dorsal up or ventral up?')
 	notes_for_processor = TextAreaField('''Special notes for processing 
 		 -- max 1024 characters --''',validators=[Length(max=1024)])
 	channel_forms = FieldList(FormField(ChannelProcessingForm),min_entries=0,

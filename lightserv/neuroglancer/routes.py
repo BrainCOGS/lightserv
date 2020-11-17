@@ -112,7 +112,18 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
                     channel_name = channel_form.channel_name.data
                     viz_left_lightsheet = channel_form.viz_left_lightsheet.data
                     viz_right_lightsheet = channel_form.viz_right_lightsheet.data
-                    
+                    ventral_up = int(channel_form.ventral_up.data)
+                    this_restrict_dict = {
+                            'channel_name':channel_name,
+                            'ventral_up':ventral_up}
+                    this_imaging_channel_contents =  imaging_channel_contents & \
+                            this_restrict_dict
+
+                    rawdata_subfolder = this_imaging_channel_contents.fetch1('rawdata_subfolder') 
+                    logger.debug("Have channel:")
+                    logger.debug(channel_name)
+                    logger.debug("Ventral up?")
+                    logger.debug(ventral_up)
                     for lightsheet in ['left','right']:
                         cv_contents_dict_this_lightsheet = {}
                         if lightsheet == 'left':
@@ -121,23 +132,33 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
                         elif lightsheet == 'right':
                             if not viz_right_lightsheet:
                                 continue
-                        cv_container_name = f'{session_name}_raw_{channel_name}_{lightsheet}_ls_container'
-                        cv_name = f"{channel_name}_{lightsheet}_ls_raw"
-                        cv_path = os.path.join(data_bucket_rootpath,username,request_name,
-                            sample_name,f'imaging_request_{imaging_request_number}','viz',
-                            'raw',f'channel_{channel_name}',f'{lightsheet}_lightsheet',
-                            f'channel{channel_name}_raw_{lightsheet}_lightsheet')      
+                        
+                        if ventral_up:
+                            logger.debug("Using ventral up cloudvolume")
+                            cv_container_name = f'{session_name}_raw_{channel_name}_{lightsheet}_ventral_up_ls_container'
+                            cv_name = f"{channel_name}_{lightsheet}_ventral_up_ls_raw"
+                            cv_path = os.path.join(data_bucket_rootpath,username,request_name,
+                                sample_name,f'imaging_request_{imaging_request_number}','viz',
+                                'raw',f'channel_{channel_name}_ventral_up',f'{lightsheet}_lightsheet',
+                                f'channel{channel_name}_raw_{lightsheet}_lightsheet')
+                            raw_data_path = os.path.join(data_bucket_rootpath,username,
+                                request_name,sample_name,
+                                f"imaging_request_{imaging_request_number}",
+                                "rawdata",f"resolution_{image_resolution}_ventral_up",rawdata_subfolder)
+                        else:
+                            logger.debug("Using dorsal up cloudvolume")
+                            cv_container_name = f'{session_name}_raw_{channel_name}_{lightsheet}_ls_container'
+                            cv_name = f"{channel_name}_{lightsheet}_ls_raw"
+                            cv_path = os.path.join(data_bucket_rootpath,username,request_name,
+                                sample_name,f'imaging_request_{imaging_request_number}','viz',
+                                'raw',f'channel_{channel_name}',f'{lightsheet}_lightsheet',
+                                f'channel{channel_name}_raw_{lightsheet}_lightsheet')      
+                            raw_data_path = os.path.join(data_bucket_rootpath,username,
+                                request_name,sample_name,
+                                f"imaging_request_{imaging_request_number}",
+                                "rawdata",f"resolution_{image_resolution}",rawdata_subfolder)
                         cv_number += 1              
-                        this_restrict_dict = {
-                            f'channel_name="{channel_name}"'}
-                        this_imaging_channel_contents =  imaging_channel_contents & \
-                            this_restrict_dict
-
-                        rawdata_subfolder = this_imaging_channel_contents.fetch1('rawdata_subfolder')          
-                        raw_data_path = os.path.join(data_bucket_rootpath,username,
-                             request_name,sample_name,
-                             f"imaging_request_{imaging_request_number}",
-                             "raw",rawdata_subfolder)
+                        
                         cv_contents_dict_this_lightsheet['image_resolution'] = image_resolution
                         cv_contents_dict_this_lightsheet['lightsheet'] = lightsheet
                         cv_contents_dict_this_lightsheet['cv_name'] = cv_name
@@ -231,28 +252,31 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
     for ii in range(len(unique_image_resolutions)):
         image_resolution = unique_image_resolutions[ii]
         # logger.debug(f"image resolution: {image_resolution}")
-
         form.image_resolution_forms.append_entry()
         this_image_resolution_form = form.image_resolution_forms[ii]
         this_image_resolution_form.image_resolution.data = image_resolution
-        """ Gather all imaging channels at this image resolution """
+        
+        """ Gather all imaging channel at this image resolution """
         imaging_channel_contents_this_resolution = (imaging_channel_contents & \
             f'image_resolution="{image_resolution}"')
-        imaging_channels_this_resolution = imaging_channel_contents_this_resolution.fetch('channel_name')
+        imaging_channels_this_resolution,ventral_up_vals_this_resolution = imaging_channel_contents_this_resolution.fetch(
+            'channel_name',
+            'ventral_up')
         """ Loop through all channels at this resolution and render 
         a sub-sub-form for each """
         channel_contents_lists.append([])
         for jj in range(len(imaging_channels_this_resolution)):
             channel_name = imaging_channels_this_resolution[jj]
+            ventral_up = ventral_up_vals_this_resolution[jj]
             # logger.debug(f"channel: {channel_name}")
             this_image_resolution_form.channel_forms.append_entry()
             this_channel_form = this_image_resolution_form.channel_forms[jj]
             this_channel_form.channel_name.data = channel_name
+            this_channel_form.ventral_up.data = ventral_up
             """ Figure out which light sheets were imaged """
-            this_channel_content_dict = (imaging_channel_contents_this_resolution & \
-                f'channel_name="{channel_name}"').fetch1()
-            # logger.debug(channel_name)
-            # logger.debug(this_channel_content_dict)
+            restrict_dict = {'channel_name':channel_name,'ventral_up':ventral_up}
+            this_channel_content_dict = (imaging_channel_contents_this_resolution & restrict_dict).fetch1()
+            # logger.debug(channel_name)           # logger.debug(this_channel_content_dict)
            
             channel_contents_lists[ii].append(this_channel_content_dict)
             # logger.debug(this_channel_content) 
@@ -1299,6 +1323,14 @@ def general_data_setup(username,request_name,sample_name,
                         channel_name = channel_form.channel_name.data
                         viz_left_lightsheet = channel_form.viz_left_lightsheet.data
                         viz_right_lightsheet = channel_form.viz_right_lightsheet.data
+                        ventral_up = int(channel_form.ventral_up.data)
+                        this_restrict_dict = {
+                            'channel_name':channel_name,
+                            'ventral_up':ventral_up}
+                        this_imaging_channel_contents =  imaging_channel_contents & \
+                                this_restrict_dict
+
+                        rawdata_subfolder = this_imaging_channel_contents.fetch1('rawdata_subfolder') 
                         
                         for lightsheet in ['left','right']:
                             cv_contents_dict_this_lightsheet = {}
@@ -1308,26 +1340,35 @@ def general_data_setup(username,request_name,sample_name,
                             elif lightsheet == 'right':
                                 if not viz_right_lightsheet:
                                     continue
-                            cv_container_name = f'{session_name}_raw_{channel_name}_{lightsheet}_ls_container'
-                            cv_name = f"{channel_name}_{lightsheet}_ls_raw"
-                            cv_path = os.path.join(data_bucket_rootpath,username,request_name,
-                                sample_name,f'imaging_request_{imaging_request_number}','viz',
-                                'raw',f'channel_{channel_name}',f'{lightsheet}_lightsheet',
-                                f'channel{channel_name}_raw_{lightsheet}_lightsheet')  
+
+                            if ventral_up:
+                                logger.debug("Using ventral up cloudvolume")
+                                cv_container_name = f'{session_name}_raw_{channel_name}_{lightsheet}_ventral_up_ls_container'
+                                cv_name = f"{channel_name}_{lightsheet}_ventral_up_ls_raw"
+                                cv_path = os.path.join(data_bucket_rootpath,username,request_name,
+                                    sample_name,f'imaging_request_{imaging_request_number}','viz',
+                                    'raw',f'channel_{channel_name}_ventral_up',f'{lightsheet}_lightsheet',
+                                    f'channel{channel_name}_raw_{lightsheet}_lightsheet')
+                                raw_data_path = os.path.join(data_bucket_rootpath,username,
+                                    request_name,sample_name,
+                                    f"imaging_request_{imaging_request_number}",
+                                    "rawdata",f"resolution_{image_resolution}_ventral_up",rawdata_subfolder)
+                            else:
+                                logger.debug("Using dorsal up cloudvolume")
+                                cv_container_name = f'{session_name}_raw_{channel_name}_{lightsheet}_ls_container'
+                                cv_name = f"{channel_name}_{lightsheet}_ls_raw"
+                                cv_path = os.path.join(data_bucket_rootpath,username,request_name,
+                                    sample_name,f'imaging_request_{imaging_request_number}','viz',
+                                    'raw',f'channel_{channel_name}',f'{lightsheet}_lightsheet',
+                                    f'channel{channel_name}_raw_{lightsheet}_lightsheet')      
+                                raw_data_path = os.path.join(data_bucket_rootpath,username,
+                                    request_name,sample_name,
+                                    f"imaging_request_{imaging_request_number}",
+                                    "rawdata",f"resolution_{image_resolution}",rawdata_subfolder)
 
                             layer_type = 'image'
                             cv_number += 1            
 
-                            this_restrict_dict = {
-                            f'channel_name="{channel_name}"'}
-                            this_imaging_channel_contents =  imaging_channel_contents & \
-                                this_restrict_dict
-
-                            rawdata_subfolder = this_imaging_channel_contents.fetch1('rawdata_subfolder')          
-                            raw_data_path = os.path.join(data_bucket_rootpath,username,
-                             request_name,sample_name,
-                             f"imaging_request_{imaging_request_number}",
-                             "raw",rawdata_subfolder)    
                             cv_contents_dict_this_lightsheet['image_resolution'] = image_resolution
                             cv_contents_dict_this_lightsheet['lightsheet'] = lightsheet
                             cv_contents_dict_this_lightsheet['cv_name'] = cv_name
@@ -1884,6 +1925,7 @@ def general_data_setup(username,request_name,sample_name,
     """Loop through all imaging resolutions and render a 
     a sub-form for each, where appropriate"""
     unique_image_resolutions = sorted(set(imaging_channel_contents.fetch('image_resolution')))
+
     channel_contents_lists = []
     """ First clear out any existing subforms from previous http requests """
     while len(form.image_resolution_forms) > 0:
@@ -1900,7 +1942,9 @@ def general_data_setup(username,request_name,sample_name,
         """ Gather all imaging channels at this image resolution """
         imaging_channel_contents_this_resolution = (imaging_channel_contents & \
             f'image_resolution="{image_resolution}"')
-        logger.debug(imaging_channel_contents_this_resolution)
+        imaging_channels_this_resolution,ventral_up_vals_this_resolution = imaging_channel_contents_this_resolution.fetch(
+            'channel_name',
+            'ventral_up')
         processing_channel_contents_this_resolution = (processing_channel_contents & \
             f'image_resolution="{image_resolution}"')
         imaging_channels_this_resolution = imaging_channel_contents_this_resolution.fetch('channel_name')
@@ -1909,12 +1953,15 @@ def general_data_setup(username,request_name,sample_name,
         channel_contents_lists.append([])
         for jj in range(len(imaging_channels_this_resolution)):
             channel_name = imaging_channels_this_resolution[jj]
+            ventral_up = ventral_up_vals_this_resolution[jj]
             logger.debug(f"channel: {channel_name}")
+            logger.debug(f"ventral up?: {ventral_up}")
             """ Figure out if data was stitched or not """
+            restrict_dict = {'channel_name':channel_name,'ventral_up':ventral_up}
             this_imaging_channel_content_dict = (imaging_channel_contents_this_resolution & \
-                f'channel_name="{channel_name}"').fetch1()
+                restrict_dict).fetch1()
             this_processing_channel_content = (processing_channel_contents_this_resolution & \
-                    f'channel_name="{channel_name}"')
+                    restrict_dict)
             if len(this_processing_channel_content) > 0:
                 this_processing_channel_content_dict = this_processing_channel_content.fetch1()
             else:
@@ -1935,8 +1982,9 @@ def general_data_setup(username,request_name,sample_name,
                     this_image_resolution_form.raw_channel_forms.append_entry()
                     this_raw_channel_form = this_image_resolution_form.raw_channel_forms[jj]
                     this_raw_channel_form.channel_name.data = channel_name
+                    this_raw_channel_form.ventral_up.data = ventral_up
             else:
-                # stitched data
+                # stitched raw data
                 
                 left_lightsheet_stitched_precomputed_spock_job_progress = \
                     this_processing_channel_content_dict.get(
@@ -1949,6 +1997,7 @@ def general_data_setup(username,request_name,sample_name,
                     this_image_resolution_form.stitched_channel_forms.append_entry()
                     this_stitched_channel_form = this_image_resolution_form.stitched_channel_forms[jj]
                     this_stitched_channel_form.channel_name.data = channel_name           
+                    this_stitched_channel_form.ventral_up.data = ventral_up           
 
             """ Figure out if we have blended data """
             
@@ -1958,6 +2007,7 @@ def general_data_setup(username,request_name,sample_name,
                 this_image_resolution_form.blended_channel_forms.append_entry()
                 this_blended_channel_form = this_image_resolution_form.blended_channel_forms[jj]
                 this_blended_channel_form.channel_name.data = channel_name
+                this_blended_channel_form.ventral_up.data = ventral_up
             channel_contents_lists[ii].append(this_imaging_channel_content_dict)
             
             """ Figure out if we have downsized data """
@@ -1968,6 +2018,7 @@ def general_data_setup(username,request_name,sample_name,
                 this_image_resolution_form.downsized_channel_forms.append_entry()
                 this_downsized_channel_form = this_image_resolution_form.downsized_channel_forms[jj]
                 this_downsized_channel_form.channel_name.data = channel_name
+                this_downsized_channel_form.ventral_up.data = ventral_up
 
             """ Figure out if we have registered data """
             
@@ -1977,10 +2028,9 @@ def general_data_setup(username,request_name,sample_name,
                 this_image_resolution_form.registered_channel_forms.append_entry()
                 this_registered_channel_form = this_image_resolution_form.registered_channel_forms[jj]
                 this_registered_channel_form.channel_name.data = channel_name
+                this_registered_channel_form.ventral_up.data = ventral_up
 
             channel_contents_lists[ii].append(this_imaging_channel_content_dict)
-            # logger.debug(this_channel_content) 
-        # logger.debug(imaging_channel_dict)
 
     return render_template('neuroglancer/general_data_setup.html',form=form,
         channel_contents_lists=channel_contents_lists,processing_request_table=processing_request_table)

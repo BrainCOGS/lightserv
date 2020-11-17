@@ -144,8 +144,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 	overview_table = create_dynamic_processing_overview_table(joined_contents,table_id=overview_table_id)
 	overview_table.table_id = overview_table_id
 
-	form = StartProcessingForm()
-	
+	form = StartProcessingForm(request.form)
 	processing_progress = processing_request_contents.fetch1('processing_progress')
 
 	if request.method == 'POST': # post request
@@ -157,24 +156,63 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 		logger.info('post request')
 		if form.validate_on_submit():
 			logger.debug("form validated")
+			logger.debug("form data after POST request")
+			logger.debug(form.data)
 			''' Now update the db table with the data collected in the form'''
 			
 			""" loop through and update the atlas to be used based on what the user supplied """
-			for form_resolution_dict in form.image_resolution_forms.data:
-				this_image_resolution = form_resolution_dict['image_resolution']
+			for image_resolution_form in form.image_resolution_forms:
+
+				# logger.debug("form resolution dict:")
+				# logger.debug(form_resolution_dict)
+				this_image_resolution = image_resolution_form.image_resolution.data
+				ventral_up = image_resolution_form.ventral_up.data
+				logger.debug("Image resolution:")				
+				logger.debug(this_image_resolution)
+				logger.debug("ventral_up?")
+				logger.debug(ventral_up)
+				atlas_name = image_resolution_form.atlas_name.data
 				""" Make processing path on /jukebox """
-				processing_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
-				username,request_name,sample_name,f'imaging_request_{imaging_request_number}',
-				'output',f'processing_request_{processing_request_number}',
-				f'resolution_{this_image_resolution}')
+				if ventral_up: 
+					processing_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+					username,request_name,sample_name,f'imaging_request_{imaging_request_number}',
+					'output',f'processing_request_{processing_request_number}',
+					f'resolution_{this_image_resolution}_ventral_up')
+				else:
+					processing_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+					username,request_name,sample_name,f'imaging_request_{imaging_request_number}',
+					'output',f'processing_request_{processing_request_number}',
+					f'resolution_{this_image_resolution}')
 				mymkdir(processing_path_to_make)
-				this_image_resolution_content = processing_resolution_request_contents & \
-				f'image_resolution="{this_image_resolution}"'
-				atlas_name = form_resolution_dict['atlas_name']
+				this_processing_resolution_content = processing_resolution_request_contents & \
+				f'image_resolution="{this_image_resolution}"' & f'ventral_up={ventral_up}'
+				""" If a processing resolution request does not already exist for this resolution/ventral_up 
+				combination then just make a new one """
+				if len(this_processing_resolution_content) == 0:
+					logger.debug("Making a new ProcessingResolutionRequest insert since one did not exist")
+					image_resolution_to_insert = this_image_resolution if 'ventral_up' not in this_image_resolution else this_image_resolution.strip("_ventral_up")
+					processing_resolution_request_insert_dict = dict(
+						username=username,request_name=request_name,
+						sample_name=sample_name,
+						image_resolution=image_resolution_to_insert,
+						imaging_request_number=imaging_request_number,
+						processing_request_number=processing_request_number,
+						ventral_up=ventral_up,
+						atlas_name=atlas_name,
+						final_orientation='sagittal',
+						)
+					db_lightsheet.Request.ProcessingResolutionRequest().insert1(
+						processing_resolution_request_insert_dict
+					)
+					this_processing_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & \
+						f'image_resolution="{image_resolution_to_insert}"' & f'ventral_up={ventral_up}'
+
 				logger.info("updating atlas and notes_from_processing in ProcessingResolutionRequest() with user's form data")
-				dj.Table._update(this_image_resolution_content,'atlas_name',atlas_name)
-				dj.Table._update(this_image_resolution_content,'notes_from_processing',form.notes_from_processing.data)
+				logger.debug(this_processing_resolution_content.fetch(as_dict=True))
+				dj.Table._update(this_processing_resolution_content,'atlas_name',atlas_name)
+				dj.Table._update(this_processing_resolution_content,'notes_from_processing',form.notes_from_processing.data)
 			logger.info(f"Starting light sheet pipeline task")
+
 			if not os.environ['FLASK_MODE'] == 'TEST': # pragma: no cover - used to exclude this line from calculating test coverage
 				run_lightsheet_pipeline.delay(username=username,request_name=request_name,sample_name=sample_name,
 					imaging_request_number=imaging_request_number,
@@ -183,10 +221,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 			logger.debug("Updated processing_progress in ProcessingRequest() table")
 			flash("Your data processing has begun. You will receive an email "
 				  "when it is completed.","success")
-			# except:
-			# 	logger.info("Pipeline initialization failed. Updating processing progress to 'failed' ")
-			# 	dj.Table._update(processing_request_contents,'processing_progress','failed')
-			# 	abort(500)
+		
 			
 			return redirect(url_for('requests.all_requests'))
 		else:
@@ -203,29 +238,36 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 	resolution_list_index = 0
 	for ii in range(len(unique_image_resolutions)):
 		this_image_resolution = unique_image_resolutions[ii]
-		processing_resolution_request_content = processing_resolution_request_contents & \
-		 f'image_resolution="{this_image_resolution}"'
-		atlas_name_this_resolution = processing_resolution_request_content.fetch1('atlas_name') 
+		logger.debug("Making form for image resolution:")
+		logger.debug(this_image_resolution)
+		
 		channel_contents_this_resolution = channel_contents & f'image_resolution="{this_image_resolution}"'
 		dorsal_channel_contents = channel_contents_this_resolution & 'ventral_up=0'
 		ventral_channel_contents = channel_contents_this_resolution & 'ventral_up=1'
 		if dorsal_channel_contents:
+			logger.debug("Have dorsal up channels")
+			processing_resolution_request_content = processing_resolution_request_contents & \
+			 f'image_resolution="{this_image_resolution}"' & f'ventral_up=0'
+			atlas_name_this_resolution = processing_resolution_request_content.fetch1('atlas_name') 
 			dorsal_channel_list = dorsal_channel_contents.fetch(as_dict=True)
 			channel_contents_lists.append([])
 			form.image_resolution_forms.append_entry()
 			this_resolution_form = form.image_resolution_forms[-1]
 			this_resolution_form.image_resolution.data = this_image_resolution
 			this_resolution_form.atlas_name.data = atlas_name_this_resolution
-			this_resolution_form.ventral_up.data = False 
+			this_resolution_form.ventral_up.data = 0
 
 			''' Now go and add the channel subforms to the image resolution form '''
 			for jj in range(len(dorsal_channel_list)):
 				channel_content = dorsal_channel_list[jj]
+				this_channel_name = channel_content['channel_name']
+				logger.debug("Adding subform for channel:")
+				logger.debug(this_channel_name)
 				channel_contents_lists[resolution_list_index].append(channel_content)
 				this_resolution_form.channel_forms.append_entry()
 				this_channel_form = this_resolution_form.channel_forms[-1]
-				this_channel_form.channel_name.data = channel_content['channel_name']
-				this_channel_form.ventral_up.data = False
+				this_channel_form.channel_name.data = this_channel_name
+				this_channel_form.ventral_up.data = 0
 
 				""" figure out the channel purposes """
 				used_imaging_modes = []
@@ -238,23 +280,29 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 				this_channel_form.channel_purposes_str.data = channel_purposes_str
 				resolution_list_index+=1
 		if ventral_channel_contents:
-
+			logger.debug("Have ventral up channels")
+			processing_resolution_request_content = processing_resolution_request_contents & \
+			 f'image_resolution="{this_image_resolution}"' & f'ventral_up=1'
+			atlas_name_this_resolution = processing_resolution_request_content.fetch1('atlas_name') 
 			ventral_channel_list = ventral_channel_contents.fetch(as_dict=True)
 			channel_contents_lists.append([])
 			form.image_resolution_forms.append_entry()
 			this_resolution_form = form.image_resolution_forms[-1]
 			this_resolution_form.image_resolution.data = this_image_resolution
 			this_resolution_form.atlas_name.data = atlas_name_this_resolution
-			this_resolution_form.ventral_up.data = True
+			this_resolution_form.ventral_up.data = 1
 
 			''' Now go and add the channel subforms to the image resolution form '''
 			for jj in range(len(ventral_channel_list)):
 				channel_content = ventral_channel_list[jj]
+				this_channel_name = channel_content['channel_name']
+				logger.debug("Adding subform for channel:")
+				logger.debug(this_channel_name)
 				channel_contents_lists[resolution_list_index].append(channel_content)
 				this_resolution_form.channel_forms.append_entry()
 				this_channel_form = this_resolution_form.channel_forms[-1]
-				this_channel_form.channel_name.data = channel_content['channel_name']
-				this_channel_form.ventral_up.data = True
+				this_channel_form.channel_name.data = this_channel_name
+				this_channel_form.ventral_up.data = 1
 
 				""" figure out the channel purposes """
 				used_imaging_modes = []
@@ -266,7 +314,8 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 					no_registration=False
 				this_channel_form.channel_purposes_str.data = channel_purposes_str
 				resolution_list_index+=1
-
+	# logger.debug("Form going into GET request is:")
+	# logger.debug(form.data)
 	if processing_progress != 'incomplete':
 		logger.info(f"Processing is currently {processing_progress} but accessing the processing entry page anyway")
 		flash(f"Processing is {processing_progress} for this sample. "
