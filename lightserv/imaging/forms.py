@@ -8,7 +8,7 @@ from wtforms.validators import (DataRequired, Length, InputRequired, ValidationE
 from wtforms.widgets import html5
 import os, glob
 
-""" For the imaging BATCH entry form """
+""" For the imaging batch entry form """
 
 class ChannelForm(FlaskForm):
 	""" A form that is used in ImagingForm() via a FormField Fieldlist
@@ -20,6 +20,8 @@ class ChannelForm(FlaskForm):
 	image_orientation = SelectField('Image orientation',choices=[('sagittal','sagittal'),('coronal','coronal'),
 				 ('horizontal','horizontal')],default='horizontal',
 				 validators=[Optional()])
+	ventral_up = BooleanField('Imaged ventral side up?',validators=[Optional()],
+		default=False)
 	left_lightsheet_used = BooleanField('Left',default=False)
 	right_lightsheet_used = BooleanField('Right',default=False)
 	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --')
@@ -30,6 +32,7 @@ class ChannelForm(FlaskForm):
 		widget=html5.NumberInput(),validators=[Optional()])
 	rawdata_subfolder = TextAreaField('channel subfolder',validators=[Optional()])
 	delete_channel_button = SubmitField("Delete channel")
+	add_flipped_channel_button = SubmitField("Add ventral up channel")
 
 	def validate_tiling_overlap(self,tiling_overlap):
 		try:
@@ -70,7 +73,7 @@ class ChannelForm(FlaskForm):
 
 class ImageResolutionForm(FlaskForm):
 	""" A form for each image resolution that a user picks """
-	max_number_of_channels = 4
+	max_number_of_channels = 8 # 4 channels and each of them can have a "flipped" copy
 	image_resolution = HiddenField('image resolution')
 	notes_for_clearer = TextAreaField('Notes left for clearer:')
 	notes_for_imager = TextAreaField('Notes left for imager:')
@@ -209,6 +212,8 @@ class ChannelBatchForm(FlaskForm):
 		choices=[('sagittal','sagittal'),('coronal','coronal'),
 				 ('horizontal','horizontal')],default='horizontal',
 				 validators=[Optional()])
+	ventral_up = BooleanField('Imaged ventral side up?',validators=[Optional()],
+		default=False)
 	left_lightsheet_used = BooleanField('Left',default=False)
 	right_lightsheet_used = BooleanField('Right',default=False)
 	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',
@@ -217,6 +222,7 @@ class ChannelBatchForm(FlaskForm):
 		validators=[Optional()]) 
 	z_step = StringField('Z resolution (microns)',validators=[Optional()])
 	delete_channel_button = SubmitField("Delete channel")
+	add_flipped_channel_button = SubmitField("Add ventral up channel")
 
 	def validate_tiling_overlap(self,tiling_overlap):
 		try:

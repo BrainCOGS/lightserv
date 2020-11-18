@@ -1741,55 +1741,6 @@ def test_sort_samples_table_all_columns(test_client,test_two_requests_ahoag):
 			follow_redirects=True)
 		assert b'All core facility samples' in response.data	
 
-def test_all_samples_multiple_imaging_requests(test_client,test_new_imaging_request_ahoag):
-	""" Check that both imaging requests are displayed 
-	in the all samples table in the all_samples route
-	when multiple imaging requests are present in the 
-	same request.
-
-	Uses the test_new_imaging_request_ahoag fixture
-	to insert a request and then a new imaging request
-	into the database as ahoag. 
-	"""
-	response = test_client.get(
-				url_for('requests.all_samples'),
-			follow_redirects=True
-		)	
-	assert b'core facility samples (from all requests):' in response.data	
-
-	parsed_html = BeautifulSoup(response.data,features="html.parser")
-	
-	table_tag = parsed_html.body.find('table',attrs={'id':'all_samples_table'})
-	# print(table_tag)
-	first_sample_imaging_requests_table_tag = table_tag.find('table',attrs={'id':'imaging_requests'})
-	rows = first_sample_imaging_requests_table_tag.find_all('tr')
-	assert len(rows) == 7 # 1 for main sample, 3 for first imaging request (the nested processing request adds an extra row), 3 for second imaging request
-
-def test_all_samples_multiple_processing_requests(test_client,test_new_processing_request_ahoag):
-	""" Check that both processing requests are displayed 
-	in the all samples table in the all_samples route
-	when a single imaging request but two processing requests
-	are present in the same request.
-
-	Uses the test_new_processing_request_ahoag fixture
-	to insert a request and then a new processing request
-	into the database as ahoag. 
-	"""
-	response = test_client.get(
-				url_for('requests.all_samples'),
-			follow_redirects=True
-		)	
-	assert b'core facility samples (from all requests):' in response.data	
-
-	parsed_html = BeautifulSoup(response.data,features="html.parser")
-	
-	table_tag = parsed_html.body.find('table',attrs={'id':'all_samples_table'})
-	# print(table_tag)
-	first_sample_processing_requests_table_tag = table_tag.find('table',attrs={'id':'processing_requests'})
-	print(first_sample_processing_requests_table_tag)
-	rows = first_sample_processing_requests_table_tag.find_all('tr')
-	assert len(rows) == 3 # 1 for header, 1 for first processing request, 1 for second processing request
-
 """ Testing request_overview() """
 	
 def test_request_samples_multiple_imaging_requests(test_client,test_new_imaging_request_ahoag):

@@ -66,6 +66,14 @@ class BooltoStringCol(Col):
             return "yes"
         else:
             return "no"
+class DorsalOrVentralCol(Col):
+    """ Subclassing Col to show 'yes' if Boolean
+    entry is True, 'no' if False """  
+    def td_format(self, content):
+        if content == 1:
+            return "Ventral"
+        else:
+            return "Dorsal"
 
 class NotAssignedCol(Col):
     """ Subclassing Col to show 'Not assigned' if 

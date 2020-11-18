@@ -121,11 +121,11 @@ class Request(dj.Manual):
         notes_for_imager = ""                     :   varchar(1024)
         notes_from_imaging = ""                   :   varchar(1024)
         """
-
     class ImagingChannel(dj.Part):
         definition = """ # Imaging parameters for a channel, belonging to a sample
         -> master.ImagingResolutionRequest
         channel_name                                            :   varchar(64)                
+        ventral_up = 0                                          :   boolean # whether brain was flipped upside down to be imaged
         ----
         imaging_date = NULL                                     :   date 
         zoom_body_magnification = NULL                          :   float # only applicable for 2x
@@ -151,6 +151,7 @@ class Request(dj.Manual):
         right_lightsheet_precomputed_spock_job_progress = NULL  :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT")
         """
 
+   
     class ProcessingRequest(dj.Part):
         definition = """ # Processing request - this needs to exist because for each imaging request there can be multiple processing requests 
         -> master.ImagingRequest
@@ -167,6 +168,7 @@ class Request(dj.Manual):
         definition = """ # Processing parameters at the image resolution level for a given ProcessingRequest(). These represent spock jobs
         -> master.ProcessingRequest
         image_resolution                          :   enum("1.3x","4x","1.1x","2x","3.6x")
+        ventral_up = 0                            :   boolean # whether brain was flipped upside down to be imaged
         ----        
         atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas")
         final_orientation                         :   enum("sagittal","coronal","horizontal")

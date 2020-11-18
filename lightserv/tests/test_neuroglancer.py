@@ -54,32 +54,6 @@ def test_raw_data_setup_form_loads(test_client,
 	ch488_right_lightsheet_td = ch488_row[right_lightsheet_column_index]
 	assert ch488_right_lightsheet_td.text.strip() == "N/A" # strip() needed to get rid of newlines on either end
 
-def test_raw_data_setup_form_submits(test_client,
-	precomputed_raw_complete_viz_nonadmin,test_take_down_cloudv_and_ng_containers):
-	""" Test that the I can submit a POST request to the 
-	raw data setup form to generate a Neuroglancer link.
-
-	"""
-	username = 'lightserv-test'
-	request_name = 'viz_processed'
-	sample_name = 'viz_processed-001'
-	imaging_request_number=1
-	response = test_client.post(url_for('neuroglancer.raw_data_setup',
-		username=username,
-		request_name=request_name,sample_name=sample_name,
-		imaging_request_number=imaging_request_number),
-			data = {'image_resolution_forms-0-image_resolution':'1.3x',
-			'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-			'image_resolution_forms-0-channel_forms-0-viz_left_lightsheet':True,
-			'image_resolution_forms-0-channel_forms-1-channel_name':'647',
-			'image_resolution_forms-0-channel_forms-1-viz_left_lightsheet':True,
-			},
-			follow_redirects=True)
-	assert b'Raw Data Visualization Setup Form' not in response.data 
-	assert b'Links to view your raw data in neuroglancer' in response.data
-
-	
-
 def test_general_data_setup_form_loads_with_just_raw(test_client,
 	precomputed_raw_complete_viz_nonadmin):
 	""" Test that the general data setup form loads

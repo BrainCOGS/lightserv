@@ -1886,57 +1886,82 @@ def test_request_resolution_switched_nonadmin(test_client,test_cleared_request_n
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 
-# @pytest.fixture(scope='function') 
-# def test_imaged_request_nonadmin_new_channel_added(test_client,test_cleared_request_nonadmin,
-# 	test_delete_request_db_contents,test_login_zmd):
-# 	""" In the imaging entry form, Zahra adds an imaging channel
-# 	and then submits the form """
+@pytest.fixture(scope='function') 
+def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_cleared_request_nonadmin,
+	test_delete_request_db_contents,test_login_zmd):
+	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
+	with imager='zmd' and adds a ventral up 488 channel in addition to dorsal up 488 channel """
 
-# 	print('----------Setup test_imaged_request_nonadmin_new_channel_added fixture ----------')
-# 	with test_client.session_transaction() as sess:
-# 		sess['user'] = 'zmd'
-# 	data1 = {
-# 		'image_resolution_forms-0-image_resolution':'1.3x',
-# 		'image_resolution_forms-0-new_channel_dropdown':'555',
-# 		'image_resolution_forms-0-new_channel_purpose':'injection_detection',
-# 		'image_resolution_forms-0-new_channel_button': True,
-# 		}
-# 	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
-# 			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
-# 			imaging_request_number=1),
-# 		data=data1,
-# 		follow_redirects=True)
+	print('----------Setup test_imaged_request_dorsal_up_and_ventral_up_nonadmin fixture ----------')
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'zmd'
 
-# 	""" Now submit the form for both channels"""
-# 	data2 = {
-# 		'image_resolution_forms-0-image_resolution':'1.3x',
-# 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-# 		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
-# 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-# 		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
-# 		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
-# 		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-# 		'image_resolution_forms-0-channel_forms-0-z_step':10,
-# 		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
-# 		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
-# 		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
-# 		'image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
-# 		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
-# 		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
-# 		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
-# 		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
-# 		'image_resolution_forms-0-channel_forms-1-z_step':10,
-# 		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
-# 		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
-# 		'submit':True
-# 		}
-# 	response2 = test_client.post(url_for('imaging.imaging_entry',
-# 			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
-# 			imaging_request_number=1),
-# 		data=data2,
-# 		follow_redirects=True)
-# 	yield test_client
-# 	print('----------Teardown test_imaged_request_nonadmin_new_channel_added fixture ----------')
+	""" First add flipped channel in sample section since we only have 1 sample """
+	data1 = {
+		'image_resolution_batch_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-add_flipped_channel_button':True,
+		}
+	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_request',
+			imaging_batch_number=1),
+		data=data1,
+		follow_redirects=True)
+	
+	""" Submit the sample form """
+	data2 = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':10,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-ventral_up':1,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':10,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test488',
+		'sample_forms-0-notes_from_imaging':'some custom notes',
+		'sample_forms-0-submit':True
+	}
+	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_request',
+			imaging_batch_number=1),
+		data=data2,
+		follow_redirects=True)	
+
+	""" submit the entire form """
+	data3 = {
+		'submit':True
+		}
+
+	response3 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_request',
+			imaging_batch_number=1),
+		data=data3,
+		follow_redirects=True)
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
+	yield test_client
+	print('----------Teardown test_imaged_request_dorsal_up_and_ventral_up_nonadmin fixture ----------')
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_request_generic_imaging_nonadmin,
@@ -1947,24 +1972,38 @@ def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_reques
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'zmd'
-	# print(db_lightsheet.Request.Sample())
+	
+	
 	data = {
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'image_resolution_forms-0-channel_forms-0-channel_name':'555',
-		'image_resolution_forms-0-channel_forms-0-image_orientation':'sagittal',
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
-		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_step':10,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
-		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test555',
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'555',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'sagittal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':10,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test555',
+		'sample_forms-0-submit':True
+		}
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_request',
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+
+	data2 = {
 		'submit':True
 		}
-	response = test_client.post(url_for('imaging.imaging_entry',
-			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
-			imaging_request_number=1),
-		data=data,
+
+	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_request',
+			imaging_batch_number=1),
+		data=data2,
 		follow_redirects=True)
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'lightserv-test'
@@ -2010,123 +2049,48 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 	""" Images the multi-channel cleared request by 'ahoag' (clearer='ahoag')
 	with imager='zmd' """
 
-	print('----------Setup test_imaged_request_ahoag fixture ----------')
+	print('----------Setup test_imaged_multichannel_request_ahoag fixture ----------')
 
 	data = {
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
-		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
-		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_step':5,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
-		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
-		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
-		'image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
-		'image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
-		'image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-1-z_step':15,
-		'image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
-		'image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
-		'submit':True
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':5,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':15,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+		'sample_forms-0-submit':True
 		}
-	response = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='admin_multichannel_request',sample_name='sample-001',
-			imaging_request_number=1),
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='ahoag',request_name='admin_multichannel_request',
+			imaging_batch_number=1),
 		data=data,
 		follow_redirects=True)
 
-	yield test_client
-	print('----------Teardown test_imaged_request_ahoag fixture ----------')
-
-@pytest.fixture(scope='function') 
-def test_imaged_two_processing_requests_ahoag(test_client,test_cleared_two_processing_requests_ahoag,
-	test_login_zmd,test_delete_request_db_contents):
-	""" Images the cleared request by 'ahoag' (clearer='ahoag')
-	with imager='zmd' """
-	print('----------Setup test_imaged_request_ahoag fixture ----------')
-
-	data = {
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
-		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_step':10,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
-		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+	data2 = {
 		'submit':True
 		}
-	response = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='admin_request',sample_name='sample-001',
-			imaging_request_number=1),
-		data=data,
+
+	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='ahoag',
+			request_name='admin_multichannel_request',
+			imaging_batch_number=1),
+		data=data2,
 		follow_redirects=True)
 
 	yield test_client
-	print('----------Teardown test_imaged_request_ahoag fixture ----------')
-
-@pytest.fixture(scope='function') 
-def test_imaged_first_of_two_imaging_requests_ahoag(test_client,test_cleared_two_imaging_requests_ahoag,
-	test_login_zmd,test_delete_request_db_contents):
-	""" Images the cleared request by 'ahoag' (clearer='ahoag')
-	with imager='zmd' """
-	print('----------Setup test_imaged_first_of_two_imaging_requests_ahoag fixture ----------')
-
-	data = {
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
-		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_step':10,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
-		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
-		'submit':True
-		}
-	response = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='admin_request',sample_name='sample-001',
-			imaging_request_number=1),
-		data=data,
-		follow_redirects=True)
-
-	yield test_client
-	print('----------Teardown test_imaged_first_of_two_imaging_requests_ahoag  fixture ----------')
-
-@pytest.fixture(scope='function') 
-def test_imaged_both_imaging_requests_ahoag(test_client,test_imaged_first_of_two_imaging_requests_ahoag,
-	test_login_zmd,test_delete_request_db_contents):
-	""" Images the cleared request by 'ahoag' (clearer='ahoag')
-	with imager='zmd' """
-	print('----------Setup test_imaged_both_imaging_requests_ahoag fixture ----------')
-
-	data = {
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
-		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_step':10,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
-		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
-		'submit':True
-		}
-	response = test_client.post(url_for('imaging.imaging_entry',
-			username='ahoag',request_name='admin_request',sample_name='sample-001',
-			imaging_request_number=2),
-		data=data,
-		follow_redirects=True)
-
-	yield test_client
-	print('----------Teardown test_imaged_both_imaging_requests_ahoag  fixture ----------')
+	print('----------Teardown test_imaged_multichannel_request_ahoag fixture ----------')
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadmin,
@@ -2386,6 +2350,7 @@ def completed_processing_request_viz_nonadmin(test_client,processing_request_viz
 		processing_request_number=processing_request_number,
 		image_resolution=image_resolution,
 		channel_name="488",
+		ventral_up=0,
 		datetime_processing_started=datetime_processing_started,
 		datetime_processing_completed=datetime_processing_completed,
 		intensity_correction=intensity_correction)
@@ -2396,6 +2361,7 @@ def completed_processing_request_viz_nonadmin(test_client,processing_request_viz
 		processing_request_number=processing_request_number,
 		image_resolution=image_resolution,
 		channel_name="647",
+		ventral_up=0,
 		datetime_processing_started=datetime_processing_started,
 		datetime_processing_completed=datetime_processing_completed,
 		intensity_correction=intensity_correction)
@@ -2405,6 +2371,46 @@ def completed_processing_request_viz_nonadmin(test_client,processing_request_viz
 	yield test_client
 
 	print('----------Teardown completed_processing_request_viz_nonadmin fixture ----------')
+
+@pytest.fixture(scope='function')
+def processing_form_submitted_dorsal_up_ventral_up(test_client,
+	test_imaged_request_dorsal_up_and_ventral_up_nonadmin,
+	test_delete_request_db_contents):
+	""" A fixture for having a completely cleared and imaged request
+	and the processing form has been submitted - this just makes a ProcessingResolutionRequest()
+	entry and sets the processing_progress="running" in ProcessingRequest
+
+	Request called "test_dorsal_ventral" by lightserv-test, a nonadmin """
+
+	print('----------Setup processing_form_submitted_dorsal_up_ventral_up fixture----------')
+
+	username = "lightserv-test"
+	request_name = "nonadmin_request"
+	sample_name = "sample-001"
+	imaging_request_number = 1
+	processing_request_number = 1
+	data = {
+		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-atlas_name':'allen_2017',
+		'image_resolution_forms-1-image_resolution':'1.3x_ventral_up',
+		'image_resolution_forms-1-ventral_up':True,
+		'image_resolution_forms-1-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-1-channel_forms-0-ventral_up':True,
+		'image_resolution_forms-1-atlas_name':'allen_2017',
+		'submit':True
+		}
+
+	response = test_client.post(url_for('processing.processing_entry',
+			username=username,request_name=request_name,sample_name=sample_name,
+			imaging_request_number=imaging_request_number,
+			processing_request_number=processing_request_number),
+		data=data,
+		follow_redirects=True)
+	yield test_client
+
+	print('----------Teardown processing_form_submitted_dorsal_up_ventral_up fixture ----------')
+
 
 """ Fixtures for neuroglancer """
 

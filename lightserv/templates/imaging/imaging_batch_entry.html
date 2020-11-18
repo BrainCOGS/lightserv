@@ -79,6 +79,7 @@
 			            <th class="infolink" data-toggle="tooltip" title="Set to a discrete value on the dial. Otherwise, it will be impossible to accurately calculate the resulting image pixel size.">Zoom body magnification</th>
 			        {% endif %}
 		            <th>Image orientation </th>
+		            <th class="infolink" data-toggle="tooltip" title="Only applicable for horizontally imaged brains">Dorsal up or ventral up? </th>
 		            <th>Lightsheets used </th>
 		           	<th>Tiling scheme (e.g. 1x1, 3x3)  </th>
 		           	<th class="infolink" data-toggle="tooltip" title="Only matters if tiling scheme is not 1x1">Tiling overlap (e.g. 0.2) </th>
@@ -91,16 +92,61 @@
 				{{ channel_form.channel_name() }}
 				{% set channel_name = channel_form.channel_name.data  %}
 				{{ channel_form.image_resolution() }}
+				{{ channel_form.ventral_up(hidden=true) }}
+				{% set batch_ventral_up = channel_form.ventral_up.data %}
+				<!-- Figure out if flipped channel already appears in this image resolution form -->
+				{% set batch_flipped_dict = {'flipped': False} %}
+				{% if not batch_ventral_up %}
+
+					{% for ch_form in image_resolution_form.channel_forms %}
+						{% set ch_name = ch_form.channel_name.data %}
+						{% if ch_name == channel_name and ch_form.ventral_up.data %}
+							{% if batch_flipped_dict.update({'flipped': True}) %} {% endif %}
+						{% endif %}
+					{% endfor %}
+
+				{% endif %}
 
 					<tr>   
-					    <td>{{channel_name}}</br>
-					    	<input id="batch_delete_channel_modal" name="batch_delete_channel_modal" value="Delete channel" type="button" class="btn btn-sm btn-danger mt-2" data-toggle="modal" data-target="#batchDeleteChannelModal_res_{{image_resolution}}_ch_{{channel_name}}"></input>	
-					    	<!-- Modal for delete channel button -->
-							<div class="modal fade" id="batchDeleteChannelModal_res_{{image_resolution}}_ch_{{channel_name}}" tabindex="-1" role="dialog" aria-labelledby="batchDeleteChannelModalLabel_res_{{image_resolution}}_ch_{{channel_name}}" aria-hidden="true">
+					    <td>{{channel_name}}
+					    	<!-- Add flipped channel button only if one doesn't already exist in the form for this channel already -->
+					    	{% if (not batch_ventral_up) and (not batch_flipped_dict.flipped) %}
+						    	 
+						    	<div>
+							    	<input id="batch_add_flipped_channel_modal_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{batch_ventral_up}}" name="batch_add_flipped_channel_modal" value="Add ventral up channel" type="button" class="btn btn-sm btn-info mt-2" data-toggle="modal" data-target="#batchAddFlippedChannelModal_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{batch_ventral_up}}"></input>
+							    	<!-- Modal for delete channel button -->
+							    </div>
+								<div class="modal fade" id="batchAddFlippedChannelModal_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{batch_ventral_up}}" tabindex="-1" role="dialog" aria-labelledby="batchAddFlippedChannelModalLabel_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{batch_ventral_up}}" aria-hidden="true">
+									<div class="modal-dialog" role="document">
+									<div class="modal-content">
+									<div class="modal-header">
+									<h5 class="modal-title" id="batchAddFlippedChannelModalLabel_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{batch_ventral_up}}">Are you sure you want to delete this channel? </h5>
+									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+									</button>
+									</div>
+									<div class="modal-body">
+									<p>This will add a ventral up copy of this channel for all samples in this batch that have this image resolution/channel combination: resolution: {{image_resolution}}, channel: {{channel_name}}. 
+									If you want to add a ventral up copy of a channel from a single sample only, do that in the 
+									individual sample section below. </p>
+									</div>
+									<div class="modal-footer">
+									<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>           
+									{{channel_form.add_flipped_channel_button(class="btn btn-success")}}
+									</div>
+									</div>
+									</div>
+								</div>	
+						    {% endif %}
+					    	<div>
+						    	<input id="batch_delete_channel_modal_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{batch_ventral_up}}" name="batch_delete_channel_modal" value="Delete channel" type="button" class="btn btn-sm btn-danger mt-2" data-toggle="modal" data-target="#batchDeleteChannelModal_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{batch_ventral_up}}"></input>
+						    	<!-- Modal for delete channel button -->
+						    </div>
+							<div class="modal fade" id="batchDeleteChannelModal_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{batch_ventral_up}}" tabindex="-1" role="dialog" aria-labelledby="batchDeleteChannelModalLabel_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{batch_ventral_up}}" aria-hidden="true">
 								<div class="modal-dialog" role="document">
 								<div class="modal-content">
 								<div class="modal-header">
-								<h5 class="modal-title" id="batchDeleteChannelModalLabel_res_{{image_resolution}}_ch_{{channel_name}}">Are you sure you want to delete this channel? </h5>
+								<h5 class="modal-title" id="batchDeleteChannelModalLabel_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{batch_ventral_up}}">Are you sure you want to delete this channel? </h5>
 								<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 								<span aria-hidden="true">&times;</span>
 								</button>
@@ -137,17 +183,28 @@
 				        {% endif %}
 					    <td>
 					    	<div class="form-group">
-								{% if channel_form.image_orientation.errors %}
-									{{ channel_form.image_orientation(class="form-control form-control-sm is-invalid") }}
-									<div class="invalid-feedback">
-										{% for error in channel_form.image_orientation.errors %}
-											<span>{{ error }}</span>
-										{% endfor %}
-									</div>
-								{% else %}
-									{{ channel_form.image_orientation(class="form-control form-control-sm") }}
+					    		{% if batch_ventral_up %}	
+						    		{{ channel_form.image_orientation(class="form-control form-control-sm",
+						    		disabled=true) }}
+						    	
+					    		{% else %}
+									{% if channel_form.image_orientation.errors %}
+										{{ channel_form.image_orientation(class="form-control form-control-sm is-invalid") }}
+										<div class="invalid-feedback">
+											{% for error in channel_form.image_orientation.errors %}
+												<span>{{ error }}</span>
+											{% endfor %}
+										</div>
+									{% else %}
+										{{ channel_form.image_orientation(class="form-control form-control-sm") }}
+									{% endif %}
 								{% endif %}
 							</div>
+						</td>
+						<td>
+							<div>
+								<p>{% if batch_ventral_up %}Ventral{% else %}Dorsal{% endif %}</p>	
+						    </div>
 						</td>
 					    {% if channel_form.left_lightsheet_used.errors or channel_form.right_lightsheet_used.errors %}
 						    <td class="table-danger">
@@ -343,7 +400,8 @@
 			            {% if image_resolution == '2x' %}
 				            <th class="infolink" data-toggle="tooltip" title="Set to a discrete value on the dial. Otherwise, it will be impossible to accurately calculate the resulting image pixel size.">Zoom body magnification</th>
 				        {% endif %}
-			            <th>*Image orientation </th>
+			            <th>*Image orientation</th>
+			            <th class="infolink" data-toggle="tooltip" title="Only applicable for horizontally imaged brains">Dorsal up or ventral up? </th>
 			            <th>*Lightsheets used </th>
 			           	<th>*Tiling scheme (e.g. 1x1, 3x3)  </th>
 			           	<th class="infolink" data-toggle="tooltip" title="Only matters if tiling scheme is not 1x1">*Tiling overlap (e.g. 0.2) </th>
@@ -359,18 +417,36 @@
 					{{ channel_form.channel_name() }}
 					{% set channel_name = channel_form.channel_name.data %}
 					{{ channel_form.image_resolution() }}
+					{{ channel_form.ventral_up(hidden=true) }}
+					{% set ventral_up = channel_form.ventral_up.data %}
+					<!-- Figure out if flipped channel already appears in this image resolution form -->
+					{% set flipped_dict = {'flipped': False} %}
+					{% if not ventral_up %}
 
+						{% for ch_form in image_resolution_form.channel_forms %}
+							{% set ch_name = ch_form.channel_name.data %}
+							{% if ch_name == channel_name and ch_form.ventral_up.data %}
+								{% if flipped_dict.update({'flipped': True}) %} {% endif %}
+							{% endif %}
+						{% endfor %}
+
+					{% endif %}
 						<tr>   
-						    <td>{{channel_name}} 
+						    <td>{{channel_name}}
+						    	<!-- Add flipped channel button only if one doesn't already exist in the form for this channel already -->
+						    	{% if (not ventral_up) and (not flipped_dict.flipped) %}
+							    	{{channel_form.add_flipped_channel_button(class="btn btn-sm btn-info mt-2")}} 
+							    {% endif %}
+
 						    	<div>
-							    	<input id="sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_delete_channel_modal" name="sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_delete_channel_modal" value="Delete channel" type="button" class="btn btn-sm btn-danger mt-2" data-toggle="modal" data-target="#sampleDeleteChannelModal_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}"></input>	
+							    	<input id="sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{ventral_up}}_delete_channel_modal" name="sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{ventral_up}}_delete_channel_modal" value="Delete channel" type="button" class="btn btn-sm btn-danger mt-2" data-toggle="modal" data-target="#sampleDeleteChannelModal_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{ventral_up}}"></input>	
 							    </div>
 						    	<!-- Modal for delete channel button -->
-								<div class="modal fade" id="sampleDeleteChannelModal_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}" tabindex="-1" role="dialog" aria-labelledby="sampleDeleteChannelModalLabel_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}" aria-hidden="true">
+								<div class="modal fade" id="sampleDeleteChannelModal_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{ventral_up}}" tabindex="-1" role="dialog" aria-labelledby="sampleDeleteChannelModalLabel_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{ventral_up}}" aria-hidden="true">
 									<div class="modal-dialog" role="document">
 									<div class="modal-content">
 									<div class="modal-header">
-									<h5 class="modal-title" id="sampleDeleteChannelModalLabel_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}">Are you sure you want to delete this channel? </h5>
+									<h5 class="modal-title" id="sampleDeleteChannelModalLabel_sample_{{kk}}_res_{{image_resolution}}_ch_{{channel_name}}_ventral_up_{{ventral_up}}">Are you sure you want to delete this channel? </h5>
 									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 									<span aria-hidden="true">&times;</span>
 									</button>
@@ -405,17 +481,28 @@
 					        {% endif %}
 						    <td>
 						    	<div class="form-group">
-									{% if channel_form.image_orientation.errors %}
-										{{ channel_form.image_orientation(class="form-control form-control-sm is-invalid") }}
-										<div class="invalid-feedback">
-											{% for error in channel_form.image_orientation.errors %}
-												<span>{{ error }}</span>
-											{% endfor %}
-										</div>
-									{% else %}
-										{{ channel_form.image_orientation(class="form-control form-control-sm") }}
+						    		{% if ventral_up %}	
+							    		{{ channel_form.image_orientation(class="form-control form-control-sm",
+							    		disabled=true) }}
+							    	
+						    		{% else %}
+										{% if channel_form.image_orientation.errors %}
+											{{ channel_form.image_orientation(class="form-control form-control-sm is-invalid") }}
+											<div class="invalid-feedback">
+												{% for error in channel_form.image_orientation.errors %}
+													<span>{{ error }}</span>
+												{% endfor %}
+											</div>
+										{% else %}
+											{{ channel_form.image_orientation(class="form-control form-control-sm") }}
+										{% endif %}
 									{% endif %}
 								</div>
+							</td>
+							<td>
+								<div>
+									<p>{% if ventral_up %}Ventral{% else %}Dorsal{% endif %}</p>	
+							    </div>
 							</td>
 							{% if channel_form.left_lightsheet_used.errors or channel_form.right_lightsheet_used.errors %}
 							    <td class="table-danger">
@@ -551,10 +638,12 @@
 			<h3 class="infolink" data-toggle='tooltip' title='Make sure not to overwrite folders and do not put data from two different imaging channels into the same subfolder unless they were read-out from the microscope that way'>
 			Move or copy all raw data folders from the microscope computer to the correct folder on bucket: </h3>
 			<p>
-				<code>{{rawdata_filepath}}resolution_<b>XX</b></code></br></br>
-				where <b>XX</b> is the resolution of the images, e.g. "1.1x", "1.3x", "2x", "3.6x" or "4x".</br></br>
-				The resolution_XX/ folder may not already exist inside of the rawdata/ folder. If it does not already exist,
-				first make the resolution folder before moving the rawdata subfolder. 
+				<code>{{rawdata_filepath}}resolution_<b>XX</b></code></br>or</br>
+				 
+				<code>{{rawdata_filepath}}resolution_<b>XX</b>_ventral_up</code></br></br>
+				if the channel was imaged ventral up. <b>XX</b> is the resolution of the images, e.g. "1.1x", "1.3x", "2x", "3.6x" or "4x".</br></br>
+				The resolution_XX/ or resolution_XX_ventral_up/ folders may not already exist inside of the rawdata/ folder. If they do not already exist,
+				first make these folders before moving the rawdata subfolders. 
 			</p>
 			<p>
 				For example, say you took images in channel 488 for image resolution 1.3x for this brain and you saved

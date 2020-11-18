@@ -27,35 +27,54 @@
 				{% set image_resolution_form = form.image_resolution_forms[ii] %}
 				<!-- Render hiddenfield for image resolution -->
 				{{ image_resolution_form.image_resolution() }}
+				{{ image_resolution_form.ventral_up() }}
 				{% set image_resolution = image_resolution_form.image_resolution.data %}
+				{% set resolution_ventral_up = image_resolution_form.ventral_up.data %}
 				
 				<hr class='class-1'>
 				<h2 class='mb-2'> Summary of processing to be completed for each image resolution:  </h2>
 				<hr class='class-2'>
-				<h3 class='mb-4'> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
-				
+				{% if resolution_ventral_up %}
+					<h3 class='mb-4'> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }}_ventral_up </h3>
+				{% else %}
+					<h3 class='mb-4'> ({{ ii + 1 }}/{{form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+				{% endif %}
 				{% for jj in range(image_resolution_form.channel_forms|length) %}
 					{% set channel_form = image_resolution_form.channel_forms[jj] %}
 					{% set channel_content = channel_contents_lists[ii][jj] %}
 					<!-- Render hiddenfields for channel_form -->
 					{{ channel_form.channel_name() }}
 					{{ channel_form.channel_purposes_str() }}
+					{{ channel_form.ventral_up() }}
 
 					{% set channel_name = channel_form.channel_name.data %}
 					{% set channel_purposes_str = channel_form.channel_purposes_str.data %}
+					{% set channel_ventral_up = channel_form.ventral_up.data %}
 					
 					<!-- Channel processing params -->
 					<div class="content-section">
 					
 						<div>
-							<a id='larger' class='font-weight-bold'>Channel: {{  channel_name }} </a>
+							{% if resolution_ventral_up %}
+								<a id='larger' class='font-weight-bold'>Channel: {{  channel_name }}_ventral_up </a>
+							{% else %}
+								<a id='larger' class='font-weight-bold'>Channel: {{  channel_name }} </a>
+							{% endif %}
 						</div>
 
 						<div>
-							<a id='larger' >Raw data folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/rawdata/{{channel_content['rawdata_subfolder']}} </span>
+							{% if resolution_ventral_up %}
+								<a id='larger' >Raw data folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/rawdata/resolution_{{image_resolution}}_ventral_up/{{channel_content['rawdata_subfolder']}} </span>
+							{% else %}
+								<a id='larger' >Raw data folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/rawdata/resolution_{{image_resolution}}/{{channel_content['rawdata_subfolder']}} </span>
+							{% endif %}
 						</div>
 						<div>
-							<a id='larger' >Output folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/output/processing_request_{{processing_request_number}}/resolution_{{channel_content['image_resolution']}} </span>
+							{% if resolution_ventral_up %}
+								<a id='larger' >Output folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/output/processing_request_{{processing_request_number}}/resolution_{{channel_content['image_resolution']}}_ventral_up </span>
+							{% else %}
+								<a id='larger' >Output folder:</a> <span> {{data_bucket_rootpath}}/{{sample_dict['username']}}/{{sample_dict['request_name']}}/{{sample_dict['sample_name']}}/imaging_request_{{channel_content['imaging_request_number']}}/output/processing_request_{{processing_request_number}}/resolution_{{channel_content['image_resolution']}} </span>
+							{% endif %}
 						</div>
 
 						<div>
