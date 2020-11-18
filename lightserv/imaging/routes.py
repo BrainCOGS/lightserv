@@ -649,6 +649,28 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 														 f"channel: {channel_name_to_flip} "
 														 f"for sample_name: {this_sample_name}")
 											flash(flash_str,"warning")
+										""" Also create a new ProcessingResolutionRequest() 
+										for this image resolution/ventral_up combo if one
+										does not already exist """
+										restrict_processing_resolution_dict = {}
+										restrict_processing_resolution_dict['username'] = username
+										restrict_processing_resolution_dict['request_name'] = request_name
+										restrict_processing_resolution_dict['sample_name'] = this_sample_name
+										restrict_processing_resolution_dict['imaging_request_number'] = imaging_request_number
+										restrict_processing_resolution_dict['processing_request_number'] = 1
+										restrict_processing_resolution_dict['image_resolution'] = this_image_resolution
+										restrict_processing_resolution_dict['ventral_up'] = 1
+										processing_resolution_request_contents = \
+											db_lightsheet.Request.ProcessingResolutionRequest & \
+												restrict_processing_resolution_dict
+										if len(processing_resolution_request_contents) == 0:
+											restrict_processing_resolution_insert_dict = restrict_processing_resolution_dict.copy()
+											restrict_processing_resolution_insert_dict['atlas_name'] = 'allen_2017' # default
+											restrict_processing_resolution_insert_dict['final_orientation'] = 'sagittal' # default
+											logger.debug("Creating ProcessingResolutionRequest() insert:")
+											logger.debug(restrict_processing_resolution_insert_dict)
+											db_lightsheet.Request.ProcessingResolutionRequest.insert1(
+												restrict_processing_resolution_insert_dict)
 												
 									if not issues_adding_channels:
 										flash(f"Channel {channel_name_to_flip} successfully added to all samples","success")
@@ -808,18 +830,18 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 
 										""" For SmartSPIM
 										Add up all the files in the deepest directories """
-										walker = os.walk(rawdata_fullpath)
+										walker = os.walk(rawdata_fullpath,followlinks=True)
 										try:
 											channel_dir, subdirs, files = next(walker)
 											regex = re.compile(r'\d{6}')
 											good_subdirs = [x for x in subdirs if regex.match(x)] # don't want to search through corrected/ or stitched/ dirs for example
-											
 											for subdir in good_subdirs:
-												walker = os.walk(os.path.join(channel_dir,subdir)) 
-												for curdir,sub_subdirs,filenames in walker:
-													if len(sub_subdirs) == 0:
-														number_of_rawfiles_found += len(filenames)
-										except:
+												sub_subdirs = glob.glob(os.path.join(channel_dir,subdir,'*/'))
+												for sub_subdir in sub_subdirs:
+													filenames = glob.glob(sub_subdir + '/*tiff')
+													number_of_rawfiles_found += len(filenames)
+												
+										except:	
 											logger.debug("Problem checking raw data directory. Most likely directory doesn't exist")
 										
 									else:
@@ -1226,6 +1248,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 															 f"channel: {channel_name_to_flip}")
 											flash(flash_str,"danger")
 										else:
+
 											""" Create a new ImagingChannel() entry for this channel,
 											which is just a duplicate of the current db entry """
 
@@ -1245,7 +1268,29 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 											logger.debug(flipped_channel_dict)
 											db_lightsheet.Request.ImagingChannel().insert1(
 												flipped_channel_dict)
-											
+											""" Also create a new ProcessingResolutionRequest() 
+											for this image resolution/ventral_up combo if one
+											does not already exist """
+											restrict_processing_resolution_dict = {}
+											restrict_processing_resolution_dict['username'] = username
+											restrict_processing_resolution_dict['request_name'] = request_name
+											restrict_processing_resolution_dict['sample_name'] = this_sample_name
+											restrict_processing_resolution_dict['imaging_request_number'] = imaging_request_number
+											restrict_processing_resolution_dict['processing_request_number'] = 1
+											restrict_processing_resolution_dict['image_resolution'] = this_image_resolution
+											restrict_processing_resolution_dict['ventral_up'] = 1
+											processing_resolution_request_contents = \
+												db_lightsheet.Request.ProcessingResolutionRequest & \
+													restrict_processing_resolution_dict
+											if len(processing_resolution_request_contents) == 0:
+												restrict_processing_resolution_insert_dict = restrict_processing_resolution_dict.copy()
+												restrict_processing_resolution_insert_dict['atlas_name'] = 'allen_2017' # default
+												restrict_processing_resolution_insert_dict['final_orientation'] = 'sagittal' # default
+												logger.debug("Creating ProcessingResolutionRequest() insert:")
+												logger.debug(restrict_processing_resolution_insert_dict)
+												db_lightsheet.Request.ProcessingResolutionRequest.insert1(
+													restrict_processing_resolution_insert_dict)
+
 											flash_str = (f"Successfully created flipped channel for: "
 															 f"sample_name: {this_sample_name}, "
 															 f"image resolution: {this_image_resolution}, "

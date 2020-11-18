@@ -164,7 +164,9 @@ def test_processing_entry_form_submits(test_client,test_imaged_request_ahoag):
 	for a test sample """
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-ventral_up':0,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-ventral_up':0,
 		'image_resolution_forms-0-atlas_name':'allen_2017',
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'submit':True
@@ -199,7 +201,9 @@ def test_multichannel_processing_entry_form_submits(test_client,test_imaged_mult
 	# print(db_lightsheet.request.Sample())
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-ventral_up':0,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-ventral_up':0,
 		'image_resolution_forms-0-atlas_name':'allen_2017',
 		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'submit':True
@@ -251,10 +255,11 @@ def test_processing_admin_submit_processing_entry_for_nonadmin(test_client,test_
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'lightserv-test'
 
-
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-ventral_up':0,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-ventral_up':0,
 		'image_resolution_forms-0-atlas_name':'allen_2017',
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'submit':True
@@ -289,7 +294,9 @@ def test_submit_processing_entry_generic_imaging_nonadmin(test_client,test_image
 
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-ventral_up':0,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'555',
+		'image_resolution_forms-0-channel_forms-0-ventral_up':0,
 		'image_resolution_forms-0-atlas_name':'allen_2017',
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'submit':True
@@ -353,67 +360,8 @@ def test_processing_entry_form_redirects_on_post_if_already_submitted(test_clien
                        "see your request page") 
 	assert warning_message.encode('utf-8') in response.data
 
-def test_new_channel_added_is_processed(test_client,test_imaged_request_nonadmin_new_channel_added,):
-	""" Test that lightserv-test can submit processing for the original channel as well as the channel 
-	that was added by zmd (555) in the imaging entry form"""
-	import time
-	from lightserv.processing import tasks
-
-	with test_client.session_transaction() as sess:
-		sess['user'] = 'lightserv-test'
-	data = {
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-		'image_resolution_forms-0-channel_forms-1-channel_name':'555',
-		'image_resolution_forms-0-atlas_name':'allen_2017',
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'submit':True
-		}
-
-	username = "lightserv-test"
-	request_name = "nonadmin_request"
-	sample_name = "sample-001"
-	imaging_request_number = 1
-	processing_request_number = 1
-	response = test_client.post(url_for('processing.processing_entry',
-			username=username,request_name=request_name,sample_name=sample_name,
-			imaging_request_number=imaging_request_number,
-			processing_request_number=processing_request_number),
-		data=data,
-		follow_redirects=True)
-	assert b"core facility requests" in response.data
-	assert b"Processing entry form" not in response.data
-
-	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
-			f'request_name="{request_name}"' & \
-			f'username="{username}"' & f'sample_name="{sample_name}"' & \
-			f'imaging_request_number="{imaging_request_number}"' & \
-			f'processing_request_number="{processing_request_number}"'
-	processing_progress = processing_request_contents.fetch1('processing_progress')
-	assert processing_progress == 'running'
-	""" Make sure ProcessingChannel() entry gets created for channel 555 """
-
-	kwargs = dict(username=username,request_name=request_name,
-		sample_name=sample_name,imaging_request_number=imaging_request_number,
-		processing_request_number=processing_request_number)
-	
-	all_channel_contents = db_lightsheet.Request.ImagingChannel() & f'username="{username}"' \
-		& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
-		f'imaging_request_number="{imaging_request_number}"'
-	print(all_channel_contents)
-	print("Starting light sheet pipeline job synchronously")
-	tasks.run_lightsheet_pipeline.run(**kwargs)
-	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
-	print(table_contents)
-	assert len(table_contents) > 0
-	# time.sleep(2) # sleep to allow celery task that starts light sheet pipeline to create the database entry
-	processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
-		'request_name="nonadmin_request"' & 'username="lightserv-test"' & \
-		'sample_name="sample-001"' & 'imaging_request_number=1' & \
-		'processing_request_number=1' &	'channel_name="555"'
-	assert len(processing_channel_contents) == 1
-
-def test_dorsal_up_and_ventral_up_appear_in_processing_entry_form(test_client,test_imaged_request_dorsal_up_and_ventral_up_nonadmin):
+def test_dorsal_up_and_ventral_up_appear_in_processing_entry_form(test_client,
+	test_imaged_request_dorsal_up_and_ventral_up_nonadmin):
 	""" Test that a request which has both dorsal up and ventral up imaging 
 	has a dorsal up section and a separate ventral up section in the processing entry form
 	"""
@@ -438,12 +386,14 @@ def test_dorsal_up_and_ventral_up_processing_submits(test_client,
 
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
+		'image_resolution_forms-0-ventral_up':0,
 		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_forms-0-channel_forms-0-ventral_up':0,
 		'image_resolution_forms-0-atlas_name':'allen_2017',
 		'image_resolution_forms-1-image_resolution':'1.3x_ventral_up',
-		'image_resolution_forms-1-ventral_up':True,
+		'image_resolution_forms-1-ventral_up':1,
 		'image_resolution_forms-1-channel_forms-0-channel_name':'488',
-		'image_resolution_forms-1-channel_forms-0-ventral_up':True,
+		'image_resolution_forms-1-channel_forms-0-ventral_up':1,
 		'image_resolution_forms-1-atlas_name':'allen_2017',
 		'submit':True
 		}
@@ -587,6 +537,7 @@ def test_stitched_precomputed_pipeline_starts(test_client,
 	processing_request_number=1
 	image_resolution='4x'
 	channel_name='647'
+	ventral_up=0
 	channel_index=0
 	number_of_z_planes=682
 	lightsheet='left'
@@ -609,6 +560,7 @@ def test_stitched_precomputed_pipeline_starts(test_client,
 				processing_request_number=processing_request_number,
 				image_resolution=image_resolution,channel_name=channel_name,
 				channel_index=channel_index,
+				ventral_up=ventral_up,
 				rawdata_subfolder=rawdata_subfolder,
 				left_lightsheet_used=left_lightsheet_used,
 				right_lightsheet_used=right_lightsheet_used,
@@ -634,6 +586,7 @@ def test_blended_precomputed_pipeline_starts(test_client,
 	processing_request_number=1
 	image_resolution='1.3x'
 	channel_name='488'
+	ventral_up=0
 	channel_index=0
 	left_lightsheet_used=True
 	right_lightsheet_used=False
@@ -662,6 +615,7 @@ def test_blended_precomputed_pipeline_starts(test_client,
 				processing_request_number=processing_request_number,
 				image_resolution=image_resolution,channel_name=channel_name,
 				channel_index=channel_index,
+				ventral_up=ventral_up,
 				processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
 				z_step=z_step,blended_data_path=blended_data_path)
 
@@ -686,6 +640,7 @@ def test_downsized_precomputed_pipeline_starts(test_client,
 	image_resolution='1.3x'
 	channel_name='488'
 	channel_index=0
+	ventral_up=0
 	left_lightsheet_used=True
 	right_lightsheet_used=False
 	z_step=5
@@ -705,6 +660,7 @@ def test_downsized_precomputed_pipeline_starts(test_client,
 				processing_request_number=processing_request_number,
 				image_resolution=image_resolution,channel_name=channel_name,
 				channel_index=channel_index,rawdata_subfolder=rawdata_subfolder,
+				ventral_up=ventral_up,
 				processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
 				downsized_data_path=downsized_data_path,atlas_name=atlas_name)
 	downsized_viz_dir = os.path.join(data_bucket_rootpath,username,
@@ -736,6 +692,7 @@ def test_registered_precomputed_pipeline_starts(test_client,
 	image_resolution='1.3x'
 	channel_name='488'
 	channel_index=0
+	ventral_up=0
 	lightsheet_channel_str='regch'	
 	z_step=5
 	rawdata_subfolder='test488'
@@ -762,6 +719,7 @@ def test_registered_precomputed_pipeline_starts(test_client,
 		lightsheet_channel_str=lightsheet_channel_str,
 		rawdata_subfolder=rawdata_subfolder,
 		atlas_name=atlas_name,
+		ventral_up=ventral_up,
 		processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
 		registered_data_path=registered_data_path)
 

@@ -1284,6 +1284,15 @@ def test_add_ventral_up_channel_batch(test_client,
 	contents_sample1_ventral_up = imaging_channel_contents_sample1 & {'ventral_up':True}
 	ventral_up_z_step = contents_sample1_ventral_up.fetch1('z_step')
 	assert ventral_up_z_step == 4
+	""" Make sure a ProcessingResolutionRequest() entry was made for the 
+	1.3x/ventral up combo """
+	restrict_dict_sample1_res = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			image_resolution='1.3x',
+			ventral_up=1)
+	processing_resolution_contents_sample1 = db_lightsheet.Request.ProcessingResolutionRequest() & restrict_dict_sample1_res
+	assert len(processing_resolution_contents_sample1) == 1
 
 def test_add_ventral_up_channel_individual_sample(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
@@ -1539,6 +1548,7 @@ def test_raw_precomputed_pipeline_starts(test_client,test_delete_spockadmin_db_c
 	imaging_request_number=1
 	image_resolution='1.3x'
 	channel_name='488'
+	ventral_up=0
 	channel_index=0
 	number_of_z_planes=657
 	left_lightsheet_used=True
@@ -1549,6 +1559,7 @@ def test_raw_precomputed_pipeline_starts(test_client,test_delete_spockadmin_db_c
 							sample_name=sample_name,imaging_request_number=imaging_request_number,
 							image_resolution=image_resolution,channel_name=channel_name,
 							channel_index=channel_index,number_of_z_planes=number_of_z_planes,
+							ventral_up=ventral_up,
 							left_lightsheet_used=left_lightsheet_used,
 							right_lightsheet_used=right_lightsheet_used,
 							z_step=z_step,rawdata_subfolder=rawdata_subfolder)

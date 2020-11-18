@@ -133,9 +133,11 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 				f'username="{username}"' & f'sample_name="{sample_name}"' & \
 				f'imaging_request_number="{imaging_request_number}"' & \
 				f'processing_request_number="{processing_request_number}"'
+	
 	channel_contents = db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			f'imaging_request_number="{imaging_request_number}"' # all of the channels for this sample
+	
 	channel_content_dict_list = channel_contents.fetch(as_dict=True)
 
 	joined_contents = sample_contents * processing_request_contents * processing_resolution_request_contents 
@@ -166,12 +168,16 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 				# logger.debug("form resolution dict:")
 				# logger.debug(form_resolution_dict)
 				this_image_resolution = image_resolution_form.image_resolution.data
+				this_image_resolution = this_image_resolution if 'ventral_up' not in this_image_resolution else this_image_resolution.strip('_ventral_up')
 				ventral_up = image_resolution_form.ventral_up.data
 				logger.debug("Image resolution:")				
 				logger.debug(this_image_resolution)
 				logger.debug("ventral_up?")
 				logger.debug(ventral_up)
 				atlas_name = image_resolution_form.atlas_name.data
+				logger.debug("Atlas name:")
+				logger.debug(atlas_name)
+				logger.debug(type(atlas_name))
 				""" Make processing path on /jukebox """
 				if ventral_up: 
 					processing_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
@@ -184,8 +190,8 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 					'output',f'processing_request_{processing_request_number}',
 					f'resolution_{this_image_resolution}')
 				mymkdir(processing_path_to_make)
-				this_processing_resolution_content = processing_resolution_request_contents & \
-				f'image_resolution="{this_image_resolution}"' & f'ventral_up={ventral_up}'
+				restrict_dict = {'image_resolution':this_image_resolution,'ventral_up':ventral_up}
+				this_processing_resolution_content = processing_resolution_request_contents & restrict_dict
 				""" If a processing resolution request does not already exist for this resolution/ventral_up 
 				combination then just make a new one """
 				if len(this_processing_resolution_content) == 0:
@@ -208,9 +214,10 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 						f'image_resolution="{image_resolution_to_insert}"' & f'ventral_up={ventral_up}'
 
 				logger.info("updating atlas and notes_from_processing in ProcessingResolutionRequest() with user's form data")
-				logger.debug(this_processing_resolution_content.fetch(as_dict=True))
-				dj.Table._update(this_processing_resolution_content,'atlas_name',atlas_name)
-				dj.Table._update(this_processing_resolution_content,'notes_from_processing',form.notes_from_processing.data)
+				processing_resolution_insert_dict = this_processing_resolution_content.fetch1()
+				processing_resolution_insert_dict['atlas_name'] = atlas_name
+				processing_resolution_insert_dict['notes_from_processing'] = form.notes_from_processing.data
+				db_lightsheet.Request.ProcessingResolutionRequest().insert1(processing_resolution_insert_dict,replace=True)
 			logger.info(f"Starting light sheet pipeline task")
 
 			if not os.environ['FLASK_MODE'] == 'TEST': # pragma: no cover - used to exclude this line from calculating test coverage
@@ -282,7 +289,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 		if ventral_channel_contents:
 			logger.debug("Have ventral up channels")
 			processing_resolution_request_content = processing_resolution_request_contents & \
-			 f'image_resolution="{this_image_resolution}"' & f'ventral_up=1'
+			 f'image_resolution="{this_image_resolution}"' & 'ventral_up=1'
 			atlas_name_this_resolution = processing_resolution_request_content.fetch1('atlas_name') 
 			ventral_channel_list = ventral_channel_contents.fetch(as_dict=True)
 			channel_contents_lists.append([])
