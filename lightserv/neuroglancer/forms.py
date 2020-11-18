@@ -65,6 +65,7 @@ class BlendedChannelForm(FlaskForm):
 	""" A sub-form for each channel in an ImageResolutionForm """
 	channel_name = HiddenField('Channel Name')
 	viz = BooleanField("Visualize?",default=0)
+	ventral_up = HiddenField("ventral_up")
 
 class BlendedImageResolutionForm(FlaskForm):
 	""" A sub-form for each image resolution in RawDataSetupForm """
@@ -96,6 +97,7 @@ class DownsizedChannelForm(FlaskForm):
 	""" A sub-form for each channel in an ImageResolutionForm """
 	channel_name = HiddenField('Channel Name')
 	viz = BooleanField("Visualize?",default=0)
+	ventral_up = HiddenField("ventral_up")
 
 class DownsizedImageResolutionForm(FlaskForm):
 	""" A sub-form for each image resolution in RawDataSetupForm """
@@ -128,6 +130,7 @@ class RegisteredChannelForm(FlaskForm):
 	channel_name = HiddenField('Channel Name')
 	viz = BooleanField("Visualize?",default=0)
 	viz_atlas = BooleanField("Overlay Atlas?",default=0)
+	ventral_up = HiddenField("ventral_up")
 
 class RegisteredImageResolutionForm(FlaskForm):
 	""" A sub-form for each image resolution in RawDataSetupForm """

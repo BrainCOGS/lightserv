@@ -135,8 +135,8 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
                         
                         if ventral_up:
                             logger.debug("Using ventral up cloudvolume")
-                            cv_container_name = f'{session_name}_raw_{channel_name}_{lightsheet}_ventral_up_ls_container'
-                            cv_name = f"{channel_name}_{lightsheet}_ventral_up_ls_raw"
+                            cv_container_name = f'{session_name}_raw_{channel_name}_{lightsheet}_ls_ventral_up_container'
+                            cv_name = f"{channel_name}_{lightsheet}_ls_ventral_up_raw"
                             cv_path = os.path.join(data_bucket_rootpath,username,request_name,
                                 sample_name,f'imaging_request_{imaging_request_number}','viz',
                                 'raw',f'channel_{channel_name}_ventral_up',f'{lightsheet}_lightsheet',
@@ -285,939 +285,6 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
     return render_template('neuroglancer/raw_data_setup.html',form=form,
         channel_contents_lists=channel_contents_lists,imaging_request_table=imaging_request_table)
 
-@neuroglancer.route("/neuroglancer/stitched_data_setup/<username>/<request_name>/<sample_name>/<imaging_request_number>/<processing_request_number>",
-    methods=['GET','POST'])
-@check_imaging_completed
-@log_http_requests
-def stitched_data_setup(username,request_name,sample_name,
-    imaging_request_number,processing_request_number): # don't change the url 
-    """ A route for displaying a form for users to choose how
-    they want their stitched data (from a given processing request) 
-    visualized in Neuroglancer.
-    The route spawns cloudvolumes for each layer and then 
-    makes a neuroglancer viewer and provides the link to the user. """
-
-    form = StitchedDataSetupForm(request.form)
-    imaging_restrict_dict = dict(username=username,request_name=request_name,
-                sample_name=sample_name,imaging_request_number=imaging_request_number)
-    imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & imaging_restrict_dict
-    processing_restrict_dict = dict(username=username,request_name=request_name,
-                sample_name=sample_name,imaging_request_number=imaging_request_number,
-                processing_request_number=processing_request_number)
-
-    processing_request_contents = db_lightsheet.Request.ProcessingRequest() & processing_restrict_dict
-    processing_request_table = ProcessingRequestTable(processing_request_contents)
-    processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & processing_restrict_dict
-    joined_processing_channel_contents = imaging_channel_contents * processing_channel_contents
-
-    if request.method == 'POST':
-        logger.debug('POST request')
-        # Redis setup for this session
-        
-        hosturl = os.environ['HOSTURL'] # via dockerenv
-        data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
-
-        if form.validate_on_submit():
-            logger.debug("Form validated")
-            """ loop through each image resolution sub-form 
-            and make a neuroglancer viewer link for each one,
-            spawning cloudvolumes for each channel/lightsheet combo """
-            kv = redis.Redis(host="redis", decode_responses=True)
-            neuroglancer_url_dict = {} # keys are image resolution, values are urls
-            cv_table_dict = {}
-
-            for ii in range(len(form.image_resolution_forms)):
-                session_name = secrets.token_hex(6)
-                viewer_id = "viewer1" # for storing the viewer info in redis
-                # kv.hmset(session_name,{"viewer_id":viewer_id})
-                kv.hmset(session_name,{"cv_count":0}) # initialize the number of cloudvolumes in this ng session
-
-                # Set up environment to be shared by all cloudvolumes
-                
-                cv_number = 0 # to keep track of how many cloudvolumes in this viewer
-                image_resolution_form = form.image_resolution_forms[ii]
-                image_resolution = image_resolution_form.image_resolution.data
-        
-                """ Loop through channels and spawn a cloudvolume 
-                within this session for each light sheet used """
-                cv_contents_dict_list_this_resolution = []
-
-                for jj in range(len(image_resolution_form.channel_forms)):
-                    
-                    channel_form = image_resolution_form.channel_forms[jj]
-                    channel_name = channel_form.channel_name.data
-                    viz_left_lightsheet = channel_form.viz_left_lightsheet.data
-                    viz_right_lightsheet = channel_form.viz_right_lightsheet.data
-                    
-                    for lightsheet in ['left','right']:
-                        cv_contents_dict_this_lightsheet = {}
-                        if lightsheet == 'left':
-                            if not viz_left_lightsheet:
-                                continue
-                        elif lightsheet == 'right':
-                            if not viz_right_lightsheet:
-                                continue
-                        cv_number += 1 
-                        cv_container_name = f'{session_name}_raw_{channel_name}_{lightsheet}_ls_container'
-                        cv_name = f"{channel_name}_{lightsheet}_ls_raw"
-                        cv_path = os.path.join(data_bucket_rootpath,username,request_name,
-                            sample_name,f'imaging_request_{imaging_request_number}','viz',
-                            f'processing_request_{processing_request_number}','stitched_raw',
-                            f'channel_{channel_name}',f'{lightsheet}_lightsheet',
-                            f'channel{channel_name}_stitched_{lightsheet}_lightsheet')      
-                        this_restrict_dict = {
-                            f'channel_name="{channel_name}"'}
-                        this_processing_channel_contents =  joined_processing_channel_contents & \
-                            this_restrict_dict
-                        rawdata_subfolder = this_processing_channel_contents.fetch1('rawdata_subfolder')
-                        channel_index = this_processing_channel_contents.fetch1('imspector_channel_index')
-                        channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
-                        raw_data_path = os.path.join(data_bucket_rootpath,username,
-                             request_name,sample_name,
-                             f"imaging_request_{imaging_request_number}",
-                             "raw",rawdata_subfolder)
-                        stitched_data_path = os.path.join(raw_data_path,
-                            f'{rawdata_subfolder}_ch{channel_index_padded}_{lightsheet}_lightsheet_ts_out')
-                        cv_contents_dict_this_lightsheet['image_resolution'] = image_resolution
-                        cv_contents_dict_this_lightsheet['lightsheet'] = lightsheet
-                        cv_contents_dict_this_lightsheet['cv_name'] = cv_name
-                        cv_contents_dict_this_lightsheet['cv_path'] = cv_path
-                        cv_contents_dict_this_lightsheet['data_path'] = stitched_data_path
-                        layer_type = "image"
-                        """ send the data to the viewer-launcher
-                        to launch the cloudvolume """                       
-                        cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
-                            cv_container_name=cv_container_name,
-                            layer_type=layer_type,session_name=session_name)
-                        requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
-                        logger.debug("Made post request to viewer-launcher to launch cloudvolume")
-
-                        """ Enter the cv information into redis
-                        so I can get it from within the neuroglancer container """
-                        kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
-                            f"cv{cv_number}_name": cv_name, f"layer{cv_number}_type":layer_type})
-                        # increment the number of cloudvolumes so it is up to date
-                        kv.hincrby(session_name,'cv_count',1)
-                        # register with the confproxy so that it can be seen from outside the nglancer network
-                        proxy_h = pp.progproxy(target_hname='confproxy')
-                        proxypath = os.path.join('cloudvols',session_name,cv_name)
-                        proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
-                        cv_contents_dict_list_this_resolution.append(cv_contents_dict_this_lightsheet)
-                cv_table = MultiLightSheetCloudVolumeLayerTable(cv_contents_dict_list_this_resolution)
-                cv_table_dict[image_resolution] = cv_table
-                """ Now spawn a neuroglancer container which will make
-                layers for each of the spawned cloudvolumes """
-                ng_container_name = f'{session_name}_ng_container'
-                ng_dict = {}
-                ng_dict['hosturl'] = hosturl
-                ng_dict['ng_container_name'] = ng_container_name
-                ng_dict['session_name'] = session_name
-                """ send the data to the viewer-launcher
-                to launch the ng viewer """                       
-                
-                requests.post('http://viewer-launcher:5005/ng_raw_launcher',json=ng_dict)
-                logger.debug("Made post request to viewer-launcher to launch ng viewer")
-                
-                # Add the ng container name to redis session key level
-                kv.hmset(session_name, {"ng_container_name": ng_container_name})
-                # Add ng viewer url to config proxy so it can be seen from outside of the lightserv docker network 
-                proxy_h.addroute(proxypath=f'viewers/{session_name}', proxytarget=f"http://{ng_container_name}:8080/")
-                logger.debug(f"Added {ng_container_name} to redis and confproxy")
-
-                # Spin until the neuroglancer viewer token from redis becomes available 
-                # (may be waiting on the neuroglancer container to finish writing to redis)
-                while True:
-                    session_dict = kv.hgetall(session_name)
-                    if 'viewer' in session_dict.keys():
-                        break
-                    else:
-                        logger.debug("Still spinning; waiting for redis entry for neuoglancer viewer")
-                        time.sleep(0.25)
-                viewer_json_str = kv.hgetall(session_name)['viewer']
-                viewer_dict = json.loads(viewer_json_str)
-                logger.debug(f"Redis contents for viewer")
-                logger.debug(viewer_dict)
-                logger.debug("Proxy contents:")
-                response=proxy_h.getroutes()
-                logger.debug(response.text)
-                # logger.debug(proxy_contents)
-                
-                neuroglancerurl = f"https://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
-                neuroglancer_url_dict[image_resolution] = neuroglancerurl
-
-                logger.debug("URL IS:")
-                logger.debug(neuroglancerurl)
-            return render_template('neuroglancer/viewer_links.html',
-                datatype='stitched',
-                url_dict=neuroglancer_url_dict,cv_table_dict=cv_table_dict)
-                
-
-        else: # form not validated
-            flash("There were errors below. Correct them in order to proceed.","danger")
-            for key in form.errors:
-                for error in form.errors[key]:
-                    flash(error,'danger')
-            logger.debug(form.errors)
-
-    """Loop through all imaging resolutions and render a 
-    a sub-form for each"""
-    unique_image_resolutions = sorted(set(processing_channel_contents.fetch('image_resolution')))
-    channel_contents_lists = []
-    """ First clear out any existing subforms from previous http requests """
-    while len(form.image_resolution_forms) > 0:
-        form.image_resolution_forms.pop_entry()
-
-    for ii in range(len(unique_image_resolutions)):
-        image_resolution = unique_image_resolutions[ii]
-        # logger.debug(f"image resolution: {image_resolution}")
-
-        form.image_resolution_forms.append_entry()
-        this_image_resolution_form = form.image_resolution_forms[ii]
-        this_image_resolution_form.image_resolution.data = image_resolution
-        """ Gather all imaging channels at this image resolution """
-        imaging_channel_contents_this_resolution = (imaging_channel_contents & \
-            f'image_resolution="{image_resolution}"')
-        processing_channel_contents_this_resolution = (processing_channel_contents & \
-            f'image_resolution="{image_resolution}"')
-        imaging_channels_this_resolution = processing_channel_contents_this_resolution.fetch('channel_name')
-        """ Loop through all channels at this resolution and render 
-        a sub-sub-form for each """
-        channel_contents_lists.append([])
-        for jj in range(len(imaging_channels_this_resolution)):
-            channel_name = imaging_channels_this_resolution[jj]
-            # logger.debug(f"channel: {channel_name}")
-            this_image_resolution_form.channel_forms.append_entry()
-            this_channel_form = this_image_resolution_form.channel_forms[jj]
-            this_channel_form.channel_name.data = channel_name
-            """ Figure out which light sheets were imaged """
-            this_channel_content_dict = (imaging_channel_contents_this_resolution & \
-                f'channel_name="{channel_name}"').fetch1()
-           
-            channel_contents_lists[ii].append(this_channel_content_dict)
-            # logger.debug(this_channel_content) 
-        # logger.debug(imaging_channel_dict)
-
-    return render_template('neuroglancer/stitched_data_setup.html',form=form,
-        channel_contents_lists=channel_contents_lists,processing_request_table=processing_request_table)
-
-@neuroglancer.route("/neuroglancer/blended_data_setup/"
-                    "<username>/<request_name>/<sample_name>/"
-                    "<imaging_request_number>/<processing_request_number>",
-    methods=['GET','POST'])
-@check_imaging_completed
-@log_http_requests
-def blended_data_setup(username,request_name,sample_name,
-    imaging_request_number,processing_request_number): # don't change the url 
-    """ A route for displaying a form for users to choose how
-    they want their registered data (from a given processing request) 
-    visualized in Neuroglancer.
-    The route spawns cloudvolumes for each layer and then 
-    makes a neuroglancer viewer and provides the link to the user. """
-
-    form = BlendedDataSetupForm(request.form)
-    imaging_restrict_dict = dict(username=username,request_name=request_name,
-                sample_name=sample_name,imaging_request_number=imaging_request_number)
-    imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & imaging_restrict_dict
-    processing_restrict_dict = dict(username=username,request_name=request_name,
-                sample_name=sample_name,imaging_request_number=imaging_request_number,
-                processing_request_number=processing_request_number)
-
-    processing_request_contents = db_lightsheet.Request.ProcessingRequest() & processing_restrict_dict
-    processing_request_table = ProcessingRequestTable(processing_request_contents)
-    processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & processing_restrict_dict
-    joined_processing_channel_contents = imaging_channel_contents * processing_channel_contents
-    if request.method == 'POST':
-        logger.debug('POST request')
-        # Redis setup for this session
-        
-        hosturl = os.environ['HOSTURL'] # via dockerenv
-        data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
-
-        if form.validate_on_submit():
-            logger.debug("Form validated")
-            """ loop through each image resolution sub-form 
-            and make a neuroglancer viewer link for each one,
-            spawning cloudvolumes for each channel/lightsheet combo """
-            kv = redis.Redis(host="redis", decode_responses=True)
-            neuroglancer_url_dict = {}
-            cv_table_dict = {}
-            for ii in range(len(form.image_resolution_forms)):
-                session_name = secrets.token_hex(6)
-                viewer_id = "viewer1" # for storing the viewer info in redis
-                # kv.hmset(session_name,{"viewer_id":viewer_id})
-                kv.hmset(session_name,{"cv_count":0}) # initialize the number of cloudvolumes in this ng session
-
-                # Set up environment to be shared by all cloudvolumes
-                cv_number = 0 # to keep track of how many cloudvolumes in this viewer
-                image_resolution_form = form.image_resolution_forms[ii]
-                image_resolution = image_resolution_form.image_resolution.data
-                """ Loop through channels and spawn a cloudvolume 
-                within this session for each light sheet used """
-                cv_contents_dict_list_this_resolution = []
-                for jj in range(len(image_resolution_form.channel_forms)):
-                    cv_contents_dict_this_channel = {}
-
-                    channel_form = image_resolution_form.channel_forms[jj]
-                    channel_name = channel_form.channel_name.data
-                    visualize_this_channel = channel_form.viz.data
-                    if not visualize_this_channel:
-                        continue
-                    cv_number += 1 
-                    cv_container_name = f'{session_name}_blended_{channel_name}_container'
-                    cv_name = f"{channel_name}_blended"
-                    cv_path = os.path.join(data_bucket_rootpath,username,request_name,
-                        sample_name,f'imaging_request_{imaging_request_number}','viz',
-                        f'processing_request_{processing_request_number}','blended',
-                        f'channel_{channel_name}',      
-                        f'channel{channel_name}_blended')   
-                    this_restrict_dict = {
-                        f'channel_name="{channel_name}"'}
-                    this_processing_channel_contents =  joined_processing_channel_contents & \
-                        this_restrict_dict
-
-                    rawdata_subfolder = this_processing_channel_contents.fetch1('rawdata_subfolder')
-                    channel_index = this_processing_channel_contents.fetch1('imspector_channel_index')
-                    channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
-                    blended_data_path = os.path.join(data_bucket_rootpath,username,
-                             request_name,sample_name,
-                             f"imaging_request_{imaging_request_number}",
-                             "output",
-                             f"processing_request_{processing_request_number}",
-                             f"resolution_{image_resolution}",
-                             "full_sizedatafld",
-                             f"{rawdata_subfolder}_ch{channel_index_padded}")
-                    cv_contents_dict_this_channel['image_resolution'] = image_resolution
-                    cv_contents_dict_this_channel['cv_name'] = cv_name
-                    cv_contents_dict_this_channel['cv_path'] = cv_path
-                    cv_contents_dict_this_channel['data_path'] = blended_data_path
-                    layer_type = "image"
-                    """ send the data to the viewer-launcher
-                    to launch the cloudvolume """                       
-                    cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
-                        cv_container_name=cv_container_name,
-                        layer_type=layer_type,session_name=session_name)
-                    requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
-                    logger.debug("Made post request to viewer-launcher to launch cloudvolume")
-
-                    """ Enter the cv information into redis
-                    so I can get it from within the neuroglancer container """
-                    kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
-                        f"cv{cv_number}_name": cv_name, f"layer{cv_number}_type":layer_type})
-                    # increment the number of cloudvolumes so it is up to date
-                    kv.hincrby(session_name,'cv_count',1)
-                    # register with the confproxy so that it can be seen from outside the nglancer network
-                    proxy_h = pp.progproxy(target_hname='confproxy')
-                    proxypath = os.path.join('cloudvols',session_name,cv_name)
-                    proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
-                    cv_contents_dict_list_this_resolution.append(cv_contents_dict_this_channel)
-                cv_table = CloudVolumeLayerTable(cv_contents_dict_list_this_resolution)
-                cv_table_dict[image_resolution] = cv_table
-                """ Now spawn a neuroglancer container which will make
-                layers for each of the spawned cloudvolumes """
-                ng_container_name = f'{session_name}_ng_container'
-                ng_dict = {}
-                ng_dict['hosturl'] = hosturl
-                ng_dict['ng_container_name'] = ng_container_name
-                ng_dict['session_name'] = session_name
-                """ send the data to the viewer-launcher
-                to launch the ng viewer """                       
-                
-                requests.post('http://viewer-launcher:5005/nglauncher',json=ng_dict)
-                logger.debug("Made post request to viewer-launcher to launch ng viewer")
-                
-                # Add the ng container name to redis session key level
-                kv.hmset(session_name, {"ng_container_name": ng_container_name})
-                # Add ng viewer url to config proxy so it can be seen from outside of the lightserv docker network 
-                proxy_h.addroute(proxypath=f'viewers/{session_name}', proxytarget=f"http://{ng_container_name}:8080/")
-                logger.debug(f"Added {ng_container_name} to redis and confproxy")
-
-                # Spin until the neuroglancer viewer token from redis becomes available 
-                # (may be waiting on the neuroglancer container to finish writing to redis)
-                while True:
-                    session_dict = kv.hgetall(session_name)
-                    if 'viewer' in session_dict.keys():
-                        break
-                    else:
-                        logger.debug("Still spinning; waiting for redis entry for neuoglancer viewer")
-                        time.sleep(0.25)
-                viewer_json_str = kv.hgetall(session_name)['viewer']
-                viewer_dict = json.loads(viewer_json_str)
-                logger.debug(f"Redis contents for viewer")
-                logger.debug(viewer_dict)
-                logger.debug("Proxy contents:")
-                response=proxy_h.getroutes()
-                logger.debug(response.text)
-                # logger.debug(proxy_contents)
-                
-                neuroglancerurl = f"https://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
-                neuroglancer_url_dict[image_resolution] = neuroglancerurl
-                logger.debug("URL IS:")
-                logger.debug(neuroglancerurl)
-            return render_template('neuroglancer/viewer_links.html',
-                datatype='blended',
-                url_dict=neuroglancer_url_dict,cv_table_dict=cv_table_dict)
-                
-
-        else: # form not validated
-            flash("There were errors below. Correct them in order to proceed.","danger")
-            for key in form.errors:
-                for error in form.errors[key]:
-                    flash(error,'danger')
-            logger.debug(form.errors)
-
-    """Loop through all imaging resolutions and render a 
-    a sub-form for each"""
-    unique_image_resolutions = sorted(set(processing_channel_contents.fetch('image_resolution')))
-    channel_contents_lists = []
-    """ First clear out any existing subforms from previous http requests """
-    while len(form.image_resolution_forms) > 0:
-        form.image_resolution_forms.pop_entry()
-
-    for ii in range(len(unique_image_resolutions)):
-        image_resolution = unique_image_resolutions[ii]
-        # logger.debug(f"image resolution: {image_resolution}")
-
-        form.image_resolution_forms.append_entry()
-        this_image_resolution_form = form.image_resolution_forms[ii]
-        this_image_resolution_form.image_resolution.data = image_resolution
-        """ Gather all imaging channels at this image resolution """
-        imaging_channel_contents_this_resolution = (imaging_channel_contents & \
-            f'image_resolution="{image_resolution}"')
-        processing_channel_contents_this_resolution = (processing_channel_contents & \
-            f'image_resolution="{image_resolution}"')
-        imaging_channels_this_resolution = processing_channel_contents_this_resolution.fetch('channel_name')
-        """ Loop through all channels at this resolution and render 
-        a sub-sub-form for each """
-        channel_contents_lists.append([])
-        for jj in range(len(imaging_channels_this_resolution)):
-            channel_name = imaging_channels_this_resolution[jj]
-            # logger.debug(f"channel: {channel_name}")
-            this_image_resolution_form.channel_forms.append_entry()
-            this_channel_form = this_image_resolution_form.channel_forms[jj]
-            this_channel_form.channel_name.data = channel_name
-            """ Figure out which light sheets were imaged """
-            this_channel_content_dict = (imaging_channel_contents_this_resolution & \
-                f'channel_name="{channel_name}"').fetch1()
-           
-            channel_contents_lists[ii].append(this_channel_content_dict)
-            # logger.debug(this_channel_content) 
-        # logger.debug(imaging_channel_dict)
-
-    return render_template('neuroglancer/blended_data_setup.html',form=form,
-        channel_contents_lists=channel_contents_lists,processing_request_table=processing_request_table)
-
-@neuroglancer.route("/neuroglancer/downsized_data_setup/"
-                    "<username>/<request_name>/<sample_name>/"
-                    "<imaging_request_number>/<processing_request_number>",
-    methods=['GET','POST'])
-@check_imaging_completed
-@log_http_requests
-def downsized_data_setup(username,request_name,sample_name,
-    imaging_request_number,processing_request_number): # don't change the url 
-    """ A route for displaying a form for users to choose how
-    they want their downsized data (from a given processing request) 
-    visualized in Neuroglancer.
-    The route spawns cloudvolumes for each layer and then 
-    makes a neuroglancer viewer and provides the link to the user. """
-
-    form = DownsizedDataSetupForm(request.form)
-    imaging_restrict_dict = dict(username=username,request_name=request_name,
-                sample_name=sample_name,imaging_request_number=imaging_request_number)
-    imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & imaging_restrict_dict
-    processing_restrict_dict = dict(username=username,request_name=request_name,
-                sample_name=sample_name,imaging_request_number=imaging_request_number,
-                processing_request_number=processing_request_number)
-
-    processing_request_contents = db_lightsheet.Request.ProcessingRequest() & processing_restrict_dict
-    
-    processing_resolution_request_contents = db_lightsheet.Request.ProcessingResolutionRequest() & \
-        processing_restrict_dict
-    
-    processing_request_table = ProcessingRequestTable(processing_request_contents)
-    
-    processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & processing_restrict_dict
-    joined_processing_channel_contents = imaging_channel_contents * processing_channel_contents
-    
-    if request.method == 'POST':
-        logger.debug('POST request')
-        # Redis setup for this session
-        
-        hosturl = os.environ['HOSTURL'] # via dockerenv
-        data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
-
-        if form.validate_on_submit():
-            logger.debug("Form validated")
-            """ loop through each image resolution sub-form 
-            and make a neuroglancer viewer link for each one,
-            spawning cloudvolumes for each channel/lightsheet combo """
-            kv = redis.Redis(host="redis", decode_responses=True)
-            neuroglancer_url_dict = {}
-            cv_table_dict = {}
-            for ii in range(len(form.image_resolution_forms)):
-                session_name = secrets.token_hex(6)
-                viewer_id = "viewer1" # for storing the viewer info in redis
-                # kv.hmset(session_name,{"viewer_id":viewer_id})
-                kv.hmset(session_name,{"cv_count":0}) # initialize the number of cloudvolumes in this ng session
-
-                # Set up environment to be shared by all cloudvolumes
-                
-                cv_number = 0 # to keep track of how many cloudvolumes in this viewer
-                image_resolution_form = form.image_resolution_forms[ii]
-                image_resolution = image_resolution_form.image_resolution.data
-                
-                """ Loop through channels and spawn a cloudvolume 
-                within this session for each channel used """
-                cv_contents_dict_list_this_resolution = []
-
-                for jj in range(len(image_resolution_form.channel_forms)):
-                    cv_contents_dict_this_channel = {}
-
-                    channel_form = image_resolution_form.channel_forms[jj]
-                    channel_name = channel_form.channel_name.data
-                    visualize_this_channel = channel_form.viz.data
-                    if not visualize_this_channel:
-                        continue
-                   
-                    """ Set up cloudvolume params"""
-
-                    cv_number += 1 
-                    cv_container_name = f'{session_name}_downsized_{channel_name}_container'
-                    cv_name = f"ch{channel_name}_downsized" # what shows up as the layer name in neuroglancer
-                    cv_path = os.path.join(data_bucket_rootpath,username,request_name,
-                        sample_name,f'imaging_request_{imaging_request_number}','viz',
-                        f'processing_request_{processing_request_number}','downsized',
-                        f'channel_{channel_name}',      
-                        f'channel{channel_name}_downsized')      
-                    this_restrict_dict = {
-                        f'channel_name="{channel_name}"'}
-                    this_processing_channel_contents =  joined_processing_channel_contents & \
-                        this_restrict_dict
-
-                    rawdata_subfolder = this_processing_channel_contents.fetch1('rawdata_subfolder')
-                    channel_index = this_processing_channel_contents.fetch1('imspector_channel_index')
-                    channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
-                    downsized_data_path = os.path.join(data_bucket_rootpath,username,
-                             request_name,sample_name,
-                             f"imaging_request_{imaging_request_number}",
-                             "output",
-                             f"processing_request_{processing_request_number}",
-                             f"resolution_{image_resolution}",
-                             f'{rawdata_subfolder}_resized_ch{channel_index_padded}_resampledforelastix.tif')
-                    cv_contents_dict_this_channel['image_resolution'] = image_resolution
-                    cv_contents_dict_this_channel['cv_name'] = cv_name
-                    cv_contents_dict_this_channel['cv_path'] = cv_path
-                    cv_contents_dict_this_channel['data_path'] = downsized_data_path
-
-
-                    layer_type = "image"
-                    
-                    """ send the data to the viewer-launcher
-                    to launch the cloudvolume """    
-
-                    cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
-                        cv_container_name=cv_container_name,
-                        layer_type=layer_type,session_name=session_name)
-                    requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
-                    logger.debug("Made post request to viewer-launcher to launch cloudvolume")
-
-                    """ Enter the cv information into redis
-                    so I can get it from within the neuroglancer container """
-
-                    kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
-                        f"cv{cv_number}_name": cv_name, f"layer{cv_number}_type":layer_type})                    
-                    kv.hincrby(session_name,'cv_count',1)
-                    
-                    """ register with the confproxy so that the cloudvolume
-                    can be seen from outside the docker network """
-                    
-                    proxy_h = pp.progproxy(target_hname='confproxy')
-                    proxypath = os.path.join('cloudvols',session_name,cv_name)
-                    proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
-                    cv_contents_dict_list_this_resolution.append(cv_contents_dict_this_channel)
-                cv_table = CloudVolumeLayerTable(cv_contents_dict_list_this_resolution)
-                cv_table_dict[image_resolution] = cv_table
-                """ Now spawn a neuroglancer container which will make
-                layers for each of the spawned cloudvolumes """
-                ng_container_name = f'{session_name}_ng_container'
-                ng_dict = {}
-                ng_dict['hosturl'] = hosturl
-                ng_dict['ng_container_name'] = ng_container_name
-                ng_dict['session_name'] = session_name
-                """ send the data to the viewer-launcher
-                to launch the ng viewer """                       
-                
-                requests.post('http://viewer-launcher:5005/nglauncher',json=ng_dict)
-                logger.debug("Made post request to viewer-launcher to launch ng viewer")
-                
-                # Add the ng container name to redis session key level
-                kv.hmset(session_name, {"ng_container_name": ng_container_name})
-                # Add ng viewer url to config proxy so it can be seen from outside of the lightserv docker network 
-                proxy_h.addroute(proxypath=f'viewers/{session_name}', proxytarget=f"http://{ng_container_name}:8080/")
-                logger.debug(f"Added {ng_container_name} to redis and confproxy")
-
-                # Spin until the neuroglancer viewer token from redis becomes available 
-                # (may be waiting on the neuroglancer container to finish writing to redis)
-                while True:
-                    session_dict = kv.hgetall(session_name)
-                    if 'viewer' in session_dict.keys():
-                        break
-                    else:
-                        logger.debug("Still spinning; waiting for redis entry for neuoglancer viewer")
-                        time.sleep(0.25)
-                viewer_json_str = kv.hgetall(session_name)['viewer']
-                viewer_dict = json.loads(viewer_json_str)
-                logger.debug(f"Redis contents for viewer")
-                logger.debug(viewer_dict)
-                logger.debug("Proxy contents:")
-                response=proxy_h.getroutes()
-                logger.debug(response.text)
-                # logger.debug(proxy_contents)
-                
-                neuroglancerurl = f"https://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
-                neuroglancer_url_dict[image_resolution] = neuroglancerurl
-                logger.debug("URL IS:")
-                logger.debug(neuroglancerurl)
-            return render_template('neuroglancer/viewer_links.html',
-                datatype='downsized',
-                url_dict=neuroglancer_url_dict,cv_table_dict=cv_table_dict)
-                
-
-        else: # form not validated
-            flash("There were errors below. Correct them in order to proceed.","danger")
-            for key in form.errors:
-                for error in form.errors[key]:
-                    flash(error,'danger')
-            logger.debug(form.errors)
-
-    """Loop through all imaging resolutions and render a 
-    a sub-form for each"""
-    unique_image_resolutions = sorted(set(processing_channel_contents.fetch('image_resolution')))
-    channel_contents_lists = []
-    """ First clear out any existing subforms from previous http requests """
-    while len(form.image_resolution_forms) > 0:
-        form.image_resolution_forms.pop_entry()
-
-    for ii in range(len(unique_image_resolutions)):
-        image_resolution = unique_image_resolutions[ii]
-        # logger.debug(f"image resolution: {image_resolution}")
-
-        form.image_resolution_forms.append_entry()
-        this_image_resolution_form = form.image_resolution_forms[ii]
-        this_image_resolution_form.image_resolution.data = image_resolution
-        """ Gather all imaging channels at this image resolution """
-        imaging_channel_contents_this_resolution = (imaging_channel_contents & \
-            f'image_resolution="{image_resolution}"')
-        processing_channel_contents_this_resolution = (processing_channel_contents & \
-            f'image_resolution="{image_resolution}"')
-        imaging_channels_this_resolution = processing_channel_contents_this_resolution.fetch('channel_name')
-        """ Loop through all channels at this resolution and render 
-        a sub-sub-form for each """
-        channel_contents_lists.append([])
-        for jj in range(len(imaging_channels_this_resolution)):
-            channel_name = imaging_channels_this_resolution[jj]
-            # logger.debug(f"channel: {channel_name}")
-            this_image_resolution_form.channel_forms.append_entry()
-            this_channel_form = this_image_resolution_form.channel_forms[jj]
-            this_channel_form.channel_name.data = channel_name
-            """ Figure out which light sheets were imaged """
-            this_channel_content_dict = (imaging_channel_contents_this_resolution & \
-                f'channel_name="{channel_name}"').fetch1()
-           
-            channel_contents_lists[ii].append(this_channel_content_dict)
-            # logger.debug(this_channel_content) 
-        # logger.debug(imaging_channel_dict)
-
-    return render_template('neuroglancer/downsized_data_setup.html',form=form,
-        channel_contents_lists=channel_contents_lists,processing_request_table=processing_request_table)
-
-@neuroglancer.route("/neuroglancer/registered_data_setup/"
-                    "<username>/<request_name>/<sample_name>/"
-                    "<imaging_request_number>/<processing_request_number>",
-    methods=['GET','POST'])
-@check_imaging_completed
-@log_http_requests
-def registered_data_setup(username,request_name,sample_name,
-    imaging_request_number,processing_request_number): # don't change the url 
-    """ A route for displaying a form for users to choose how
-    they want their registered data (from a given processing request) 
-    visualized in Neuroglancer.
-    The route spawns cloudvolumes for each layer and then 
-    makes a neuroglancer viewer and provides the link to the user. """
-
-    form = RegisteredDataSetupForm(request.form)
-    imaging_restrict_dict = dict(username=username,request_name=request_name,
-                sample_name=sample_name,imaging_request_number=imaging_request_number)
-    imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & imaging_restrict_dict
-    processing_restrict_dict = dict(username=username,request_name=request_name,
-                sample_name=sample_name,imaging_request_number=imaging_request_number,
-                processing_request_number=processing_request_number)
-
-    processing_request_contents = db_lightsheet.Request.ProcessingRequest() & processing_restrict_dict
-    
-    processing_resolution_request_contents = db_lightsheet.Request.ProcessingResolutionRequest() & \
-        processing_restrict_dict
-    
-    processing_request_table = ProcessingRequestTable(processing_request_contents)
-    
-    processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & processing_restrict_dict
-    joined_processing_channel_contents = imaging_channel_contents * processing_channel_contents
-    if request.method == 'POST':
-        logger.debug('POST request')
-        # Redis setup for this session
-        
-        hosturl = os.environ['HOSTURL'] # via dockerenv
-        data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
-        if form.validate_on_submit():
-            logger.debug("Form validated")
-            
-            """ loop through each image resolution sub-form 
-            and make a neuroglancer viewer link for each one,
-            spawning cloudvolumes for each channel/lightsheet combo """
-            
-            kv = redis.Redis(host="redis", decode_responses=True)
-            neuroglancer_url_dict = {}
-            cv_table_dict = {}
-            for ii in range(len(form.image_resolution_forms)):
-                """ Establish the viewer session variables """
-                session_name = secrets.token_hex(6)
-                viewer_id = "viewer1" # for storing the viewer info in redis. Only ever one per session
-                # initialize the number of cloudvolumes in this ng session
-                # as well as the key that I will store which cvs need an atlas overlay
-                # based on user input
-                kv.hmset(session_name,{"cv_count":0,"cvs_need_atlas":""}) 
-                cv_number = 0 # to keep track of how many cloudvolumes in this viewer/session
-
-                image_resolution_form = form.image_resolution_forms[ii]
-                image_resolution = image_resolution_form.image_resolution.data
-                this_processing_resolution_request_contents = processing_resolution_request_contents & \
-                    f'image_resolution="{image_resolution}"'
-                atlas_name = this_processing_resolution_request_contents.fetch1('atlas_name')
-                logger.debug("Atlas being used here is:")
-                logger.debug(atlas_name)
-                """ Only want to generate a single cloudvolume container for the 
-                atlas since it is the same atlas for each channel that requests
-                it as an overlay. In the loop over channels, set this flag to True
-                if any of the channels request an atlas overlay. """
-                atlas_requested = False
-                """ Loop through channels and spawn a cloudvolume 
-                within this session for each light sheet used """
-                cv_contents_dict_list_this_resolution = []
-                for jj in range(len(image_resolution_form.channel_forms)): 
-                    cv_contents_dict_this_channel = {}
-                    channel_form = image_resolution_form.channel_forms[jj]
-                    channel_name = channel_form.channel_name.data
-                    visualize_this_channel = channel_form.viz.data
-                    channel_restrict_dict = dict(channel_name=channel_name)
-                    this_processing_channel_contents = processing_channel_contents & channel_restrict_dict
-                    lightsheet_channel_str = this_processing_channel_contents.fetch1('lightsheet_channel_str')
-                    """ Set up cloudvolume params"""
-
-                    cv_number += 1 
-                    cv_container_name = f'{session_name}_registered_{channel_name}_container'
-                    cv_name = f"ch{channel_name}_registered" # what shows up as the layer name in neuroglancer
-                    cv_path = os.path.join(data_bucket_rootpath,username,request_name,
-                        sample_name,f'imaging_request_{imaging_request_number}','viz',
-                        f'processing_request_{processing_request_number}','registered',
-                        f'channel_{channel_name}_{lightsheet_channel_str}',      
-                        f'channel{channel_name}_registered')
-                    this_restrict_dict = {
-                        f'channel_name="{channel_name}"'}
-                    this_processing_channel_contents =  joined_processing_channel_contents & \
-                        this_restrict_dict
-
-                    (rawdata_subfolder,channel_index,
-                        lightsheet_channel_str) = this_processing_channel_contents.fetch1(
-                        'rawdata_subfolder','imspector_channel_index','lightsheet_channel_str')
-                    channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
-                    registered_data_base_path = os.path.join(data_bucket_rootpath,username,
-                             request_name,sample_name,
-                             f"imaging_request_{imaging_request_number}",
-                             "output",
-                             f"processing_request_{processing_request_number}",
-                             f"resolution_{image_resolution}",
-                             "elastix")      
-                    if lightsheet_channel_str == 'regch':
-                        registered_data_path = os.path.join(
-                            registered_data_base_path,'result.1.tif')
-                    else:
-                        registered_data_path = os.path.join(
-                            registered_data_base_path,
-                            rawdata_subfolder+f'_resized_ch{channel_index_padded}','result.tif')
-                    cv_contents_dict_this_channel['image_resolution'] = image_resolution
-                    cv_contents_dict_this_channel['cv_name'] = cv_name
-                    cv_contents_dict_this_channel['cv_path'] = cv_path
-                    cv_contents_dict_this_channel['data_path'] = registered_data_path
-                    layer_type = "image"
-                    
-                    """ send the data to the viewer-launcher
-                    to launch the cloudvolume """    
-
-                    cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
-                        cv_container_name=cv_container_name,
-                        layer_type=layer_type,session_name=session_name)
-                    requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
-                    logger.debug("Made post request to viewer-launcher to launch cloudvolume")
-
-                    """ Enter the cv information into redis
-                    so I can get it from within the neuroglancer container """
-
-                    kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
-                        f"cv{cv_number}_name": cv_name, f"layer{cv_number}_type":layer_type})                    
-                    kv.hincrby(session_name,'cv_count',1)
-                    
-                    """ Check if atlas overlay was requested """
-                    overlay_atlas_this_channel = channel_form.viz_atlas.data
-                    if overlay_atlas_this_channel:
-                        atlas_requested=True
-                        cvs_need_atlas = kv.hgetall(session_name)['cvs_need_atlas']
-                        cvs_need_atlas+= f'{cv_name},'
-                        kv.hmset(session_name,{'cvs_need_atlas':cvs_need_atlas})
-
-                    """ register with the confproxy so that the cloudvolume
-                    can be seen from outside the docker network """
-                    
-                    proxy_h = pp.progproxy(target_hname='confproxy')
-                    proxypath = os.path.join('cloudvols',session_name,cv_name)
-                    proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
-                    cv_contents_dict_list_this_resolution.append(cv_contents_dict_this_channel)
-                cv_table = CloudVolumeLayerTable(cv_contents_dict_list_this_resolution)
-                cv_table_dict[image_resolution] = cv_table
-                   
-                """ If atlas was requested for any of the channels,
-                then only need to generate it once. Do that here  """
-                if atlas_requested:    
-                    """ Set up cloudvolume params for the atlas"""
-
-                    cv_number += 1 
-                    cv_container_name = f'{session_name}_atlas'
-                    cv_name = atlas_name # what shows up as the layer name in neuroglancer
-                    logger.debug("Cloudvolume name is:")
-                    logger.debug(cv_name)
-                    if 'allen' in atlas_name.lower():
-                        cv_path = os.path.join('/jukebox','LightSheetData',
-                            'atlas','neuroglancer','atlas','allenatlas_2017')
-                    elif 'princeton' in atlas_name.lower():
-                        cv_path = os.path.join('/jukebox','LightSheetData',
-                            'atlas','neuroglancer','atlas','princetonmouse')
-                    layer_type = "segmentation"
-                    
-                    """ send the data to the viewer-launcher
-                    to launch the cloudvolume """    
-
-                    cv_dict = dict(cv_path=cv_path,cv_name=cv_name,
-                        cv_container_name=cv_container_name,
-                        layer_type=layer_type,session_name=session_name)
-                    requests.post('http://viewer-launcher:5005/cvlauncher',json=cv_dict)
-                    logger.debug("Made post request to viewer-launcher to launch atlas cloudvolume")
-
-                    """ Enter the cv information into redis
-                    so I can get it from within the neuroglancer container """
-
-                    kv.hmset(session_name, {f"cv{cv_number}_container_name": cv_container_name,
-                        f"cv{cv_number}_name": cv_name, f"layer{cv_number}_type":layer_type})                    
-                    kv.hincrby(session_name,'cv_count',1)
-                    
-                    """ register with the confproxy so that the cloudvolume
-                    can be seen from outside the docker network """
-                    
-                    proxy_h = pp.progproxy(target_hname='confproxy')
-                    proxypath = os.path.join('cloudvols',session_name,cv_name)
-                    proxy_h.addroute(proxypath=proxypath,proxytarget=f"http://{cv_container_name}:1337")
-                
-                """ Now spawn a neuroglancer container which will make
-                layers for each of the spawned cloudvolumes """
-                ng_container_name = f'{session_name}_ng_container'
-                ng_dict = {}
-                ng_dict['hosturl'] = hosturl
-                ng_dict['ng_container_name'] = ng_container_name
-                ng_dict['session_name'] = session_name
-                """ send the data to the viewer-launcher
-                to launch the ng viewer """                       
-                
-                requests.post('http://viewer-launcher:5005/ng_reg_launcher',json=ng_dict)
-                logger.debug("Made post request to viewer-launcher to launch ng reg viewer")
-                
-                # Add the ng container name to redis session key level
-                kv.hmset(session_name, {"ng_container_name": ng_container_name})
-                # Add ng viewer url to config proxy so it can be seen from outside of the lightserv docker network 
-                proxy_h.addroute(proxypath=f'viewers/{session_name}', proxytarget=f"http://{ng_container_name}:8080/")
-                logger.debug(f"Added {ng_container_name} to redis and confproxy")
-
-                # Spin until the neuroglancer viewer token from redis becomes available 
-                # (may be waiting on the neuroglancer container to finish writing to redis)
-                while True:
-                    session_dict = kv.hgetall(session_name)
-                    if 'viewer' in session_dict.keys():
-                        break
-                    else:
-                        logger.debug("Still spinning; waiting for redis entry for neuoglancer viewer")
-                        time.sleep(0.25)
-                viewer_json_str = kv.hgetall(session_name)['viewer']
-                viewer_dict = json.loads(viewer_json_str)
-                logger.debug(f"Redis contents for viewer")
-                logger.debug(viewer_dict)
-                logger.debug("Proxy contents:")
-                response=proxy_h.getroutes()
-                logger.debug(response.text)
-                # logger.debug(proxy_contents)
-                
-                neuroglancerurl = f"https://{hosturl}/nglancer/{session_name}/v/{viewer_dict['token']}/" # localhost/nglancer is reverse proxied to 8080 inside the ng container
-                neuroglancer_url_dict[image_resolution] = neuroglancerurl
-                logger.debug("URL IS:")
-                logger.debug(neuroglancerurl)
-            return render_template('neuroglancer/viewer_links.html',
-                datatype='registered',
-                url_dict=neuroglancer_url_dict,cv_table_dict=cv_table_dict)
-                
-
-        else: # form not validated
-            flash("There were errors below. Correct them in order to proceed.","danger")
-            for key in form.errors:
-                for error in form.errors[key]:
-                    flash(error,'danger')
-            logger.debug(form.errors)
-
-    """Loop through all imaging resolutions and render a 
-    a sub-form for each"""
-    unique_image_resolutions = sorted(set(processing_channel_contents.fetch('image_resolution')))
-    channel_contents_lists = []
-    """ First clear out any existing subforms from previous http requests """
-    while len(form.image_resolution_forms) > 0:
-        form.image_resolution_forms.pop_entry()
-
-    for ii in range(len(unique_image_resolutions)):
-        image_resolution = unique_image_resolutions[ii]
-        # logger.debug(f"image resolution: {image_resolution}")
-
-        form.image_resolution_forms.append_entry()
-        this_image_resolution_form = form.image_resolution_forms[ii]
-        this_image_resolution_form.image_resolution.data = image_resolution
-        """ Gather all imaging channels at this image resolution """
-        imaging_channel_contents_this_resolution = (imaging_channel_contents & \
-            f'image_resolution="{image_resolution}"')
-        processing_channel_contents_this_resolution = (processing_channel_contents & \
-            f'image_resolution="{image_resolution}"')
-        imaging_channels_this_resolution = processing_channel_contents_this_resolution.fetch('channel_name')
-        """ Loop through all channels at this resolution and render 
-        a sub-sub-form for each """
-        channel_contents_lists.append([])
-        for jj in range(len(imaging_channels_this_resolution)):
-            channel_name = imaging_channels_this_resolution[jj]
-            # logger.debug(f"channel: {channel_name}")
-            this_image_resolution_form.channel_forms.append_entry()
-            this_channel_form = this_image_resolution_form.channel_forms[jj]
-            this_channel_form.channel_name.data = channel_name
-            """ Figure out which light sheets were imaged """
-            this_channel_content_dict = (imaging_channel_contents_this_resolution & \
-                f'channel_name="{channel_name}"').fetch1()
-           
-            channel_contents_lists[ii].append(this_channel_content_dict)
-            # logger.debug(this_channel_content) 
-        # logger.debug(imaging_channel_dict)
-
-    return render_template('neuroglancer/registered_data_setup.html',form=form,
-        channel_contents_lists=channel_contents_lists,processing_request_table=processing_request_table)
-
 @neuroglancer.route("/neuroglancer/general_data_setup/"
                     "<username>/<request_name>/<sample_name>/"
                     "<imaging_request_number>/<processing_request_number>",
@@ -1257,7 +324,7 @@ def general_data_setup(username,request_name,sample_name,
         logger.debug('POST request')
         # Redis setup for this session
         
-        hosturl = os.environ['HOSTURL'] # via dockerenv
+        hosturl = os.environ['HOSTURL'] # via .dockerenv
         data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
 
         if form.validate_on_submit():
@@ -1343,8 +410,8 @@ def general_data_setup(username,request_name,sample_name,
 
                             if ventral_up:
                                 logger.debug("Using ventral up cloudvolume")
-                                cv_container_name = f'{session_name}_raw_{channel_name}_{lightsheet}_ventral_up_ls_container'
-                                cv_name = f"{channel_name}_{lightsheet}_ventral_up_ls_raw"
+                                cv_container_name = f'{session_name}_raw_{channel_name}_{lightsheet}_ls_ventral_up_container'
+                                cv_name = f"{channel_name}_{lightsheet}_ls_ventral_up_raw"
                                 cv_path = os.path.join(data_bucket_rootpath,username,request_name,
                                     sample_name,f'imaging_request_{imaging_request_number}','viz',
                                     'raw',f'channel_{channel_name}_ventral_up',f'{lightsheet}_lightsheet',
@@ -1441,6 +508,7 @@ def general_data_setup(username,request_name,sample_name,
                         channel_name = channel_form.channel_name.data
                         viz_left_lightsheet = channel_form.viz_left_lightsheet.data
                         viz_right_lightsheet = channel_form.viz_right_lightsheet.data
+                        ventral_up = int(channel_form.ventral_up.data)
                         
                         for lightsheet in ['left','right']:
                             if lightsheet == 'left':
@@ -1449,13 +517,25 @@ def general_data_setup(username,request_name,sample_name,
                             elif lightsheet == 'right':
                                 if not viz_right_lightsheet:
                                     continue
-                            cv_container_name = f'{session_name}_stitched_{channel_name}_{lightsheet}_ls_container'
-                            cv_name = f"{channel_name}_{lightsheet}_ls_stitched"
-                            cv_path = os.path.join(data_bucket_rootpath,username,request_name,
-                                sample_name,f'imaging_request_{imaging_request_number}','viz',
-                                f'processing_request_{processing_request_number}','stitched_raw',
-                                f'channel_{channel_name}',f'{lightsheet}_lightsheet',
-                                f'channel{channel_name}_stitched_{lightsheet}_lightsheet')      
+
+                            if ventral_up:
+                                logger.debug("Using ventral up cloudvolume")
+                                cv_container_name = f'{session_name}_stitched_{channel_name}_{lightsheet}_ls_ventral_up_container'
+                                cv_name = f"{channel_name}_{lightsheet}_ls_ventral_up_stitched"
+                                cv_path = os.path.join(data_bucket_rootpath,username,request_name,
+                                    sample_name,f'imaging_request_{imaging_request_number}','viz',
+                                    f'processing_request_{processing_request_number}','stitched_raw',
+                                    f'channel_{channel_name}_ventral_up',f'{lightsheet}_lightsheet',
+                                    f'channel{channel_name}_stitched_{lightsheet}_lightsheet')      
+                            else:
+                                logger.debug("Using dorsal up cloudvolume")
+                                cv_container_name = f'{session_name}_stitched_{channel_name}_{lightsheet}_ls_container'
+                                cv_name = f"{channel_name}_{lightsheet}_ls_stitched"
+                                cv_path = os.path.join(data_bucket_rootpath,username,request_name,
+                                    sample_name,f'imaging_request_{imaging_request_number}','viz',
+                                    f'processing_request_{processing_request_number}','stitched_raw',
+                                    f'channel_{channel_name}',f'{lightsheet}_lightsheet',
+                                    f'channel{channel_name}_stitched_{lightsheet}_lightsheet')
                             layer_type = 'image'
                             cv_number += 1                        
                             """ send the data to the viewer-launcher
@@ -1526,29 +606,53 @@ def general_data_setup(username,request_name,sample_name,
                         channel_form = blended_channel_forms[jj]
                         channel_name = channel_form.channel_name.data
                         visualize_this_channel = channel_form.viz.data
+                        ventral_up = int(channel_form.ventral_up.data)
+
                         if not visualize_this_channel:
                             continue
                        
                         """ Set up cloudvolume params"""
 
                         cv_number += 1 
-                        cv_container_name = f'{session_name}_blended_{channel_name}_container'
-                        cv_name = f"ch{channel_name}_blended" # what shows up as the layer name in neuroglancer
-                        cv_path = os.path.join(data_bucket_rootpath,username,request_name,
-                            sample_name,f'imaging_request_{imaging_request_number}','viz',
-                            f'processing_request_{processing_request_number}','blended',
-                            f'channel_{channel_name}',      
-                            f'channel{channel_name}_blended')    
+
+                        if ventral_up:
+                            cv_container_name = f'{session_name}_blended_{channel_name}_ventral_up_container'
+                            cv_name = f"ch{channel_name}_ventral_up_blended" # what shows up as the layer name in neuroglancer
+                            cv_path = os.path.join(data_bucket_rootpath,username,request_name,
+                                sample_name,f'imaging_request_{imaging_request_number}','viz',
+                                f'processing_request_{processing_request_number}','blended',
+                                f'channel_{channel_name}_ventral_up',      
+                                f'channel{channel_name}_blended')   
+                        else:
+                            cv_container_name = f'{session_name}_blended_{channel_name}_container'
+                            cv_name = f"ch{channel_name}_blended" # what shows up as the layer name in neuroglancer
+                            cv_path = os.path.join(data_bucket_rootpath,username,request_name,
+                                sample_name,f'imaging_request_{imaging_request_number}','viz',
+                                f'processing_request_{processing_request_number}','blended',
+                                f'channel_{channel_name}',      
+                                f'channel{channel_name}_blended')    
                         layer_type = "image"
                         this_restrict_dict = {
-                        f'channel_name="{channel_name}"'}
+                            'channel_name':channel_name,
+                            'ventral_up':ventral_up
+                            }
                         this_processing_channel_contents =  joined_processing_channel_contents & \
                             this_restrict_dict
 
                         rawdata_subfolder = this_processing_channel_contents.fetch1('rawdata_subfolder')
                         channel_index = this_processing_channel_contents.fetch1('imspector_channel_index')
                         channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
-                        blended_data_path = os.path.join(data_bucket_rootpath,username,
+                        if ventral_up:
+                            blended_data_path = os.path.join(data_bucket_rootpath,username,
+                                 request_name,sample_name,
+                                 f"imaging_request_{imaging_request_number}",
+                                 "output",
+                                 f"processing_request_{processing_request_number}",
+                                 f"resolution_{image_resolution}_ventral_up",
+                                 "full_sizedatafld",
+                                 f"{rawdata_subfolder}_ch{channel_index_padded}")
+                        else: 
+                            blended_data_path = os.path.join(data_bucket_rootpath,username,
                                  request_name,sample_name,
                                  f"imaging_request_{imaging_request_number}",
                                  "output",
@@ -1632,29 +736,49 @@ def general_data_setup(username,request_name,sample_name,
                         channel_form = downsized_channel_forms[jj]
                         channel_name = channel_form.channel_name.data
                         visualize_this_channel = channel_form.viz.data
+                        ventral_up = int(channel_form.ventral_up.data)
                         if not visualize_this_channel:
                             continue
                        
                         """ Set up cloudvolume params"""
 
                         cv_number += 1 
-                        cv_container_name = f'{session_name}_downsized_{channel_name}_container'
-                        cv_name = f"ch{channel_name}_downsized" # what shows up as the layer name in neuroglancer
-                        cv_path = os.path.join(data_bucket_rootpath,username,request_name,
-                            sample_name,f'imaging_request_{imaging_request_number}','viz',
-                            f'processing_request_{processing_request_number}','downsized',
-                            f'channel_{channel_name}',      
-                            f'channel{channel_name}_downsized')      
+                        if ventral_up:
+                            cv_container_name = f'{session_name}_downsized_{channel_name}_ventral_up_container'
+                            cv_name = f"ch{channel_name}_ventral_up_downsized" # what shows up as the layer name in neuroglancer
+                            cv_path = os.path.join(data_bucket_rootpath,username,request_name,
+                                sample_name,f'imaging_request_{imaging_request_number}','viz',
+                                f'processing_request_{processing_request_number}','downsized',
+                                f'channel_{channel_name}_ventral_up',      
+                                f'channel{channel_name}_downsized') 
+                        else:
+                            cv_container_name = f'{session_name}_downsized_{channel_name}_container'
+                            cv_name = f"ch{channel_name}_downsized" # what shows up as the layer name in neuroglancer
+                            cv_path = os.path.join(data_bucket_rootpath,username,request_name,
+                                sample_name,f'imaging_request_{imaging_request_number}','viz',
+                                f'processing_request_{processing_request_number}','downsized',
+                                f'channel_{channel_name}',      
+                                f'channel{channel_name}_downsized')      
                         layer_type = "image"
                         this_restrict_dict = {
-                        f'channel_name="{channel_name}"'}
+                            'channel_name':channel_name,
+                            'ventral_up':ventral_up}
                         this_processing_channel_contents =  joined_processing_channel_contents & \
                             this_restrict_dict
 
                         rawdata_subfolder = this_processing_channel_contents.fetch1('rawdata_subfolder')
                         channel_index = this_processing_channel_contents.fetch1('imspector_channel_index')
                         channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
-                        downsized_data_path = os.path.join(data_bucket_rootpath,username,
+                        if ventral_up:
+                            downsized_data_path = os.path.join(data_bucket_rootpath,username,
+                                 request_name,sample_name,
+                                 f"imaging_request_{imaging_request_number}",
+                                 "output",
+                                 f"processing_request_{processing_request_number}",
+                                 f"resolution_{image_resolution}_ventral_up",
+                                 f'{rawdata_subfolder}_resized_ch{channel_index_padded}_resampledforelastix.tif')
+                        else:
+                            downsized_data_path = os.path.join(data_bucket_rootpath,username,
                                  request_name,sample_name,
                                  f"imaging_request_{imaging_request_number}",
                                  "output",
@@ -1749,8 +873,10 @@ def general_data_setup(username,request_name,sample_name,
                         cv_contents_dict_this_channel = {}
                         channel_form = registered_channel_forms[jj]
                         channel_name = channel_form.channel_name.data
+                        ventral_up = int(channel_form.ventral_up.data)
                         visualize_this_channel = channel_form.viz.data
-                        channel_restrict_dict = dict(channel_name=channel_name)
+                        channel_restrict_dict = dict(channel_name=channel_name,
+                            ventral_up=ventral_up)
                         this_processing_channel_contents = processing_channel_contents & channel_restrict_dict
                         lightsheet_channel_str = this_processing_channel_contents.fetch1('lightsheet_channel_str')
                         
@@ -1761,16 +887,26 @@ def general_data_setup(username,request_name,sample_name,
                         """ Set up cloudvolume params"""
 
                         cv_number += 1 
-                        cv_container_name = f'{session_name}_registered_{channel_name}_container'
-                        cv_name = f"ch{channel_name}_registered" # what shows up as the layer name in neuroglancer
-                        cv_path = os.path.join(data_bucket_rootpath,username,request_name,
-                            sample_name,f'imaging_request_{imaging_request_number}','viz',
-                            f'processing_request_{processing_request_number}','registered',
-                            f'channel_{channel_name}_{lightsheet_channel_str}',      
-                            f'channel{channel_name}_registered')        
+                        if ventral_up:
+                            cv_container_name = f'{session_name}_registered_{channel_name}_ventral_up_container'
+                            cv_name = f"ch{channel_name}_ventral_up_registered" # what shows up as the layer name in neuroglancer
+                            cv_path = os.path.join(data_bucket_rootpath,username,request_name,
+                                sample_name,f'imaging_request_{imaging_request_number}','viz',
+                                f'processing_request_{processing_request_number}','registered',
+                                f'channel_{channel_name}_{lightsheet_channel_str}_ventral_up',      
+                                f'channel{channel_name}_registered_ventral_up')        
+                        else:
+                            cv_container_name = f'{session_name}_registered_{channel_name}_container'
+                            cv_name = f"ch{channel_name}_registered" # what shows up as the layer name in neuroglancer
+                            cv_path = os.path.join(data_bucket_rootpath,username,request_name,
+                                sample_name,f'imaging_request_{imaging_request_number}','viz',
+                                f'processing_request_{processing_request_number}','registered',
+                                f'channel_{channel_name}_{lightsheet_channel_str}',      
+                                f'channel{channel_name}_registered')
                         layer_type = "image"
                         this_restrict_dict = {
-                        f'channel_name="{channel_name}"'}
+                            'channel_name':channel_name,
+                            'ventral_up':ventral_up}
                         this_processing_channel_contents =  joined_processing_channel_contents & \
                             this_restrict_dict
 
@@ -1778,7 +914,16 @@ def general_data_setup(username,request_name,sample_name,
                             lightsheet_channel_str) = this_processing_channel_contents.fetch1(
                             'rawdata_subfolder','imspector_channel_index','lightsheet_channel_str')
                         channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
-                        registered_data_base_path = os.path.join(data_bucket_rootpath,username,
+                        if ventral_up:
+                            registered_data_base_path = os.path.join(data_bucket_rootpath,username,
+                                 request_name,sample_name,
+                                 f"imaging_request_{imaging_request_number}",
+                                 "output",
+                                 f"processing_request_{processing_request_number}",
+                                 f"resolution_{image_resolution}_ventral_up",
+                                 "elastix")      
+                        else:
+                            registered_data_base_path = os.path.join(data_bucket_rootpath,username,
                                  request_name,sample_name,
                                  f"imaging_request_{imaging_request_number}",
                                  "output",

@@ -87,6 +87,7 @@
 					        <tr>
 					            <th>Image resolution </th>
 					            <th>Channel wavelength(nm)</th>
+					            <th>Dorsal up or Ventral up?</th>
 					            <th>Visualize?</th>
 					        </tr>
 
@@ -95,11 +96,14 @@
 								{% set this_channel_content = channel_contents_lists[ii][jj] %}
 								<!-- render the hidden field -->
 								{{ channel_form.channel_name() }}
+								{{ channel_form.ventral_up() }}
 								{% set channel_name = channel_form.channel_name.data %}
+								{% set ventral_up = channel_form.ventral_up.data %}
 
 								<tr>   
 								    <td>{{image_resolution}}</td>
 								    <td>{{channel_name}}</td>
+								    <td>{% if ventral_up %}Ventral{% else %}Dorsal{% endif %}</td>
 								    <td> 
 								    	{{ channel_form.viz }}
 									</td>
@@ -115,6 +119,7 @@
 					        <tr>
 					            <th>Image resolution </th>
 					            <th>Channel wavelength(nm)</th>
+					            <th>Dorsal up or Ventral up?</th>
 					            <th>Visualize?</th>
 					        </tr>
 
@@ -123,11 +128,14 @@
 								{% set this_channel_content = channel_contents_lists[ii][jj] %}
 								<!-- render the hidden field -->
 								{{ channel_form.channel_name() }}
+								{{ channel_form.ventral_up() }}
 								{% set channel_name = channel_form.channel_name.data %}
+								{% set ventral_up = channel_form.ventral_up.data %}
 
 								<tr>   
 								    <td>{{image_resolution}}</td>
 								    <td>{{channel_name}}</td>
+								    <td>{% if ventral_up %}Ventral{% else %}Dorsal{% endif %}</td>
 								    <td> 
 								    	{{ channel_form.viz }}
 									</td>
@@ -143,6 +151,7 @@
 					        <tr>
 					            <th>Image resolution </th>
 					            <th>Channel wavelength(nm)</th>
+					            <th>Dorsal up or Ventral up?</th>
 					            <th>Visualize?</th>
 					            <th>Overlay Atlas?</th>
 					        </tr>
@@ -151,10 +160,13 @@
 								{% set channel_form = image_resolution_form.registered_channel_forms[jj] %}
 								<!-- render the hidden field -->
 								{{ channel_form.channel_name() }}
+								{{ channel_form.ventral_up() }}
 								{% set channel_name = channel_form.channel_name.data %}
+								{% set ventral_up = channel_form.ventral_up.data %}
 								<tr>   
 								    <td>{{image_resolution}}</td>
 								    <td>{{channel_name}}</td>
+								    <td>{% if ventral_up %}Ventral{% else %}Dorsal{% endif %}</td>
 								    <td> 
 								    	{{ channel_form.viz }}
 									</td>
