@@ -1709,7 +1709,9 @@ def stitched_precomputed_job_status_checker():
 				""" get the imaging channel contents for this channel
 				so that I can figure out which light sheets were used """
 				channel_name = processing_channel_dict['channel_name']
-				this_imaging_channel_contents = imaging_channel_contents & f'channel_name="{channel_name}"'
+				ventral_up = processing_channel_dict['ventral_up']
+				restrict_dict = {'channel_name':channel_name,'ventral_up':ventral_up}
+				this_imaging_channel_contents = imaging_channel_contents & restrict_dict
 				left_lightsheet_used = this_imaging_channel_contents.fetch1('left_lightsheet_used')
 				right_lightsheet_used = this_imaging_channel_contents.fetch1('right_lightsheet_used')
 				if left_lightsheet_used:
@@ -2091,7 +2093,9 @@ def blended_precomputed_job_status_checker():
 				""" get the imaging channel contents for this channel
 				so that I can figure out which light sheets were used """
 				channel_name = processing_channel_dict['channel_name']
-				this_imaging_channel_contents = imaging_channel_contents & f'channel_name="{channel_name}"'
+				ventral_up = processing_channel_dict['ventral_up']
+				restrict_dict = {'channel_name':channel_name,'ventral_up':ventral_up}
+				this_imaging_channel_contents = imaging_channel_contents & restrict_dict
 				job_status = processing_channel_dict['blended_precomputed_spock_job_progress']
 				processing_request_job_statuses.append(job_status)
 			logger.debug("job statuses for this processing request:")
@@ -2466,7 +2470,9 @@ def downsized_precomputed_job_status_checker():
 				""" get the imaging channel contents for this channel
 				so that I can figure out which light sheets were used """
 				channel_name = processing_channel_dict['channel_name']
-				this_imaging_channel_contents = imaging_channel_contents & f'channel_name="{channel_name}"'
+				ventral_up = processing_channel_dict['ventral_up']
+				restrict_dict = {'channel_name':channel_name,'ventral_up':ventral_up}
+				this_imaging_channel_contents = imaging_channel_contents & restrict_dict
 				job_status = processing_channel_dict['downsized_precomputed_spock_job_progress']
 				processing_request_job_statuses.append(job_status)
 			logger.debug("job statuses for this processing request:")
@@ -2854,7 +2860,9 @@ def registered_precomputed_job_status_checker():
 				""" get the imaging channel contents for this channel
 				so that I can figure out which light sheets were used """
 				channel_name = processing_channel_dict['channel_name']
-				this_imaging_channel_contents = imaging_channel_contents & f'channel_name="{channel_name}"'
+				ventral_up = processing_channel_dict['ventral_up']
+				restrict_dict = {'channel_name':channel_name,'ventral_up':ventral_up}
+				this_imaging_channel_contents = imaging_channel_contents & restrict_dict
 				job_status = processing_channel_dict['registered_precomputed_spock_job_progress']
 				processing_request_job_statuses.append(job_status)
 			logger.debug("job statuses for this processing request:")
