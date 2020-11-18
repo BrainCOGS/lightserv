@@ -674,6 +674,8 @@ def make_precomputed_downsized_data(**kwargs):
 	imaging_request_number=kwargs['imaging_request_number']
 	processing_request_number=kwargs['processing_request_number']
 	channel_name=kwargs['channel_name']
+	ventral_up=kwargs['ventral_up']
+
 	channel_index=kwargs['channel_index']
 	image_resolution=kwargs['image_resolution']
 	rawdata_subfolder=kwargs['rawdata_subfolder']
@@ -737,7 +739,8 @@ def make_precomputed_downsized_data(**kwargs):
 		username=username,request_name=request_name,
 		sample_name=sample_name,imaging_request_number=imaging_request_number,
 		processing_request_number=processing_request_number,
-		image_resolution=image_resolution,channel_name=channel_name)
+		image_resolution=image_resolution,channel_name=channel_name,
+		ventral_up=ventral_up)
 	this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict 
 	try:
 		dj.Table._update(this_processing_channel_content,'downsized_precomputed_spock_jobid',str(jobid_step1))
@@ -763,6 +766,7 @@ def make_precomputed_registered_data(**kwargs):
 	imaging_request_number=kwargs['imaging_request_number']
 	processing_request_number=kwargs['processing_request_number']
 	channel_name=kwargs['channel_name']
+	ventral_up=kwargs['ventral_up']
 	channel_index=kwargs['channel_index']
 	atlas_name = kwargs['atlas_name']
 	image_resolution=kwargs['image_resolution']
@@ -825,7 +829,8 @@ def make_precomputed_registered_data(**kwargs):
 		username=username,request_name=request_name,
 		sample_name=sample_name,imaging_request_number=imaging_request_number,
 		processing_request_number=processing_request_number,
-		image_resolution=image_resolution,channel_name=channel_name)
+		image_resolution=image_resolution,channel_name=channel_name,
+		ventral_up=ventral_up)
 	this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict 
 	try:
 		dj.Table._update(this_processing_channel_content,'registered_precomputed_spock_jobid',str(jobid_step1))
@@ -1724,7 +1729,7 @@ def stitched_precomputed_job_status_checker():
 			# logger.debug(username,request_name,sample_name,imaging_request_number,processing_request_number)
 			neuroglancer_form_relative_url = os.path.join(
 				'/neuroglancer',
-				'stitched_data_setup',
+				'general_data_setup',
 				username,
 				request_name,
 				sample_name,
@@ -2251,18 +2256,26 @@ def check_for_spock_jobs_ready_for_making_precomputed_downsized_data():
 			processing_request_number = this_processing_channel_contents['processing_request_number']
 			image_resolution = this_processing_channel_contents['image_resolution']
 			channel_name = this_processing_channel_contents['channel_name']
+			ventral_up = this_processing_channel_contents['cventral_up']
 			channel_index = this_processing_channel_contents['imspector_channel_index']
 			rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder']
 			atlas_name = this_processing_channel_contents['atlas_name']
 			data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
 			channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
-			downsized_data_path = os.path.join(data_bucket_rootpath,username,
+			if ventral_up:
+				downsized_data_path = os.path.join(data_bucket_rootpath,username,
+								 request_name,sample_name,
+								 f"imaging_request_{imaging_request_number}",
+								 "output",
+								 f"processing_request_{processing_request_number}",
+								 f"resolution_{image_resolution}_ventral_up")
+			else: 
+				downsized_data_path = os.path.join(data_bucket_rootpath,username,
 							 request_name,sample_name,
 							 f"imaging_request_{imaging_request_number}",
 							 "output",
 							 f"processing_request_{processing_request_number}",
 							 f"resolution_{image_resolution}")
-
 			# rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder'
 			""" number of z planes could be altered in the case of tiling due to terastitcher 
 			so we will calculate it on the fly when doing the precomputed steps """
@@ -2271,6 +2284,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_downsized_data():
 				sample_name=sample_name,imaging_request_number=imaging_request_number,
 				processing_request_number=processing_request_number,
 				image_resolution=image_resolution,channel_name=channel_name,
+				ventral_up=ventral_up,
 				channel_index=channel_index,rawdata_subfolder=rawdata_subfolder,
 				processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
 				downsized_data_path=downsized_data_path,atlas_name=atlas_name)
@@ -2282,14 +2296,18 @@ def check_for_spock_jobs_ready_for_making_precomputed_downsized_data():
 							 "downsized")
 			mymkdir(downsized_viz_dir)
 			logger.debug(f"Created directory {downsized_viz_dir}")
-			channel_viz_dir = os.path.join(downsized_viz_dir,
-				f'channel_{channel_name}')
+			if ventral_up:
+				channel_viz_dir = os.path.join(downsized_viz_dir,
+					f'channel_{channel_name}_ventral_up')
+			else:
+				channel_viz_dir = os.path.join(downsized_viz_dir,
+					f'channel_{channel_name}')
 			mymkdir(channel_viz_dir)
 			logger.debug(f"Created directory {channel_viz_dir}")
 			precomputed_kwargs['viz_dir'] = channel_viz_dir
 			if not os.environ['FLASK_MODE'] == 'TEST':
 				make_precomputed_downsized_data.delay(**precomputed_kwargs)
-				logger.info("Sent precomputed task for tiling downsized data")
+				logger.info("Sent precomputed task for making downsized data")
 
 	return "Checked for light sheet pipeline jobs whose data have been downsized"
 
@@ -2462,7 +2480,7 @@ def downsized_precomputed_job_status_checker():
 			if all(x=='COMPLETED' for x in processing_request_job_statuses):
 				neuroglancer_form_relative_url = os.path.join(
 					'/neuroglancer',
-					'downsized_data_setup',
+					'general_data_setup',
 					username,
 					request_name,
 					sample_name,
@@ -2614,11 +2632,21 @@ def check_for_spock_jobs_ready_for_making_precomputed_registered_data():
 			processing_request_number = this_processing_channel_contents['processing_request_number']
 			image_resolution = this_processing_channel_contents['image_resolution']
 			channel_name = this_processing_channel_contents['channel_name']
+			ventral_up = this_processing_channel_contents['ventral_up']
 			channel_index = this_processing_channel_contents['imspector_channel_index']
 			rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder']
 			lightsheet_channel_str = this_processing_channel_contents['lightsheet_channel_str']
 			data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
-			registered_data_path = os.path.join(data_bucket_rootpath,username,
+			if ventral_up:
+				registered_data_path = os.path.join(data_bucket_rootpath,username,
+							 request_name,sample_name,
+							 f"imaging_request_{imaging_request_number}",
+							 "output",
+							 f"processing_request_{processing_request_number}",
+							 f"resolution_{image_resolution}_ventral_up",
+							 "elastix")
+			else:
+				registered_data_path = os.path.join(data_bucket_rootpath,username,
 							 request_name,sample_name,
 							 f"imaging_request_{imaging_request_number}",
 							 "output",
@@ -2633,6 +2661,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_registered_data():
 				sample_name=sample_name,imaging_request_number=imaging_request_number,
 				processing_request_number=processing_request_number,
 				image_resolution=image_resolution,channel_name=channel_name,
+				ventral_up=ventral_up,
 				channel_index=channel_index,
 				lightsheet_channel_str=lightsheet_channel_str,
 				rawdata_subfolder=rawdata_subfolder,
@@ -2648,12 +2677,19 @@ def check_for_spock_jobs_ready_for_making_precomputed_registered_data():
 							 "registered")
 			mymkdir(registered_viz_dir)
 			logger.debug(f"Created directory {registered_viz_dir}")
-			channel_viz_dir = os.path.join(registered_viz_dir,
-				f'channel_{channel_name}_{lightsheet_channel_str}')
+			if ventral_up:
+				channel_viz_dir = os.path.join(registered_viz_dir,
+					f'channel_{channel_name}_{lightsheet_channel_str}_ventral_up')
+			else:
+				channel_viz_dir = os.path.join(registered_viz_dir,
+					f'channel_{channel_name}_{lightsheet_channel_str}')
 			mymkdir(channel_viz_dir)
 			logger.debug(f"Created directory {channel_viz_dir}")
 			precomputed_kwargs['viz_dir'] = channel_viz_dir
-			layer_name = f'channel{channel_name}_registered'
+			if ventral_up:
+				layer_name = f'channel{channel_name}_registered_ventral_up'
+			else:
+				layer_name = f'channel{channel_name}_registered'
 			layer_dir = os.path.join(channel_viz_dir,layer_name)
 			mymkdir(layer_dir)
 			logger.debug(f"Created directory {layer_dir}")
@@ -2832,7 +2868,7 @@ def registered_precomputed_job_status_checker():
 			if all(x=='COMPLETED' for x in processing_request_job_statuses):
 				neuroglancer_form_relative_url = os.path.join(
 					'/neuroglancer',
-					'registered_data_setup',
+					'general_data_setup',
 					username,
 					request_name,
 					sample_name,
