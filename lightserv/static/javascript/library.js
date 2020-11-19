@@ -9,7 +9,11 @@ var MYLIBRARY = MYLIBRARY || (function(){
         helloWorld : function() {
             alert('Hello World! -' + _args[0]);
         },
-
+        popOver : function() {
+            $(document).ready(function(){
+                $('[data-toggle="popover"]').popover();   
+            });
+        },
         swapTable : function(table_id) {
             $("#" + table_id).each(function() {
                 var $this = $(this);

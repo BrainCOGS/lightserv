@@ -34,9 +34,9 @@
 			{% set image_resolution = image_resolution_form.image_resolution.data %}
 			<hr class='class-2'>
 			{% if image_resolution == '2x' %}
-				<h3 class='infolink' data-toggle="tooltip" title="Make sure to use organic dipping cap on 2x objective if sample went through oil-based clearing protocol like iDISCO or uDISCO."> ({{ ii + 1 }}/{{form.image_resolution_batch_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+				<h3 class='infolink' tabindex="0" role="button" data-trigger="focus",data-toggle="popover" data-content="Make sure to use organic dipping cap on 2x objective if sample went through oil-based clearing protocol like iDISCO or uDISCO."> ({{ ii + 1 }}/{{form.image_resolution_batch_forms|length }}) Image resolution: {{ image_resolution }} </h3>
 	        {% else %}
-				<h3 class='infolink' data-toggle="tooltip" title="Do NOT use the zoom body (at a value other than 1) for this objective. If you do, we will very likely not be able to process the images. An exception is if no processing is needed (i.e. only raw images are required)."> ({{ ii + 1 }}/{{form.image_resolution_batch_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+				<h3 class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Do NOT use the zoom body (at a value other than 1) for this objective. If you do, we will very likely not be able to process the images. An exception is if no processing is needed (i.e. only raw images are required)."> ({{ ii + 1 }}/{{form.image_resolution_batch_forms|length }}) Image resolution: {{ image_resolution }} </h3>
 			{% endif %}
 			<div class="checkbox mb-2">
 				{{ image_resolution_form.change_resolution(class="form-check-input",onchange="togglefield(this)") }}
@@ -76,13 +76,13 @@
 		            <th>Channel wavelength(nm)</th>
 		            <th>Image resolution </th>
 		            {% if image_resolution == '2x' %}
-			            <th class="infolink" data-toggle="tooltip" title="Set to a discrete value on the dial. Otherwise, it will be impossible to accurately calculate the resulting image pixel size.">Zoom body magnification</th>
+			            <th class="infolink" tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Set to a discrete value on the dial. Otherwise, it will be impossible to accurately calculate the resulting image pixel size.">Zoom body magnification</th>
 			        {% endif %}
 		            <th>Image orientation </th>
-		            <th class="infolink" data-toggle="tooltip" title="Only applicable for horizontally imaged brains">Dorsal up or ventral up? </th>
+		            <th class="infolink" tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Only applicable for horizontally imaged brains">Dorsal up or ventral up? </th>
 		            <th>Lightsheets used </th>
 		           	<th>Tiling scheme (e.g. 1x1, 3x3)  </th>
-		           	<th class="infolink" data-toggle="tooltip" title="Only matters if tiling scheme is not 1x1">Tiling overlap (e.g. 0.2) </th>
+		           	<th class="infolink" tabindex="0" role="button" data-trigger="focus"data-toggle="popover" data-content="Only matters if tiling scheme is not 1x1">Tiling overlap (e.g. 0.2) </th>
 		           	<th>Z_step (microns) </th>
 		        </tr>
 
@@ -343,9 +343,9 @@
 
 				<hr class='class-2'>
 				{% if image_resolution == '2x' %}
-					<h3 class='infolink' data-toggle="tooltip" title="Make sure to use organic dipping cap on 2x objective if sample went through oil-based clearing protocol like iDISCO or uDISCO."> ({{ ii + 1 }}/{{sample_form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+					<h3 class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Make sure to use organic dipping cap on 2x objective if sample went through oil-based clearing protocol like iDISCO or uDISCO."> ({{ ii + 1 }}/{{sample_form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
 		        {% else %}
-					<h3 id="sample_{{kk}}_image_resolution_header_{{ii}}" class='infolink' data-toggle="tooltip" title="Do NOT use the zoom body (at a value other than 1) for this objective. If you do, we will very likely not be able to process the images. An exception is if no processing is needed (i.e. only raw images are required).">({{ ii + 1 }}/{{sample_form.image_resolution_forms|length }}) Image resolution: {{ image_resolution}}</h3>
+					<h3 id="sample_{{kk}}_image_resolution_header_{{ii}}" class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Do NOT use the zoom body (at a value other than 1) for this objective. If you do, we will very likely not be able to process the images. An exception is if no processing is needed (i.e. only raw images are required).">({{ ii + 1 }}/{{sample_form.image_resolution_forms|length }}) Image resolution: {{ image_resolution}}</h3>
 				{% endif %}
 
 
@@ -398,13 +398,13 @@
 			            <th>Channel wavelength(nm)</th>
 			            <th>Image resolution </th>
 			            {% if image_resolution == '2x' %}
-				            <th class="infolink" data-toggle="tooltip" title="Set to a discrete value on the dial. Otherwise, it will be impossible to accurately calculate the resulting image pixel size.">Zoom body magnification</th>
+				            <th class="infolink" tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Set to a discrete value on the dial. Otherwise, it will be impossible to accurately calculate the resulting image pixel size.">Zoom body magnification</th>
 				        {% endif %}
 			            <th>*Image orientation</th>
-			            <th class="infolink" data-toggle="tooltip" title="Only applicable for horizontally imaged brains">Dorsal up or ventral up? </th>
+			            <th class="infolink" tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Only applicable for horizontally imaged brains">Dorsal up or ventral up? </th>
 			            <th>*Lightsheets used </th>
 			           	<th>*Tiling scheme (e.g. 1x1, 3x3)  </th>
-			           	<th class="infolink" data-toggle="tooltip" title="Only matters if tiling scheme is not 1x1">*Tiling overlap (e.g. 0.2) </th>
+			           	<th class="infolink" tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Only matters if tiling scheme is not 1x1">*Tiling overlap (e.g. 0.2) </th>
 			           	<th>*Z_step (microns) </th>
 			           	<th>*Number of Z planes </th>
 			        </tr>
@@ -635,7 +635,7 @@
 			</div>
 			{% set rawdata_filepath = rawdata_rootpath + '/' + sample_name + '/imaging_request_1/rawdata/' %}
 			<div>
-			<h3 class="infolink" data-toggle='tooltip' title='Make sure not to overwrite folders and do not put data from two different imaging channels into the same subfolder unless they were read-out from the microscope that way'>
+			<h3 class="infolink" tabindex="0" role="button" data-trigger="focus" data-toggle='popover' data-content='Make sure not to overwrite folders and do not put data from two different imaging channels into the same subfolder unless they were read-out from the microscope that way'>
 			Move or copy all raw data folders from the microscope computer to the correct folder on bucket: </h3>
 			<p>
 				<code>{{rawdata_filepath}}resolution_<b>XX</b></code></br>or</br>

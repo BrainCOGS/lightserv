@@ -54,7 +54,9 @@ class AllRequestTable(Table):
 		'but was manually entered after the experiment '
 		 'was already done. As a result, information may be incomplete '
 		 'and not all data products or visualizations may be available.')
-	archival_html_attrs = {'class':'infolink','title':archival_tooltip_text}
+	archival_html_attrs = {'class':'infolink','tabindex':"0",
+	'role':"button",'data-trigger':"focus",'data-toggle':'popover',
+	'title':"What does the archival? column mean?",'data-content':archival_tooltip_text}
 	is_archival = BooltoStringCol('archival?',column_html_attrs=narrow_html_attrs,
 		th_html_attrs=archival_html_attrs)
 	number_of_samples = Col('number of samples',column_html_attrs=narrow_html_attrs)
@@ -73,8 +75,10 @@ class AllRequestTable(Table):
 		'then you can no longer delete the request at this point. '
 		'This is because at least one of the clearing batches '
 		'in this request either is currently undergoing clearing or has already been cleared. '
-		 'Contact lightservhelper@gmail.com if you still need to delete this request. ')
-	delete_request_html_attrs = {'class':'infolink','title':delete_request_tooltip_text}
+		 'Contact lightservhelper@gmail.com if you would still like to delete this request. ')
+	delete_request_html_attrs = {'class':'infolink','tabindex':"0",
+	'role':"button",'data-trigger':"focus", 'data-toggle':'popover',
+	'title':"How does deleting a request work?" ,'data-content':delete_request_tooltip_text}
 	
 	delete_request_link = ConditionalDeleteLinkCol('Delete request?', 'requests.delete_request',url_kwargs=delete_request_kwargs,
 		anchor_attrs={
@@ -148,7 +152,10 @@ class AllSamplesTable(Table):
 		'but was manually entered after the experiment '
 		 'was already done. As a result, information may be incomplete '
 		 'and not all data products or visualizations may be available.')
-	archival_html_attrs = {'class':'infolink','title':archival_tooltip_text}
+	archival_html_attrs = {'class':'infolink','tabindex':"0",
+	'role':"button",'data-trigger':"focus",
+	'data-toggle':'popover',
+	'title':"What does the archival? column mean?",'data-content':archival_tooltip_text}
 	is_archival = BooltoStringCol('archival?',column_html_attrs=column_html_attrs,
 		th_html_attrs=archival_html_attrs)
 	species = Col('species',column_html_attrs=column_html_attrs)
@@ -170,11 +177,9 @@ class AllSamplesTable(Table):
 		 'To see what imaging you have already requested, '
 		 'click on the existing imaging request number(s) for this sample. '
 		 'If this field shows "N/A" it is because no processing is possible for this sample.')
-	new_imaging_request_html_attrs = {'class':'infolink','title':new_imaging_request_tooltip_text}
-
-	# new_imaging_request = NewImagingRequestLinkCol('Request additional imaging',
-	# 	'imaging.new_imaging_request',url_kwargs=imaging_url_kwargs,
-	# 	th_html_attrs=new_imaging_request_html_attrs,allow_sort=False)
+	archival_html_attrs = {'class':'infolink','tabindex':"0",
+	'role':"button",'data-trigger':"focus",'data-toggle':'popover',
+	'title':"What does the archival? column mean?",'data-content':archival_tooltip_text}
 
 	""" Imaging requests subtable setup """
 	imaging_request_subtable_options = {
@@ -201,11 +206,6 @@ class AllSamplesTable(Table):
 		 'To see what processing you have already requested, '
 		 'click on the existing processing request number(s) corresponding to this imaging request. '
 		 'If this field shows "N/A" it is because no processing is possible for this sample.')
-	new_processing_request_html_attrs = {'class':'infolink','title':new_processing_request_tooltip_text}
-	# imaging_requests_subtable_class.add_column('new processing request',
-	# 	NewProcessingRequestLinkCol('request additional processing',
-	# 		'processing.new_processing_request',url_kwargs=processing_url_kwargs,
-	# 		allow_sort=False,th_html_attrs=new_processing_request_html_attrs))
 	
 	""" Processing requests subtable setup """
 	processing_request_subtable_options = {
@@ -310,7 +310,9 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 		'but was manually entered after the experiment '
 		 'was already done. As a result, information may be incomplete '
 		 'and not all data products or visualizations may be available.')
-	archival_html_attrs = {'class':'infolink','title':archival_tooltip_text}
+	archival_html_attrs = {'class':'infolink','tabindex':"0",
+	'role':"button",'data-trigger':"focus",'data-toggle':'popover',
+	'title':"What does the archival? column mean?",'data-content':archival_tooltip_text}
 	table_class.add_column('is_archival',BooltoStringCol('archival?',column_html_attrs=column_html_attrs,
 		th_html_attrs=archival_html_attrs))
 	table_class.add_column('clearing_protocol',
@@ -353,7 +355,6 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 		 'To see what imaging you have already requested, '
 		 'click on the existing imaging request number(s) for this sample. '
 		 'If this field shows "N/A" it is because no additional imaging is possible for this sample.')
-	new_imaging_request_html_attrs = {'class':'infolink','title':new_imaging_request_tooltip_text}
 
 	# table_class.add_column('new imaging request',
 	# 	NewImagingRequestLinkCol('request additional imaging','imaging.new_imaging_request',
@@ -394,7 +395,6 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 		 'To see what processing you have already requested, '
 		 'click on the existing processing request number(s) corresponding to this imaging request. '
 		 'If this field shows "N/A" it is because no processing is possible for this sample.')
-	new_processing_request_html_attrs = {'class':'infolink','title':new_processing_request_tooltip_text}
 	
 	# imaging_requests_subtable_class.add_column('new processing request',
 	# 	NewProcessingRequestLinkCol('request additional processing','processing.new_processing_request',

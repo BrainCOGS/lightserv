@@ -85,7 +85,7 @@
 
 						<div class="form-group">
 							{% if image_resolution_form.final_orientation.flags.required %}*{% endif %}
-							<a data-toggle="tooltip" title="How you want your output volume oriented. If registration is requested, this must be 'sagittal'">
+							<a data-toggle="popover" data-content="How you want your output volume oriented. If registration is requested, this must be 'sagittal'">
 							{{ image_resolution_form.final_orientation.label(class="form-control-label infolink") }}
 							</a>
 							{% if image_resolution_form.final_orientation.errors %}

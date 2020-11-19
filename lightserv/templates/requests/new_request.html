@@ -58,9 +58,9 @@
 						{{ form.correspondence_email(class="form-control form-control-lg ") }}
 					{% endif %}
 				</div>
-				<div class="form-group" data-toggle="tooltip" title="Must not contain spaces. Use '_' instead of spaces">
-					{% if form.request_name.flags.required %}*{% endif %}
-					{{ form.request_name.label(class="form-control-label infolink") }} <a id="request_name_charbox"></a>
+				<div class="form-group" >
+					
+					<div class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Request name must not contain spaces. Use '_' instead of spaces">{% if form.request_name.flags.required %}*{% endif %}{{ form.request_name.label(class="form-control-label") }}</div> <a id="request_name_charbox"></a>
 					{% if form.request_name.errors %}
 						{{ form.request_name(class="form-control form-control-lg is-invalid",oninput="update_charbox(this)") }}
 						<div class="invalid-feedback">
@@ -186,10 +186,11 @@
 						</div>
 
 						<div class="form-group">
+							
+							<div class="infolink" tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Leave blank if your subject is not an option or you don't know">
 							{% if clearing_entry.subject_fullname.flags.required %}*{% endif %}
-							<a class="infolink" data-toggle="tooltip" title="Leave blank if your subject is not an option or you don't know">
 								{{ clearing_entry.subject_fullname.label(class="form-control-label") }}
-							</a>
+							</div>
 							{% if clearing_entry.subject_fullname.errors %}
 								{{ clearing_entry.subject_fullname(class="form-control form-control-lg is-invalid") }}
 								<div class="invalid-feedback">
@@ -319,7 +320,7 @@
 							<!-- render the hidden field -->
 							{{ image_resolution_form.image_resolution() }}
 							{% if image_resolution_form.image_resolution.data == '2x' %}
-								<h4 class='infolink' data-toggle='tooltip' title='Only generic imaging is allowed for 2x imaging due to our inability to proces images taken with this objective. '> Setup for image resolution: {{ image_resolution_form.image_resolution.data }} </h4>
+								<h4 class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle='popover' data-content='Only generic imaging is allowed for 2x imaging due to our inability to proces images taken with this objective. '> Setup for image resolution: {{ image_resolution_form.image_resolution.data }} </h4>
 							{% else %}
 								<h4 > Setup for image resolution: {{ image_resolution_form.image_resolution.data }} </h4>
 							{% endif %}
@@ -328,11 +329,11 @@
 				                <tr>
 				                    <th>Channel wavelength(nm)</th>
 				                    <th>Image resolution</th>
-				                    <th class="infolink" data-toggle="tooltip" title="Registration: Select a channel that will be used to align your data to an atlas. Best to pick a channel with high auto-fluorescence like 488 (the default). You must pick a channel in this column if you want any of your data registered to an atlas. You only need to pick one channel in this column.">Registration</th>
-				                    <th class="infolink" data-toggle="tooltip" title="Injection detection: Select channel(s) in which you want to recover an injection site. The channel could be the one closest in wavelength to the peak emission wavelength of a dye used to tag the injection site. Requires a registration channel to be selected.">Injection detection</th>
-				                    <th class="infolink" data-toggle="tooltip" title="Probe detection: Select channel(s) in which you want to recover a probe site. The channel could be the one closest in wavelength to the peak emission wavelength of a dye used to tag the probe site. Requires a registration channel to be selected.">Probe detection</th>
-				                    <th class="infolink" data-toggle="tooltip" title="Cell detection: Select channel(s) in which you want to recover cells.">Cell detection</th>
-				                    <th class="infolink" data-toggle="tooltip" title="General Imaging: Select channel(s) in this column if you want the channel imaged but not for purposes in the other columns (or you are not sure). Does not require a registration channel to be selected, but if one is this channel will be automatically registered to the atlas selected. ">Generic Imaging</th>
+				                    <th class="infolink" tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Registration: Select a channel that will be used to align your data to an atlas. Best to pick a channel with high auto-fluorescence like 488 (the default). You must pick a channel in this column if you want any of your data registered to an atlas. You only need to pick one channel in this column.">Registration</th>
+				                    <th class="infolink" tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Injection detection: Select channel(s) in which you want to recover an injection site. The channel could be the one closest in wavelength to the peak emission wavelength of a dye used to tag the injection site. Requires a registration channel to be selected.">Injection detection</th>
+				                    <th class="infolink" tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Probe detection: Select channel(s) in which you want to recover a probe site. The channel could be the one closest in wavelength to the peak emission wavelength of a dye used to tag the probe site. Requires a registration channel to be selected.">Probe detection</th>
+				                    <th class="infolink" tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Cell detection: Select channel(s) in which you want to recover cells.">Cell detection</th>
+				                    <th class="infolink" tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="General Imaging: Select channel(s) in this column if you want the channel imaged but not for purposes in the other columns (or you are not sure). Does not require a registration channel to be selected, but if one is this channel will be automatically registered to the atlas selected. ">Generic Imaging</th>
 				                </tr>
 
 				                {% for channel_entry in image_resolution_form.channel_forms %}
@@ -360,10 +361,11 @@
 					                </tr>
 				               {% endfor %}
 				            </table>
-				            
-				             <div class="form-group infolink" data-toggle="tooltip" title="While this notes field is not required, we strongly recommend that you fill it out if you want your images taken of a specific brain region only or at a specific orientation (e.g. sagittal). Otherwise, we will assume that you want the entire brain imaged, and we will image it in a sagittal orientation. ">
+				            <div class="form-group">
+				             <div class=" infolink" tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="While this notes field is not required, we strongly recommend that you fill it out if you want your images taken of a specific brain region only or at a specific orientation (e.g. ventral up). Otherwise, we will assume that you want the entire brain imaged, and we will image it in a sagittal orientation. ">
 								{% if image_resolution_form.notes_for_imager.flags.required %}*{% endif %}
-								{{ image_resolution_form.notes_for_imager.label(class="form-control-label") }} <a id='imaging_samples-{{ii}}-image_resolution_forms-{{jj}}-notes_for_imager_charbox'></a>
+								{{ image_resolution_form.notes_for_imager.label(class="form-control-label") }}
+								</div> <a id='imaging_samples-{{ii}}-image_resolution_forms-{{jj}}-notes_for_imager_charbox'></a>
 								{% if image_resolution_form.notes_for_imager.errors %}
 									{{ image_resolution_form.notes_for_imager(class="form-control form-control-lg is-invalid",oninput="update_charbox(this)") }}
 									<div class="invalid-feedback">
@@ -394,9 +396,9 @@
 
 								<div class="form-group">
 									{% if image_resolution_form.final_orientation.flags.required %}*{% endif %}
-									<a data-toggle="tooltip" title="How you want your output volume oriented. If registration is requested, this must be 'sagittal'. We can also 
+									<a data-toggle="popover" data-content="How you want your output volume oriented. If registration is requested, this must be 'sagittal'. We can also 
 									reorient your brain during post processing. ">
-									{{ image_resolution_form.final_orientation.label(class="form-control-label infolink") }}
+									{{ image_resolution_form.final_orientation.label(class="form-control-label") }}
 									</a>
 									{% if image_resolution_form.final_orientation.errors %}
 										{{ image_resolution_form.final_orientation(class="form-control form-control-lg is-invalid") }}

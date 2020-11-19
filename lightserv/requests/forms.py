@@ -98,7 +98,7 @@ class NewRequestForm(FlaskForm):
 	other_username = StringField('Netid of that person',
 		validators=[Length(max=20)])
 	request_name = StringField(
-		'Request_name - a unique identifier for this request -- max 64 characters --',
+		'Request name - a unique identifier for this request -- max 64 characters --',
 		validators=[InputRequired(),Length(max=64)])
 	
 	description = TextAreaField('What is the goal of this request? -- max 250 characters --',
