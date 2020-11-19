@@ -285,6 +285,59 @@ def raw_data_setup(username,request_name,sample_name,imaging_request_number):
     return render_template('neuroglancer/raw_data_setup.html',form=form,
         channel_contents_lists=channel_contents_lists,imaging_request_table=imaging_request_table)
 
+@neuroglancer.route("/neuroglancer/blended_data_setup/"
+                    "<username>/<request_name>/<sample_name>/"
+                    "<imaging_request_number>/<processing_request_number>",
+    methods=['GET','POST'])
+def blended_data_setup(username,request_name,sample_name,
+    imaging_request_number,processing_request_number): # don't change the url 
+    """ An old deprecated route that I now just redirect to general_data_setup()
+    route """
+    return redirect(url_for('neuroglancer.general_data_setup',
+        username=username,request_name=request_name,
+        sample_name=sample_name,imaging_request_number=imaging_request_number,
+        processing_request_number=processing_request_number))
+    
+@neuroglancer.route("/neuroglancer/stitched_data_setup/"
+                    "<username>/<request_name>/<sample_name>/"
+                    "<imaging_request_number>/<processing_request_number>",
+    methods=['GET','POST'])
+def stitched_data_setup(username,request_name,sample_name,
+    imaging_request_number,processing_request_number): # don't change the url 
+    """ An old deprecated route that I now just redirect to general_data_setup()
+    route """
+    return redirect(url_for('neuroglancer.general_data_setup',
+        username=username,request_name=request_name,
+        sample_name=sample_name,imaging_request_number=imaging_request_number,
+        processing_request_number=processing_request_number))
+    
+@neuroglancer.route("/neuroglancer/downsized_data_setup/"
+                    "<username>/<request_name>/<sample_name>/"
+                    "<imaging_request_number>/<processing_request_number>",
+    methods=['GET','POST'])
+def downsized_data_setup(username,request_name,sample_name,
+    imaging_request_number,processing_request_number): # don't change the url 
+    """ An old deprecated route that I now just redirect to general_data_setup()
+    route """
+    return redirect(url_for('neuroglancer.general_data_setup',
+        username=username,request_name=request_name,
+        sample_name=sample_name,imaging_request_number=imaging_request_number,
+        processing_request_number=processing_request_number))
+    
+@neuroglancer.route("/neuroglancer/registered_data_setup/"
+                    "<username>/<request_name>/<sample_name>/"
+                    "<imaging_request_number>/<processing_request_number>",
+    methods=['GET','POST'])
+def registered_data_setup(username,request_name,sample_name,
+    imaging_request_number,processing_request_number): # don't change the url 
+    """ An old deprecated route that I now just redirect to general_data_setup()
+    route """
+    return redirect(url_for('neuroglancer.general_data_setup',
+        username=username,request_name=request_name,
+        sample_name=sample_name,imaging_request_number=imaging_request_number,
+        processing_request_number=processing_request_number))
+    
+
 @neuroglancer.route("/neuroglancer/general_data_setup/"
                     "<username>/<request_name>/<sample_name>/"
                     "<imaging_request_number>/<processing_request_number>",
