@@ -996,6 +996,11 @@ def general_data_setup(username,request_name,sample_name,
                                 'atlas','neuroglancer','atlas','princetonmouse')
                             data_path = os.path.join('/jukebox','LightSheetData',
                                 'atlas','sagittal_atlas_20um_iso.tif')
+                        elif atlas_name == 'paxinos':
+                            cv_path = os.path.join('/jukebox','LightSheetData',
+                                'atlas','neuroglancer','atlas','kimatlas')
+                            data_path = os.path.join('/jukebox','LightSheetData',
+                                'atlas','sagittal_atlas_20um_iso.tif')
                         layer_type = "segmentation"
                         cv_contents_dict_this_channel['image_resolution'] = image_resolution
                         cv_contents_dict_this_channel['cv_name'] = cv_name

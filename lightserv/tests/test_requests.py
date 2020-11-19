@@ -1497,6 +1497,51 @@ def test_submit_multisample_multichannel_request(test_client,test_login_nonadmin
 	assert b"nonadmin_manysamp_request" in response.data
 	assert b"New Request Form" not in response.data
 
+def test_submit_paxinos_mouse_request(test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Ensure that entire new request form submits when good
+	data are used.
+
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+
+	username = 'lightserv-test'
+	request_name = "nonadmin_paxinos_request"
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':request_name,
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'raw_data_retention_preference':"important",
+			'username':username,
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'paxinos',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"core facility requests" in response.data
+	assert b"This is a demo request" in response.data
+	assert b"New Request Form" not in response.data
+
+	""" check db to make sure correct atlas was inserted for this request """
+	
+	restrict_dict = {'username':username,'request_name':request_name}
+	processing_resolution_request_contents = db_lightsheet.Request.ProcessingResolutionRequest() & restrict_dict
+	atlas_name = processing_resolution_request_contents.fetch1('atlas_name')
+	assert atlas_name == 'paxinos'
 
 """ Testing all_requests() """
 

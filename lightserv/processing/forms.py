@@ -24,7 +24,8 @@ class SubProcessingForm(FlaskForm):
 	max_number_of_channels = 4
 	atlas_name = SelectField('Choose atlas for registration:',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
-				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[Optional()],default='allen_2017')
+				 ('princeton_mouse_atlas','Princeton Mouse Atlas'),
+				 ('paxinos','Franklin-Paxinos Mouse Brain Atlas')],validators=[Optional()],default='allen_2017')
 	image_resolution = HiddenField('Image resolution')
 	ventral_up = HiddenField('Dorsal up or ventral up?')
 	notes_for_processor = TextAreaField('''Special notes for processing 

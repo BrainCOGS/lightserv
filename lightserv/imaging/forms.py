@@ -318,7 +318,8 @@ class ImageResolutionRequestForm(FlaskForm):
 
 	atlas_name = SelectField('Atlas for registration',
 		choices=[('allen_2017','Allen atlas (2017)'),('allen_2011','Allen atlas (pre-2017)'),
-				 ('princeton_mouse_atlas','Princeton Mouse Atlas')],validators=[Optional()])
+				 ('princeton_mouse_atlas','Princeton Mouse Atlas'),
+				 ('paxinos','Franklin-Paxinos Mouse Brain Atlas')],validators=[Optional()])
 
 class NewImagingRequestForm(FlaskForm):
 	""" The form for entering imaging information """

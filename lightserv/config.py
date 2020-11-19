@@ -24,11 +24,14 @@ class BaseConfig(object):
 	ATLAS_NAME_FILE_DICTIONARY = {
 	'allen_2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/average_template_25_sagittal_forDVscans.tif',
 	'allen_pre2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/average_template_25_sagittal_forDVscans.tif',
-	'princeton_mouse_atlas':'/jukebox/LightSheetTransfer/atlas/sagittal_atlas_20um_iso.tif'}
+	'princeton_mouse_atlas':'/jukebox/LightSheetTransfer/atlas/sagittal_atlas_20um_iso.tif',
+	'paxinos':'/jukebox/LightSheetTransfer/atlas/kim_atlas/KimRef_tissue_volume_4brainpipe.tif'
+	}
 	ATLAS_ANNOTATION_FILE_DICTIONARY = {
 	'allen_2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/annotation_2017_25um_sagittal_forDVscans_16bit.tif',
 	'allen_pre2017':'/jukebox/LightSheetTransfer/atlas/allen_atlas/annotation_template_25_sagittal_forDVscans.tif',
-	'princeton_mouse_atlas':'/jukebox/LightSheetTransfer/atlas/annotation_sagittal_atlas_20um_iso_16bit.tif'
+	'princeton_mouse_atlas':'/jukebox/LightSheetTransfer/atlas/annotation_sagittal_atlas_20um_iso_16bit.tif',
+	'paxinos':'/jukebox/LightSheetTransfer/atlas/kim_atlas/KimRef_annotation_volume_4brainpipe.tif'
 	}
 	PROCESSING_CODE_DIR = '/jukebox/wang/ahoag/brainpipe'
 	DJ_SAFEMODE = True
