@@ -55,7 +55,7 @@ layer_name = 'allenatlas_2017_16bit_hierarch_labels_fillmissing'
 
 with viewer.txn() as s:
 	s.layers[layer_name] = neuroglancer.SegmentationLayer(
-		source=f"precomputed://gs://wanglab-pma-test/{layer_name}" # this needs to be visible outside of the container in the browser
+		source=f"precomputed://gs://wanglab-pma/{layer_name}" # this needs to be visible outside of the container in the browser
 	)
 			
 
