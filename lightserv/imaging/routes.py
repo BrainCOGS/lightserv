@@ -12,6 +12,7 @@ from lightserv.imaging.tables import (ImagingTable, dynamic_imaging_management_t
 	SampleTable, ExistingImagingTable, ImagingChannelTable,ImagingBatchTable)
 from .forms import (ImagingForm, NewImagingRequestForm, ImagingBatchForm)
 from . import tasks
+from . import utils
 from lightserv.main.tasks import send_email
 import numpy as np
 import datajoint as dj
@@ -20,6 +21,7 @@ from datetime import datetime, timedelta
 import logging
 import glob
 from PIL import Image
+import concurrent.futures
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -827,25 +829,17 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 									number_of_rawfiles_found = 0
 									if image_resolution in ['3.6x','15x']:
 										number_of_rawfiles_expected = number_of_z_planes*n_rows*n_columns
-
 										""" For SmartSPIM
 										Add up all the files in the deepest directories """
-										walker = os.walk(rawdata_fullpath,followlinks=True)
-										try:
-											channel_dir, subdirs, files = next(walker)
-											regex = re.compile(r'\d{6}')
-											good_subdirs = [x for x in subdirs if regex.match(x)] # don't want to search through corrected/ or stitched/ dirs for example
-											for subdir in good_subdirs:
-												logger.debug(f"checking {subdir} for raw files")
-												sub_subdirs = glob.glob(os.path.join(channel_dir,subdir,'*/'))
-												for sub_subdir in sub_subdirs:
-													logger.debug(f"nested folder {sub_subdir}")
-													filenames = glob.glob(sub_subdir + '/*tiff')
-													logger.debug(f"Have {len(filenames)} raw files")
-													number_of_rawfiles_found += len(filenames)
-										except:	
-											logger.debug("Problem checking raw data directory. Most likely directory doesn't exist")
-										
+										all_subdirs = glob.glob(rawdata_fullpath + '/??????/??????_??????/')
+										logger.debug("Checking folders:")
+										logger.debug(all_subdirs)
+										total_counts = []
+										with concurrent.futures.ProcessPoolExecutor(max_workers=None) as executor:
+											for count in executor.map(utils.count_files, all_subdirs):
+												total_counts.append(count)
+										logger.debug(total_counts)
+										number_of_rawfiles_found = sum(total_counts)
 									else:
 										""" For LaVision
 										We have to be careful here
