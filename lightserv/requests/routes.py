@@ -729,7 +729,7 @@ def new_request():
                             imaging_resolution_insert_dict['notes_for_imager'] = resolution_dict['notes_for_imager']
                             imaging_resolution_insert_list.append(imaging_resolution_insert_dict)
                             """ now processing entry (if not 2x imaging request or SmartSPIM resolutions)"""
-                            if image_resolution != '2x' and image_resolution != '3.6x' and image_resolution != '15x':
+                            if image_resolution != '2x':
                                 processing_resolution_insert_dict = {}
                                 processing_resolution_insert_dict['request_name'] = form.request_name.data
                                 processing_resolution_insert_dict['username'] = username 

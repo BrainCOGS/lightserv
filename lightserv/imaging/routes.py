@@ -14,6 +14,7 @@ from .forms import (ImagingForm, NewImagingRequestForm, ImagingBatchForm)
 from . import tasks
 from . import utils
 from lightserv.main.tasks import send_email
+from lightserv.processing.tasks import smartspim_stitch
 import numpy as np
 import datajoint as dj
 import os,re
@@ -975,7 +976,6 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 										today_proper_format = today.date().strftime('%Y-%m-%d')
 										dj.Table._update(imaging_request_contents_this_sample,'imaging_performed_date',
 											today_proper_format)
-										
 										samples_imaging_progress_dict[this_sample_name] = 'complete'
 										""" Kick off celery task for creating precomputed data from this
 										raw data image dataset if there is more than one tile.
@@ -1408,9 +1408,29 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 							if not os.environ['FLASK_MODE'] == 'TEST': 
 								tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
 					else:
+						# Not 1x1 tiling - stitching needs to be done
 						logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
 									 "Not creating precomputed data for neuroglancer visualization.")
-				
+						image_resolution = imaging_channel_dict['image_resolution']
+						""" Start the stitching pipeline if SmartSPIM images """
+						if image_resolution in ["3.6x","15x"]:
+							logger.debug("This channel was imaged with the SmartSPIM")
+							channel_name = imaging_channel_dict['channel_name']
+							logger.debug(image_resolution)
+							logger.debug(channel_name)
+							logger.debug("Starting the stitching for this channel")
+							ventral_up = imaging_channel_dict['ventral_up']
+							rawdata_subfolder = imaging_channel_dict['rawdata_subfolder']
+							stitching_kwargs = dict(username=username,request_name=request_name,
+									sample_name=this_sample_name,imaging_request_number=imaging_request_number,
+									image_resolution=image_resolution,
+									ventral_up=ventral_up,
+									rawdata_subfolder=rawdata_subfolder)
+							smartspim_stitch(**stitching_kwargs)
+							logger.debug("Smartspim stitching task sent with these kwargs:")
+							logger.debug(stitching_kwargs)
+						
+
 			correspondence_email = (db_lightsheet.Request() & f'username="{username}"' & \
 			 f'request_name="{request_name}"').fetch1('correspondence_email')
 			data_rootpath = current_app.config["DATA_BUCKET_ROOTPATH"]

@@ -159,7 +159,7 @@ def run_lightsheet_pipeline(username,request_name,
 					rawdata_fullpath = os.path.join(raw_basepath,
 						f'resolution_{image_resolution}',
 						rawdata_subfolder)
-				inputdictionary[rawdata_fullpath] = []	
+				inputdictionary[rawdata_fullpath] = []  
 
 				""" Loop through the channels themselves to make the input dictionary
 				and grab the rest of the parameter dictionary keys """
@@ -167,7 +167,7 @@ def run_lightsheet_pipeline(username,request_name,
 				channel_contents_this_subfolder = channel_contents_this_resolution & \
 				 f'rawdata_subfolder="{rawdata_subfolder}"'
 				channel_contents_dict_list_this_subfolder = channel_contents_this_subfolder.fetch(as_dict=True)
-				for channel_dict in channel_contents_dict_list_this_subfolder:		
+				for channel_dict in channel_contents_dict_list_this_subfolder:      
 					channel_name = channel_dict['channel_name']
 					channel_index = channel_dict['imspector_channel_index'] 
 					processing_channel_insert_dict = {'username':username,'request_name':request_name,
@@ -246,7 +246,7 @@ def run_lightsheet_pipeline(username,request_name,
 					inputdictionary[rawdata_fullpath].append(
 						[lightsheet_channel_str,str(channel_index).zfill(2)])
 					
-					processing_channel_insert_dict['lightsheet_channel_str'] = lightsheet_channel_str			
+					processing_channel_insert_dict['lightsheet_channel_str'] = lightsheet_channel_str           
 					logger.info("Inserting into ProcessingChannel()")
 					logger.info(processing_channel_insert_dict)
 					db_lightsheet.Request.ProcessingChannel().insert1(processing_channel_insert_dict,replace=True)
@@ -258,7 +258,7 @@ def run_lightsheet_pipeline(username,request_name,
 			logger.debug("Param dictionary")
 			logger.debug(param_dict)
 
-			""" Now write the pickle file with the parameter dictionary """	
+			""" Now write the pickle file with the parameter dictionary """ 
 			pickle_fullpath = output_directory + '/param_dict.p'
 			with open(pickle_fullpath,'wb') as pkl_file:
 				pickle.dump(param_dict,pkl_file)
@@ -329,13 +329,13 @@ def run_lightsheet_pipeline(username,request_name,
 			if os.environ['FLASK_MODE'] == 'TEST':
 				if n_channels_reg > 0:
 					command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline.sh"""
-				else:	
+				else:   
 					command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline_noreg.sh"""
 			else:
 				# if n_channels_reg > 0:
-				# 	command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_sleep_pipeline.sh"""
-				# else:	
-				# 	command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_sleep_pipeline_noreg.sh"""
+				#   command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_sleep_pipeline.sh"""
+				# else: 
+				#   command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_sleep_pipeline_noreg.sh"""
 				command = """cd %s;%s/%s %s %s %s""" % \
 				(processing_code_dir,
 					processing_code_dir,
@@ -354,7 +354,7 @@ def run_lightsheet_pipeline(username,request_name,
 				client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
 			except paramiko.ssh_exception.AuthenticationException:
 				logger.info(f"Failed to connect to spock to start job. ")
-				dj.Table._update(this_processing_resolution_content,'lightsheet_pipeline_spock_job_progress','NOT_SUBMITTED')	
+				dj.Table._update(this_processing_resolution_content,'lightsheet_pipeline_spock_job_progress','NOT_SUBMITTED')   
 				flash("Error submitting your job to spock. "
 					  "Most likely the ssh key was not copied correctly to your account on spock. "
 					  "The key can be found in an email that was sent to you from "
@@ -420,6 +420,141 @@ def run_lightsheet_pipeline(username,request_name,
 	return "SUBMITTED spock job"
 
 @cel.task()
+def smartspim_stitch(**kwargs):
+	""" An asynchronous celery task (runs in a background process) which
+	runs a script on spock to stitch smartspim images for a given 
+	imaging channel
+	"""
+	username=kwargs['username']
+	request_name=kwargs['request_name']
+	sample_name=kwargs['sample_name']
+	imaging_request_number=kwargs['imaging_request_number']
+	ventral_up=kwargs['ventral_up']
+	image_resolution=kwargs['image_resolution']
+	rawdata_subfolder=kwargs['rawdata_subfolder']
+
+	processing_resolution_restrict_dict = {
+		'username':username,
+		'request_name':request_name,
+		'sample_name':sample_name,
+		'imaging_request_number':imaging_request_number,
+		'processing_request_number':1,
+		'image_resolution':image_resolution,
+		'ventral_up':ventral_up,
+	}
+	this_processing_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest & \
+		processing_resolution_restrict_dict
+	logger.debug("processing resolution content:")
+	logger.debug(this_processing_resolution_content)
+	if ventral_up:
+		rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+				username,request_name,sample_name,
+				f"imaging_request_{imaging_request_number}",
+				f"resolution_{image_resolution}_ventral_up",
+				rawdata_subfolder)
+	else:
+		rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+				username,request_name,sample_name,
+				f"imaging_request_{imaging_request_number}",
+				f"resolution_{image_resolution}",
+				rawdata_subfolder)
+	
+	stitched_output_dir = os.path.join(rawdata_path,'stitched')
+	mymkdir(stitched_output_dir)
+	
+	""" Now run spim_stitch via paramiko """
+
+	hostname = 'spock.pni.princeton.edu'
+	
+	processing_code_dir = os.path.join(
+		current_app.config['PROCESSING_CODE_DIR'],
+		'smartspim')
+	pipeline_shell_script = 'spim_stitch.sh'
+	""" Set up the communication with spock """
+
+	""" First get the git commit from brainpipe """
+	command_get_commit = f'cd {processing_code_dir}; git rev-parse --short HEAD'
+	
+	if os.environ['FLASK_MODE'] == 'TEST' or os.environ['FLASK_MODE'] == 'DEV' :        
+		command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline.sh"""
+	else:
+		command = """cd %s;%s/%s %s""" % \
+		(
+			processing_code_dir,
+			processing_code_dir,
+			pipeline_shell_script,
+			stitched_output_dir,
+		)
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
+	port = 22
+
+	client = paramiko.SSHClient()
+	client.load_system_host_keys()
+	client.set_missing_host_key_policy(paramiko.WarningPolicy)
+	try:
+		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+	except paramiko.ssh_exception.AuthenticationException:
+		logger.info(f"Failed to connect to spock to start job. ")
+		dj.Table._update(this_processing_resolution_content,'smartspim_stitching_spock_job_progress','NOT_SUBMITTED')   
+		flash("Error submitting your job to spock. "
+			  "Most likely the ssh key was not copied correctly to your account on spock. "
+			  "The key can be found in an email that was sent to you from "
+			  "lightservhelper@gmail.com when you submitted your request. "
+			  "Please check that the permissions of your ~/.ssh folder on spock are set to 700 "
+			  "and the permissions of the .ssh/authorized_keys file is 640:","danger")
+		return redirect(url_for('main.FAQ',_anchor='ssh_key'))
+	logger.debug("Command:")
+	logger.debug(command)
+	stdin, stdout, stderr = client.exec_command(command)
+	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
+	logger.debug("Stdout Response:")
+	logger.debug(response)
+	error_response = str(stderr.read().decode("utf-8"))
+	if error_response:
+		logger.debug("Stderr Response:")
+		logger.debug(error_response)
+	else:
+		logger.debug("No Stderr Response")
+	logger.debug("")
+	status = 'SUBMITTED'
+	entry_dict = {}
+	jobid_step0, jobid_step1, jobid_step2, jobid_step3 = response.split('\n')
+	entry_dict['username'] = username
+	entry_dict['jobid_step3'] = jobid_step3
+	entry_dict['jobid_step2'] = jobid_step2
+	entry_dict['jobid_step1'] = jobid_step1
+	entry_dict['jobid_step0'] = jobid_step0
+	entry_dict['status_step0'] = status
+	entry_dict['status_step1'] = status
+	entry_dict['status_step2'] = status
+	entry_dict['status_step3'] = status 
+
+	""" Update the job status table in spockadmin schema"""
+	logger.debug(entry_dict)
+	db_spockadmin.SmartSpimStitchingSpockJob.insert1(entry_dict)    
+	logger.info(f"ProcessingResolutionRequest() request was successfully submitted to spock, jobid (step 0): {jobid_step0}")
+
+	""" Update the request tables in lightsheet schema """ 
+	jobid_final_step = jobid_step3 
+
+	dj.Table._update(this_processing_resolution_content,'smartspim_stitching_spock_jobid',jobid_final_step)
+	logger.debug("Updated spock jobid in ProcessingResolutionRequest() table")
+	dj.Table._update(this_processing_resolution_content,'smartspim_stitching_spock_job_progress','SUBMITTED')
+	logger.debug("Updated spock job progress in ProcessingResolutionRequest() table")
+
+	""" Get the brainpipe commit and add it to processing request contents table """
+	
+	stdin_commit, stdout_commit, stderr_commit = client.exec_command(command_get_commit)
+	brainpipe_commit = str(stdout_commit.read().decode("utf-8").strip('\n'))
+	logger.debug("BRAINPIPE COMMIT")
+	logger.debug(brainpipe_commit)
+	dj.Table._update(this_processing_resolution_content,'brainpipe_commit',brainpipe_commit)
+	logger.debug("Updated brainpipe_commit in ProcessingResolutionRequest() table")
+
+	client.close()
+	return "SUBMITTED spock job"
+
+@cel.task()
 def make_precomputed_stitched_data(**kwargs):
 	""" Celery task for making precomputed dataset
 	(i.e. one that can be read by cloudvolume) from 
@@ -436,6 +571,7 @@ def make_precomputed_stitched_data(**kwargs):
 	imaging_request_number=kwargs['imaging_request_number']
 	processing_request_number=kwargs['processing_request_number']
 	channel_name=kwargs['channel_name']
+	ventral_up=kwargs['ventral_up']
 	channel_index=kwargs['channel_index']
 	image_resolution=kwargs['image_resolution']
 	lightsheet=kwargs['lightsheet']
@@ -443,10 +579,18 @@ def make_precomputed_stitched_data(**kwargs):
 	viz_dir = kwargs['viz_dir'] 
 	processing_pipeline_jobid_step0 = kwargs['processing_pipeline_jobid_step0']
 
-	rawdata_path = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
-								 f"{request_name}/{sample_name}/"
-								 f"imaging_request_{imaging_request_number}/rawdata/"
-								 f"{rawdata_subfolder}")
+	if ventral_up:
+		rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+				username,request_name,sample_name,
+				f"imaging_request_{imaging_request_number}",
+				f"resolution_{image_resolution}_ventral_up",
+				rawdata_subfolder)
+	else:
+		rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+				username,request_name,sample_name,
+				f"imaging_request_{imaging_request_number}",
+				f"resolution_{image_resolution}",
+				rawdata_subfolder)
 	kwargs['rawdata_path'] = rawdata_path
 	""" construct the terastitcher output path """
 	# brainname = rawdata_path[rawdata_path.rfind('/')+8:-9]
@@ -610,7 +754,7 @@ def make_precomputed_blended_data(**kwargs):
 		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_precomputed_blended_script.sh "
 	else:
 		command = ("cd /jukebox/wang/ahoag/precomputed/blended_pipeline; "
-				   f"/jukebox/wang/ahoag/precomputed/blended_pipeline/precomputed_pipeline_blended.sh {viz_dir}")	# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+				   f"/jukebox/wang/ahoag/precomputed/blended_pipeline/precomputed_pipeline_blended.sh {viz_dir}")   # command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	hostname = 'spock.pni.princeton.edu'
 	port=22
 	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
@@ -1442,9 +1586,9 @@ def check_for_spock_jobs_ready_for_making_precomputed_stitched_data():
 	unique_contents = dj.U('jobid_step0','username',).aggr(
 		job_contents,timestamp='max(timestamp)')*job_contents
 
-	processing_pipeline_jobids_step0 = unique_contents.fetch('jobid_step0')	
+	processing_pipeline_jobids_step0 = unique_contents.fetch('jobid_step0') 
 	logger.debug('These are the step 0 jobids of the processing pipeline '
-		         'with stitching_method="terastitcher" and a COMPLETED step 1:')
+				 'with stitching_method="terastitcher" and a COMPLETED step 1:')
 	logger.debug(processing_pipeline_jobids_step0)
 	logger.debug("")
 	
@@ -1823,9 +1967,9 @@ def check_for_spock_jobs_ready_for_making_precomputed_blended_data():
 	unique_contents = dj.U('jobid_step0','username',).aggr(
 		job_contents,timestamp='max(timestamp)')*job_contents
 
-	processing_pipeline_jobids_step0 = unique_contents.fetch('jobid_step0')	
+	processing_pipeline_jobids_step0 = unique_contents.fetch('jobid_step0') 
 	logger.debug('These are the step 0 jobids of the processing pipeline '
-		         'with a COMPLETED step 1:')
+				 'with a COMPLETED step 1:')
 	logger.debug(processing_pipeline_jobids_step0)
 	logger.debug("")
 	
@@ -2200,9 +2344,9 @@ def check_for_spock_jobs_ready_for_making_precomputed_downsized_data():
 	unique_contents = dj.U('jobid_step0','username',).aggr(
 		job_contents,timestamp='max(timestamp)')*job_contents
 
-	processing_pipeline_jobids_step0 = unique_contents.fetch('jobid_step0')	
+	processing_pipeline_jobids_step0 = unique_contents.fetch('jobid_step0') 
 	logger.debug('These are the step 0 jobids of the processing pipeline '
-		         'where the entire pipeline is COMPLETED:')
+				 'where the entire pipeline is COMPLETED:')
 	logger.debug(processing_pipeline_jobids_step0)
 	logger.debug("")
 	
@@ -2576,9 +2720,9 @@ def check_for_spock_jobs_ready_for_making_precomputed_registered_data():
 	unique_contents = dj.U('jobid_step0','username',).aggr(
 		job_contents,timestamp='max(timestamp)')*job_contents
 
-	processing_pipeline_jobids_step0 = unique_contents.fetch('jobid_step0')	
+	processing_pipeline_jobids_step0 = unique_contents.fetch('jobid_step0') 
 	logger.debug('These are the step 0 jobids of the processing pipeline '
-		         'where the entire pipeline is COMPLETED:')
+				 'where the entire pipeline is COMPLETED:')
 	logger.debug(processing_pipeline_jobids_step0)
 	logger.debug("")
 	
