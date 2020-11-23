@@ -34,7 +34,7 @@ logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
 
 ''' Make the file handler to deal with logging to file '''
-file_handler = logging.FileHandler('logs/experiment_routes.log')
+file_handler = logging.FileHandler('logs/requests_routes.log')
 file_handler.setFormatter(formatter)
 
 stream_handler = logging.StreamHandler() # level already set at debug from logger.setLevel() above
