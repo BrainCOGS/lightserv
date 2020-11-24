@@ -176,8 +176,6 @@ class Request(dj.Manual):
         notes_from_processing = ""                :   varchar(1024) 
         lightsheet_pipeline_spock_jobid = NULL            :   varchar(16)  # the jobid from the final step in the light sheet processing pipeline for LaVision
         lightsheet_pipeline_spock_job_progress = NULL     :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT") # the spock job status code for the final step in the light sheet processing pipeline
-        smartspim_stitching_spock_jobid = NULL            :   varchar(16)  # the jobid from the final stitching step for SmartSPIM
-        smartspim_stitching_spock_job_progress = NULL     :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT") # the spock job status code for the final step in the light sheet processing pipeline
         brainpipe_commit = NULL                   : char(7) # the commit that is checked out on the machine at the time the job was submitted 
         """
 
@@ -202,7 +200,19 @@ class Request(dj.Manual):
         downsized_precomputed_spock_job_progress = NULL               : enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT")
         registered_precomputed_spock_jobid = NULL                     : varchar(32)
         registered_precomputed_spock_job_progress = NULL              : enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT")
-        """ 
+        """
+    
+    class SmartspimStitchedChannel(dj.Part):
+        definition = """ # Processing parameters for a channel. There can be more than one purpose for a single channel, hence why lightsheet_channel_str is a primary key
+        -> master.ImagingChannel
+        -> master.ProcessingResolutionRequest
+        ----
+        datetime_stitching_started                                    :   datetime
+        datetime_stitching_completed = NULL                           :   datetime
+        smartspim_stitching_spock_jobid = NULL                        :   varchar(16)  # the jobid from the final stitching step for SmartSPIM
+        smartspim_stitching_spock_job_progress = NULL                 :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT") # the spock job status code for the final step in the light sheet processing pipeline
+        brainpipe_commit = NULL                                       :   char(7) # the commit that is checked out on the machine at the time the job was submitted 
+        """  
                 
     class IdiscoPlusClearing(dj.Part): # 
         definition = """ # iDISCO+ clearing table

@@ -1424,9 +1424,10 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 							stitching_kwargs = dict(username=username,request_name=request_name,
 									sample_name=this_sample_name,imaging_request_number=imaging_request_number,
 									image_resolution=image_resolution,
+									channel_name=channel_name,
 									ventral_up=ventral_up,
 									rawdata_subfolder=rawdata_subfolder)
-							smartspim_stitch(**stitching_kwargs)
+							smartspim_stitch.delay(**stitching_kwargs)
 							logger.debug("Smartspim stitching task sent with these kwargs:")
 							logger.debug(stitching_kwargs)
 						

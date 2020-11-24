@@ -40,7 +40,7 @@ class ProcessingPipelineSpockJob(dj.Manual):
     status_step3 = NULL           : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT") # nullable because we dont always run step 3, e.g. if no registration is needed
     """
 @schema 
-class SmartSpimStitchingSpockJob(dj.Manual):
+class SmartspimStitchingSpockJob(dj.Manual):
     definition = """    # Spock job management table for the entire light sheet pipeline
     jobid_step0                   : varchar(16) # the jobid on spock for the first step in the pipeline.
     timestamp = CURRENT_TIMESTAMP : timestamp
