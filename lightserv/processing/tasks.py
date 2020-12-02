@@ -450,12 +450,14 @@ def smartspim_stitch(**kwargs):
 		rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 				username,request_name,sample_name,
 				f"imaging_request_{imaging_request_number}",
+				'rawdata',
 				f"resolution_{image_resolution}_ventral_up",
 				rawdata_subfolder)
 	else:
 		rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 				username,request_name,sample_name,
 				f"imaging_request_{imaging_request_number}",
+				'rawdata',
 				f"resolution_{image_resolution}",
 				rawdata_subfolder)
 	
