@@ -66,7 +66,7 @@ for ii in range(cv_count):
 	logging.debug("cv_name:")
 	logging.debug(cv_name)
 
-	if 'princeton' in cv_name.lower() or 'allen' in cv_name.lower():
+	if 'princeton' in cv_name.lower() or 'allen' in cv_name.lower() or 'paxinos' in cv_name.lower():
 		atlas_cv_name = cv_name
 	else:
 		cv_names_nonatlas.append(cv_name)
