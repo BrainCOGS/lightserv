@@ -179,7 +179,9 @@ class NewRequestForm(FlaskForm):
 		else:
 			username = session['user']
 		if ' ' in request_name.data:
-			raise ValidationError("Request_name must not contain any blank spaces")
+			raise ValidationError("Request name must not contain any blank spaces")
+		if not request_name.data.replace('_','').isalnum(): # are there any non-alpha numeric chars besides "_"
+			raise ValidationError("Request name must not contain any non-alpha numeric characters besides '_'")
 		current_request_names = (db_lightsheet.Request() & f'username="{username}"').fetch('request_name')
 		if request_name.data in current_request_names:
 			raise ValidationError(f'There already exists a request named "{request_name.data}" '
@@ -189,14 +191,19 @@ class NewRequestForm(FlaskForm):
 		""" Make sure that there are no samples where the clearing protocol is impossible
 		given the species. 
 
-		Also make sure that the sample names are unique
+		Also make sure that the sample names are unique and do not contain any spaces
 		"""
 		all_sample_names = []
 		for sample_dict in clearing_samples.data:
 			sample_name = sample_dict['sample_name']
+
 			if sample_name in all_sample_names:
 				raise ValidationError(f"Sample name: {sample_name} is duplicated. \
 				 Make sure to pick unique names for each sample")
+			if ' ' in sample_name:
+				raise ValidationError(f"Sample name: {sample_name} must not contain any blank spaces")
+			if not sample_name.replace('_','').isalnum(): # are there any non-alpha numeric chars besides "_"
+				raise ValidationError(f"Sample name: {sample_name} must not contain any non-alpha numeric characters besides '_'")
 			all_sample_names.append(sample_name)
 
 			clearing_protocol_sample = sample_dict['clearing_protocol']

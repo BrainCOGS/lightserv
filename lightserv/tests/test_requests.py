@@ -1195,43 +1195,103 @@ def test_submit_good_mouse_request_for_someone_else(test_client,
 	assert b"Request_for_someone_else" in response.data
 	assert b"New Request Form" not in response.data
 
-def test_request_name_no_spaces(test_client,
-		test_login,test_delete_request_db_contents):
-	""" Ensure that entire new request form raises a 
+def test_validate_request_name_sample_name(test_client,
+		test_login_nonadmin,test_delete_request_db_contents):
+	""" Ensure that new request form raises a 
 	ValidationError when user tries to submit a request name 
-	that has spaces in it
+	that has spaces or non-alphanumeric chars (besides '_'),
+	likewise for sample_name
 
 	If test fails, it could possibly write data to the db
 	so use the fixture test_delete_request_db_contents
 	to remove any contents just in case
 	""" 
-	
-	response = test_client.post(
-		url_for('requests.new_request'),data={
-			'labname':"Wang",'correspondence_email':"test@demo.com",
-			'request_name':"Request with spaces",
-			'requested_by':test_login['user'],
-			'description':"This is a demo request",
-			'species':"mouse",'number_of_samples':1,
-			'raw_data_retention_preference':"important",
-			'clearing_samples-0-expected_handoff_date':today_proper_format,
-			'clearing_samples-0-perfusion_date':today_proper_format,
-			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
-			'clearing_samples-0-sample_name':'sample-001',
-			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
-			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
-			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
-			'imaging_samples-0-image_resolution_forsetup':'1.3x',
-			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
-			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
-			'submit':True
-			},content_type='multipart/form-data',
+	# Request name with spaces
+	data1 = dict(
+			labname="Wang",correspondence_email="test@demo.com",
+			request_name="request with spaces",
+			description=test_login_nonadmin['user'],
+			raw_data_retention_preference="important",
+			species="mouse",number_of_samples=1,
+			sample_submit_button=True
+			)
+	response1 = test_client.post(
+		url_for('requests.new_request'),
+			data=data1,
+			content_type='multipart/form-data',
 			follow_redirects=True
 		)	
 
-	assert b"New Request Form" in response.data
-	assert b"core facility requests" not in response.data
-	assert b"Request_name must not contain any blank spaces" in response.data
+	assert b"New Request Form" in response1.data
+	assert b"core facility requests" not in response1.data
+	assert b"Request name must not contain any blank spaces" in response1.data
+
+	# Request name with special chars
+	data2 = dict(
+			labname="Wang",correspondence_email="test@demo.com",
+			request_name="request:special;chars",
+			description=test_login_nonadmin['user'],
+			raw_data_retention_preference="important",
+			species="mouse",number_of_samples=1,
+			sample_submit_button=True
+			)
+	response2 = test_client.post(
+		url_for('requests.new_request'),
+			data=data2,
+			content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"New Request Form" in response2.data
+	assert b"core facility requests" not in response2.data
+	assert b"Request name must not contain any non-alpha numeric characters" in response2.data
+
+	# sample name with spaces
+	data3 = {
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"good_nonadmin_request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'raw_data_retention_preference':"important",
+			'username':test_login_nonadmin['user'],
+			'clearing_samples-0-sample_name':'sample name with spaces',
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'imaging_samples-0-image_resolution_forsetup':"1.3x",
+			'imaging_samples-0-new_image_resolution_form_submit':True
+			}
+	response3 = test_client.post(
+		url_for('requests.new_request'),
+			data=data3,
+			content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b"New Request Form" in response3.data
+	assert b"core facility requests" not in response3.data
+	assert b"Sample name: sample name with spaces must not contain any blank spaces" in response3.data
+
+
+	# sample name with non alphanumeric chars
+	data4 = {
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"good_nonadmin_request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'raw_data_retention_preference':"important",
+			'username':test_login_nonadmin['user'],
+			'clearing_samples-0-sample_name':'sample_name_nonalphanumeric:1',
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'imaging_samples-0-image_resolution_forsetup':"1.3x",
+			'imaging_samples-0-new_image_resolution_form_submit':True
+			}
+	response4 = test_client.post(
+		url_for('requests.new_request'),
+			data=data4,
+			content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	assert b"New Request Form" in response4.data
+	assert b"core facility requests" not in response4.data
+	assert b"Sample name: sample_name_nonalphanumeric:1 must not contain any non-alpha numeric characters" in response4.data
 
 def test_only_one_registration_channel_per_res(test_client,test_login):
 	""" Ensure that trying to use multiple registration channels 

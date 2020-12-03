@@ -60,7 +60,8 @@
 				</div>
 				<div class="form-group" >
 					
-					<div class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Request name must not contain spaces. Use '_' instead of spaces">{% if form.request_name.flags.required %}*{% endif %}{{ form.request_name.label(class="form-control-label") }}</div> <a id="request_name_charbox"></a>
+					<div class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Request name must not contain spaces. Use '_' instead of spaces. non-alphanumeric characters besides '_' are not allowed in request name.">{% if form.request_name.flags.required %}*{% endif %}{{ form.request_name.label(class="form-control-label") }}</div> 
+					<a id="request_name_charbox"></a>
 					{% if form.request_name.errors %}
 						{{ form.request_name(class="form-control form-control-lg is-invalid",oninput="update_charbox(this)") }}
 						<div class="invalid-feedback">
@@ -171,8 +172,8 @@
 				        <hr class='class-2'>
 
 				    	<div class="form-group">
-							{% if clearing_entry.sample_name.flags.required %}*{% endif %}
-							{{ clearing_entry.sample_name.label(class="form-control-label") }}
+							<div class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Sample name must not contain spaces. Use '_' instead of spaces. non-alphanumeric characters besides '_' are not allowed in sample name.">{% if clearing_entry.sample_name.flags.required %}*{% endif %}
+							{{ clearing_entry.sample_name.label(class="form-control-label") }}</div>
 							{% if clearing_entry.sample_name.errors %}
 								{{ clearing_entry.sample_name(class="form-control form-control-lg is-invalid") }}
 								<div class="invalid-feedback">
