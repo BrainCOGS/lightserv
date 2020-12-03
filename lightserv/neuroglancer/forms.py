@@ -7,6 +7,7 @@ from wtforms import (StringField, SubmitField, TextAreaField,
 from wtforms.validators import (DataRequired, Length, InputRequired,
 	ValidationError, Optional)
 
+max_channels_allowed = 8 # 4 channels but both dorsal up and ventral up 
 """ Raw data """
 
 class ChannelForm(FlaskForm):
@@ -18,8 +19,10 @@ class ChannelForm(FlaskForm):
 
 class ImageResolutionForm(FlaskForm):
 	""" A sub-form for each image resolution in RawDataSetupForm """
+
 	image_resolution = HiddenField('image resolution')
-	channel_forms = FieldList(FormField(ChannelForm),min_entries=0,max_entries=4)
+	channel_forms = FieldList(FormField(ChannelForm),
+		min_entries=0,max_entries=max_channels_allowed)
 
 class RawDataSetupForm(FlaskForm):
 	""" A form for setting up how user wants to visualize
@@ -70,7 +73,8 @@ class BlendedChannelForm(FlaskForm):
 class BlendedImageResolutionForm(FlaskForm):
 	""" A sub-form for each image resolution in RawDataSetupForm """
 	image_resolution = HiddenField('image resolution')
-	channel_forms = FieldList(FormField(BlendedChannelForm),min_entries=0,max_entries=4)
+	channel_forms = FieldList(FormField(BlendedChannelForm),
+		min_entries=0,max_entries=max_channels_allowed)
 
 class BlendedDataSetupForm(FlaskForm):
 	""" A form for setting up how user wants to visualize
@@ -102,7 +106,8 @@ class DownsizedChannelForm(FlaskForm):
 class DownsizedImageResolutionForm(FlaskForm):
 	""" A sub-form for each image resolution in RawDataSetupForm """
 	image_resolution = HiddenField('image resolution')
-	channel_forms = FieldList(FormField(DownsizedChannelForm),min_entries=0,max_entries=4)
+	channel_forms = FieldList(FormField(DownsizedChannelForm),
+		min_entries=0,max_entries=max_channels_allowed)
 
 class DownsizedDataSetupForm(FlaskForm):
 	""" A form for setting up how user wants to visualize
@@ -135,7 +140,8 @@ class RegisteredChannelForm(FlaskForm):
 class RegisteredImageResolutionForm(FlaskForm):
 	""" A sub-form for each image resolution in RawDataSetupForm """
 	image_resolution = HiddenField('image resolution')
-	channel_forms = FieldList(FormField(RegisteredChannelForm),min_entries=0,max_entries=4)
+	channel_forms = FieldList(FormField(RegisteredChannelForm),
+		min_entries=0,max_entries=max_channels_allowed)
 
 class RegisteredDataSetupForm(FlaskForm):
 	""" A form for setting up how user wants to visualize

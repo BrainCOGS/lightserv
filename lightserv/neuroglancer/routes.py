@@ -1158,6 +1158,7 @@ def general_data_setup(username,request_name,sample_name,
             ventral_up = ventral_up_vals_this_resolution[jj]
             logger.debug(f"channel: {channel_name}")
             logger.debug(f"ventral up?: {ventral_up}")
+            logger.debug(f"jj index = {jj}")
             """ Figure out if data was stitched or not """
             restrict_dict = {'channel_name':channel_name,'ventral_up':ventral_up}
             this_imaging_channel_content_dict = (imaging_channel_contents_this_resolution & \
@@ -1182,7 +1183,7 @@ def general_data_setup(username,request_name,sample_name,
                 if (left_lightsheet_precomputed_spock_job_progress == 'COMPLETED' 
                     or right_lightsheet_precomputed_spock_job_progress == 'COMPLETED'):
                     this_image_resolution_form.raw_channel_forms.append_entry()
-                    this_raw_channel_form = this_image_resolution_form.raw_channel_forms[jj]
+                    this_raw_channel_form = this_image_resolution_form.raw_channel_forms[-1]
                     this_raw_channel_form.channel_name.data = channel_name
                     this_raw_channel_form.ventral_up.data = ventral_up
             else:
@@ -1207,7 +1208,7 @@ def general_data_setup(username,request_name,sample_name,
                 'blended_precomputed_spock_job_progress')
             if blended_precomputed_spock_job_progress == 'COMPLETED':
                 this_image_resolution_form.blended_channel_forms.append_entry()
-                this_blended_channel_form = this_image_resolution_form.blended_channel_forms[jj]
+                this_blended_channel_form = this_image_resolution_form.blended_channel_forms[-1]
                 this_blended_channel_form.channel_name.data = channel_name
                 this_blended_channel_form.ventral_up.data = ventral_up
             channel_contents_lists[ii].append(this_imaging_channel_content_dict)
@@ -1218,7 +1219,7 @@ def general_data_setup(username,request_name,sample_name,
                 'downsized_precomputed_spock_job_progress')
             if downsized_precomputed_spock_job_progress == 'COMPLETED':
                 this_image_resolution_form.downsized_channel_forms.append_entry()
-                this_downsized_channel_form = this_image_resolution_form.downsized_channel_forms[jj]
+                this_downsized_channel_form = this_image_resolution_form.downsized_channel_forms[-1]
                 this_downsized_channel_form.channel_name.data = channel_name
                 this_downsized_channel_form.ventral_up.data = ventral_up
 
@@ -1228,7 +1229,9 @@ def general_data_setup(username,request_name,sample_name,
                 'registered_precomputed_spock_job_progress')
             if registered_precomputed_spock_job_progress == 'COMPLETED':
                 this_image_resolution_form.registered_channel_forms.append_entry()
-                this_registered_channel_form = this_image_resolution_form.registered_channel_forms[jj]
+                n_registered_channel_forms = len(this_image_resolution_form.registered_channel_forms)
+                logger.debug(f"Have {n_registered_channel_forms} registered channel forms for this resolution")
+                this_registered_channel_form = this_image_resolution_form.registered_channel_forms[-1]
                 this_registered_channel_form.channel_name.data = channel_name
                 this_registered_channel_form.ventral_up.data = ventral_up
 
