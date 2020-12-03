@@ -345,7 +345,7 @@ def check_raw_precomputed_statuses():
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
 			if not os.environ['FLASK_MODE'] == 'TEST':
-				send_email.delay(subject=subject,body=body,recipients=recipients)
+				# send_email.delay(subject=subject,body=body,recipients=recipients)
 				send_admin_email.delay(subject=subject,body=admin_body)
 
 	# logger.debug("Insert list:")
