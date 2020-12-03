@@ -904,9 +904,10 @@ def general_data_setup(username,request_name,sample_name,
                     cv_table_dict['Registered'][image_resolution] = {}
                     cv_contents_dict_list_this_resolution = []
                     logger.debug("Have registered data!")
+                    restrict_dict = {'image_resolution':image_resolution}
                     this_processing_resolution_request_contents = processing_resolution_request_contents & \
-                        f'image_resolution="{image_resolution}"'
-                    atlas_name = this_processing_resolution_request_contents.fetch1('atlas_name')
+                        restrict_dict
+                    atlas_name = this_processing_resolution_request_contents.fetch('atlas_name',limit=1)
                     session_name = secrets.token_hex(6)
                     viewer_id = "viewer1" # for storing the viewer info in redis. Only ever one per session
                     # initialize this redis session key
@@ -915,8 +916,8 @@ def general_data_setup(username,request_name,sample_name,
                     """ Loop through channels and spawn a cloudvolume 
                     within this session for each light sheet used """
 
-                    """ Only want to generate a single cloudvolume container for the 
-                    atlas since it is the same atlas for each channel that requests
+                    """ Just generate 1 atlas cloudvolume
+                    since it is the same atlas for each channel that requests
                     it as an overlay and the fewer total cloudvolumes the better performance
                     we will have. In the loop over channels, set this flag to True
                     if any of the channels request an atlas overlay. """
