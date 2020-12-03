@@ -118,6 +118,7 @@ def run_lightsheet_pipeline(username,request_name,
 					f'processing_request_{processing_request_number}',
 					f'resolution_{image_resolution}')
 			param_dict['outputdirectory'] = output_directory
+			mymkdir(output_directory)
 
 			""" figure out the resize factor based on resolution """
 			if image_resolution == '1.3x':
