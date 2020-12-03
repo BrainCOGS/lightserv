@@ -285,7 +285,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 				if 'registration' in channel_purposes_str:
 					no_registration=False
 				this_channel_form.channel_purposes_str.data = channel_purposes_str
-				resolution_list_index+=1
+			resolution_list_index+=1
 		if ventral_channel_contents:
 			logger.debug("Have ventral up channels")
 			processing_resolution_request_content = processing_resolution_request_contents & \
@@ -320,7 +320,7 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 				if 'registration' in channel_purposes_str:
 					no_registration=False
 				this_channel_form.channel_purposes_str.data = channel_purposes_str
-				resolution_list_index+=1
+			resolution_list_index+=1
 	# logger.debug("Form going into GET request is:")
 	# logger.debug(form.data)
 	if processing_progress != 'incomplete':
