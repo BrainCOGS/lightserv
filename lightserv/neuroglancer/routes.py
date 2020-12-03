@@ -907,7 +907,7 @@ def general_data_setup(username,request_name,sample_name,
                     restrict_dict = {'image_resolution':image_resolution}
                     this_processing_resolution_request_contents = processing_resolution_request_contents & \
                         restrict_dict
-                    atlas_name = this_processing_resolution_request_contents.fetch('atlas_name',limit=1)
+                    atlas_name = this_processing_resolution_request_contents.fetch('atlas_name',limit=1)[0]
                     session_name = secrets.token_hex(6)
                     viewer_id = "viewer1" # for storing the viewer info in redis. Only ever one per session
                     # initialize this redis session key
