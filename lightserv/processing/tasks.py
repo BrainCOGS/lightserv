@@ -2968,7 +2968,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_registered_data():
 	for processing_pipeline_jobid_step0 in processing_pipeline_jobids_step0:
 		logger.debug(f"Checking out jobid: {processing_pipeline_jobid_step0} ")
 		
-		""" Check whether the blended precomputed pipeline has been started for this 
+		""" Check whether the registered precomputed pipeline has been started for this 
 		processing resolution request """
 		
 		registered_precomputed_spock_job_contents = db_spockadmin.RegisteredPrecomputedSpockJob() & \
