@@ -2167,7 +2167,7 @@ def stitched_precomputed_job_status_checker():
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
 			if not os.environ['FLASK_MODE'] == 'TEST':
-				send_email.delay(subject=subject,body=body,recipients=recipients)
+				# send_email.delay(subject=subject,body=body,recipients=recipients)
 				send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
@@ -2544,7 +2544,7 @@ def blended_precomputed_job_status_checker():
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
 			if not os.environ['FLASK_MODE'] == 'TEST':
-				send_email.delay(subject=subject,body=body,recipients=recipients)
+				# send_email.delay(subject=subject,body=body,recipients=recipients)
 				send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
@@ -2920,7 +2920,7 @@ def downsized_precomputed_job_status_checker():
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
 			if not os.environ['FLASK_MODE'] == 'TEST':
-				send_email.delay(subject=subject,body=body,recipients=recipients)
+				# send_email.delay(subject=subject,body=body,recipients=recipients)
 				send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
@@ -3310,7 +3310,7 @@ def registered_precomputed_job_status_checker():
 			correspondence_email = request_contents.fetch1('correspondence_email')
 			recipients = [correspondence_email]
 			if not os.environ['FLASK_MODE'] == 'TEST':
-				send_email.delay(subject=subject,body=body,recipients=recipients)
+				# send_email.delay(subject=subject,body=body,recipients=recipients)
 				send_admin_email.delay(subject=subject,body=admin_body)
 	logger.debug("Insert list:")
 	logger.debug(job_insert_list)
