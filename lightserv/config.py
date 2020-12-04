@@ -10,7 +10,7 @@ from datetime import timedelta
 class BaseConfig(object):
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	CLEARING_ADMINS = ['ahoag','ll3','zmd','aichen']
-	IMAGING_ADMINS = ['ahoag','zmd','aichen']
+	IMAGING_ADMINS = ['ahoag','ll3','zmd','aichen']
 	PROCESSING_ADMINS = ['ahoag','zmd','aichen']
 	LAVISION_RESOLUTIONS = ["1.1x","1.3x","2x","4x"]
 	SMARTSPIM_RESOLUTIONS = ["3.6x","15x"]
