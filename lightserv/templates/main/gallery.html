@@ -2,11 +2,42 @@
 {% block content %}
 <h1 align="center" class="mb-4">Brain Registration and Histology Core Facility Gallery </h1>
 <hr class='class-1'>
+
+	<div id="paxinos_boundaires" class='mb-4'>
+			<h3 align="center"> Automatic registration to the Franklin-Paxinos Mouse Brain Atlas </h3>
+			<figure class="mb-4">
+				<div align="center" class=>
+					<img width="800" src="{{ url_for('static',filename='gallery/ng_kim_atlas_boundaries.png') }}">
+				</div>
+				<figcaption align="center"> Data courtesy of Lindsay Willmore (Witten Lab)</figcaption>
+			</figure>
+			<p align="left"> In November 2020, we added the three dimensional atlas developed by Chon et al. 2019 (PI Yongsoo Kim; Penn State; <a href="https://www.nature.com/articles/s41467-019-13057-w">https://www.nature.com/articles/s41467-019-13057-w</a>) as an option to which we can register your mouse brain light sheet images using our automatic brain registration pipeline, <a href="https://github.com/BrainCOGS/BrainPipe">BrainPipe</a>. This atlas merges the widely adopted Franklin-Paxinos (FP) labels into the Allen Institute's Common Coordinate Framework (CCF). By aligning your data to this atlas, you can overlay the FP region boundaries on your light sheet data as shown above. This atlas is only suitable for coronal slice viewing (the resolution is poor in the horizontal and sagittal views). 
+			</p>
+			<p>
+			Showing the boundaries of brain regions like this is possible for the other atlases. To learn more about how to access the different atlases and their boundaries in Neuroglancer, see this tutorial: <a href="https://brainmaps.princeton.edu/2020/12/displaying-atlas-region-boundaries-in-neuroglancer/">https://brainmaps.princeton.edu/2020/12/displaying-atlas-region-boundaries-in-neuroglancer/</a>
+			</p>
+
+			
+
+		<h5 class='border-bottom'> Technical specs: </h5>
+		<b>Species:</b> Mouse </br>
+		<b>Clearing protocol:</b> iDISCO abbreviated clearing</br>
+		<b>Imaging resolution:</b> 1.1x</br>
+		<b>Imaging modes:</b> Registration (488 nm; shown above), injection site detection (555 nm; not shown)</br>
+		<b>Visualization:</b> <a target="_blank" href="http://github.com/BrainCOGS/neuroglancer">neuroglancer</a>
+		</div>
+
+<hr class='class-2'>
+
+
 	<div class='mb-4'>
 		<h3 align="center"> Transsynaptic viral tracing </h3>
-		<div align="center" class='mb-2'>
-			<img src="{{ url_for('static',filename='gallery/viral_tracing.gif') }}">
-		</div>
+		<figure class='mb-4'>
+			<div align="center" >
+				<img src="{{ url_for('static',filename='gallery/viral_tracing.gif') }}">
+			</div>
+			<figcaption align="center"> Data courtesy of Tom Pisano (alumnus of Wang Lab)</figcaption>
+		</figure>
 
 		<p align="left"> The original use case of the Core Facility. Pisano et al. (in prep.) used light sheet imaging to map anatomical pathways between the cerebellum and sensorimotor, associative, and modulatory regions of the forebrain. Shown above is a three dimensional visualization of cell centers (light green) that were traced using the anterograde transsynaptic tracer herpes simplex virus type 1 (H129) and the retrograde tracer pseudorabies virus (Bartha). Also shown are cerebellar subregions from the Princeton Mouse Brain Atlas (PMA), a modified version of the Allen Mouse Brain Atlas (AMBA). The PMA extends the AMBA to include the posterior cerebellum, and it improves registration accuracy for light sheet images.  
 		</p>
@@ -25,11 +56,13 @@
 
 	<div id="cfos" class='mb-4'>
 		<h3 align="center"> c-Fos thalamic expression </h3>
-		<div align="center" class='mb-2'>
-			{# <img width="1200" src="{{ url_for('static',filename='gallery/clearmap_jess_201904_ymaze_cfos_an4.png') }}"> #}
-			<img width="1100" src="{{ url_for('static',filename='gallery/cfos_an21.gif') }}">
-		</div>
-
+		<figure class="mb-4">
+			<div align="center" >
+				{# <img width="1200" src="{{ url_for('static',filename='gallery/clearmap_jess_201904_ymaze_cfos_an4.png') }}"> #}
+				<img width="1100" src="{{ url_for('static',filename='gallery/cfos_an21.gif') }}">
+			</div>
+			<figcaption align="center"> Data courtesy of Jess Verpeut (Wang Lab)</figcaption>
+		</figure>
 		<p align="left"> Verpeut et al. (in prep.) used light sheet imaging to 
 		trace brain-wide c-Fos expression after a Y-maze reversal task. 
 		Shown above is an animation of a sagittal sweep through the brain of a mouse subject
@@ -57,14 +90,16 @@
 
 	<div id="probe" class='mb-4'>
 		<h3 align="center"> Neuronexus probe detection </h3>
-		<div align="center" class='mb-2'>
-			<img width="900" src="{{ url_for('static',filename='gallery/probe_detection.png') }}">
-			{# <img width="500" src="{{ url_for('static',filename='gallery/probe_detection_annotations_csv.png') }}"> #}
-		</div>
-		<div align="center" class='mb-2'>
-			<img width="500" src="{{ url_for('static',filename='gallery/probe_detection_annotations_csv.png') }}">
-		</div>
-
+		<figure class='mb-4'>
+			<div align="center" class='mb-2'>
+				<img width="900" src="{{ url_for('static',filename='gallery/probe_detection.png') }}">
+				{# <img width="500" src="{{ url_for('static',filename='gallery/probe_detection_annotations_csv.png') }}"> #}
+			</div>
+			<div align="center" >
+				<img width="500" src="{{ url_for('static',filename='gallery/probe_detection_annotations_csv.png') }}">
+			</div>
+			<figcaption align="center"> Data courtesy of Marlies Oostland (Wang Lab)</figcaption>
+		</figure>
 		<p align="left"> Oostland et al. used light sheet imaging to do a post-experiment 
 		verification of the precise anatomical regions of a Neuronexus probe implanted in the 
 		lateral cerebellum. 
@@ -93,13 +128,17 @@
 
 	</div>
 
+<hr class='class-2'>
+
 	<div id="PMA" class='mb-4'>
 		<h3 align="center"> Princeton Mouse Brain Atlas </h3>
-		<div align="center" class='mb-2'>
-			<img width="900" src="{{ url_for('static',filename='gallery/Pisano_alignment_figure.jpg') }}">
-		</div>
-
-		<p align="left"> The Princeton Mouse Brain Atlas (PMA) was created to achieve greater registration performance than the Allen Mouse Brain Atlas (AMBA) for light sheet data. (a) Sagittal views demonstrate differences between the AMBA, left and the PMA, right. The red dotted box indicates the caudal limit of the AMBA. To map between PMA and ABA space, ABA annotations were transformed into PMA space. (b) Registration of whole-brain light-sheet volumes to the PMA. Light-sheet volume of an individual brain (green) overlaid with PMA (red) at different stages of registration. Median discrepancy is shown for each stage of alignment. (c) PMA cerebellar annotations. The red dotted box indicates newly annotated areas. (d) PMA cerebellar hierarchy depicting structure ontology and shows relative substructure size contributions. Abbreviations: PM, paramedian lobule; PF, paraflocculi; CP, copula pyramidis; Fl, flocculus. From Pisano et al. (submitted).
+		<figure class='mb-4'>
+			<div align="center" >
+				<img width="900" src="{{ url_for('static',filename='gallery/Pisano_alignment_figure.jpg') }}">
+			</div>
+			<figcaption align="center"> From Pisano et al. (submitted).</figcaption>
+		</figure>
+		<p align="left"> The Princeton Mouse Brain Atlas (PMA) was created to achieve greater registration performance than the Allen Mouse Brain Atlas (AMBA) for light sheet data. (a) Sagittal views demonstrate differences between the AMBA, left and the PMA, right. The red dotted box indicates the caudal limit of the AMBA. To map between PMA and ABA space, ABA annotations were transformed into PMA space. (b) Registration of whole-brain light-sheet volumes to the PMA. Light-sheet volume of an individual brain (green) overlaid with PMA (red) at different stages of registration. Median discrepancy is shown for each stage of alignment. (c) PMA cerebellar annotations. The red dotted box indicates newly annotated areas. (d) PMA cerebellar hierarchy depicting structure ontology and shows relative substructure size contributions. Abbreviations: PM, paramedian lobule; PF, paraflocculi; CP, copula pyramidis; Fl, flocculus. 
 
 	</div>
 
