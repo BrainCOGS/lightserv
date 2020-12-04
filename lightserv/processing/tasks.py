@@ -2640,7 +2640,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_downsized_data():
 			processing_request_number = this_processing_channel_contents['processing_request_number']
 			image_resolution = this_processing_channel_contents['image_resolution']
 			channel_name = this_processing_channel_contents['channel_name']
-			ventral_up = this_processing_channel_contents['cventral_up']
+			ventral_up = this_processing_channel_contents['ventral_up']
 			channel_index = this_processing_channel_contents['imspector_channel_index']
 			rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder']
 			atlas_name = this_processing_channel_contents['atlas_name']
