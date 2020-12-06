@@ -2141,8 +2141,8 @@ def stitched_precomputed_job_status_checker():
 				request_contents = db_lightsheet.Request() & restrict_dict_request
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
-				if not os.environ['FLASK_MODE'] == 'TEST':
-					send_email.delay(subject=subject,body=body,recipients=recipients)
+				# if not os.environ['FLASK_MODE'] == 'TEST':
+				# 	send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all processing channels in this request"
 							 " are completely converted to precomputed format")
@@ -2517,8 +2517,8 @@ def blended_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
-				if not os.environ['FLASK_MODE'] == 'TEST':
-					send_email.delay(subject=subject,body=body,recipients=recipients)
+				# if not os.environ['FLASK_MODE'] == 'TEST':
+				# 	send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all blended channels in this request"
 							 " are completely converted to precomputed format")
@@ -2894,8 +2894,8 @@ def downsized_precomputed_job_status_checker():
 								{'username':username,'request_name':request_name}
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
-				if not os.environ['FLASK_MODE'] == 'TEST':
-					send_email.delay(subject=subject,body=body,recipients=recipients)
+				# if not os.environ['FLASK_MODE'] == 'TEST':
+				# 	send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all downsized channels in this request"
 							 " are completely converted to precomputed format")
