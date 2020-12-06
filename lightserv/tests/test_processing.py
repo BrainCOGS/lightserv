@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import os, glob
 import lorem
+import pickle
 
 """ Tests for Processing Manager """
 def test_ahoag_access_processing_manager(test_client,test_imaged_request_ahoag):
@@ -505,7 +506,10 @@ def test_lightsheet_pipeline_starts_dorsal_up_ventral_up(test_client,
 	processing_form_submitted_dorsal_up_ventral_up,
 	test_delete_spockadmin_db_contents):
 	""" Test that the light sheet pipeline starts two jobs
-	for a request that has dorsal up and ventral up imaging
+	for a request that has dorsal up and ventral up imaging.
+
+	Make sure that the finalorientation gets a "-2","1","0"
+	due to the flipping of the brain. 
 	Uses a test script on spock which just returns
 	job ids. Runs a celery task synchronously """
 	from lightserv.processing import tasks
@@ -522,6 +526,14 @@ def test_lightsheet_pipeline_starts_dorsal_up_ventral_up(test_client,
 	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
 	print(table_contents)
 	assert len(table_contents) > 0
+	pickle_file = os.path.join('/jukebox/LightSheetData/lightserv_testing',
+		username,request_name,sample_name,f'imaging_request_{imaging_request_number}',
+	'output',f'processing_request_{processing_request_number}',
+	'resolution_1.3x_ventral_up/param_dict.p')
+	with open(pickle_file,'rb') as pkl:
+		data = pickle.load(pkl)
+	print(data)
+	assert data['finalorientation'] == ("-2","1","0")
 
 def test_stitched_precomputed_pipeline_starts(test_client,
 	test_delete_spockadmin_db_contents):

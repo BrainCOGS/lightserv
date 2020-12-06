@@ -202,8 +202,8 @@ class NewRequestForm(FlaskForm):
 				 Make sure to pick unique names for each sample")
 			if ' ' in sample_name:
 				raise ValidationError(f"Sample name: {sample_name} must not contain any blank spaces")
-			if not sample_name.replace('_','').isalnum(): # are there any non-alpha numeric chars besides "_"
-				raise ValidationError(f"Sample name: {sample_name} must not contain any non-alpha numeric characters besides '_'")
+			if not sample_name.replace('_','').replace('-','').isalnum(): # are there any non-alpha numeric chars besides "_"
+				raise ValidationError(f"Sample name: {sample_name} must not contain any non-alpha numeric characters besides '_' and '-'")
 			all_sample_names.append(sample_name)
 
 			clearing_protocol_sample = sample_dict['clearing_protocol']

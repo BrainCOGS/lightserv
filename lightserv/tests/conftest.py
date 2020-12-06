@@ -1612,62 +1612,6 @@ def test_cleared_request_4x_multitile_nonadmin(test_client,test_4x_multitile_req
 	print('-------Teardown test_cleared_request_nonadmin fixture --------')
 
 @pytest.fixture(scope='function') 
-def test_cleared_two_imaging_requests_ahoag(test_client,test_new_imaging_request_ahoag,
-	test_login_ll3,test_delete_request_db_contents):
-	""" Clears the the request by 'lightserv-test' (with clearer='ll3') 
-	where two imaging requests have been made 
-
-	Runs test_login_ll3 next so that 'll3' gets logged in and can do the clearing
-
-	Uses the test_delete_request_db_contents fixture, which means that 
-	all db entries are deleted upon teardown of this fixture
-	"""
-	print('----------Setup test_cleared_request_nonadmin fixture ----------')
-	now = datetime.now()
-	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
-		dehydr_pbs_wash1_notes='some notes',submit=True)
-
-	response = test_client.post(url_for('clearing.clearing_entry',username="ahoag",
-			request_name="admin_request",
-			clearing_protocol="iDISCO abbreviated clearing",
-			antibody1="",antibody2="",
-			clearing_batch_number=1),
-		data = data,
-		follow_redirects=True,
-		)	
-
-	yield test_client # this is where the testing happens
-	print('-------Teardown test_cleared_request_nonadmin fixture --------')
-
-@pytest.fixture(scope='function') 
-def test_cleared_two_processing_requests_ahoag(test_client,test_new_processing_request_ahoag,
-	test_login_ll3,test_delete_request_db_contents):
-	""" Clears the the request by 'lightserv-test' (with clearer='ll3') 
-	where two imaging requests have been made 
-
-	Runs test_login_ll3 next so that 'll3' gets logged in and can do the clearing
-
-	Uses the test_delete_request_db_contents fixture, which means that 
-	all db entries are deleted upon teardown of this fixture
-	"""
-	print('----------Setup test_cleared_request_nonadmin fixture ----------')
-	now = datetime.now()
-	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
-		dehydr_pbs_wash1_notes='some notes',submit=True)
-
-	response = test_client.post(url_for('clearing.clearing_entry',username="ahoag",
-			request_name="admin_request",
-			clearing_protocol="iDISCO abbreviated clearing",
-			antibody1="",antibody2="",
-			clearing_batch_number=1),
-		data = data,
-		follow_redirects=True,
-		)	
-
-	yield test_client # this is where the testing happens
-	print('-------Teardown test_cleared_request_nonadmin fixture --------')
-
-@pytest.fixture(scope='function') 
 def test_cleared_request_viz_nonadmin(test_client,test_request_viz_nonadmin,
 	test_login_ll3,test_delete_request_db_contents):
 	""" Clears the viz request by 'lightserv-test' (with clearer='ll3') 
@@ -2149,60 +2093,6 @@ def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadm
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 
-
-""" Fixtures for follow-up imaging and follow-up processing requests """
-
-@pytest.fixture(scope='function') 
-def test_new_imaging_request_ahoag(test_client,test_single_sample_request_ahoag,
-	test_delete_request_db_contents):
-	""" A fixture to make a new imaging request for an existing request.
-	A new imaging request by default creates a new processing request. 
-
-	Uses test_single_sample_request_ahoag to make a single request with a single 
-	sample for setup
-
-	"""
-	print('-------Setup test_new_imaging_request fixture --------')
-	response = test_client.post(url_for('imaging.new_imaging_request',
-			username='ahoag',request_name='admin_request',
-			sample_name='sample-001'),
-		data={
-			'image_resolution_forms-0-image_resolution':'1.3x',
-			'image_resolution_forms-0-atlas_name':'allen_2017',
-			'image_resolution_forms-0-final_orientation':'sagittal',
-			'image_resolution_forsetup':'1.3x',
-			'image_resolution_forms-0-channels-0-registration':True,
-			'image_resolution_forms-0-channels-0-channel_name':488,
-			'submit':True
-		},content_type='multipart/form-data',
-		follow_redirects=True
-		)
-	yield test_client # this is where the testing happens
-	print('-------Teardown test_new_imaging_request fixture --------')
-
-@pytest.fixture(scope='function') 
-def test_new_processing_request_ahoag(test_client,test_single_sample_request_ahoag,
-	test_delete_request_db_contents):
-	""" A fixture to make a request with two processing requests 
-	for a single sample with a single imaging request. 
-
-	Uses test_single_sample_request_ahoag to make a single request with a single 
-	sample for setup
-
-	"""
-	print('-------Setup test_new_processing_request fixture --------')
-	response = test_client.post(url_for('processing.new_processing_request',
-			username='ahoag',request_name='admin_request',
-			sample_name='sample-001',imaging_request_number=1),
-		data={
-			'image_resolution_forms-0-image_resolution':'1.3x',
-			'image_resolution_forms-0-atlas_name':'princeton_mouse_atlas',
-			'submit':True
-		},content_type='multipart/form-data',
-		follow_redirects=True
-		)
-	yield test_client # this is where the testing happens
-	print('-------Teardown test_new_processing_request fixture --------')
 
 """ Fixtures for processing """
 

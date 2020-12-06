@@ -211,12 +211,20 @@ def run_lightsheet_pipeline(username,request_name,
 							sagittal if one requested a registration channel. """
 							
 						if image_orientation == 'horizontal':
+							""" For horizontal image orientation we give the option
+							of imaging ventral up. If that happened, we need to 
+							tell BrainPipe. To tell it, we need to add a "-" sign
+							to the z dimension str """
+							if ventral_up: 
+								z_str = "-2"
+							else:
+								z_str = "2"
 							if final_orientation == 'sagittal':
-								final_orientation_tuple = ("2","1","0")
+								final_orientation_tuple = (z_str,"1","0")
 							elif final_orientation == 'horizontal':
-								final_orientation_tuple = ("0","1","2")
+								final_orientation_tuple = ("0","1",z_str)
 							elif final_orientation == 'coronal':
-								final_orientation_tuple = ("2","0","1")
+								final_orientation_tuple = (z_str,"0","1")
 						elif image_orientation == 'sagittal':
 							if final_orientation == 'sagittal':
 								final_orientation_tuple = ("0","1","2")

@@ -172,7 +172,7 @@
 				        <hr class='class-2'>
 
 				    	<div class="form-group">
-							<div class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Sample name must not contain spaces. Use '_' instead of spaces. non-alphanumeric characters besides '_' are not allowed in sample name.">{% if clearing_entry.sample_name.flags.required %}*{% endif %}
+							<div class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Sample name must not contain spaces. Use '_' instead of spaces. non-alphanumeric characters besides '_' and '-' are not allowed in sample name.">{% if clearing_entry.sample_name.flags.required %}*{% endif %}
 							{{ clearing_entry.sample_name.label(class="form-control-label") }}</div>
 							{% if clearing_entry.sample_name.errors %}
 								{{ clearing_entry.sample_name(class="form-control form-control-lg is-invalid") }}
