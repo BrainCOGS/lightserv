@@ -289,7 +289,7 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 
 @clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/",
 	methods=['GET'])
-@logged_in_as_clearer
+@logged_in_as_clearing_manager
 @log_http_requests
 def clearing_table(username,request_name,clearing_protocol,clearing_batch_number):
 	""" Show the clearing contents for a clearing batch """ 
