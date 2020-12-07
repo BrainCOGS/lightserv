@@ -124,7 +124,7 @@ class ProdConfig(BaseConfig):
 		},
 		'stitchedprecomp_job_ready_checker': {
 		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_stitched_data',
-		'schedule': timedelta(minutes=15)
+		'schedule': timedelta(minutes=11)
 		},
 		'stitchedprecomp_job_status_checker': {
 		'task': 'lightserv.processing.tasks.stitched_precomputed_job_status_checker',
@@ -140,7 +140,7 @@ class ProdConfig(BaseConfig):
 		},
 		'blendedprecomp_job_ready_checker': {
 		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
-		'schedule': timedelta(minutes=15)
+		'schedule': timedelta(minutes=11)
 		},
 		'blendedprecomp_job_status_checker': {
 		'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
@@ -156,7 +156,7 @@ class ProdConfig(BaseConfig):
 		# },
 		'registeredprecomp_job_ready_checker': {
 		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_registered_data',
-		'schedule': timedelta(minutes=15)
+		'schedule': timedelta(minutes=11)
 		},
 		'registeredprecomp_job_status_checker': {
 		'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
