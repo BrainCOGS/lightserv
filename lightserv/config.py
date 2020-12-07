@@ -146,14 +146,14 @@ class ProdConfig(BaseConfig):
 		'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
 		'schedule': timedelta(minutes=10)
 		},
-		'downsizedprecomp_job_ready_checker': {
-		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
-		'schedule': timedelta(minutes=15)
-		},
-		'downsizedprecomp_job_status_checker': {
-		'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
-		'schedule': timedelta(minutes=10)
-		},
+		# 'downsizedprecomp_job_ready_checker': {
+		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
+		# 'schedule': timedelta(minutes=15)
+		# },
+		# 'downsizedprecomp_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.downsized_precomputed_job_status_checker',
+		# 'schedule': timedelta(minutes=10)
+		# },
 		'registeredprecomp_job_ready_checker': {
 		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_registered_data',
 		'schedule': timedelta(minutes=15)
