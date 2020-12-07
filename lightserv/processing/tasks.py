@@ -214,17 +214,20 @@ def run_lightsheet_pipeline(username,request_name,
 							""" For horizontal image orientation we give the option
 							of imaging ventral up. If that happened, we need to 
 							tell BrainPipe. To tell it, we need to add a "-" sign
-							to the z dimension str """
+							to the z and x dimension strings """
 							if ventral_up: 
 								z_str = "-2"
+								x_str = "-0"
 							else:
 								z_str = "2"
+								x_str = "0"
+							y_str = "1"
 							if final_orientation == 'sagittal':
-								final_orientation_tuple = (z_str,"1","0")
+								final_orientation_tuple = (z_str,y_str,x_str)
 							elif final_orientation == 'horizontal':
-								final_orientation_tuple = ("0","1",z_str)
+								final_orientation_tuple = (x_str,y_str,z_str)
 							elif final_orientation == 'coronal':
-								final_orientation_tuple = (z_str,"0","1")
+								final_orientation_tuple = (z_str,x_str,y_str)
 						elif image_orientation == 'sagittal':
 							if final_orientation == 'sagittal':
 								final_orientation_tuple = ("0","1","2")
