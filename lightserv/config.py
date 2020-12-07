@@ -128,7 +128,7 @@ class ProdConfig(BaseConfig):
 		},
 		'stitchedprecomp_job_status_checker': {
 		'task': 'lightserv.processing.tasks.stitched_precomputed_job_status_checker',
-		'schedule': timedelta(minutes=10)
+		'schedule': timedelta(minutes=12)
 		},
 		'ng_viewer_cleanser': {
 		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
@@ -144,7 +144,7 @@ class ProdConfig(BaseConfig):
 		},
 		'blendedprecomp_job_status_checker': {
 		'task': 'lightserv.processing.tasks.blended_precomputed_job_status_checker',
-		'schedule': timedelta(minutes=10)
+		'schedule': timedelta(minutes=12)
 		},
 		# 'downsizedprecomp_job_ready_checker': {
 		# 'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_downsized_data',
@@ -160,7 +160,7 @@ class ProdConfig(BaseConfig):
 		},
 		'registeredprecomp_job_status_checker': {
 		'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
-		'schedule': timedelta(minutes=10)
+		'schedule': timedelta(minutes=12)
 		},
 		'smartspim_stitching_job_status_checker': {
 		'task': 'lightserv.processing.tasks.smartspim_stitching_job_status_checker',
