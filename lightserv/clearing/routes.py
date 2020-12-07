@@ -75,8 +75,9 @@ def clearing_manager():
 		sort_by=sort,sort_reverse=reverse)
 	''' Now get all entities on deck (currently being cleared) '''
 	''' Finally get all entities that have already been imaged '''
+
 	contents_already_cleared = (combined_contents & 'clearing_progress="complete"').fetch(
-		as_dict=True,order_by='datetime_submitted DESC',limit=10)
+		as_dict=True,order_by='datetime_submitted DESC')
 	already_cleared_table_id = 'horizontal_already_cleared_table'
 	table_already_cleared = dynamic_clearing_management_table(contents_already_cleared,
 		table_id=already_cleared_table_id,
