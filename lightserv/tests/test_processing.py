@@ -533,7 +533,7 @@ def test_lightsheet_pipeline_starts_dorsal_up_ventral_up(test_client,
 	with open(pickle_file,'rb') as pkl:
 		data = pickle.load(pkl)
 	print(data)
-	assert data['finalorientation'] == ("-2","1","0")
+	assert data['finalorientation'] == ("-2","1","-0")
 
 def test_stitched_precomputed_pipeline_starts(test_client,
 	test_delete_spockadmin_db_contents):
