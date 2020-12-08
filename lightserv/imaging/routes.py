@@ -1424,7 +1424,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 			hosturl = os.environ['HOSTURL']
 
 			processing_manager_url = f'https://{hosturl}' + url_for('processing.processing_manager')
-			samples_str = ', '.join(x for x in sorted(list(samples_imaging_progress_dict.keys())))
+
 			""" Figure out if there is processing to do for any of your samples """
 			image_resolutions_no_processing = current_app.config['RESOLUTIONS_NO_PROCESSING']
 
@@ -1436,8 +1436,35 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 						'The raw data your request:\n'
 						f'request_name: "{request_name}"\n'
-						f'sample names: "{samples_str}"\n'
-						f'are now available on bucket here: {path_to_data}\n\n')
+						f'are now available on bucket here: \n\n')
+			sample_names = set(imaging_request_contents.fetch('sample_name'))
+
+			for sample_name in sample_names:
+				sample_basepath = os.path.join(data_rootpath,username,request_name,
+				sample_name,f'imaging_request_number_{imaging_request_number}',  
+				'rawdata')
+				channel_contents_this_sample = channel_contents_all_samples & f'sample_name="{sample_name}"' 
+				message_body += f'Sample name: {sample_name}:\n'
+				for channel_dict in channel_contents_this_sample:
+					channel_name = channel_dict['channel_name']
+					image_resolution = channel_dict['image_resolution']
+					ventral_up = channel_dict['ventral_up']
+					rawdata_subfolder = channel_dict['rawdata_subfolder']
+					if ventral_up:
+						rawdata_fullpath = os.path.join(
+							data_rootpath,username,request_name,sample_name,
+							f'imaging_request_{imaging_request_number}',
+							'rawdata',f'resolution_{image_resolution}_ventral_up',
+							rawdata_subfolder)
+						message_body += f'\tchannel {channel_name} (ventral up): {rawdata_fullpath}\n'
+					else:
+						rawdata_fullpath = os.path.join(
+							data_rootpath,username,request_name,sample_name,
+							f'imaging_request_{imaging_request_number}',
+							'rawdata',f'resolution_{image_resolution}',
+							rawdata_subfolder)
+						message_body += f'\tchannel {channel_name}: {rawdata_fullpath}\n'
+				message_body += '\n'
 			if have_processing_requests:
 				message_body += ('To start processing your data, '
 						f'go to the processing management GUI: {processing_manager_url} '
