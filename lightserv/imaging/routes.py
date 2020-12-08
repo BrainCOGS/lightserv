@@ -1413,7 +1413,6 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 					imaging_batch_number=imaging_batch_number))
 			
 						
-
 			correspondence_email = (db_lightsheet.Request() & f'username="{username}"' & \
 			 f'request_name="{request_name}"').fetch1('correspondence_email')
 			data_rootpath = current_app.config["DATA_BUCKET_ROOTPATH"]
@@ -1426,17 +1425,25 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 
 			processing_manager_url = f'https://{hosturl}' + url_for('processing.processing_manager')
 			samples_str = ', '.join(x for x in sorted(list(samples_imaging_progress_dict.keys())))
+			""" Figure out if there is processing to do for any of your samples """
+			image_resolutions_no_processing = current_app.config['RESOLUTIONS_NO_PROCESSING']
+
+			if any([x not in image_resolutions_no_processing for x in batch_unique_image_resolutions]):
+				have_processing_requests = True
+			else:
+				have_processing_requests = False
 			message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
 						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 						'The raw data your request:\n'
 						f'request_name: "{request_name}"\n'
 						f'sample names: "{samples_str}"\n'
-						f'are now available on bucket here: {path_to_data}\n\n'
-						 'To start processing your data, '
+						f'are now available on bucket here: {path_to_data}\n\n')
+			if have_processing_requests:
+				message_body += ('To start processing your data, '
 						f'go to the processing management GUI: {processing_manager_url} '
-						'and find your sample to process.\n\n'
-						 'Thanks,\n\nThe Core Facility')
-			
+						'and find your sample to process.\n\n')
+			message_body += 'Thanks,\n\nThe Core Facility'
+
 			recipients = [correspondence_email]
 			if not os.environ['FLASK_MODE'] == 'TEST':
 				send_email.delay(subject=subject,body=message_body,recipients=recipients) # pragma: no cover - used to exclude this line from calculating test coverage
