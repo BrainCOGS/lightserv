@@ -465,6 +465,12 @@ def smartspim_stitch(**kwargs):
 				'rawdata',
 				f"resolution_{image_resolution}_ventral_up",
 				rawdata_subfolder)
+		stitched_output_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+				username,request_name,sample_name,
+				f"imaging_request_{imaging_request_number}",
+				'rawdata',
+				f"resolution_{image_resolution}_ventral_up",
+				rawdata_subfolder + '_stitched')
 	else:
 		rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 				username,request_name,sample_name,
@@ -472,9 +478,14 @@ def smartspim_stitch(**kwargs):
 				'rawdata',
 				f"resolution_{image_resolution}",
 				rawdata_subfolder)
-	
-	stitched_output_dir = os.path.join(rawdata_path,'stitched') # this folder must NOT exist ahead of time!
-	# mymkdir(stitched_output_dir)
+		stitched_output_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+				username,request_name,sample_name,
+				f"imaging_request_{imaging_request_number}",
+				'rawdata',
+				f"resolution_{image_resolution}",
+				rawdata_subfolder + '_stitched')
+	# Make stitched output dir 
+	mymkdir(stitched_output_dir)
 	
 	""" Now run spim_stitch via paramiko """
 
@@ -483,7 +494,7 @@ def smartspim_stitch(**kwargs):
 	processing_code_dir = os.path.join(
 		current_app.config['PROCESSING_CODE_DIR'],
 		'smartspim')
-	pipeline_shell_script = 'spim_stitch.sh'
+	pipeline_shell_script = 'spim_stitching_pipeline.sh'
 	""" Set up the communication with spock """
 
 	""" First get the git commit from brainpipe """

@@ -1083,9 +1083,9 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 														channel_name=channel_name,
 														ventral_up=ventral_up,
 														rawdata_subfolder=rawdata_subfolder)
-												# smartspim_stitch.delay(**stitching_kwargs)
-												# logger.debug("Smartspim stitching task sent with these kwargs:")
-												# logger.debug(stitching_kwargs)
+												smartspim_stitch.delay(**stitching_kwargs)
+												logger.debug("Smartspim stitching task sent with these kwargs:")
+												logger.debug(stitching_kwargs)
 								flash(f"Imaging entry for sample {this_sample_name} was successful","success")
 						else:
 							logger.debug("Sample form not validated")
