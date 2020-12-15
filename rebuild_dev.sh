@@ -66,6 +66,10 @@ cd ../neuroglancer-fiber
 
 docker build -f ./neuroglancer.Dockerfile -t nglancer_fiber_viewer:latest .
 
+## build neuroglancer-cfos latest tag
+cd ../neuroglancer-cfos
+
+docker build -f ./neuroglancer.Dockerfile -t nglancer_cfos_viewer:latest .
 
 
 

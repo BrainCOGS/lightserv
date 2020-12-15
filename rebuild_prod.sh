@@ -57,3 +57,8 @@ docker build -f ./neuroglancer.Dockerfile -t nglancer_ontology_pma_viewer:prod .
 cd ../neuroglancer-fiber
 
 docker build -f ./neuroglancer.Dockerfile -t nglancer_fiber_viewer:prod .
+
+## build neuroglancer-cfos prod tag
+cd ../neuroglancer-cfos
+
+docker build -f ./neuroglancer.Dockerfile -t nglancer_cfos_viewer:prod .
