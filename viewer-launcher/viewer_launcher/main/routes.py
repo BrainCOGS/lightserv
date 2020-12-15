@@ -219,6 +219,31 @@ def ng_fiber_launcher():
                                   detach=True) 
 	return "success"
 
+@main.route("/ng_cfos_launcher",methods=['POST']) 
+def ng_cfos_launcher(): 
+	logging.debug("POST request to /ng_cfos_launcher in viewer-launcher")
+	client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+	ng_dict = request.json
+	ng_container_name = ng_dict['ng_container_name'] # the name of the layer in Neuroglancer
+	session_name = ng_dict['session_name']
+	hosturl = ng_dict['hosturl']
+	ng_environment = {
+		'HOSTURL':hosturl,
+        'SESSION_NAME':session_name,
+        'FLASK_MODE':os.environ['FLASK_MODE']
+    }
+
+	if flask_mode == 'DEV':
+		ng_cfos_image = 'nglancer_cfos_viewer:latest'
+	elif flask_mode == 'PROD':
+		ng_cfos_image = 'nglancer_cfos_viewer:prod'
+	ng_container = client.containers.run(ng_cfos_image,
+                                  environment=ng_environment,
+                                  network=network,
+                                  name=ng_container_name,
+                                  detach=True) 
+	return "success"
+
 
 @main.route("/ng_ontology_launcher",methods=['POST']) 
 def ng_ontology_launcher(): 
