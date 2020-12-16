@@ -473,9 +473,13 @@ def new_request():
                 for ii in range(nsamples):
                     form.clearing_samples.append_entry()
                     form.clearing_samples[ii].sample_name.data = form.request_name.data + '-' + f'{ii+1}'.zfill(3)
+                    current_choices = form.clearing_samples[ii].clearing_protocol.choices
+                    if form.species.data == 'mouse':
+                        new_choices = [x for x in current_choices if 'rat' not in x[0].lower()]
                     if form.species.data == 'rat':
+                        new_choices = [x for x in current_choices if 'rat' in x[0].lower()]                        
                         form.clearing_samples[ii].clearing_protocol.data = 'iDISCO abbreviated clearing (rat)'
-
+                    form.clearing_samples[ii].clearing_protocol.choices = new_choices
                     form.imaging_samples.append_entry()
 
                 column_name = 'clearing_samples-0-sample_name'
