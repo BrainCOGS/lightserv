@@ -977,7 +977,10 @@ def new_request():
                             'needs to be added to the g_lightsheet_data group on bucket so that they can '
                             f'see their data in /jukebox/LightSheetData\n\n'
                             'Thanks,\nThe Histology and Brain Registration Core Facility.')
-                        recipients = ['pnihelp@princeton.edu','ahoag@princeton.edu']
+                        recipients = ['pnihelp@princeton.edu']
+                        imaging_admins = current_app.config['IMAGING_ADMINS']
+                        for imaging_admin_username in imaging_admins:
+                            recipients.append(imaging_admin_username + '@princeton.edu')
                         send_email.delay(subject=subject,body=message_body,recipients=recipients) 
                     else:
                         logger.debug(f"Username: {username} is already in g_lightsheet_data.")
