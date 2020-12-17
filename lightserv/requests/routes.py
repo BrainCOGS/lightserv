@@ -10,13 +10,13 @@ from lightserv.requests.tables import (AllRequestTable,
 from lightserv import cel,db_lightsheet, smtp_connect
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
     check_clearing_completed,check_imaging_completed,log_http_requests,
-    request_exists,mymkdir, logged_in_as_request_owner,clearing_not_yet_started)
+    request_exists,mymkdir, logged_in_as_request_owner,clearing_not_yet_started,
+    check_user_in_g_lightsheet_data)
 from lightserv.main.tasks import send_email
 
 import datajoint as dj
 
 from functools import partial
-# from lightsheet_py3
 import os,glob
 
 import secrets
@@ -961,9 +961,27 @@ def new_request():
                             'was received and will need to be cleared.\n\n'
                             f'Information about each clearing batch from this request can be viewed at the clearing management page: {clearing_manager_link}\n\n'
                             'Thanks,\nThe Histology and Brain Registration Core Facility.')
-                    recipients = [x + '@princeton.edu' for x in current_app.config['CLEARING_ADMINS']]
-                    send_email.delay(subject=subject,body=message_body,recipients=recipients) 
-
+                        recipients = [x + '@princeton.edu' for x in current_app.config['CLEARING_ADMINS']]
+                        send_email.delay(subject=subject,body=message_body,recipients=recipients) 
+                    """ If username is not already part of the g_lightsheet_data group,
+                    send an email to pnihelp requesting that they are added """
+                    user_in_lightsheet_data_group = check_user_in_g_lightsheet_data(username)
+                    if not user_in_lightsheet_data_group:
+                        logger.debug(f"Username: {username} is not in g_lightsheet_data")
+                        logger.debug("sending email to pnihelp")
+                        subject = 'New lightsheet user bucket permissions'
+                        message_body = ('Hi,\n\nThis is an automated email sent from lightserv, '
+                            'the web application supporting the the light sheet microscopy facility for the U19 BRAIN CoGS project. '
+                            'A new user with:\n'
+                            f'netid: {username}\n'
+                            'needs to be added to the g_lightsheet_data group on bucket so that they can '
+                            f'see their data in /jukebox/LightSheetData\n\n'
+                            'Thanks,\nThe Histology and Brain Registration Core Facility.')
+                        recipients = ['pnihelp@princeton.edu','ahoag@princeton.edu']
+                        send_email.delay(subject=subject,body=message_body,recipients=recipients) 
+                    else:
+                        logger.debug(f"Username: {username} is already in g_lightsheet_data.")
+                        logger.debug("No need to send email to pnihelp")
                 return redirect(url_for('requests.all_requests'))
             
         else: # post request but not validated. Need to handle some errors

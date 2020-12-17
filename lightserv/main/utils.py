@@ -3,7 +3,7 @@ from functools import wraps
 import os,time
 from lightserv import db_lightsheet, db_admin
 import datajoint as dj
-
+import paramiko
 import logging
 
 logger = logging.getLogger(__name__)
@@ -78,7 +78,6 @@ def logged_in_as_admin(f):
 			login_url = '%s?next=%s' % (url_for('main.login'), next_url)
 			return redirect(login_url)
 	return decorated_function
-
 
 def request_exists(f):
 	@wraps(f)
@@ -570,3 +569,27 @@ def clearing_not_yet_started(f):
 		else:
 			return f(*args, **kwargs)
 	return decorated_function
+
+
+def check_user_in_g_lightsheet_data(username): 
+	""" Check whether a user is in the 
+	g_lightsheet_data group 
+	on bucket. Need to ssh into spock 
+	to check. """
+	hostname = 'spock.pni.princeton.edu'
+	current_user = 'lightserv-test'	
+	port = 22
+	client = paramiko.SSHClient()
+	client.load_system_host_keys()
+	client.set_missing_host_key_policy(paramiko.WarningPolicy)
+	try:
+		client.connect(hostname, port=port, username=current_user, allow_agent=False,look_for_keys=True)
+	except:
+		logger.debug("spock connection unsuccessful")
+		return 
+	command = f'getent group g_lightsheet_data | grep "\\b{username}\\b"'
+	stdin, stdout, stderr = client.exec_command(command)
+
+	# error_response = str(stderr.read().decode("utf-8").strip('\n')) # strips off the final newline
+	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
+	return response
