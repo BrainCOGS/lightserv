@@ -73,7 +73,8 @@ def imaging_manager():
 	# ''' First get all entities that are currently being imaged '''
 	""" Get all entries currently being imaged """
 	imaging_request_contents = dj.U('username','request_name','imaging_batch_number').aggr(
-		imaging_request_contents,clearing_progress='clearing_progress',
+		imaging_request_contents,clearer='clearer',
+		clearing_progress='clearing_progress',
 		datetime_submitted='datetime_submitted',
 		imaging_progress='imaging_progress',imager='imager',
 		species='species',number_in_imaging_batch='number_in_imaging_batch',
