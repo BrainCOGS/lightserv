@@ -72,7 +72,8 @@ def imaging_manager():
 	
 	# ''' First get all entities that are currently being imaged '''
 	""" Get all entries currently being imaged """
-	contents_being_imaged = imaging_request_contents & 'imaging_progress="in progress"'
+	contents_being_imaged = imaging_request_contents & 'clearing_progress="complete"' & \
+		'imaging_progress="in progress"'
 	being_imaged_table_id = 'horizontal_being_imaged_table'
 	table_being_imaged = dynamic_imaging_management_table(contents_being_imaged,
 		table_id=being_imaged_table_id,
