@@ -72,16 +72,23 @@ def imaging_manager():
 	
 	# ''' First get all entities that are currently being imaged '''
 	""" Get all entries currently being imaged """
-	contents_being_imaged = imaging_request_contents & 'clearing_progress="complete"' & \
+	imaging_request_contents = dj.U('username','request_name','imaging_batch_number').aggr(
+		imaging_request_contents,clearing_progress='clearing_progress',
+		datetime_submitted='datetime_submitted',
+		imaging_progress='imaging_progress',imager='imager',
+		species='species',number_in_imaging_batch='number_in_imaging_batch',
+		all_samples_cleared='SUM(IF(clearing_progress="complete",1,0))=count(*)')
+	
+	contents_being_imaged = imaging_request_contents & 'all_samples_cleared=1' & \
 		'imaging_progress="in progress"'
 	being_imaged_table_id = 'horizontal_being_imaged_table'
+	
 	table_being_imaged = dynamic_imaging_management_table(contents_being_imaged,
 		table_id=being_imaged_table_id,
 		sort_by=sort,sort_reverse=reverse)
+
 	''' Next get all entities that are ready to be imaged '''
-	# contents_ready_to_image = [x for x in grouped_imaging_results \
-	# 	if x['clearing_progress']=='complete' and x['imaging_progress'] == 'incomplete']
-	contents_ready_to_image = imaging_request_contents & 'clearing_progress="complete"' & \
+	contents_ready_to_image = imaging_request_contents & 'all_samples_cleared=1' & \
 	 'imaging_progress="incomplete"'
 	ready_to_image_table_id = 'horizontal_ready_to_image_table'
 	table_ready_to_image = dynamic_imaging_management_table(contents_ready_to_image,
