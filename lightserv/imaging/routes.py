@@ -59,7 +59,8 @@ def imaging_manager():
 	imaging_batch_contents = db_lightsheet.Request.ImagingBatch()
 	# imaging_channel_contents = db_lightsheet.Request.ImagingChannel()
 
-	imaging_request_contents = (clearing_batch_contents * request_contents * imaging_batch_contents).\
+	imaging_request_contents = (clearing_batch_contents * sample_contents * \
+		request_contents * imaging_batch_contents).\
 		proj('clearer','clearing_progress',
 		'imaging_request_date_submitted','imaging_request_time_submitted',
 		'imaging_progress','imager','species','number_in_imaging_batch',
