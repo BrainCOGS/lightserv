@@ -871,12 +871,12 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 											number_of_rawfiles_found += number_of_rawfiles_found_right_lightsheet
 										else:
 											# doesn't matter if its left or right lightsheet. Since there is only one, their glob patterns will be identical
-											logger.debug("channel index:")
-											logger.debug(channel_index)
+											# logger.debug("channel index:")
+											# logger.debug(channel_index)
 											number_of_rawfiles_found = \
 												len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
-										logger.debug(number_of_rawfiles_expected)
-										logger.debug(number_of_rawfiles_found)
+										# logger.debug(number_of_rawfiles_expected)
+										# logger.debug(number_of_rawfiles_found)
 									if number_of_rawfiles_found != number_of_rawfiles_expected:
 										error_str = (f"There should be {number_of_rawfiles_expected} raw files in rawdata folder, "
 											  f"but found {number_of_rawfiles_found}")
