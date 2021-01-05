@@ -123,7 +123,6 @@ class ImagingTable(Table):
     antibody2 = Col('antibody2',column_html_attrs=column_html_attrs)
     imaging_progress = ProgressCol('imaging progress',column_html_attrs=column_html_attrs)
 
-
 class ImagingBatchTable(Table):
     border = True
     no_items = "No Batch Yet"
@@ -138,7 +137,6 @@ class ImagingBatchTable(Table):
     number_in_imaging_batch = Col('number of samples in batch',column_html_attrs=column_html_attrs)
     imager = Col('imager',column_html_attrs=column_html_attrs)
 
-
 class SampleTable(Table):
     border = True
     no_items = "No Sample Yet"
@@ -151,9 +149,29 @@ class SampleTable(Table):
     request_name = Col('request name',column_html_attrs=column_html_attrs)
     sample_name = Col('sample name',column_html_attrs=column_html_attrs)
 
+class RequestSummaryTable(Table):
+    border = True
+    no_items = "No Sample Yet"
+
+    html_attrs = {"style":'font-size:18px'} # gets assigned to table header
+    # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    username = Col('username',column_html_attrs=column_html_attrs)
+    request_name = Col('request name',column_html_attrs=column_html_attrs)
+    description = Col('description',column_html_attrs=column_html_attrs)
+    species = Col('species',column_html_attrs=column_html_attrs)
+    number_of_samples = Col('number of samples',column_html_attrs=column_html_attrs)
+    url_kwargs = {'username':'username','request_name':'request_name'}
+    anchor_attrs = {'target':"_blank",}
+    
+    samples_link = LinkCol('View request status', 'requests.request_overview',url_kwargs=url_kwargs,
+        anchor_attrs=anchor_attrs,allow_sort=False)
+
+
 class ExistingImagingTable(Table):
     """ A table to show the existing imaging already
-    requested for a given sample """ 
+    requested for a request sample """ 
     border = True
     allow_sort=False
     no_items = "No imaging requested yet"
@@ -161,6 +179,8 @@ class ExistingImagingTable(Table):
     # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     column_html_attrs = {'style':'word-wrap: break-word; max-width:200px;'}
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+
+    sample_name = Col('sample_name',column_html_attrs=column_html_attrs)
     imaging_request_number = Col('imaging request number',column_html_attrs=column_html_attrs)
     image_resolution = Col('image resolution',column_html_attrs=column_html_attrs)
     channel_name = Col('channel name',column_html_attrs=column_html_attrs)

@@ -3,157 +3,178 @@
 	<h1 class="mb-2" align="center">New Imaging Request</h1>
 
 	<hr class='class-2'>
-	<h3>Sample overview:</h3>
-		{{ sample_table }}
+	<h3>Request overview:</h3>
+		{{ request_summary_table }}
 	<hr class='class-2'>
-	<h3>Summary of imaging already requested for this sample:</h3>
+	<h3>Summary of imaging already requested for this request:</h3>
 		{{ existing_imaging_table }}
 	<hr class='class-2'>
 	<div class="content-section">
 		<form method="POST" action="">
 			{{ form.hidden_tag() }}
+			{{ form.species() }}
 			<fieldset class="form-group">
-				<h3 class='border-bottom mb-4'>Imaging/Processing setup</h3>
-				
-		        <!-- Loop through all image resolution forms and make a table for each -->
-				{% for image_resolution_form in form.image_resolution_forms %}
-					<!-- render the hidden field -->
-					{{ image_resolution_form.image_resolution() }}
-					<h4 > Setup for image resolution: {{ image_resolution_form.image_resolution.data }} </h4>
-					<a> Select all imaging channels and their uses: </a>
-					<table class="table table-bordered table-striped text-center mb-4">
-		                <tr>
-		                    <th>Channel wavelength(nm)</th>
-		                    <th>Image resolution</th>
-		                    <th>Registration</th>
-		                    <th>Injection detection</th>
-		                    <th>Probe detection</th>
-		                    <th>Cell detection</th>
-		                    <th>General Imaging</th>
-		                </tr>
-
-		                {% for channel_entry in image_resolution_form.channels %}
-			                <!-- Render the channel_name which is a hidden field just so it is set -->
-		                	{{ channel_entry.channel_name() }} 
-			                <tr>   
-			                    <td>{{channel_entry.channel_name.data}}</td>
-			                    <td>{{ image_resolution_form.image_resolution.data }}</td>
-			                    {% if form.species.data != 'mouse' or image_resolution_form.image_resolution.data == '2x' %}
-			                    	{% set disable_detection_methods = true %}
-			                    {% else %}
-			                    	{% set disable_detection_methods = false %}
-			                    {% endif %}
-			                    <td>{{channel_entry.registration(disabled=disable_detection_methods)}}</td>
-			                    <td>{{channel_entry.injection_detection(disabled=disable_detection_methods)}}</td>
-			                    <td>{{channel_entry.probe_detection(disabled=disable_detection_methods)}}</td>
-			                    <td>{{channel_entry.cell_detection(disabled=disable_detection_methods)}}</td>
-			                    <td>{{channel_entry.generic_imaging}}</td>
-			                </tr>
-		               {% endfor %}
-		            </table>
-
-		             <div class="form-group">
-						{% if image_resolution_form.notes_for_imager.flags.required %}*{% endif %}
-						{{ image_resolution_form.notes_for_imager.label(class="form-control-label") }}
-						{% if image_resolution_form.notes_for_imager.errors %}
-							{{ image_resolution_form.notes_for_imager(class="form-control form-control-lg is-invalid") }}
-							<div class="invalid-feedback">
-								{% for error in image_resolution_form.notes_for_imager.errors %}
-									<span>{{ error }}</span>
-								{% endfor %}
-							</div>
-						{% else %}
-							{{ image_resolution_form.notes_for_imager(class="form-control form-control-lg") }}
-						{% endif %}
+				{% for ii in range(form.imaging_samples|length) %}
+					{% set sample_form = form.imaging_samples[ii] %}
+					<!-- Render hidden field sample_name -->
+					{{ sample_form.sample_name() }}
+					{% set sample_name = sample_form.sample_name.data %}
+					<div class="sticky-top">
+				    	<h3 class="form-control-label"><b>Sample {{ii+1}}/{{form.imaging_samples|length}}: {{sample_name}} </b></h3>
+			    	</div>
+					<div class="checkbox mb-2">
+						{{ sample_form.enter_data(class="form-check-input", onchange="togglefield(this)" ) }}
+						{{ sample_form.enter_data.label(class="form-check-label") }}
 					</div>
-
-					{% if image_resolution_form.image_resolution.data != '2x' %}
-						<div class="form-group">
-							{% if image_resolution_form.notes_for_processor.flags.required %}*{% endif %}
-							{{ image_resolution_form.notes_for_processor.label(class="form-control-label") }}
-							{% if image_resolution_form.notes_for_processor.errors %}
-								{{ image_resolution_form.notes_for_processor(class="form-control form-control-lg is-invalid") }}
-								<div class="invalid-feedback">
-									{% for error in image_resolution_form.notes_for_processor.errors %}
-										<span>{{ error }}</span>
-									{% endfor %}
-								</div>
-							{% else %}
-								{{ image_resolution_form.notes_for_processor(class="form-control form-control-lg") }}
-							{% endif %}
-						</div>
-
-						<div class="form-group">
-							{% if image_resolution_form.final_orientation.flags.required %}*{% endif %}
-							<a data-toggle="popover" data-content="How you want your output volume oriented. If registration is requested, this must be 'sagittal'">
-							{{ image_resolution_form.final_orientation.label(class="form-control-label infolink") }}
-							</a>
-							{% if image_resolution_form.final_orientation.errors %}
-								{{ image_resolution_form.final_orientation(class="form-control form-control-lg is-invalid") }}
-								<div class="invalid-feedback">
-									{% for error in image_resolution_form.final_orientation.errors %}
-										<span>{{ error }}</span>
-									{% endfor %}
-								</div>
-							{% else %}
-								{{ image_resolution_form.final_orientation(class="form-control form-control-lg") }}
-							{% endif %}
-						</div>
-
-						<div class="form-group">
-							{% if image_resolution_form.atlas_name.flags.required %}*{% endif %}
-							{{ image_resolution_form.atlas_name.label(class="form-control-label") }}
-							{% if image_resolution_form.atlas_name.errors %}
-								{{ image_resolution_form.atlas_name(class="form-control form-control-lg is-invalid") }}
-								<div class="invalid-feedback">
-									{% for error in image_resolution_form.atlas_name.errors %}
-										<span>{{ error }}</span>
-									{% endfor %}
-								</div>
-							{% else %}
-								{{ image_resolution_form.atlas_name(class="form-control form-control-lg") }}
-							{% endif %}
-						</div>
-	           		{% endif %}
-
-		        	<hr class='class-2'>
-
-				{% endfor %} <!-- Loop over image resolution forms -->
-
-				<!-- Make the image resolution select field and button for making a new table of channels -->
-				{% if form.image_resolution_forms|length > 0 %}
-					<h5> Add an additional imaging resolution? </h5>
-				{% endif %}
-				<div class="form-group">
-					{{ form.image_resolution_forsetup.label(class="form-control-label") }}
-					{% if form.image_resolution_forsetup.errors %}
-						{{ form.image_resolution_forsetup(class="form-control form-control-lg is-invalid") }}
-						<div class="invalid-feedback">
-							{% for error in form.image_resolution_forsetup.errors %}
-								<span>{{ error }}</span>
-							{% endfor %}
-						</div>
+					{% if sample_form.enter_data.data %}
+						<div class="container" id="sample_{{ii}}_form_div" style="display: block">
 					{% else %}
-						{{ form.image_resolution_forsetup(class="form-control form-control-lg") }}
+						<div class="container" id="sample_{{ii}}_form_div" style="display: none">
 					{% endif %}
-				</div>
-		        <div class="form-group">
-					{{ form.new_image_resolution_form_submit(class="btn btn-primary mt-2") }}
-				</div>
-			</fieldset>
+				        <hr class='class-2'>
+						<h3 class='border-bottom mb-4'>Imaging/Processing setup</h3>
+						
+				        <!-- Loop through all image resolution forms and make a table for each -->
+						{% for image_resolution_form in sample_form.image_resolution_forms %}
+							<!-- render the hidden field -->
+							{{ image_resolution_form.image_resolution() }}
+							<h4 > Setup for image resolution: {{ image_resolution_form.image_resolution.data }} </h4>
+							<a> Select all imaging channels and their uses: </a>
+							<table class="table table-bordered table-striped text-center mb-4">
+				                <tr>
+				                    <th>Channel wavelength(nm)</th>
+				                    <th>Image resolution</th>
+				                    <th>Registration</th>
+				                    <th>Injection detection</th>
+				                    <th>Probe detection</th>
+				                    <th>Cell detection</th>
+				                    <th>General Imaging</th>
+				                </tr>
+
+				                {% for channel_form in image_resolution_form.channel_forms %}
+					                <!-- Render the channel_name which is a hidden field just so it is set -->
+				                	{{ channel_form.channel_name() }} 
+					                <tr>   
+					                    <td>{{channel_form.channel_name.data}} </td>
+					                    <td>{{ image_resolution_form.image_resolution.data }}</td>
+					                    {% if form.species.data != 'mouse' or image_resolution_form.image_resolution.data == '2x' %}
+					                    	{% set disable_detection_methods = true %}
+					                    {% else %}
+					                    	{% set disable_detection_methods = false %}
+					                    {% endif %}
+					                    <td>{{channel_form.registration(disabled=disable_detection_methods)}}</td>
+					                    <td>{{channel_form.injection_detection(disabled=disable_detection_methods)}}</td>
+					                    <td>{{channel_form.probe_detection(disabled=disable_detection_methods)}}</td>
+					                    <td>{{channel_form.cell_detection(disabled=disable_detection_methods)}}</td>
+					                    <td>{{channel_form.generic_imaging}}</td>
+					                </tr>
+				               {% endfor %}
+				            </table>
+
+				             <div class="form-group">
+								{% if image_resolution_form.notes_for_imager.flags.required %}*{% endif %}
+								{{ image_resolution_form.notes_for_imager.label(class="form-control-label") }}
+								{% if image_resolution_form.notes_for_imager.errors %}
+									{{ image_resolution_form.notes_for_imager(class="form-control form-control-lg is-invalid") }}
+									<div class="invalid-feedback">
+										{% for error in image_resolution_form.notes_for_imager.errors %}
+											<span>{{ error }}</span>
+										{% endfor %}
+									</div>
+								{% else %}
+									{{ image_resolution_form.notes_for_imager(class="form-control form-control-lg") }}
+								{% endif %}
+							</div>
+
+							{% if image_resolution_form.image_resolution.data != '2x' %}
+								<div class="form-group">
+									{% if image_resolution_form.notes_for_processor.flags.required %}*{% endif %}
+									{{ image_resolution_form.notes_for_processor.label(class="form-control-label") }}
+									{% if image_resolution_form.notes_for_processor.errors %}
+										{{ image_resolution_form.notes_for_processor(class="form-control form-control-lg is-invalid") }}
+										<div class="invalid-feedback">
+											{% for error in image_resolution_form.notes_for_processor.errors %}
+												<span>{{ error }}</span>
+											{% endfor %}
+										</div>
+									{% else %}
+										{{ image_resolution_form.notes_for_processor(class="form-control form-control-lg") }}
+									{% endif %}
+								</div>
+
+								<div class="form-group">
+									{% if image_resolution_form.final_orientation.flags.required %}*{% endif %}
+									<a data-toggle="popover" data-content="How you want your output volume oriented. If registration is requested, this must be 'sagittal'">
+									{{ image_resolution_form.final_orientation.label(class="form-control-label infolink") }}
+									</a>
+									{% if image_resolution_form.final_orientation.errors %}
+										{{ image_resolution_form.final_orientation(class="form-control form-control-lg is-invalid") }}
+										<div class="invalid-feedback">
+											{% for error in image_resolution_form.final_orientation.errors %}
+												<span>{{ error }}</span>
+											{% endfor %}
+										</div>
+									{% else %}
+										{{ image_resolution_form.final_orientation(class="form-control form-control-lg") }}
+									{% endif %}
+								</div>
+
+								<div class="form-group">
+									{% if image_resolution_form.atlas_name.flags.required %}*{% endif %}
+									{{ image_resolution_form.atlas_name.label(class="form-control-label") }}
+									{% if image_resolution_form.atlas_name.errors %}
+										{{ image_resolution_form.atlas_name(class="form-control form-control-lg is-invalid") }}
+										<div class="invalid-feedback">
+											{% for error in image_resolution_form.atlas_name.errors %}
+												<span>{{ error }}</span>
+											{% endfor %}
+										</div>
+									{% else %}
+										{{ image_resolution_form.atlas_name(class="form-control form-control-lg") }}
+									{% endif %}
+								</div>
+			           		{% endif %}
+
+				        	<hr class='class-2'>
+
+						{% endfor %} <!-- Loop over image resolution forms -->
+
+						<!-- Make the image resolution select field and button for making a new table of channels -->
+						{% if form.image_resolution_forms|length > 0 %}
+							<h5> Add an additional imaging resolution? </h5>
+						{% endif %}
+						<div class="form-group">
+							{{ sample_form.image_resolution_forsetup.label(class="form-control-label") }}
+							{% if sample_form.image_resolution_forsetup.errors %}
+								{{ sample_form.image_resolution_forsetup(class="form-control form-control-lg is-invalid") }}
+								<div class="invalid-feedback">
+									{% for error in sample_form.image_resolution_forsetup.errors %}
+										<span>{{ error }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								{{ sample_form.image_resolution_forsetup(class="form-control form-control-lg") }}
+							{% endif %}
+						</div>
+				        <div class="form-group">
+							{{ sample_form.new_image_resolution_form_submit(class="btn btn-primary mt-2") }}
+						</div>
+					</div>
+					<hr class='class-2'>
+
+				{% endfor %} <!-- Loop over imaging sample forms -->
+				</fieldset>
 			<!-- Final submit button -->
 			<hr class='class-3'>
-			<hr class='class-4'>
-			{% if form.image_resolution_forms|length > 0 %}
-				<h3 class='border-bottom'>Final Steps</h3>
-				<div class="checkbox">
-		            {{ form.self_imaging(class="form-check-input") }}
-		            {{ form.self_imaging.label(class="form-check-label") }}
-		        </div>
-				<div class="form-group">
-					{{ form.submit(class="btn btn-success mt-2") }}
-				</div>
-			{% endif %}
+			
+			<h3 class='border-bottom'>Final Steps</h3>
+			<div class="checkbox">
+	            {{ form.self_imaging(class="form-check-input") }}
+	            {{ form.self_imaging.label(class="form-check-label") }}
+	        </div>
+			<div class="form-group">
+				{{ form.submit(class="btn btn-success mt-2") }}
+			</div>
 		</form>
 
 	</div>
@@ -166,5 +187,17 @@
 	</script>
 {% endif %}
 
+<script>
+function togglefield(checkboxElem) {
+	console.log(checkboxElem)
+	var jj = checkboxElem.id.split('-')[1]
+	var x = document.getElementById("sample_" + jj + "_form_div");
+	if (checkboxElem.checked) {
+		x.style.display = "block";
+	} else {
+		x.style.display = "none";
+		}
+	}
+</script>
 
 {% endblock content %}

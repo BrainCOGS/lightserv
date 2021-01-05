@@ -514,9 +514,10 @@ function togglefield(checkboxElem) {
 
 <script> 
 function initializeCharboxes() {
-	{# Loop through all charboxes and initialize the text 
-	stating how many characters are currently used. Doesn't work for samples fields, but will work for top fields 
-	that have defaults sometimes.  #}
+	// Loop through all charboxes and initialize the text 
+	// stating how many characters are currently used. 
+	// Does not work for samples fields, but will work for top fields 
+	// that have defaults sometimes.  
 	charboxes = document.querySelectorAll('[id*="charbox"]');
 
 	for (var i = 0; i < charboxes.length; i++) {
