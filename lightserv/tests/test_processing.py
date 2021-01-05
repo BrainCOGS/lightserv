@@ -10,149 +10,56 @@ import lorem
 import pickle
 
 """ Tests for Processing Manager """
-def test_ahoag_access_processing_manager(test_client,test_imaged_request_ahoag):
-	""" Test that ahoag can access the processing task manager
-	and see the single entry made and cleared by ahoag  """
-	response = test_client.get(url_for('processing.processing_manager')
-		, follow_redirects=True)
-	assert b'Processing management GUI' in response.data
-	assert b'admin_request' in response.data 
 
-def test_nonadmin_access_processing_manager(test_client,
+def test_access_processing_manager(test_client,
 	test_imaged_request_nonadmin):
 	""" Test that lightserv-test, a nonadmin can access the processing task manager
 	and can see his entry because everyone is by default the processor for their requests """
-	response = test_client.get(url_for('processing.processing_manager')
-		, follow_redirects=True)
-	assert b'Processing management GUI' in response.data
-	# assert b'admin_request' not in response.data 
-	assert b'nonadmin_request' in response.data 
-	# assert b'lightserv-test' in response.data 
-
-def test_nonadmin_access_processing_manager_cannot_see_other_requests(test_client,
-	test_imaged_request_ahoag,test_imaged_request_nonadmin):
-	""" Test that Manuel (lightserv-test, a nonadmin) can access the processing task manager
-	and can see his entry but cannot see ahoag's entry. """
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'lightserv-test'
 	response = test_client.get(url_for('processing.processing_manager')
 		, follow_redirects=True)
-	# print(response.data)
 	assert b'Processing management GUI' in response.data
-	assert b'ahoag' not in response.data 
 	assert b'nonadmin_request' in response.data 
-	assert b'lightserv-test' in response.data 
 
-def test_zmd_access_processing_manager(test_client,
-	test_imaged_request_ahoag,test_imaged_request_nonadmin):
-	""" Test that Zahra (zmd, an admin) can access the processing task manager
-	and can see entries by multiple users """
+	""" Test that an admin can 
+	and can see the nonadmin's processing request 
+	"""
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'zmd'
+		sess['user'] = 'aichen'
 	response = test_client.get(url_for('processing.processing_manager')
 		, follow_redirects=True)
 	assert b'Processing management GUI' in response.data
-	assert b'ahoag' in response.data 
 	assert b'nonadmin_request' in response.data 
-	assert b'lightserv-test' in response.data 
 
-def test_ahoag_can_see_running_processing_requests(test_client,processing_request_ahoag):
-	""" Test that ahoag can see running processing request
-	in the processing manager"""
+	""" Test that a different user, a nonadmin, cannot see the entry
+	of the other nonadmin """
 	with test_client.session_transaction() as sess:
-		sess['user'] = "ahoag"
-	response = test_client.get(url_for('processing.processing_manager'),
-		follow_redirects=True)
+		sess['user'] = 'oostland'
+	response = test_client.get(url_for('processing.processing_manager')
+		, follow_redirects=True)
+	assert b'Processing management GUI' in response.data
+	assert b'nonadmin_request' not in response.data 
 	
-	assert b"Processing management GUI" in response.data
-	parsed_html = BeautifulSoup(response.data,features="html.parser")
-	table_tag = parsed_html.find('table',
-		attrs={'id':'horizontal_being_processed_table'})
-	table_row_tags = table_tag.find_all('tr')
-	header_row = table_row_tags[0].find_all('th')
-	processing_request_1_row = table_row_tags[1].find_all('td')
-	for ii,col in enumerate(header_row):
-		if col.text == 'processing progress':
-			request_number_column_index = ii
-			break
-	processing_progress = processing_request_1_row[request_number_column_index].text
-	assert processing_progress == 'running'
-	
-def test_ahoag_can_see_completed_processing_requests(test_client,completed_processing_request_ahoag):
-	""" Test that ahoag can see running processing request
-	in the processing manager"""
-	with test_client.session_transaction() as sess:
-		sess['user'] = "ahoag"
-	response = test_client.get(url_for('processing.processing_manager'),
-		follow_redirects=True)
-	
-	assert b"Processing management GUI" in response.data
-	parsed_html = BeautifulSoup(response.data,features="html.parser")
-	table_tag = parsed_html.find('table',
-		attrs={'id':'horizontal_already_processed_table'})
-	table_row_tags = table_tag.find_all('tr')
-	header_row = table_row_tags[0].find_all('th')
-	processing_request_1_row = table_row_tags[1].find_all('td')
-	for ii,col in enumerate(header_row):
-		if col.text == 'processing progress':
-			request_number_column_index = ii
-			break
-	processing_progress = processing_request_1_row[request_number_column_index].text
-	assert processing_progress == 'complete'
-
-def test_viz_processing_request_fixture_worked(test_client,processing_request_viz_nonadmin):
-	""" Test that the fixture that starts a processing request for
-	lightserv-test's viz_processed request actually worked and shows 
-	up in the processing manager"""
-	
-	# log lightserv-test in 
-	with test_client.session_transaction() as sess:
-		sess['user'] = "lightserv-test"
-	
-	response = test_client.get(url_for('processing.processing_manager'),
-		follow_redirects=True)
-	
-	assert b"Processing management GUI" in response.data
-	assert b"viz_processed" in response.data
-
-def test_nonadmin_can_see_completed_processing_request(test_client,completed_processing_request_viz_nonadmin):
-	""" Test that lightserv-test can see their completed processing request
-	in the processing manager"""
-	with test_client.session_transaction() as sess:
-		sess['user'] = "lightserv-test"
-	response = test_client.get(url_for('processing.processing_manager'),
-		follow_redirects=True)
-	
-	assert b"Processing management GUI" in response.data
-	parsed_html = BeautifulSoup(response.data,features="html.parser")
-	table_tag = parsed_html.find('table',
-		attrs={'id':'horizontal_already_processed_table'})
-	table_row_tags = table_tag.find_all('tr')
-	header_row = table_row_tags[0].find_all('th')
-	processing_request_1_row = table_row_tags[1].find_all('td')
-	for ii,col in enumerate(header_row):
-		if col.text == 'processing progress':
-			request_number_column_index = ii
-			break
-	processing_progress = processing_request_1_row[request_number_column_index].text
-	assert processing_progress == 'complete'
-
 """ Tests for processing entry form """
 
-def test_processing_entry_form_loads(test_client,test_imaged_request_ahoag):
-	""" Test that ahoag can access the processing entry form
-	for his request"""
+def test_processing_entry_form(test_client,test_imaged_request_nonadmin):
+	""" Test that an admin cannot access the processing entry form
+	for lightserv-test request. This is to avoid a conflict between user and admin 
+	submission for the same processing request"""
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'aichen'
 	response = test_client.get(url_for('processing.processing_entry',
-		username='ahoag',request_name='admin_request',sample_name='sample-001',
+		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
 		imaging_request_number=1,processing_request_number=1)
 		, follow_redirects=True)
+	assert b'The processor has already been assigned for this entry and you are not them' in response.data
+	assert b'Welcome to the Brain Registration and Histology Core Facility' in response.data 
 
-	assert b'Processing Entry Form' in response.data
-	assert b'admin_request' in response.data 
-
-def test_processing_entry_form_loads_nonadmin(test_client,test_imaged_request_nonadmin):
 	""" Test that lightserv-test can access the processing entry form
 	for his request"""
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
 	response = test_client.get(url_for('processing.processing_entry',
 		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
 		imaging_request_number=1,processing_request_number=1)
@@ -160,8 +67,7 @@ def test_processing_entry_form_loads_nonadmin(test_client,test_imaged_request_no
 	assert b'Processing Entry Form' in response.data
 	assert b'nonadmin_request' in response.data 
 
-def test_processing_entry_form_submits(test_client,test_imaged_request_ahoag):
-	""" Test that ahoag can submit the processing entry form
+	""" Test that a nonadmin can submit the processing entry form
 	for a test sample """
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
@@ -173,8 +79,8 @@ def test_processing_entry_form_submits(test_client,test_imaged_request_ahoag):
 		'submit':True
 		}
 
-	username = "ahoag"
-	request_name = "admin_request"
+	username = "lightserv-test"
+	request_name = "nonadmin_request"
 	sample_name = "sample-001"
 	imaging_request_number = 1
 	processing_request_number = 1
@@ -194,6 +100,41 @@ def test_processing_entry_form_submits(test_client,test_imaged_request_ahoag):
 			f'processing_request_number="{processing_request_number}"'
 	processing_progress = processing_request_contents.fetch1('processing_progress')
 	assert processing_progress == 'running'
+
+	""" Test that the processing entry form shows a flash message 
+	that it is read only if the processing request has already been submitted
+	"""
+	response = test_client.get(url_for('processing.processing_entry',
+		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+		imaging_request_number=1,processing_request_number=1)
+		, follow_redirects=True)
+
+	assert b'Processing Entry Form' in response.data
+	assert b'nonadmin_request' in response.data 
+	warning_message = ("Processing is running for this sample. "
+			"This page is read only and hitting submit will do nothing")
+	assert warning_message.encode('utf-8') in response.data 
+
+	""" Test that the processing entry form redirects 
+	to the processing manager if a post request is received and the entry 
+	form has already been submitted in the past. 
+	"""
+	response = test_client.post(url_for('processing.processing_entry',
+		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
+		imaging_request_number=1,processing_request_number=1),
+		data = {
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'image_resolution_forms-0-atlas_name':'allen_2017',
+			'image_resolution_forms-0-image_resolution':'1.3x',
+			'submit':True
+		}, follow_redirects=True)
+
+	assert b'Processing management GUI' in response.data
+	warning_message = ("Processing is running for this sample.  " 
+                       "It cannot be re-processed. To open a new processing request, " 
+                       "see your request page") 
+	assert warning_message.encode('utf-8') in response.data
 
 def test_multichannel_processing_entry_form_submits(test_client,test_imaged_multichannel_request_ahoag):
 	""" Test that the multi-channel imaging request with different 
@@ -237,59 +178,9 @@ def test_multichannel_processing_entry_form_submits(test_client,test_imaged_mult
 	# 	'username="ahoag"' & 'sample_name="sample-001"' & 'imaging_request_number=1').fetch1('imaging_progress')
 	# assert imaging_progress == 'complete'
 
-def test_processing_admin_access_processing_entry_for_nonadmin(test_client,test_imaged_request_nonadmin,):
-	""" Test that zmd cannot  access the processing entry form
-	for lightserv-test request"""
-	with test_client.session_transaction() as sess:
-		sess['user'] = 'zmd'
-	response = test_client.get(url_for('processing.processing_entry',
-		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
-		imaging_request_number=1,processing_request_number=1)
-		, follow_redirects=True)
-	print(db_lightsheet.Request.ProcessingRequest())
-	assert b'The processor has already been assigned for this entry and you are not them' in response.data
-	assert b'Welcome to the Brain Registration and Histology Core Facility' in response.data 
-
-def test_processing_admin_submit_processing_entry_for_nonadmin(test_client,test_imaged_request_nonadmin,):
-	""" Test that lightserv-test can access the processing entry form
-	for his request"""
-	with test_client.session_transaction() as sess:
-		sess['user'] = 'lightserv-test'
-
-	data = {
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'image_resolution_forms-0-ventral_up':0,
-		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-		'image_resolution_forms-0-channel_forms-0-ventral_up':0,
-		'image_resolution_forms-0-atlas_name':'allen_2017',
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'submit':True
-		}
-	username='lightserv-test'
-	request_name='nonadmin_request'
-	sample_name='sample-001'
-	imaging_request_number=1
-	processing_request_number=1
-	response = test_client.post(url_for('processing.processing_entry',
-		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
-		imaging_request_number=1,processing_request_number=1)
-		,data=data,
-		follow_redirects=True)
-	
-	assert b"core facility requests" in response.data
-	assert b"Processing entry form" not in response.data
-
-	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
-			f'request_name="{request_name}"' & \
-			f'username="{username}"' & f'sample_name="{sample_name}"' & \
-			f'imaging_request_number="{imaging_request_number}"' & \
-			f'processing_request_number="{processing_request_number}"'
-	processing_progress = processing_request_contents.fetch1('processing_progress')
-	assert processing_progress == 'running'
-
 def test_submit_processing_entry_generic_imaging_nonadmin(test_client,test_imaged_request_generic_imaging_nonadmin):
-	""" Test that lightserv-test can access the processing entry form
-	for his request"""
+	""" Test that the processing entry form submits for a generic 
+	imaging request (i.e. one with no registration) """
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'lightserv-test'
 
@@ -324,44 +215,7 @@ def test_submit_processing_entry_generic_imaging_nonadmin(test_client,test_image
 	processing_progress = processing_request_contents.fetch1('processing_progress')
 	assert processing_progress == 'running'
 
-def test_processing_entry_form_shows_readonly_if_already_submitted(test_client,processing_request_nonadmin):
-	""" Test that the processing entry form shows a flash message 
-	that it is read only if the processing request has already been submitted
-	"""
-	response = test_client.get(url_for('processing.processing_entry',
-		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
-		imaging_request_number=1,processing_request_number=1)
-		, follow_redirects=True)
-
-	assert b'Processing Entry Form' in response.data
-	assert b'nonadmin_request' in response.data 
-	warning_message = ("Processing is running for this sample. "
-			"This page is read only and hitting submit will do nothing")
-	assert warning_message.encode('utf-8') in response.data 
-
-def test_processing_entry_form_redirects_on_post_if_already_submitted(test_client,processing_request_nonadmin):
-	""" Test that the processing entry form redirects 
-	to the processing manager if a post request is received and the entry 
-	form has already been submitted in the past. 
-	"""
-	response = test_client.post(url_for('processing.processing_entry',
-		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
-		imaging_request_number=1,processing_request_number=1),
-		data = {
-			'image_resolution_forms-0-image_resolution':'1.3x',
-			'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-			'image_resolution_forms-0-atlas_name':'allen_2017',
-			'image_resolution_forms-0-image_resolution':'1.3x',
-			'submit':True
-		}, follow_redirects=True)
-
-	assert b'Processing management GUI' in response.data
-	warning_message = ("Processing is running for this sample.  " 
-                       "It cannot be re-processed. To open a new processing request, " 
-                       "see your request page") 
-	assert warning_message.encode('utf-8') in response.data
-
-def test_dorsal_up_and_ventral_up_appear_in_processing_entry_form(test_client,
+def test_dorsal_up_and_ventral_up_processing(test_client,
 	test_imaged_request_dorsal_up_and_ventral_up_nonadmin):
 	""" Test that a request which has both dorsal up and ventral up imaging 
 	has a dorsal up section and a separate ventral up section in the processing entry form
@@ -377,8 +231,7 @@ def test_dorsal_up_and_ventral_up_appear_in_processing_entry_form(test_client,
 	assert b'(2/2) Image resolution: 1.3x_ventral_up' in response.data 
 	assert b'Channel: 488_ventral_up' in response.data 
 
-def test_dorsal_up_and_ventral_up_processing_submits(test_client,
-	test_imaged_request_dorsal_up_and_ventral_up_nonadmin):
+
 	""" Test that submitting the processing entry form for a request 
 	which has both dorsal up and ventral up imaging 
 	launches a separate job for the single dorsal up 488 channel
