@@ -281,7 +281,7 @@ def all_samples():
     clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
     imaging_request_contents = db_lightsheet.Request.ImagingRequest()
     processing_request_contents = db_lightsheet.Request.ProcessingRequest()
-    if current_user not in ['ahoag','zmd','ll3','kellyms','jduva']:
+    if current_user not in current_app.config['CLEARING_ADMINS']:
         legend = 'Your core facility samples (from all of your requests)'
         sample_contents = sample_contents & f'username="{current_user}"'
         request_contents = request_contents & f'username="{current_user}"'
