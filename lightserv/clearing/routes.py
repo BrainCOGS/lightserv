@@ -145,7 +145,8 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 			request_name=request_name,clearing_protocol=clearing_protocol,
 			antibody1=antibody1,antibody2=antibody2,clearing_batch_number=clearing_batch_number))
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x]
-
+			# logger.debug('Submit keys:')
+			# logger.debug(submit_keys)
 			for key in submit_keys:
 				if form[key].data:
 					if key == 'submit': # The final submit button
@@ -231,6 +232,7 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 							return redirect(url_for('clearing.clearing_manager'))
 
 					elif re.search("^(?!perfusion).*_date_submit$",key) != None: # one of the calendar date submit buttons
+						logger.debug("Calendar date submit button pressed")
 						column_name = key.split('_submit')[0]
 						date = form[column_name].data
 						if date == None:
@@ -248,6 +250,7 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 						break
 					else: # an update button was pressed
 						''' Update the row '''
+						logger.debug("update button pressed")
 						column_name = key.split('_submit')[0]
 						clearing_entry_dict = clearing_contents.fetch1() # returns as a dict
 						clearing_entry_dict[column_name]=form[column_name].data

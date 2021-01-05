@@ -207,7 +207,8 @@ class NewRequestForm(FlaskForm):
 			all_sample_names.append(sample_name)
 
 			clearing_protocol_sample = sample_dict['clearing_protocol']
-			if clearing_protocol_sample == 'iDISCO abbreviated clearing (rat)' and self.species.data != 'rat':
+	
+			if 'rat' in clearing_protocol_sample and self.species.data != 'rat':
 				raise ValidationError(f"Sample_name: {sample_name}. Clearing protocol: {clearing_protocol_sample} "
 					                  f"can only be used with rat subjects. You specified species={self.species.data}")
 			if (clearing_protocol_sample not in ['iDISCO abbreviated clearing (rat)','uDISCO (rat)','experimental'])  and self.species.data == 'rat':

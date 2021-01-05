@@ -10,21 +10,14 @@ import lorem # lorem ipsum generator
 
 """ Testing clearing_manager() """
 
-def test_ahoag_access_clearing_manager(test_client,test_rat_request_nonadmin,
-	test_request_all_mouse_clearing_protocols_ahoag):
-	""" Test that ahoag can access the clearing task manager
-	and see the single entries made for all clearing protocols by multiple users
-	"""
+def test_ll3_access_clearing_manager(test_client,test_single_sample_request_nonadmin,test_single_sample_request_ahoag,test_login_ll3):
+	""" Test that Laura (ll3, a clearing admin) can access the clearing task manager
+	and see entries made by multiple users """
 	response = test_client.get(url_for('clearing.clearing_manager')
 		, follow_redirects=True)
 	assert b'Clearing management GUI' in response.data
-	assert b"All_mouse_clearing_protocol_request" in response.data 
-	assert b'Nonadmin_rat_request' in response.data 
-	assert b'iDISCO abbreviated clearing' in response.data
-	assert b'iDISCO abbreviated clearing (rat)' in response.data
-	assert b'iDISCO+_immuno' in response.data
-	assert b'uDISCO' in response.data
-	assert b'iDISCO_EdU' in response.data
+	assert b'admin_request' in response.data 
+	assert b'nonadmin_request' in response.data 
 
 def test_nonadmin_access_clearing_manager(test_client,test_single_sample_request_ahoag,test_single_sample_request_nonadmin):
 	""" Test that Manuel (lightserv-test, a nonadmin) can access the clearing task manager
@@ -45,49 +38,6 @@ def test_nonadmin_can_see_self_clearing_request(test_client,test_self_clearing_a
 	assert b'Clearing management GUI' in response.data
 	assert b'self_clearing_and_imaging_request' in response.data 
 
-def test_ll3_access_clearing_manager(test_client,test_single_sample_request_nonadmin,test_single_sample_request_ahoag,test_login_ll3):
-	""" Test that Laura (ll3, a clearing admin) can access the clearing task manager
-	and see entries made by multiple users """
-	response = test_client.get(url_for('clearing.clearing_manager')
-		, follow_redirects=True)
-	assert b'Clearing management GUI' in response.data
-	assert b'admin_request' in response.data 
-	assert b'nonadmin_request' in response.data 
-
-def test_multichannel_clearing_worked(test_client,test_cleared_multichannel_request_ahoag):
-	""" Test that the multi-channel request was cleared in the fixture:
-	test_cleared_multichannel_request_ahoag
-	"""
-	response = test_client.get(url_for('clearing.clearing_manager'),
-		follow_redirects=True
-	)
-	assert b'Clearing management GUI' in response.data
-	assert b'admin_multichannel_request' in response.data
-	
-	""" Make sure clearing_progress is now updated """
-	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & 'username="ahoag"' & \
-	'request_name="admin_multichannel_request"' & 'clearing_protocol="iDISCO abbreviated clearing"' & \
-			'antibody1=""' & 'antibody2=""'
-	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
-	assert clearing_progress == 'complete'
-
-def test_viz_clearing_worked(test_client,test_cleared_request_viz_nonadmin):
-	""" Test that the viz request was cleared in the fixture:
-	test_cleared_request_viz_nonadmin
-	"""
-	response = test_client.get(url_for('clearing.clearing_manager'),
-		follow_redirects=True
-	)
-	assert b'Clearing management GUI' in response.data
-	assert b'viz_processed' in response.data
-	
-	""" Make sure clearing_progress is now updated """
-	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & 'username="lightserv-test"' & \
-	'request_name="viz_processed"' & 'clearing_protocol="iDISCO abbreviated clearing"' & \
-			'antibody1=""' & 'antibody2=""'
-	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
-	assert clearing_progress == 'complete'
-
 def test_sort_clearing_manager_all_columns(test_client,test_two_requests_ahoag):
 	""" Check that sorting all columns of all requests table works 
 
@@ -104,9 +54,9 @@ def test_sort_clearing_manager_all_columns(test_client,test_two_requests_ahoag):
 
 """ Testing clearing_entry() """
 
-def test_abbreviated_clearing_entry_form_loads(test_client,test_single_sample_request_nonadmin,test_login_ll3):
+def test_abbreviated_clearing_entry_form(test_client,
+	test_single_sample_request_nonadmin,test_login_ll3):
 	""" Test that ll3 can access a clearing entry form  """
-	# response = test_client.get(url_for('requests.all_requests'))
 	response = test_client.get(url_for('clearing.clearing_entry',username="lightserv-test",
 			request_name="nonadmin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
@@ -116,14 +66,11 @@ def test_abbreviated_clearing_entry_form_loads(test_client,test_single_sample_re
 		)	
 	assert b'Clearing Entry Form' in response.data
 	assert b'Protocol: iDISCO abbreviated clearing' in response.data
- 
-def test_abbreviated_clearing_entry_form_submits(test_client,
-	test_single_sample_request_nonadmin,test_login_ll3):
+
 	""" Test that ll3 can submit a clearing entry form 
 	and it redirects her back to the clearing task manager  """
 	# response = test_client.get(url_for('requests.all_requests'))
 	now = datetime.now()
-	print(now)
 	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
 		dehydr_pbs_wash1_notes='some notes',submit=True)
 	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
@@ -164,20 +111,50 @@ def test_abbreviated_clearing_entry_form_submits(test_client,
 	antibody1_retrieved = data_row[antibody1_column_index].text
 	antibody2_retrieved = data_row[antibody2_column_index].text
 	request_name_retrieved = data_row[request_name_column_index].text
-	# td_tags = table_row_tag.find_all('td')
 	assert clearing_protocol_retrieved == "iDISCO abbreviated clearing"
 	assert antibody1_retrieved == ""
 	assert antibody2_retrieved == ""
 	assert request_name_retrieved == "nonadmin_request"
-	#  and \
-	# td_tags[2].text == "" and td_tags[3].text == "" and td_tags[4].text == 'nonadmin_request'
 
-def test_mouse_clearing_entry_forms_load(test_client,test_request_all_mouse_clearing_protocols_ahoag,test_login_ll3):
-	""" Test that ll3 can access the clearing entry forms
-	for all mouse clearing protocols  """
+def test_all_mouse_clearing_entry_forms(test_client,
+	test_request_all_mouse_clearing_protocols_ahoag,test_login_ll3):
+	""" Test that the "Push date to calendar" buttons on the clearing entry form
+	actually push to a test calendar.
+
+	Uses the test_cleared_request_nonadmin fixture to insert and clear 
+	a request with username='ahoag' and clearer='ll3'  """
+	username = 'ahoag'
+
+	today = date.today()
+	yesterday = today-timedelta(days=1)
+	tomorrow = today+timedelta(days=1)
+	today_proper_format = today.strftime('%Y-%m-%d')
+	data = dict(pbs_date=today_proper_format,
+		pbs_date_submit=True)
+	response = test_client.post(url_for('clearing.clearing_entry',username=username,
+			request_name="All_mouse_clearing_protocol_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data=data,
+		follow_redirects=True
+	)
+	assert b'Event added to Clearing Calendar. Check the calendar.' in response.data
+	''' Now check that the event was really added to the calendar '''
+	event = retrieve_clearing_calendar_entry(calendar_id=current_app.config['CLEARING_CALENDAR_ID'])
+	event_summary = event['summary']
+	assert event_summary == 'ahoag iDISCO abbreviated clearing pbs'
+	event_id = event['id']
+	delete_clearing_calendar_entry(calendar_id=current_app.config['CLEARING_CALENDAR_ID'],
+		event_id=event_id)
+
+
+	""" Test that ll3 can ACCESS each of the 
+	clearing entry forms
+	for the various mouse clearing protocols  """
 
 	response_abbreviated_clearing = test_client.get(url_for('clearing.clearing_entry',
-			username="ahoag",
+			username=username,
 			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
@@ -188,7 +165,7 @@ def test_mouse_clearing_entry_forms_load(test_client,test_request_all_mouse_clea
 	assert b'Protocol: iDISCO abbreviated clearing' in response_abbreviated_clearing.data
 
 	response_idiscoplus_immuno_clearing = test_client.get(url_for('clearing.clearing_entry',
-			username="ahoag",
+			username=username,
 			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO+_immuno",
 			antibody1="test antibody for immunostaining",antibody2="",
@@ -199,7 +176,7 @@ def test_mouse_clearing_entry_forms_load(test_client,test_request_all_mouse_clea
 	assert b'Protocol: iDISCO+_immuno' in response_idiscoplus_immuno_clearing.data
 
 	response_udisco_clearing = test_client.get(url_for('clearing.clearing_entry',
-			username="ahoag",
+			username=username,
 			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="uDISCO",
 			antibody1="",antibody2="",
@@ -210,7 +187,7 @@ def test_mouse_clearing_entry_forms_load(test_client,test_request_all_mouse_clea
 	assert b'Protocol: uDISCO' in response_udisco_clearing.data
 
 	response_idisco_edu_clearing = test_client.get(url_for('clearing.clearing_entry',
-			username="ahoag",
+			username=username,
 			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO_EdU",
 			antibody1="",antibody2="",
@@ -220,7 +197,6 @@ def test_mouse_clearing_entry_forms_load(test_client,test_request_all_mouse_clea
 	assert b'Clearing Entry Form' in response_idisco_edu_clearing.data
 	assert b'Protocol: iDISCO_EdU' in response_idisco_edu_clearing.data
 
-def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_clearing_protocols_ahoag,test_login_ll3):
 	""" Test that ll3 can hit the update buttons in the clearing entry forms
 	for all mouse clearing protocols and the database is actually updated and the 
 	form is re-loaded with the updated field auto-filled """
@@ -230,7 +206,7 @@ def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_cl
 	
 	""" iDISCO abbreviated """
 	response_abbreviated_clearing = test_client.post(url_for('clearing.clearing_entry',
-			username="ahoag",
+			username=username,
 			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
@@ -242,9 +218,10 @@ def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_cl
 	assert b'Protocol: iDISCO abbreviated clearing' in response_abbreviated_clearing.data
 	assert now_proper_format.encode('utf-8') in response_abbreviated_clearing.data
 
+	""" iDISCO+ immunostaining """
 	data_idiscoplus_immuno_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,time_dehydr_pbs_wash1_submit=True)
 	response_idiscoplus_immuno_clearing = test_client.post(url_for('clearing.clearing_entry',
-			username="ahoag",
+			username=username,
 			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO+_immuno",
 			antibody1="test antibody for immunostaining",antibody2="",
@@ -256,9 +233,10 @@ def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_cl
 	assert b'Protocol: iDISCO+_immuno' in response_idiscoplus_immuno_clearing.data
 	assert now_proper_format.encode('utf-8') in response_idiscoplus_immuno_clearing.data
 
+	""" update a second field in the same form """
 	data_idiscoplus_immuno_clearing2 = dict(antibody1_lot='abc-123',antibody1_lot_submit=True)
 	response_idiscoplus_immuno_clearing2 = test_client.post(url_for('clearing.clearing_entry',
-			username="ahoag",
+			username=username,
 			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO+_immuno",
 			antibody1="test antibody for immunostaining",antibody2="",
@@ -270,23 +248,11 @@ def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_cl
 	assert b'Protocol: iDISCO+_immuno' in response_idiscoplus_immuno_clearing2.data
 	assert b"abc-123" in response_idiscoplus_immuno_clearing2.data
 
-	data_idiscoplus_immuno_clearing3 = dict(antibody2_lot='def-654',antibody2_lot_submit=True)
-	response_idiscoplus_immuno_clearing3 = test_client.post(url_for('clearing.clearing_entry',
-			username="ahoag",
-			request_name="All_mouse_clearing_protocol_request",
-			clearing_protocol="iDISCO+_immuno",
-			antibody1="test antibody for immunostaining",antibody2="",
-			clearing_batch_number=2),
-			follow_redirects=True,
-		data=data_idiscoplus_immuno_clearing3
-		)	
-	assert b'Clearing Entry Form' in response_idiscoplus_immuno_clearing3.data
-	assert b'Protocol: iDISCO+_immuno' in response_idiscoplus_immuno_clearing3.data
-	assert b"def-654" in response_idiscoplus_immuno_clearing3.data
+	""" uDISCO """
 
 	data_udisco_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,time_dehydr_pbs_wash1_submit=True)
 	response_udisco_clearing = test_client.post(url_for('clearing.clearing_entry',
-			username="ahoag",
+			username=username,
 			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="uDISCO",
 			antibody1="",antibody2="",
@@ -298,9 +264,10 @@ def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_cl
 	assert b'Protocol: uDISCO' in response_udisco_clearing.data
 	assert now_proper_format.encode('utf-8') in response_udisco_clearing.data
 
+	""" iDISCO_EdU """
 	data_idisco_edu_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,time_dehydr_pbs_wash1_submit=True)
 	response_idisco_edu_clearing = test_client.post(url_for('clearing.clearing_entry',
-			username="ahoag",
+			username=username,
 			request_name="All_mouse_clearing_protocol_request",
 			clearing_protocol="iDISCO_EdU",
 			antibody1="",antibody2="",
@@ -311,23 +278,20 @@ def test_mouse_clearing_entry_forms_update(test_client,test_request_all_mouse_cl
 	assert b'Clearing Entry Form' in response_idisco_edu_clearing.data
 	assert b'Protocol: iDISCO_EdU' in response_idisco_edu_clearing.data
 	assert now_proper_format.encode('utf-8') in response_idisco_edu_clearing.data
- 
-def test_idiscoplus_clearing_entry_form_submits(test_client,
-	test_single_sample_idiscoplus_request_nonadmin,test_login_ll3):
-	""" Test that ll3 can submit a clearing entry form 
-	for the iDISCO+ immunostaining protocol 
-	and it redirects her back to the clearing task manager
-	and properly updates the db with antibody lot in clearing batch table
-	"""
+
+	""" Test that ll3 can submit the clearing forms
+	for each of the mouse clearing protocols
+	and each time it redirects her back to the clearing task manager  """
+
+	""" iDISCO abbreviated """
 	now = datetime.now()
-	print(now)
 	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
-		dehydr_pbs_wash1_notes='some notes',
-		antibody1_lot='abcd-1234',antibody2_lot='ghi-1027',submit=True)
-	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
-			request_name="nonadmin_idisco_request",
-			clearing_protocol="iDISCO+_immuno",
-			antibody1="test_antibody1",antibody2="test_antibody2",
+		dehydr_pbs_wash1_notes='some notes',submit=True)
+	response = test_client.post(url_for('clearing.clearing_entry',
+			username=username,
+			request_name="All_mouse_clearing_protocol_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
 			clearing_batch_number=1),
 		data = data,
 		follow_redirects=True,
@@ -336,49 +300,86 @@ def test_idiscoplus_clearing_entry_form_submits(test_client,
 	assert b'Clearing management GUI' in response.data
 	
 	""" Make sure clearing_progress is now updated """
-	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & 'username="lightserv-test"' & \
-	'request_name="nonadmin_idisco_request"' & 'clearing_protocol="iDISCO+_immuno"' & \
-			'antibody1="antibody1"' & 'antibody2="antibody2"'
-	clearing_progress,antibody1_lot,antibody2_lot = clearing_batch_contents.fetch1(
-		'clearing_progress','antibody1_lot','antibody2_lot')
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'username="{username}"' & \
+	'request_name="All_mouse_clearing_protocol_request"' & 'clearing_protocol="iDISCO abbreviated clearing"' & \
+			'antibody1=""' & 'antibody2=""'
+	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
 	assert clearing_progress == 'complete'
-	assert antibody1_lot == 'abcd-1234'
-	assert antibody2_lot == 'ghi-1027'
 	
-	""" Make sure the clearing batch is now in the correct table in the manager """
-	parsed_html = BeautifulSoup(response.data,features="html.parser")
-	table_tag = parsed_html.body.find('table',attrs={'id':'horizontal_already_cleared_table'})
-	table_row_tag = [1] # the 0th row is the headers
-	table_rows = table_tag.find_all('tr')
-	header_row = table_rows[0].find_all('th')
-	data_row = table_rows[1].find_all('td')
-	for ii,col in enumerate(header_row):
-		if col.text == 'clearing protocol':
-			clearing_protocol_column_index = ii
-		elif col.text == 'antibody1':
-			antibody1_column_index = ii
-		elif col.text == 'antibody2':
-			antibody2_column_index = ii
-		elif col.text == 'request name':
-			request_name_column_index = ii
-	clearing_protocol_retrieved = data_row[clearing_protocol_column_index].text
-	antibody1_retrieved = data_row[antibody1_column_index].text
-	antibody2_retrieved = data_row[antibody2_column_index].text
-	request_name_retrieved = data_row[request_name_column_index].text
-	# td_tags = table_row_tag.find_all('td')
-	assert clearing_protocol_retrieved == "iDISCO+_immuno"
-	assert antibody1_retrieved == "antibody1"
-	assert antibody2_retrieved == "antibody2"
-	assert request_name_retrieved == "nonadmin_idisco_request"
 
+	""" iDISCO+ immunostaining """
+	data_idiscoplus_immuno_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,
+		dehydr_pbs_wash1_notes='some notes',submit=True)
+	response_idiscoplus_immuno_clearing = test_client.post(url_for('clearing.clearing_entry',
+			username=username,
+			request_name="All_mouse_clearing_protocol_request",
+			clearing_protocol="iDISCO+_immuno",
+			antibody1="test antibody for immunostaining",antibody2="",
+			clearing_batch_number=2),
+			follow_redirects=True,
+		data=data_idiscoplus_immuno_clearing
+		)	
+	assert b'Clearing management GUI' in response.data
+	
+	""" Make sure clearing_progress is now updated """
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'username="{username}"' & \
+	'request_name="All_mouse_clearing_protocol_request"' & 'clearing_protocol="iDISCO+_immuno"' & \
+			'antibody1="test antibody for immunostaining"' & 'antibody2=""'
+	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
+	assert clearing_progress == 'complete'
+	
+	""" uDISCO """
+	data_udisco_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,
+		dehydr_pbs_wash1_notes='some notes',submit=True)
+	response_idiscoplus_immuno_clearing = test_client.post(url_for('clearing.clearing_entry',
+			username=username,
+			request_name="All_mouse_clearing_protocol_request",
+			clearing_protocol="uDISCO",
+			antibody1="",antibody2="",
+			clearing_batch_number=3),
+			follow_redirects=True,
+		data=data_udisco_clearing
+		)	
+	assert b'Clearing management GUI' in response.data
+	
+	# """ Make sure clearing_progress is now updated """
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'username="{username}"' & \
+	'request_name="All_mouse_clearing_protocol_request"' & 'clearing_protocol="uDISCO"' & \
+			'antibody1=""' & 'antibody2=""'
+	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
+	assert clearing_progress == 'complete'
 
-def test_rat_clearing_entry_forms_load(test_client,test_rat_request_nonadmin,test_login_ll3):
-	""" Test that ll3 can access the clearing entry form
+	""" iDISCO_EdU """
+	data_idisco_edu_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,
+		dehydr_pbs_wash1_notes='some notes',submit=True)
+	response_idiscoplus_immuno_clearing = test_client.post(url_for('clearing.clearing_entry',
+			username=username,
+			request_name="All_mouse_clearing_protocol_request",
+			clearing_protocol="iDISCO_EdU",
+			antibody1="",antibody2="",
+			clearing_batch_number=4),
+			follow_redirects=True,
+		data=data_idisco_edu_clearing
+		)	
+	assert b'Clearing management GUI' in response.data
+	
+	# """ Make sure clearing_progress is now updated """
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'username="{username}"' & \
+	'request_name="All_mouse_clearing_protocol_request"' & 'clearing_protocol="iDISCO_EdU"' & \
+			'antibody1=""' & 'antibody2=""'
+	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
+	assert clearing_progress == 'complete'
+
+def test_all_rat_clearing_entry_forms(test_client,
+	test_request_all_rat_clearing_protocols_ahoag,test_login_ll3):
+	""" Test that ll3 can ACCESS the clearing entry form
 	for the rat clearing protocol  """
+	username = 'ahoag'
 
+	""" iDISCO abbreviated clearing (rat) """
 	response_abbreviated_clearing = test_client.get(url_for('clearing.clearing_entry',
-			username="lightserv-test",
-			request_name="Nonadmin_rat_request",
+			username=username,
+			request_name="All_rat_clearing_protocol_request",
 			clearing_protocol="iDISCO abbreviated clearing (rat)",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -387,17 +388,30 @@ def test_rat_clearing_entry_forms_load(test_client,test_rat_request_nonadmin,tes
 	assert b'Clearing Entry Form' in response_abbreviated_clearing.data
 	assert b'Protocol: iDISCO abbreviated clearing (rat)' in response_abbreviated_clearing.data
 
-def test_rat_clearing_entry_forms_update(test_client,test_rat_request_nonadmin,test_login_ll3):
+	""" uDISCO (rat) """
+	response_udisco_clearing = test_client.get(url_for('clearing.clearing_entry',
+			username=username,
+			request_name="All_rat_clearing_protocol_request",
+			clearing_protocol="uDISCO (rat)",
+			antibody1="",antibody2="",
+			clearing_batch_number=2),
+			follow_redirects=True,
+		)	
+	assert b'Clearing Entry Form' in response_udisco_clearing.data
+	assert b'Protocol: uDISCO (rat)' in response_udisco_clearing.data
+
 	""" Test that ll3 can hit the update buttons in the clearing entry forms
 	for all mouse clearing protocols and the database is actually updated and the 
 	form is re-loaded with the updated field auto-filled """
+	
+	""" iDISCO abbreviated clearing (rat) """
 	now = datetime.now()
 	now_proper_format = now.strftime('%Y-%m-%dT%H:%M')
 	data_abbreviated_clearing = dict(time_pbs_wash1=now_proper_format,time_pbs_wash1_submit=True)
 	
 	response_abbreviated_clearing = test_client.post(url_for('clearing.clearing_entry',
-			username="lightserv-test",
-			request_name="Nonadmin_rat_request",
+			username=username,
+			request_name="All_rat_clearing_protocol_request",
 			clearing_protocol="iDISCO abbreviated clearing (rat)",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -405,15 +419,97 @@ def test_rat_clearing_entry_forms_update(test_client,test_rat_request_nonadmin,t
 		data=data_abbreviated_clearing
 		)	
 	assert b'Clearing Entry Form' in response_abbreviated_clearing.data
-	assert b'Protocol: iDISCO abbreviated clearing' in response_abbreviated_clearing.data
+	assert b'Protocol: iDISCO abbreviated clearing (rat)' in response_abbreviated_clearing.data
 	assert now_proper_format.encode('utf-8') in response_abbreviated_clearing.data
 
-def test_invalid_clearing_entry_params_redirect(test_client,test_single_sample_request_nonadmin,test_login_ll3):
+	""" uDISCO (rat) """
+	now = datetime.now()
+	now_proper_format = now.strftime('%Y-%m-%dT%H:%M')
+	data_udisco_clearing = dict(time_dehydr_pbs_wash1=now_proper_format,
+		time_dehydr_pbs_wash1_submit=True)
+	
+	response_udisco_clearing = test_client.post(url_for('clearing.clearing_entry',
+			username=username,
+			request_name="All_rat_clearing_protocol_request",
+			clearing_protocol="uDISCO (rat)",
+			antibody1="",antibody2="",
+			clearing_batch_number=2),
+			follow_redirects=True,
+		data=data_udisco_clearing
+		)	
+	assert b'Clearing Entry Form' in response_udisco_clearing.data
+	assert b'Protocol: uDISCO (rat)' in response_udisco_clearing.data
+	assert now_proper_format.encode('utf-8') in response_udisco_clearing.data
+
+	""" Test that rat clearing forms submit """
+	""" iDISCO abbreviated clearing (rat) """
+	now = datetime.now()
+	data = dict(time_dehydr_methanol_20percent_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		dehydr_methanol_20percent_wash1_notes='some notes',submit=True)
+	response = test_client.post(url_for('clearing.clearing_entry',
+			username=username,
+			request_name="All_rat_clearing_protocol_request",
+			clearing_protocol="iDISCO abbreviated clearing (rat)",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+	
+	assert b'Clearing management GUI' in response.data
+	
+	# """ Make sure clearing_progress is now updated """
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'username="{username}"' & \
+	'request_name="All_rat_clearing_protocol_request"' & 'clearing_protocol="iDISCO abbreviated clearing (rat)"' 
+	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
+	assert clearing_progress == 'complete'
+
+	""" uDISCO (rat) """
+	now = datetime.now()
+	data = dict(time_dehydr_butanol_30percent=now.strftime('%Y-%m-%dT%H:%M'),
+		dehydr_butanol_30percent_notes='some notes',submit=True)
+	response = test_client.post(url_for('clearing.clearing_entry',
+			username=username,
+			request_name="All_rat_clearing_protocol_request",
+			clearing_protocol="uDISCO (rat)",
+			antibody1="",antibody2="",
+			clearing_batch_number=2),
+		data = data,
+		follow_redirects=True,
+		)	
+	
+	assert b'Clearing management GUI' in response.data
+	
+	# """ Make sure clearing_progress is now updated """
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'username="{username}"' & \
+	'request_name="All_rat_clearing_protocol_request"' & 'clearing_protocol="uDISCO (rat)"' 
+	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
+	assert clearing_progress == 'complete'
+	
+def test_validate_clearing_form(test_client,test_single_sample_request_nonadmin,test_login_ll3):
+	""" Test that hitting the "Push date to calendar" without putting anything in 
+	results in a flash message and a redirect to the same page
+
+	Uses the test_cleared_request_nonadmin fixture to insert and clear 
+	a request with username='ahoag' and clearer='ll3'  """
+	data = dict(pbs_date='',
+		pbs_date_submit=True)
+	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
+			request_name="nonadmin_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data=data,
+		follow_redirects=True
+	)
+	assert b'Please enter a valid date to push to the Clearing Calendar' in response.data
+	assert b'Clearing Entry Form' in response.data
+
 	""" Test that providing invalid parameters to the clearing entry route 
 	will result in a redirect to the requests.all_requests() route """
 
 	response = test_client.get(url_for('clearing.clearing_entry',username="lightserv-test",
-			request_name="aihuouwelkwel",
+			request_name="bad_request_name",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -421,19 +517,18 @@ def test_invalid_clearing_entry_params_redirect(test_client,test_single_sample_r
 		)	
 	assert b'Clearing Entry Form' not in response.data
 	assert b'core facility requests' in response.data
- 
-def test_previous_updates_to_clearing_form_appear(test_client,test_request_all_mouse_clearing_protocols_ahoag,test_login_ll3):
+
 	""" Test that hitting the "update" buttton in a previous 
 	clearing form entry saved the data and that data are pre-filled 
 	in a new session. """
-	
+
 	""" First issue a POST request to update the form """
 	now = datetime.now()
 	now_proper_format = now.strftime('%Y-%m-%dT%H:%M')
 	data_abbreviated_clearing = dict(time_pbs_wash1=now_proper_format,time_pbs_wash1_submit=True)
 	response_post = test_client.post(url_for('clearing.clearing_entry',
-			username="ahoag",
-			request_name="All_mouse_clearing_protocol_request",
+			username="lightserv-test",
+			request_name="nonadmin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
@@ -443,30 +538,48 @@ def test_previous_updates_to_clearing_form_appear(test_client,test_request_all_m
 
 	""" Now a GET request to check that the field is auto-filled """
 	response_get = test_client.get(url_for('clearing.clearing_entry',
-			username="ahoag",
-			request_name="All_mouse_clearing_protocol_request",
+			username="lightserv-test",
+			request_name="nonadmin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1)
 		)	
 	assert now_proper_format.encode('utf-8') in response_get.data
- 
-def test_completed_clearing_form_is_readonly(test_client,test_cleared_request_ahoag):
-	""" Test that a GET request to a previously
-	completed clearing entry form produces a flash message saying read only """
-	
-	""" First issue a POST request to submit the form """
-	response = test_client.get(url_for('clearing.clearing_entry',
-			username="ahoag",
-			request_name="admin_request",
+
+	""" Test that if one of the buttons in the form has a bad name (or a bad or malicious post request happens),
+	the form does not submit and a redirect to the 500 error page occurs.
+
+	Uses the test_cleared_request_nonadmin fixture to insert and clear 
+	a request with username='ahoag' and clearer='ll3'  """
+	data = dict(bad_button_submit=True)
+	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
+			request_name="nonadmin_request",
 			clearing_protocol="iDISCO abbreviated clearing",
 			antibody1="",antibody2="",
 			clearing_batch_number=1),
-			follow_redirects=True,
-		)	
-	assert b'This page is read only' in response.data
-	
-def test_completed_clearing_form_is_readonly_noupdate(test_client,test_cleared_request_ahoag):
+		data=data,
+		follow_redirects=True
+	)
+	assert b'Something went wrong (500)' in response.data
+
+	""" Test that if user enters too much text for one of the notes fields
+	they get a validation error
+
+	Uses the test_cleared_request_nonadmin fixture to insert and clear 
+	a request with username='ahoag' and clearer='ll3'  """
+	data = dict(dehydr_methanol_20percent_wash1_notes=lorem.text(),
+		dehydr_methanol_20percent_wash1_notes_submit=True) # the lorem ipsum text is longer than this notes field will accept
+	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
+			request_name="nonadmin_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data=data,
+		follow_redirects=True
+	)
+	assert b'Field cannot be longer than 250 characters.' in response.data
+
+def test_completed_clearing_form_is_readonly(test_client,test_cleared_request_ahoag):
 	""" Test that a POST request via an "update" button to a previously
 	completed clearing entry form produces a flash message saying read only 
 	and does not update the db """
@@ -487,12 +600,10 @@ def test_completed_clearing_form_is_readonly_noupdate(test_client,test_cleared_r
 	assert b'This page is read only' in response.data
 	assert b'notes for 20 percent methanol' not in response.data
 
-def test_completed_clearing_form_is_readonly_nosubmit(test_client,test_cleared_request_ahoag):
-	""" Test that a POST request via an "update" button to a previously
-	completed clearing entry form produces a flash message saying read only 
+	""" Test that a POST request to submit the entire form 
+	produces a flash message saying read only 
 	and does not update the db """
-	
-	""" First issue a POST request to submit the form """
+
 	data_abbreviated_clearing = dict(dehydr_methanol_20percent_wash1_notes='notes for 20 percent methanol',
 		submit=True)
 
@@ -508,89 +619,6 @@ def test_completed_clearing_form_is_readonly_nosubmit(test_client,test_cleared_r
 			
 	assert b'This page is read only' in response.data
 	assert b'notes for 20 percent methanol' not in response.data
-
-def test_clearing_calendar_date_submit(test_client,test_single_sample_request_nonadmin,test_login_ll3):
-	""" Test that the "Push date to calendar" buttons on the clearing entry form
-	actually push to a test calendar.
-
-	Uses the test_cleared_request_nonadmin fixture to insert and clear 
-	a request with username='ahoag' and clearer='ll3'  """
-	today = date.today()
-	yesterday = today-timedelta(days=1)
-	tomorrow = today+timedelta(days=1)
-	today_proper_format = today.strftime('%Y-%m-%d')
-	data = dict(pbs_date=today_proper_format,
-		pbs_date_submit=True)
-	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
-			request_name="nonadmin_request",
-			clearing_protocol="iDISCO abbreviated clearing",
-			antibody1="",antibody2="",
-			clearing_batch_number=1),
-		data=data,
-		follow_redirects=True
-	)
-	assert b'Event added to Clearing Calendar. Check the calendar.' in response.data
-	''' Now check that the event was really added to the calendar '''
-	event = retrieve_clearing_calendar_entry(calendar_id=current_app.config['CLEARING_CALENDAR_ID'])
-	event_summary = event['summary']
-	assert event_summary == 'lightserv-test iDISCO abbreviated clearing pbs'
-	event_id = event['id']
-	delete_clearing_calendar_entry(calendar_id=current_app.config['CLEARING_CALENDAR_ID'],
-		event_id=event_id)
-
-def test_clearing_calendar_date_invalid_entry(test_client,test_single_sample_request_nonadmin,test_login_ll3):
-	""" Test that hitting the "Push date to calendar" without putting anything in 
-	results in a flash message and a redirect to the same page
-
-	Uses the test_cleared_request_nonadmin fixture to insert and clear 
-	a request with username='ahoag' and clearer='ll3'  """
-	data = dict(pbs_date='',
-		pbs_date_submit=True)
-	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
-			request_name="nonadmin_request",
-			clearing_protocol="iDISCO abbreviated clearing",
-			antibody1="",antibody2="",
-			clearing_batch_number=1),
-		data=data,
-		follow_redirects=True
-	)
-	assert b'Please enter a valid date to push to the Clearing Calendar' in response.data
-	assert b'Clearing Entry Form' in response.data
-
-def test_clearing_entry_bad_button(test_client,test_single_sample_request_nonadmin,test_login_ll3):
-	""" Test that if one of the buttons in the form has a bad name (or a bad or malicious post request happens),
-	the form does not submit and a redirect to the 500 error page occurs.
-
-	Uses the test_cleared_request_nonadmin fixture to insert and clear 
-	a request with username='ahoag' and clearer='ll3'  """
-	data = dict(bad_button_submit=True)
-	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
-			request_name="nonadmin_request",
-			clearing_protocol="iDISCO abbreviated clearing",
-			antibody1="",antibody2="",
-			clearing_batch_number=1),
-		data=data,
-		follow_redirects=True
-	)
-	assert b'Something went wrong (500)' in response.data
-
-def test_clearing_entry_not_validated(test_client,test_single_sample_request_nonadmin,test_login_ll3):
-	""" Test that if user enters too much text for one of the notes fields
-	they get a validation error
-
-	Uses the test_cleared_request_nonadmin fixture to insert and clear 
-	a request with username='ahoag' and clearer='ll3'  """
-	data = dict(dehydr_methanol_20percent_wash1_notes=lorem.text(),
-		dehydr_methanol_20percent_wash1_notes_submit=True) # the lorem ipsum text is longer than this notes field will accept
-	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
-			request_name="nonadmin_request",
-			clearing_protocol="iDISCO abbreviated clearing",
-			antibody1="",antibody2="",
-			clearing_batch_number=1),
-		data=data,
-		follow_redirects=True
-	)
-	assert b'Field cannot be longer than 250 characters.' in response.data
 
 def test_clearing_entry_experimental_rat_nonadmin(test_client,test_experimental_clearing_request_nonadmin,
 	test_login_ll3,test_delete_request_db_contents):
@@ -623,14 +651,6 @@ def test_clearing_entry_experimental_rat_nonadmin(test_client,test_experimental_
 	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
 	assert clearing_progress == 'complete'
 	
-	# """ Make sure the clearing batch is now in the correct table in the manager """
-	# parsed_html = BeautifulSoup(response.data,features="html.parser")
-	# table_tag = parsed_html.body.find('table',attrs={'id':'horizontal_already_cleared_table'})
-	# table_row_tag = table_tag.find_all('tr')[1] # the 0th row is the headers
-	# td_tags = table_row_tag.find_all('td')
-	# assert td_tags[1].text == "iDISCO abbreviated clearing" and \
-	# td_tags[2].text == "" and td_tags[3].text == "" and td_tags[4].text == 'nonadmin_request'
-
 def test_clearing_notes_appear_in_clearing_entry_form(test_client,test_multisample_request_nonadmin_clearing_notes,
 	test_login_ll3,test_delete_request_db_contents):
 	""" Clears the request with multiple samples by 'lightserv-test' (with clearer='ll3')  
@@ -651,59 +671,6 @@ def test_clearing_notes_appear_in_clearing_entry_form(test_client,test_multisamp
 	assert b'sample 1 notes' in response.data
 	assert b'sample 2 notes' in response.data
 	
-def test_rat_udisco_clearing_entry_form_submits(test_client,
-	test_rat_udisco_clearing_request_nonadmin,test_login_ll3):
-	""" Test that ll3 can submit a clearing entry form 
-	and it redirects her back to the clearing task manager  """
-	# response = test_client.get(url_for('requests.all_requests'))
-	now = datetime.now()
-	data = dict(time_dehydr_butanol_30percent=now.strftime('%Y-%m-%dT%H:%M'),
-		dehydr_butanol_30percent_notes='some notes',submit=True)
-	response = test_client.post(url_for('clearing.clearing_entry',
-			username="lightserv-test",
-			request_name="nonadmin_udisco_rat_request",
-			clearing_protocol="uDISCO (rat)",
-			antibody1="",antibody2="",
-			clearing_batch_number=1),
-		data = data,
-		follow_redirects=True,
-		)	
-	
-	assert b'Clearing management GUI' in response.data
-	
-	""" Make sure clearing_progress is now updated """
-	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & 'username="lightserv-test"' & \
-	'request_name="nonadmin_udisco_rat_request"' & 'clearing_protocol="uDISCO (rat)"' & \
-			'antibody1=""' & 'antibody2=""'
-	clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
-	assert clearing_progress == 'complete'
-	
-	""" Make sure the clearing batch is now in the correct table in the manager """
-	parsed_html = BeautifulSoup(response.data,features="html.parser")
-	table_tag = parsed_html.body.find('table',attrs={'id':'horizontal_already_cleared_table'})
-	table_row_tag = [1] # the 0th row is the headers
-	table_rows = table_tag.find_all('tr')
-	header_row = table_rows[0].find_all('th')
-	data_row = table_rows[1].find_all('td')
-	for ii,col in enumerate(header_row):
-		if col.text == 'clearing protocol':
-			clearing_protocol_column_index = ii
-		elif col.text == 'antibody1':
-			antibody1_column_index = ii
-		elif col.text == 'antibody2':
-			antibody2_column_index = ii
-		elif col.text == 'request name':
-			request_name_column_index = ii
-	clearing_protocol_retrieved = data_row[clearing_protocol_column_index].text
-	antibody1_retrieved = data_row[antibody1_column_index].text
-	antibody2_retrieved = data_row[antibody2_column_index].text
-	request_name_retrieved = data_row[request_name_column_index].text
-
-	assert clearing_protocol_retrieved == "uDISCO (rat)"
-	assert antibody1_retrieved == ""
-	assert antibody2_retrieved == ""
-	assert request_name_retrieved == "nonadmin_udisco_rat_request"
-
 """ Test clearing_table() """
 
 def test_mouse_clearing_tables_have_db_content(test_client,test_cleared_all_mouse_clearing_protocols_ahoag):

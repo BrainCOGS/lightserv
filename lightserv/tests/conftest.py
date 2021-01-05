@@ -649,6 +649,56 @@ def test_request_all_mouse_clearing_protocols_ahoag(test_client,test_login,test_
 	print('-------Teardown test_single_request_ahoag fixture --------')
 
 @pytest.fixture(scope='function') 
+def test_request_all_rat_clearing_protocols_ahoag(test_client,
+	test_login,test_delete_request_db_contents):
+	""" Submits a new request as 'ahoag' with a sample for each of the 4 
+	clearing protocols that can be used for mice.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_single_request_ahoag fixture ----------')
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"ahoag@princeton.edu",
+			'request_name':"All_rat_clearing_protocol_request",
+			'description':"This is a rat request using all possible clearing protocols for rats",
+			'species':"rat",'number_of_samples':2,
+			'raw_data_retention_preference':"important",
+			'username':current_user,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing (rat)',
+			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
+			'clearing_samples-1-clearing_protocol':'uDISCO (rat)',
+			'clearing_samples-1-antibody1':'test antibody for immunostaining',
+			'clearing_samples-1-sample_name':'sample-002',
+			'clearing_samples-1-expected_handoff_date':today_proper_format,
+			'clearing_samples-1-perfusion_date':today_proper_format,
+			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-1-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-1-image_resolution_forsetup':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_single_request_ahoag fixture --------')
+
+
+@pytest.fixture(scope='function') 
 def test_multisample_request_nonadmin_clearing_notes(test_client,test_login_nonadmin,test_delete_request_db_contents):
 	""" Submits a new request as 'lightserv-test' (a nonadmin) with multiple samples that can be used for various tests.
 	There are notes_for_clearer entries in multiple sample fields 
