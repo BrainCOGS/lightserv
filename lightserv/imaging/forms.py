@@ -178,6 +178,7 @@ class ImageResolutionRequestForm(FlaskForm):
 class NewImagingRequestForm(FlaskForm):
 	""" The form for a new imaging request """
 	max_number_of_samples = 50
+	number_of_samples = HiddenField('number of samples')
 	species = HiddenField('species')
 	""" Imaging """
 	self_imaging = BooleanField('Check if you plan to do the imaging yourself',default=False)

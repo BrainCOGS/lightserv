@@ -1738,7 +1738,7 @@ def new_imaging_request(username,request_name):
 			logger.info("Form validated")
 			""" figure out which button was pressed """
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x and form[x].data == True]
-			if len(submit_keys) == 1: # submit key was either sample setup or final submit button
+			if len(submit_keys) == 1: # submit key was final submit button
 				submit_key = submit_keys[0]
 			else: # submit key came from within a sub-form, meaning one of the resolution table setup buttons
 				logger.info("resolution table setup button pressed")
@@ -1775,10 +1775,9 @@ def new_imaging_request(username,request_name):
 							logger.debug(channel_name)
 							image_resolution_form.channel_forms[x].channel_name.data = channel_name
 							
-							if form.species.data == 'mouse' and channel_name == '488' and image_resolution_forsetup == "1.3x":
+							if form.species.data == 'mouse' and channel_name == '488' and \
+								(image_resolution_forsetup == "1.3x" or image_resolution_forsetup == "1.1x"):
 								image_resolution_form.channel_forms[x].registration.data = 1
-							# if form.species.data == 'mouse' and channel_name == '555' and image_resolution_forsetup == "1.3x":
-							#     image_resolution_form.channel_forms[x].injection_detection.data = 1
 								
 						logger.info(f"Column name is: {column_name}")
 						resolution_choices = form.imaging_samples[ii].image_resolution_forsetup.choices
@@ -1791,51 +1790,12 @@ def new_imaging_request(username,request_name):
 				from the list of choices for the next image resolution table """
 				
 			""" Handle all of the different "*submit*" buttons pressed """
-			if submit_key == 'sample_submit_button': # The sample setup button
-				logger.info("sample submit")
-				nsamples = form.number_of_samples.data
-
-				""" Make nsamples sets of sample fields and render them """
-				for ii in range(nsamples):
-					form.clearing_samples.append_entry()
-					form.clearing_samples[ii].sample_name.data = form.request_name.data + '-' + f'{ii+1}'.zfill(3)
-					current_choices = form.clearing_samples[ii].clearing_protocol.choices
-					if form.species.data == 'mouse':
-						new_choices = [x for x in current_choices if 'rat' not in x[0].lower()]
-					if form.species.data == 'rat':
-						new_choices = [x for x in current_choices if 'rat' in x[0].lower()]                        
-						form.clearing_samples[ii].clearing_protocol.data = 'iDISCO abbreviated clearing (rat)'
-					form.clearing_samples[ii].clearing_protocol.choices = new_choices
-					form.imaging_samples.append_entry()
-
-				column_name = 'clearing_samples-0-sample_name'
-
-			elif submit_key == 'uniform_clearing_submit_button': # The uniform clearing button
-				logger.info("uniform clearing button pressed")
-				""" copy over all clearing parameters from sample 1 to samples 2:last """
-				sample1_clearing_sample_dict = form.clearing_samples[0].data
-				sample1_perfusion_date = sample1_clearing_sample_dict['perfusion_date']
-				sample1_expected_handoff_date = sample1_clearing_sample_dict['expected_handoff_date']
-				sample1_clearing_protocol = sample1_clearing_sample_dict['clearing_protocol']
-				sample1_antibody1 = sample1_clearing_sample_dict['antibody1']
-				sample1_antibody2 = sample1_clearing_sample_dict['antibody2']
-				for ii in range(form.number_of_samples.data):
-					if ii == 0:
-						continue
-					form.clearing_samples[ii].perfusion_date.data = sample1_perfusion_date
-					form.clearing_samples[ii].expected_handoff_date.data = sample1_expected_handoff_date
-					form.clearing_samples[ii].clearing_protocol.data = sample1_clearing_protocol
-					form.clearing_samples[ii].antibody1.data = sample1_antibody1
-					form.clearing_samples[ii].antibody2.data = sample1_antibody2
-				column_name = 'uniform_clearing_submit_button'
-
-			elif submit_key == 'uniform_imaging_submit_button': # The uniform imaging button
+			if submit_key == 'uniform_imaging_submit_button': # The uniform imaging button
 				logger.info("uniform imaging button pressed")
 				""" copy over all imaging/processing parameters from sample 1 to samples 2:last """
 				sample1_imaging_sample_dict = form.imaging_samples[0].data
 				sample1_image_resolution_form_dicts = sample1_imaging_sample_dict['image_resolution_forms']
-
-				for ii in range(form.number_of_samples.data):
+				for ii in range(number_of_samples):
 					if ii == 0:
 						continue
 					""" Loop through the image resolutions and add each one """
@@ -1879,50 +1839,15 @@ def new_imaging_request(username,request_name):
 					at any point during any of the code block """
 				connection = db_lightsheet.Request.connection
 				with connection.transaction:
-					""" If someone else's username is entered, then
-					override the username dictionary entry to use this """
-					if form.other_username.data:
-						username = form.other_username.data
-						logger.info(f"Other username entered. Setting username={username}")
-						princeton_email = username + '@princeton.edu'
-						""" insert into User() db table 
-						with skip_duplicates=True in case username 
-						is not already in there. """
-						user_insert_dict = dict(username=username,princeton_email=princeton_email)
-						db_lightsheet.User().insert1(user_insert_dict,skip_duplicates=True)
-					else:
-						username = current_user
-						logger.info(f"Form filled out by current user with username={username}.")
-
-					princeton_email_current_user = current_user + '@princeton.edu'
 					
-					current_user_insert_dict = dict(username=current_user,
-						princeton_email=princeton_email_current_user)
-					db_lightsheet.User().insert1(current_user_insert_dict,skip_duplicates=True)
-					request_insert_dict = dict(request_name=form.request_name.data,
-						username=username,requested_by=current_user,
-						labname=form.labname.data.lower(),
-						correspondence_email=form.correspondence_email.data.lower(),
-						description=form.description.data,species=form.species.data,
-						number_of_samples=form.number_of_samples.data,
-						raw_data_retention_preference=form.raw_data_retention_preference.data,
-						testing=form.testing.data)
+
 					now = datetime.now()
 					date = now.strftime("%Y-%m-%d")
 					time = now.strftime("%H:%M:%S") 
 					request_insert_dict['date_submitted'] = date
 					request_insert_dict['time_submitted'] = time
 
-					db_lightsheet.Request().insert1(request_insert_dict)
-
-					''' Sample section '''
-					clearing_samples = form.clearing_samples.data
-					imaging_samples = form.imaging_samples.data
-					number_of_samples = form.number_of_samples.data
-
 					''' Now loop through all samples and make the insert lists '''
-					sample_insert_list = []
-					clearing_batch_insert_list = []
 					imaging_batch_insert_list = []
 					imaging_request_insert_list = []
 					imaging_resolution_insert_list = []
@@ -2320,23 +2245,14 @@ def new_imaging_request(username,request_name):
 					flash(error_str,'danger')
 			
 			logger.debug("Not validated! See error dict below:")
-			# logger.debug(form.imaging_samples[0].image_resolution_forms[0].atlas_name.data)
 			logger.debug(form.errors)
 			logger.debug("")
 			flash_str = 'There were errors below. Correct them before proceeding'
 			flash(flash_str,'danger')
 			""" deal with errors in the samples section - those will not always 
 			show up in the proper place """
-			if 'clearing_samples' in form.errors:
-				for obj in form.errors['clearing_samples']:
-					if isinstance(obj,dict):
-
-						for key,val in list(obj.items()):
-							for error_str in val:
-								flash(error_str,'danger')
-					elif isinstance(obj,str):
-						flash(obj,'danger')
-			elif 'imaging_samples' in form.errors:
+			
+			if 'imaging_samples' in form.errors:
 				for obj in form.errors['imaging_samples']:
 					flash(obj,'danger')
 			if 'number_of_samples' in form.errors:
@@ -2346,6 +2262,7 @@ def new_imaging_request(username,request_name):
 	if request.method=='GET':
 		logger.info("GET request")
 		form.species.data = species
+		form.number_of_samples.data = number_of_samples
 		""" Clear out any previously existing imaging sample forms """
 		while len(form.imaging_samples) > 0:
 			form.imaging_samples.pop_entry() # pragma: no cover - used to exclude this line from calculating test coverage

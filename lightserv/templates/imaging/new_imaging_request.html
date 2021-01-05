@@ -12,7 +12,9 @@
 	<div class="content-section">
 		<form method="POST" action="">
 			{{ form.hidden_tag() }}
+			<!-- Render hidden fields -->
 			{{ form.species() }}
+			{{ form.number_of_samples() }}
 			<fieldset class="form-group">
 				{% for ii in range(form.imaging_samples|length) %}
 					{% set sample_form = form.imaging_samples[ii] %}
@@ -159,6 +161,14 @@
 				        <div class="form-group">
 							{{ sample_form.new_image_resolution_form_submit(class="btn btn-primary mt-2") }}
 						</div>
+
+						<hr class='class-2'>
+
+						 {% if ii == 0 and form.number_of_samples.data|int > 1 %}
+							<div class="form-group">
+								{{ form.uniform_imaging_submit_button(class="btn btn-success ") }}
+			                </div>
+			            {% endif %}
 					</div>
 					<hr class='class-2'>
 
