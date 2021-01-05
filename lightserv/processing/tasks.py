@@ -613,12 +613,14 @@ def make_precomputed_stitched_data(**kwargs):
 		rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 				username,request_name,sample_name,
 				f"imaging_request_{imaging_request_number}",
+				"rawdata",
 				f"resolution_{image_resolution}_ventral_up",
 				rawdata_subfolder)
 	else:
 		rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 				username,request_name,sample_name,
 				f"imaging_request_{imaging_request_number}",
+				"rawdata",
 				f"resolution_{image_resolution}",
 				rawdata_subfolder)
 	kwargs['rawdata_path'] = rawdata_path
@@ -631,7 +633,7 @@ def make_precomputed_stitched_data(**kwargs):
 	logger.debug(rawdata_path + f'/*_ch{channel_index_padded}_{lightsheet}_lightsheet_ts_out')
 	logger.debug(glob.glob(rawdata_path + '/*ts_out'))
 	terastitcher_output_parent_dirs = glob.glob(rawdata_path + f'/*_ch{channel_index_padded}_{lightsheet}_lightsheet_ts_out')
-	assert len(terastitcher_output_parent_dirs) == 1
+	
 	terastitcher_output_parent_dir = terastitcher_output_parent_dirs[0]
 	logger.debug("TERASTITCHER OUTPUT DIRECTORY:")
 	logger.debug(terastitcher_output_parent_dir)
