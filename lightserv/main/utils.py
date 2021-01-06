@@ -208,10 +208,9 @@ def logged_in_as_imager(f):
 			logger.debug(f"User is logged in as: {current_user}")
 			username = kwargs['username']
 			request_name = kwargs['request_name']
+			imaging_request_number = kwargs['imaging_request_number']
 			imaging_batch_number = kwargs['imaging_batch_number']
-			imaging_batch_contents = db_lightsheet.Request.ImagingBatch() & f'request_name="{request_name}"' & \
-			 	f'username="{username}"' & \
-			 	f'imaging_batch_number="{imaging_batch_number}"'
+			imaging_batch_contents = db_lightsheet.Request.ImagingBatch() & kwargs
 			if len(imaging_batch_contents) == 0:
 				flash("No imaging batch exists with those parameters. Please try again.","danger")
 				logger.debug("No imaging request exists with those parameters. Redirecting to all requests page")

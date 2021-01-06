@@ -18,7 +18,7 @@ services:
     env_file: .testdockerenv
     hostname: docker_lightserv
     image: flaskcelery:latest
-    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_imaging.py::test_new_imaging_request"
+    command: "pytest -p no:cacheprovider -vs lightserv/tests/test_imaging.py::test_imaging_batch_entry_form_GET"
     volumes:
       - .:/app # so changes made to the app are propagated to the container without having to rebuild
       - /jukebox/LightSheetData:/jukebox/LightSheetData

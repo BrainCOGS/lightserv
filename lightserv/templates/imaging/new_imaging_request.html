@@ -21,17 +21,18 @@
 					<!-- Render hidden field sample_name -->
 					{{ sample_form.sample_name() }}
 					{% set sample_name = sample_form.sample_name.data %}
-					<div class="sticky-top">
+					<div class="card card-body sticky-top mb-2">
 				    	<h3 class="form-control-label"><b>Sample {{ii+1}}/{{form.imaging_samples|length}}: {{sample_name}} </b></h3>
+				    	<div class="checkbox">
+							{{ sample_form.reimaging_this_sample(class="form-check-input", onchange="togglefield(this)" ) }}
+							{{ sample_form.reimaging_this_sample.label(class="form-check-label") }}
+						</div>
 			    	</div>
-					<div class="checkbox mb-2">
-						{{ sample_form.reimaging_this_sample(class="form-check-input", onchange="togglefield(this)" ) }}
-						{{ sample_form.reimaging_this_sample.label(class="form-check-label") }}
-					</div>
+					
 					{% if sample_form.reimaging_this_sample.data %}
-						<div class="container" id="sample_{{ii}}_form_div" style="display: block">
+						<div id="sample_{{ii}}_form_div" style="display: block">
 					{% else %}
-						<div class="container" id="sample_{{ii}}_form_div" style="display: none">
+						<div id="sample_{{ii}}_form_div" style="display: none">
 					{% endif %}
 				        <hr class='class-2'>
 						<h3 class='border-bottom mb-4'>Imaging/Processing setup</h3>
@@ -170,7 +171,7 @@
 			                </div>
 			            {% endif %}
 					</div>
-					<hr class='class-2'>
+					<hr class='class-4'>
 
 				{% endfor %} <!-- Loop over imaging sample forms -->
 				</fieldset>

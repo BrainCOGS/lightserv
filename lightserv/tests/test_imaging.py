@@ -61,6 +61,30 @@ def test_multisample_multichannel_request_in_imaging_manager(test_client,
 
 """ Tests for imaging entry form """
 
+def test_imaging_batch_entry_form_GET(test_client,
+	test_cleared_multisample_multichannel_request_nonadmin,
+	test_login_zmd):
+	""" Test the single sample section of the imaging batch entry form.
+
+	First, test validation.
+
+	Then, test adding/deleting channel
+
+	Then, test changing image resolution
+
+	Then, test that the subform submits.
+
+	"""
+
+	response = test_client.get(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_request_number=1,
+			imaging_batch_number=1),
+		follow_redirects=True)
+	assert b'Imaging Entry Form' in response.data
+
+
 def test_imaging_batch_entry_form_single_sample(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
 	test_login_zmd):
@@ -92,6 +116,7 @@ def test_imaging_batch_entry_form_single_sample(test_client,
 	response_validation = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='nonadmin_manysamp_request',
+			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data_validation,
 		follow_redirects=True)

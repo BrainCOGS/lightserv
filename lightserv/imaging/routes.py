@@ -11,7 +11,7 @@ from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 from lightserv.imaging.tables import (ImagingTable, dynamic_imaging_management_table,
 	SampleTable, ExistingImagingTable, ImagingChannelTable,ImagingBatchTable,
 	RequestSummaryTable)
-from .forms import (ImagingForm, NewImagingRequestForm, ImagingBatchForm)
+from .forms import (NewImagingRequestForm, ImagingBatchForm)
 from . import tasks
 from . import utils
 from lightserv.main.tasks import send_email
@@ -58,7 +58,6 @@ def imaging_manager():
 	sample_contents = db_lightsheet.Request.Sample()
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
 	imaging_batch_contents = db_lightsheet.Request.ImagingBatch()
-	# imaging_channel_contents = db_lightsheet.Request.ImagingChannel()
 
 	imaging_request_contents = (clearing_batch_contents * sample_contents * \
 		request_contents * imaging_batch_contents).\
@@ -74,7 +73,8 @@ def imaging_manager():
 	
 	# ''' First get all entities that are currently being imaged '''
 	""" Get all entries currently being imaged """
-	imaging_request_contents = dj.U('username','request_name','imaging_batch_number').aggr(
+	imaging_request_contents = dj.U('username','request_name',
+		'imaging_batch_number','imaging_request_number').aggr(
 		imaging_request_contents,clearer='clearer',
 		clearing_progress='clearing_progress',
 		datetime_submitted='datetime_submitted',
@@ -115,12 +115,13 @@ def imaging_manager():
 		table_ready_to_image=table_ready_to_image,table_on_deck=table_on_deck,
 		table_already_imaged=table_already_imaged)
 
-@imaging.route("/imaging/imaging_batch_entry/<username>/<request_name>/<imaging_batch_number>",
+@imaging.route("/imaging/imaging_batch_entry/<username>/<request_name>/<imaging_request_number>/<imaging_batch_number>",
 	methods=['GET','POST'])
 @logged_in
 @logged_in_as_imager
 @log_http_requests
-def imaging_batch_entry(username,request_name,imaging_batch_number): 
+def imaging_batch_entry(username,request_name,
+	imaging_request_number,imaging_batch_number): 
 	""" Route for handling form data entered for imaging 
 	samples in batch entry form
 	"""
@@ -130,15 +131,15 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 	form = ImagingBatchForm(request.form)
 	rawdata_rootpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 		username,request_name)
-	imaging_request_number = 1 # TODO - make this variable to allow follow up imaging requests
-	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
-			f'username="{username}"' & f'imaging_batch_number={imaging_batch_number}' 
+	imaging_batch_restrict_dict = dict(username=username,request_name=request_name,
+		imaging_batch_number=imaging_batch_number,
+		imaging_request_number=imaging_request_number)
+	sample_contents = db_lightsheet.Request.ImagingBatchSample() & imaging_batch_restrict_dict 
 	
 	sample_dict_list = sample_contents.fetch(as_dict=True)
 
 	""" Figure out how many samples in this imaging batch """
-	imaging_batch_restrict_dict = dict(username=username,request_name=request_name,
-		imaging_batch_number=imaging_batch_number)
+	
 	imaging_batch_contents = db_lightsheet.Request.ImagingBatch() & imaging_batch_restrict_dict
 	number_in_batch = imaging_batch_contents.fetch1('number_in_imaging_batch')
 	
@@ -1493,41 +1494,6 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 			date = now.strftime('%Y-%m-%d')
 			dj.Table._update(imaging_batch_contents,'imaging_performed_date',date)
 			
-			""" Finally, set up the 4-day reminder email that will be sent if 
-			user still has not submitted processing request (provided that there exists a processing 
-			request for this imaging request) """
-
-			# """ First check if there is a processing request for this imaging request.
-			# This will be processing_request_number=1 because we are in the imaging entry
-			# form here. """
-			# restrict_dict = dict(username=username,request_name=request_name,
-			# 	sample_name=sample_name,imaging_request_number=imaging_request_number,
-			# 	processing_request_number=1)
-			# processing_request_contents = db_lightsheet.Request.ProcessingRequest() & restrict_dict
-			# if len(processing_request_contents) > 0:
-			# 	subject = 'Lightserv automated email. Reminder to start processing.'
-			# 	body = ('Hello, this is a reminder that you still have not started '
-			# 			'the data processing pipeline for your sample:.\n\n'
-			# 			f'request_name: {request_name}\n'
-			# 			f'sample_name: {sample_name}\n\n'
-			# 			'To start processing your data, '
-			# 			f'go to the processing management GUI: {processing_manager_url} '
-			# 			'and find your sample to process.\n\n'
-			# 			'Thanks,\nThe Brain Registration and Histology Core Facility')    
-			# 	logger.debug("Sending reminder email 4 days in the future")
-			# 	request_contents = db_lightsheet.Request() & \
-			# 					{'username':username,'request_name':request_name}
-			# 	correspondence_email = request_contents.fetch1('correspondence_email')
-			# 	recipients = [correspondence_email]
-			# 	future_time = datetime.utcnow() + timedelta(days=4)
-			# 	reminder_email_kwargs = restrict_dict.copy()
-			# 	reminder_email_kwargs['subject'] = subject
-			# 	reminder_email_kwargs['body'] = body
-			# 	reminder_email_kwargs['recipients'] = recipients
-			# 	if not os.environ['FLASK_MODE'] == 'TEST': # pragma: no cover - used to exclude this line from calculating test coverage
-			# 		# tasks.send_processing_reminder_email.apply_async(
-			# 		# 	kwargs=reminder_email_kwargs,eta=future_time) 
-			# 		logger.debug("Not running celery task for reminder email while debugging.")
 			return redirect(url_for('imaging.imaging_manager'))
 
 	elif request.method == 'GET': # get request
@@ -1599,7 +1565,11 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 			channel_contents_this_sample = channel_contents_all_samples & \
 				f'sample_name="{this_sample_name}"'
 			""" Figure out clearing batch and if there were notes_for_clearer """
-			this_sample_contents = sample_contents & {'sample_name':this_sample_name}
+			sample_restrict_dict = {'sample_name':this_sample_name,
+									'imaging_request_number':imaging_request_number,
+									'imaging_batch_number':imaging_batch_number}
+			logger.debug(sample_restrict_dict)
+			this_sample_contents = db_lightsheet.Request.ClearingBatchSample() & sample_restrict_dict 
 			clearing_batch_number = this_sample_contents.fetch1('clearing_batch_number')
 			clearing_batch_restrict_dict = dict(username=username,request_name=request_name,
 				clearing_batch_number=clearing_batch_number)
@@ -1780,7 +1750,6 @@ def new_imaging_request(username,request_name):
 								(image_resolution_forsetup == "1.3x" or image_resolution_forsetup == "1.1x"):
 								image_resolution_form.channel_forms[x].registration.data = 1
 								
-						logger.info(f"Column name is: {column_name}")
 						resolution_choices = form.imaging_samples[ii].image_resolution_forsetup.choices
 						logger.debug(resolution_choices)
 						new_choices = [x for x in resolution_choices if x[0] not in used_image_resolutions]
@@ -2182,6 +2151,10 @@ def new_imaging_request(username,request_name):
 	existing_imaging_contents = db_lightsheet.Request.ImagingChannel() & \
 		{'username':username,'request_name':request_name}
 	existing_imaging_table = ExistingImagingTable(existing_imaging_contents)
+
+	logger.debug(f"Column name right before render is: {column_name}")
+
 	return render_template('imaging/new_imaging_request.html',form=form,
 		request_summary_table=request_summary_table,
-		existing_imaging_table=existing_imaging_table)
+		existing_imaging_table=existing_imaging_table,
+		column_name=column_name)
