@@ -56,6 +56,13 @@ class Request(dj.Manual):
     is_archival = 0                 :   boolean
     raw_data_retention_preference = NULL  :   enum("important","kind of important","not important","not sure")
     """  
+    class Sample(dj.Part):
+        definition = """ # Samples from a request
+        -> Request
+        sample_name                  :   varchar(64)                
+        ----
+        subject_fullname = NULL      :   varchar(64)
+        """ 
 
     class ClearingBatch(dj.Part):
         definition = """ # Samples from a particular request
@@ -75,6 +82,13 @@ class Request(dj.Manual):
         notes_for_clearer = ""       :   varchar(8192)                
         link_to_clearing_spreadsheet = NULL : varchar(256)
         """  
+    
+    class ClearingBatchSample(dj.Part):
+        definition = """ # Samples in a ClearingBatch
+        -> master.Sample                
+        -> master.ClearingBatch
+        ----
+        """
 
     class ImagingBatch(dj.Part):
         definition = """ # Batch of Samples to image the same way
@@ -91,15 +105,13 @@ class Request(dj.Manual):
         imaging_dict                              :   blob
         """
 
-    class Sample(dj.Part):
-        definition = """ # Samples from a request, belonging to a clearing batch or imaging batch
-        -> Request
-        sample_name                  :   varchar(64)                
-        ----
-        -> master.ClearingBatch
+    class ImagingBatchSample(dj.Part):
+        definition = """ # Samples in an ImagingBatch
+        -> master.Sample
         -> master.ImagingBatch
-        subject_fullname = NULL      :   varchar(64)
-        """ 
+        ----
+        """
+    
 
     class ImagingRequest(dj.Part):
         definition = """ # Imaging request

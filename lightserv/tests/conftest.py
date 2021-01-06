@@ -883,13 +883,12 @@ def test_archival_request_nonadmin(test_client,test_login_nonadmin,test_delete_r
 	 'clearing_batch_number': 1, 'clearing_progress': 'complete', 'number_in_batch': 1, 'notes_for_clearer': ''}
 	imaging_batch_insert_dict = {
 	'username': 'lightserv-test', 'request_name': 'test_archival_request', 
-	 'imaging_batch_number': 1, 'imaging_progress': 'complete', 
+	 'imaging_batch_number': 1, 'imaging_request_number': 1, 'imaging_progress': 'complete', 
 	 'number_in_imaging_batch': 1,'imaging_request_date_submitted':'2019-02-26',
 	 'imaging_request_time_submitted':'12:55:22','imaging_dict':{}}
 	sample_insert_dict = {
-	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'clearing_protocol': 'iDISCO abbreviated clearing',
-	 'antibody1': '', 'antibody2': '', 'clearing_batch_number': 1, 'sample_name': 'sample-001',
-	 'imaging_batch_number':1}
+	'username': 'lightserv-test', 'request_name': 'test_archival_request',
+	 'sample_name': 'sample-001'}
 	imaging_request_insert_dict = {
 	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'imaging_request_number': 1,
 	 'imaging_progress': 'complete', 'imaging_request_date_submitted': '2019-02-26',
