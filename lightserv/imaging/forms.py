@@ -44,7 +44,7 @@ class ImagingForm(FlaskForm):
 	so I dont have to write the imaging parameters out for each sample
 	"""
 	sample_name = HiddenField('sample name')
-	enter_data = BooleanField('I need to reimage this sample')
+	reimaging_this_sample = BooleanField('I need to reimage this sample')
 	image_resolution_forsetup = SelectField('Select an image resolution you want to use:', 
 		choices=[('1.1x','1.1x (LaVision)'),('1.3x','1.3x (LaVision, for continuity with older experiments)'),
 	('2x','2x (LaVision)'),('3.6x','3.6x (SmartSPIM)'),
@@ -208,9 +208,15 @@ class NewImagingRequestForm(FlaskForm):
 
 		Also make sure there can only be 1 registration channel per image resolution
 		"""
+		any_samples_need_reimaging = any([x['reimaging_this_sample'] for x in imaging_samples.data])
+		if not any_samples_need_reimaging:
+			raise ValidationError("At least one sample needs to be selected for reimaging to submit this form")
 		for ii in range(len(imaging_samples.data)):
 			imaging_sample_dict = imaging_samples[ii].data
 			sample_name = self.imaging_samples[ii].data['sample_name']
+			reimaging_this_sample = self.imaging_samples[ii].data['reimaging_this_sample']
+			if not reimaging_this_sample:
+				continue
 			current_image_resolutions_rendered = []
 			if imaging_sample_dict['image_resolution_forms'] == [] and self.submit.data == True:
 				raise ValidationError(f"Sample name: {sample_name}, you must set up"

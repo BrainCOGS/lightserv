@@ -80,6 +80,7 @@ class Request(dj.Manual):
         definition = """ # Batch of Samples to image the same way
         -> Request
         imaging_batch_number                      :   tinyint
+        imaging_request_number                    :   tinyint
         ----
         -> [nullable] User.proj(imager='username') # defines a new column here called "imager" whose value must be one of the "username" entries in the User() table
         number_in_imaging_batch                   :   tinyint # date that the imaging form was submitted by the imager

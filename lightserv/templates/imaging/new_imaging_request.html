@@ -25,10 +25,10 @@
 				    	<h3 class="form-control-label"><b>Sample {{ii+1}}/{{form.imaging_samples|length}}: {{sample_name}} </b></h3>
 			    	</div>
 					<div class="checkbox mb-2">
-						{{ sample_form.enter_data(class="form-check-input", onchange="togglefield(this)" ) }}
-						{{ sample_form.enter_data.label(class="form-check-label") }}
+						{{ sample_form.reimaging_this_sample(class="form-check-input", onchange="togglefield(this)" ) }}
+						{{ sample_form.reimaging_this_sample.label(class="form-check-label") }}
 					</div>
-					{% if sample_form.enter_data.data %}
+					{% if sample_form.reimaging_this_sample.data %}
 						<div class="container" id="sample_{{ii}}_form_div" style="display: block">
 					{% else %}
 						<div class="container" id="sample_{{ii}}_form_div" style="display: none">
