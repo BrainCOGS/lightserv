@@ -228,7 +228,8 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 									f'at the imaging management page: {imaging_manager_link}\n\n'
 									'Thanks,\nThe Histology and Brain Registration Core Facility.')
 								recipients = [x + '@princeton.edu' for x in current_app.config['IMAGING_ADMINS']]
-								send_email.delay(subject=subject,body=message_body,recipients=recipients)
+								if not os.environ['FLASK_MODE'] == 'TEST':
+									send_email.delay(subject=subject,body=message_body,recipients=recipients)
 							return redirect(url_for('clearing.clearing_manager'))
 
 					elif re.search("^(?!perfusion).*_date_submit$",key) != None: # one of the calendar date submit buttons

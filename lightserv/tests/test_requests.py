@@ -1464,8 +1464,28 @@ def test_clearing_and_imaging_batches_properly_assigned(test_client,test_login_n
 	number_of_samples_in_clearing_batch_2 = clearing_batch_2_contents.fetch1('number_in_batch')
 	assert number_of_samples_in_clearing_batch_2 == 1
 	clearing_batch_2_sample_contents = db_lightsheet.Request().ClearingBatchSample() & clearing_batch_2_restrict_dict
-	samples_in_clearing_batch_2 = clearing_batch_2_sample_contents.fetch1('sample_name')
-	assert 'sample-004' == samples_in_clearing_batch_2
+	sample_in_clearing_batch_2 = clearing_batch_2_sample_contents.fetch1('sample_name')
+	assert sample_in_clearing_batch_2 == 'sample-004' 
+
+	imaging_batch_1_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'imaging_batch_number':1}
+	imaging_batch_1_contents = db_lightsheet.Request().ImagingBatch() & imaging_batch_1_restrict_dict
+	number_of_samples_in_imaging_batch_1 = imaging_batch_1_contents.fetch1('number_in_imaging_batch')
+	assert number_of_samples_in_imaging_batch_1 == 3
+	imaging_batch_1_sample_contents = db_lightsheet.Request().ImagingBatchSample() & imaging_batch_1_restrict_dict
+	samples_in_imaging_batch_1 = imaging_batch_1_sample_contents.fetch('sample_name')
+	assert 'sample-003' not in samples_in_imaging_batch_1
+
+	imaging_batch_2_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'imaging_batch_number':2}
+	imaging_batch_2_contents = db_lightsheet.Request().ImagingBatch() & imaging_batch_2_restrict_dict
+	number_of_samples_in_imaging_batch_2 = imaging_batch_2_contents.fetch1('number_in_imaging_batch')
+	assert number_of_samples_in_imaging_batch_2 == 1
+	imaging_batch_2_sample_contents = db_lightsheet.Request().ImagingBatchSample() & imaging_batch_2_restrict_dict
+	sample_in_imaging_batch_2 = imaging_batch_2_sample_contents.fetch1('sample_name')
+	assert sample_in_imaging_batch_2 == 'sample-003'
 
 """ Testing all_requests() """
 

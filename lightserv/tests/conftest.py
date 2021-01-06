@@ -697,7 +697,6 @@ def test_request_all_rat_clearing_protocols_ahoag(test_client,
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_ahoag fixture --------')
 
-
 @pytest.fixture(scope='function') 
 def test_multisample_request_nonadmin_clearing_notes(test_client,test_login_nonadmin,test_delete_request_db_contents):
 	""" Submits a new request as 'lightserv-test' (a nonadmin) with multiple samples that can be used for various tests.

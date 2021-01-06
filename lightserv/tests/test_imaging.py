@@ -1566,3 +1566,158 @@ def test_imaging_table_redirects_incomplete_imaging_nonadmin(test_client,test_cl
 	assert b'Request overview:' in response.data
 
 
+""" Tests for new_imaging_request form """
+
+def test_new_imaging_request(test_client,
+	test_multisample_multichannel_request_nonadmin):
+	""" Make sure I can submit a new imaging request for a request that
+	has already been submitted.
+
+	Makes a new imaging request with 2 imaging batches.
+	Make sure they are inserted correctly """	
+	with test_client.session_transaction() as sess:
+		username = sess['user']
+	request_name = "nonadmin_manysamp_request"
+	response = test_client.post(
+		url_for('imaging.new_imaging_request',username=username,
+			request_name=request_name,),data={
+			'species':'mouse',
+			'number_of_samples':1,
+			'imaging_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-reimaging_this_sample':True,
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			'imaging_samples-1-sample_name':'sample-002',
+			'imaging_samples-1-reimaging_this_sample':True,
+			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-1-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-1-image_resolution_forsetup':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			'imaging_samples-2-sample_name':'sample-003',
+			'imaging_samples-2-reimaging_this_sample':True,
+			'imaging_samples-2-image_resolution_forms-0-image_resolution':'3.6x',
+			'imaging_samples-2-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-2-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-2-image_resolution_forsetup':'1.3x',
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"core facility requests" in response.data
+	assert b"This is a demo request" in response.data
+	assert b"New Request Form" not in response.data
+
+	""" Make sure clearing and imaging batches were assigned correctly
+	by checking the db contents """
+
+	imaging_batch_1_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'imaging_request_number':2,
+		'imaging_batch_number':1}
+	imaging_batch_1_contents = db_lightsheet.Request().ImagingBatch() & imaging_batch_1_restrict_dict
+	number_of_samples_in_imaging_batch_1 = imaging_batch_1_contents.fetch1('number_in_imaging_batch')
+	assert number_of_samples_in_imaging_batch_1 == 2
+	imaging_batch_1_sample_contents = db_lightsheet.Request().ImagingBatchSample() & imaging_batch_1_restrict_dict
+	samples_in_imaging_batch_1 = imaging_batch_1_sample_contents.fetch('sample_name')
+	assert 'sample-003' not in samples_in_imaging_batch_1
+
+	imaging_batch_2_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'imaging_request_number':2,
+		'imaging_batch_number':2}
+	imaging_batch_2_contents = db_lightsheet.Request().ImagingBatch() & imaging_batch_2_restrict_dict
+	number_of_samples_in_imaging_batch_2 = imaging_batch_2_contents.fetch1('number_in_imaging_batch')
+	assert number_of_samples_in_imaging_batch_2 == 1
+	imaging_batch_2_sample_contents = db_lightsheet.Request().ImagingBatchSample() & imaging_batch_2_restrict_dict
+	sample_in_imaging_batch_2 = imaging_batch_2_sample_contents.fetch1('sample_name')
+	assert sample_in_imaging_batch_2 == 'sample-003'
+
+	""" Make sure ImagingRequest() table properly inserted """
+	imaging_request_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'imaging_request_number':2}
+	imaging_request_contents = db_lightsheet.Request().ImagingRequest() & imaging_request_restrict_dict
+	assert len(imaging_request_contents) == 3
+
+	""" Make sure ImagingResolutionRequest() table properly inserted """
+	imaging_resolution_1p3x_request_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'imaging_request_number':2,
+		'image_resolution':'1.3x'}
+	imaging_resolution_1p3x_request_contents = db_lightsheet.Request().ImagingResolutionRequest() & \
+		imaging_resolution_1p3x_request_restrict_dict 
+	assert len(imaging_resolution_1p3x_request_contents) == 2
+	samples_1p3x_resolution = imaging_resolution_1p3x_request_contents.fetch('sample_name') 
+	assert 'sample-001' in samples_1p3x_resolution
+	assert 'sample-002' in samples_1p3x_resolution
+
+	imaging_resolution_3p6x_request_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'imaging_request_number':2,
+		'image_resolution':'3.6x'}
+	imaging_resolution_3p6x_request_contents = db_lightsheet.Request().ImagingResolutionRequest() & \
+		imaging_resolution_3p6x_request_restrict_dict 
+	assert len(imaging_resolution_3p6x_request_contents) == 1
+	sample_3p6x_resolution = imaging_resolution_3p6x_request_contents.fetch('sample_name') 
+	assert sample_3p6x_resolution == 'sample-003'
+
+	""" Make sure ImagingChannel() table properly inserted """
+	imaging_channel_1p3x_request_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'imaging_request_number':2,
+		'image_resolution':'1.3x'}
+	imaging_channel_1p3x_request_contents = db_lightsheet.Request().ImagingChannel() & \
+		imaging_channel_1p3x_request_restrict_dict 
+	assert len(imaging_channel_1p3x_request_contents) == 4
+
+	imaging_channel_3p6x_request_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'imaging_request_number':2,
+		'image_resolution':'3.6x'}
+	imaging_channel_3p6x_request_contents = db_lightsheet.Request().ImagingChannel() & \
+		imaging_channel_3p6x_request_restrict_dict 
+	assert len(imaging_channel_3p6x_request_contents) == 2
+
+	""" Make sure ProcessingRequest() table properly inserted """
+	processing_request_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'imaging_request_number':2}
+	processing_request_contents = db_lightsheet.Request().ProcessingRequest() & processing_request_restrict_dict
+	assert len(processing_request_contents) == 3
+
+	""" Make sure ProcessingResolutionRequest() table properly inserted """
+	processing_resolution_1p3x_request_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'imaging_request_number':2,
+		'image_resolution':'1.3x'}
+	processing_resolution_1p3x_request_contents = db_lightsheet.Request().ProcessingResolutionRequest() & \
+		processing_resolution_1p3x_request_restrict_dict 
+	assert len(processing_resolution_1p3x_request_contents) == 2
+	samples_1p3x_resolution = processing_resolution_1p3x_request_contents.fetch('sample_name') 
+	assert 'sample-001' in samples_1p3x_resolution
+	assert 'sample-002' in samples_1p3x_resolution
+
+	processing_resolution_3p6x_request_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'imaging_request_number':2,
+		'image_resolution':'3.6x'}
+	processing_resolution_3p6x_request_contents = db_lightsheet.Request().ProcessingResolutionRequest() & \
+		processing_resolution_3p6x_request_restrict_dict 
+	assert len(processing_resolution_3p6x_request_contents) == 1
+	sample_3p6x_resolution = processing_resolution_3p6x_request_contents.fetch('sample_name') 
+	assert sample_3p6x_resolution == 'sample-003'

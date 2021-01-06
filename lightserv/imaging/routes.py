@@ -1848,6 +1848,8 @@ def new_imaging_request(username,request_name):
 					time = now.strftime("%H:%M:%S") 
 
 					''' Now loop through all samples and make the insert lists '''
+					sample_insert_list = [] # only to keep track of certain things for other inserts
+					clearing_batch_insert_list = []
 					imaging_batch_insert_list = []
 					imaging_request_insert_list = []
 					imaging_resolution_insert_list = []
@@ -1856,30 +1858,40 @@ def new_imaging_request(username,request_name):
 					channel_insert_list = []
 					sample_imaging_dict = {} # keep track of what imaging needs to be done for each sample -- used for making imaging batches later 
 					for ii in range(number_of_samples):
-						sample_form_dict = form.imaging_samples[ii].data      
+						sample_form_dict = form.imaging_samples[ii].data  
+						sample_needs_reimaging = sample_form_dict['reimaging_this_sample']
+						if not sample_needs_reimaging:
+							continue    
 						sample_name = sample_form_dict['sample_name']              
-						logger.debug("Sample name:")
-						logger.debug(sample_name)
-						reimaging_this_sample = sample_form_dict['reimaging_this_sample']              
-						if not reimaging_this_sample:
-							logger.debug("Skipping this sample")
-							continue
-						""" First ImagingBatch() """
+						sample_insert_dict = {}
+						""" Set up sample insert dict """
+						sample_insert_dict['request_name'] = request_name
+						''' Add primary keys that are not in the form '''
+						sample_insert_dict['username'] = username 
+						sample_insert_dict['sample_name'] = sample_name
+						sample_insert_list.append(sample_insert_dict)
+
+						""" Now imaging batch """
 						imaging_batch_insert_dict = {}
 						imaging_batch_insert_dict['username'] = username 
 						imaging_batch_insert_dict['request_name'] = request_name
+						imaging_batch_insert_dict['imaging_request_number'] = new_imaging_request_number
 						imaging_batch_insert_dict['imaging_request_date_submitted'] = date
 						imaging_batch_insert_dict['imaging_request_time_submitted'] = time
-						imaging_batch_insert_dict['imaging_request_number'] = new_imaging_request_number
-						imaging_batch_insert_dict['imaging_progress'] = 'incomplete'
+
 						if form.self_imaging.data == True:
 							logger.debug("Self imaging selected!")
 							imaging_batch_insert_dict['imager'] = username
 						else:
 							logger.debug("Self imaging not selected")
+						imaging_batch_insert_dict['imaging_progress'] = 'incomplete'
 						imaging_res_channel_dict = {} 
 						
+					   
 						""" Set up ImagingRequest and ProcessingRequest insert dicts """
+						imaging_sample_form_dict = form.imaging_samples[ii].data
+						""" When user submits this request form it is always 
+						the first imaging request and processing request for this sample """
 
 						""" ImagingRequest """
 						imaging_request_insert_dict = {}
@@ -1927,7 +1939,7 @@ def new_imaging_request(username,request_name):
 
 						""" Now insert each image resolution/channel combo """
 						
-						for resolution_dict in sample_form_dict['image_resolution_forms']:
+						for resolution_dict in imaging_sample_form_dict['image_resolution_forms']:
 							# logger.debug(resolution_dict)
 							image_resolution = resolution_dict['image_resolution']
 							imaging_res_channel_dict[image_resolution] = []
@@ -1946,7 +1958,7 @@ def new_imaging_request(username,request_name):
 								imaging_resolution_insert_dict['microscope'] = microscope
 							imaging_resolution_insert_dict['notes_for_imager'] = resolution_dict['notes_for_imager']
 							imaging_resolution_insert_list.append(imaging_resolution_insert_dict)
-							""" now processing entry (if not 2x imaging)"""
+							""" now processing entry (if not 2x imaging request)"""
 							if image_resolution != '2x':
 								processing_resolution_insert_dict = {}
 								processing_resolution_insert_dict['request_name'] = request_name
@@ -1959,6 +1971,7 @@ def new_imaging_request(username,request_name):
 								processing_resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
 								processing_resolution_insert_dict['final_orientation'] = resolution_dict['final_orientation']
 								processing_resolution_insert_list.append(processing_resolution_insert_dict)
+					 
 
 							""" now loop through the imaging channels and fill out the ImagingChannel entries """
 							for imaging_channel_dict in resolution_dict['channel_forms']:
@@ -1976,7 +1989,7 @@ def new_imaging_request(username,request_name):
 									channel_insert_dict['request_name'] = request_name    
 									channel_insert_dict['username'] = username
 									channel_insert_dict['sample_name'] = sample_name
-									channel_insert_dict['image_resolution'] = image_resolution
+									channel_insert_dict['image_resolution'] = resolution_dict['image_resolution']
 									for key,val in imaging_channel_dict.items(): 
 										if key == 'csrf_token': 
 											continue # pragma: no cover - used to exclude this line from calculating test coverage
@@ -1988,153 +2001,139 @@ def new_imaging_request(username,request_name):
 						imaging_batch_insert_list.append(imaging_batch_insert_dict)
 					
 					
-				""" Now figure out the ImagingBatch entries.
-				An imaging batch is determined by a set of samples
-				that need to be imaged at the same resolutions and same 
-				imaging channels at those resolutions """
-			   
-				# Loop over existing imaging batch dictionaries 
-				new_list = [] # dummy list of imaging dicts ('resolution1':[channel_name1,channel_name2,...],....)
-				good_indices = [] # indices of original imaging_batch_insert_list that we will use in the end
-				counts = [] # number in each batch, index shared with new_list
-				notes_for_clearer_each_batch = [] # concatenated 
-				for index,dict_ in enumerate(imaging_batch_insert_list):
-					imaging_dict = dict_['imaging_dict']
-					sample_form_dict = form.imaging_samples[index].data      
-					sample_name = sample_form_dict['sample_name']
-					try: 
-						# if it does then find the index of new_list corresponding to this batch
-						i = new_list.index(imaging_dict)
-					except ValueError: 
-						# if it doesn't, then this is a new unique combo of keys
-						counts.append(1)
-						new_list.append(imaging_dict)
-						good_indices.append(index)
-						# notes_for_clearer_each_batch.append(notes_for_clearer_string)
-					else: # only gets executed if try block doesn't generate an error
-						counts[i] += 1 
-						# notes_for_clearer_each_batch[i]+=notes_for_clearer_string
-				
-				""" remake imaging_batch_insert_list to only have unique entries """
-				imaging_batch_insert_list = [imaging_batch_insert_list[index] for index in good_indices]
-				for ii in range(len(imaging_batch_insert_list)):
-					insert_dict = imaging_batch_insert_list[ii]
-					insert_dict['number_in_imaging_batch'] = counts[ii]
-					insert_dict['imaging_batch_number'] = ii+1
-					# insert_dict['notes_for_clearer'] = notes_for_clearer_each_batch[ii]
-					# imaging_str = ''.joininsert_dict['imaging_dict']
-				# logger.debug("imaging_batch_insert_list:")
-				# logger.debug(imaging_batch_insert_list)
-				# """ Now loop through all sample insert dicts and assign clearing batch number
-				# and imaging batch number  """
-				# for sample_insert_dict in sample_insert_list:
-				# 	sample_name = sample_insert_dict['sample_name']
-				# 	this_sample_imaging_dict = sample_imaging_dict[sample_name]
-				# 	""" Figure out which imaging batch this corresponds to """
-				# 	for imaging_batch_insert_dict in imaging_batch_insert_list:
-				# 		imaging_batch_imaging_dict = imaging_batch_insert_dict['imaging_dict']
-				# 		if imaging_batch_imaging_dict == this_sample_imaging_dict:
-				# 			imaging_batch_number = imaging_batch_insert_dict.get('imaging_batch_number')
-				# 			sample_insert_dict['imaging_batch_number'] = imaging_batch_number                   
-				
+					""" Now figure out the ImagingBatch() entries
+					and ImagingBatchSample() entries.
+					An imaging batch is determined by a set of samples
+					that need to be imaged at the same resolutions and same 
+					imaging channels at those resolutions for a given request. """
+				   
+					# Loop over existing imaging batch dictionaries in 
+					new_list = [] # dummy list of imaging dicts ('resolution1':[channel_name1,channel_name2,...],....)
+					good_indices = [] # indices of original imaging_batch_insert_list that we will use in the end
+					counts = [] # number in each batch, index shared with new_list
+					notes_for_clearer_each_batch = [] # concatenated 
+					for index,dict_ in enumerate(imaging_batch_insert_list):
+						imaging_dict = dict_['imaging_dict']
+						sample_name = sample_insert_list[index]['sample_name']
+						try: 
+							# if it does then find the index of new_list corresponding to this batch
+							i = new_list.index(imaging_dict)
+						except ValueError: 
+							# if it doesn't, then this is a new unique combo of keys
+							counts.append(1)
+							new_list.append(imaging_dict)
+							good_indices.append(index)
+						else: # only gets executed if try block doesn't generate an error
+							counts[i] += 1 
+					
+					""" remake imaging_batch_insert_list to only have unique entries """
+					imaging_batch_insert_list = [imaging_batch_insert_list[index] for index in good_indices]
+					for ii in range(len(imaging_batch_insert_list)):
+						insert_dict = imaging_batch_insert_list[ii]
+						insert_dict['number_in_imaging_batch'] = counts[ii]
+						insert_dict['imaging_batch_number'] = ii+1
+					
+					""" Now loop through all sample insert dicts and assign
+					imaging batch number  """
+					imaging_batch_sample_insert_list = []
+					imaging_batch_sample_keys = ['username','request_name','sample_name',
+						'imaging_request_number','imaging_batch_number']
+					for sample_insert_dict in sample_insert_list:
+						imaging_batch_sample_insert_dict = {
+							key:sample_insert_dict[key] for key in sample_insert_dict if key in imaging_batch_sample_keys}
 
-				logger.info("ImagingBatch() insert ")
-				logger.info(imaging_batch_insert_list)
-				# db_lightsheet.Request.ImagingBatch().insert(imaging_batch_insert_list,)
-				# # logger.info("Sample() insert:")
-				# # logger.debug(sample_insert_list)
-				# db_lightsheet.Request.Sample().insert(sample_insert_list)
-				# # logger.info("ImagingRequest() insert:")
-				# # logger.info(imaging_request_insert_list)
-				# db_lightsheet.Request.ImagingRequest().insert(imaging_request_insert_list)
-				# # logger.info("ProcessingRequest() insert:")
-				# # logger.info(processing_request_insert_list)
-				# """ If there were no processing resolution requests (because all were 2x imaging requests),
-				# then don't make a processing request """
-				# if len(processing_resolution_insert_list) > 0:
-				# 	db_lightsheet.Request.ProcessingRequest().insert(processing_request_insert_list)
-				# 	""" Make the directory on /jukebox corresponding to this processing request """
-				# # logger.info("ImagingResolutionRequest() insert:")
-				# # logger.info(imaging_resolution_insert_list)
-				# db_lightsheet.Request.ImagingResolutionRequest().insert(imaging_resolution_insert_list)
-				# # logger.info("ProcessingResolutionRequest() insert:")
-				# # logger.info(processing_resolution_insert_list)
-				# if len(processing_resolution_insert_list) > 0:
-				# 	db_lightsheet.Request.ProcessingResolutionRequest().insert(processing_resolution_insert_list)
-				# # logger.info('channel insert:')
-				# # logger.info(channel_insert_list)
+						imaging_batch_sample_insert_dict['imaging_request_number'] = new_imaging_request_number # always 1 since this is a new request
+						sample_name = sample_insert_dict['sample_name']
+						this_sample_imaging_dict = sample_imaging_dict[sample_name]
+						""" Figure out which imaging batch this corresponds to """
+						for imaging_batch_insert_dict in imaging_batch_insert_list:
+							imaging_batch_imaging_dict = imaging_batch_insert_dict['imaging_dict']
+							if imaging_batch_imaging_dict == this_sample_imaging_dict:
+								imaging_batch_number = imaging_batch_insert_dict.get('imaging_batch_number')
+								imaging_batch_sample_insert_dict['imaging_batch_number'] = imaging_batch_number                   
+						imaging_batch_sample_insert_list.append(imaging_batch_sample_insert_dict)
+					
+					logger.info("ImagingBatch() insert ")
+					logger.info(imaging_batch_insert_list)
+					db_lightsheet.Request.ImagingBatch().insert(imaging_batch_insert_list,)
+					
+					logger.info("ImagingBatchSample() insert ")
+					logger.info(imaging_batch_sample_insert_list)
+					db_lightsheet.Request.ImagingBatchSample().insert(imaging_batch_sample_insert_list,)
+					
+					logger.debug("Sample imaging dict:")
+					logger.debug(sample_imaging_dict)
+					
+					db_lightsheet.Request.ImagingRequest().insert(imaging_request_insert_list)
+					# logger.info("ProcessingRequest() insert:")
+					# logger.info(processing_request_insert_list)
+					""" If there were no processing resolution requests (because all were 2x imaging requests),
+					then don't make a processing request """
+					if len(processing_resolution_insert_list) > 0:
+						db_lightsheet.Request.ProcessingRequest().insert(processing_request_insert_list)
+						""" Make the directory on /jukebox corresponding to this processing request """
+					# logger.info("ImagingResolutionRequest() insert:")
+					# logger.info(imaging_resolution_insert_list)
+					db_lightsheet.Request.ImagingResolutionRequest().insert(imaging_resolution_insert_list)
+					# logger.info("ProcessingResolutionRequest() insert:")
+					# logger.info(processing_resolution_insert_list)
+					if len(processing_resolution_insert_list) > 0:
+						db_lightsheet.Request.ProcessingResolutionRequest().insert(processing_resolution_insert_list)
+					# logger.info('channel insert:')
+					# logger.info(channel_insert_list)
+					
+					db_lightsheet.Request.ImagingChannel().insert(channel_insert_list)
 				
-				# db_lightsheet.Request.ImagingChannel().insert(channel_insert_list)
-				
-
-
 				flash("Your new imaging request was submitted successfully. You will receive an email at "
 					  f"{correspondence_email} with further instructions ","success")
 				flash("If you elected to clear or image any of your samples yourself "
-					 "then head to Task Management -> All Clearing Tasks in the top Menu Bar "
-					 "to start the clearing entry form when ready. "
-					 "If not, your tubes will be cleared and imaged by the Core Facility and "
-					 "you will receive an email once they are cleared. You can check the "
+					 "then head to Task Management -> All Imaging Tasks in the top Menu Bar "
+					 "to start the imaging entry form when ready. "
+					 "If not, your samples will be imaged by the Core Facility and "
+					 "you will receive an email once they are done. You can check the "
 					 "status of your samples at your request page (see table below).", "success")
 				
-				# # Email
-				# subject = 'Lightserv automated email: Request received'
-				# # with open('/home/lightservuser/.ssh/id_rsa.pub','r') as keyfile: 
-				# #     keyfile_contents = keyfile.readlines() 
-				# # ssh_key_text = keyfile_contents[0].strip('\n')
-				# hosturl = os.environ['HOSTURL']
-				# # spock_test_link = f'https://{hosturl}' + url_for('main.spock_connection_test')
-				# pre_handoff_link = f'https://{hosturl}' + url_for('main.pre_handoff')
-				# message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
-				# 	'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
-				# 	'Your request:\n'
-				# 	f'request_name: "{request_name}"\n'
-				# 	'was successfully submitted.\n\n'
-				# 	f'Please see the pre-handoff instructions here: {pre_handoff_link}\n\n'
-				# 	'Thanks,\nThe Histology and Brain Registration Core Facility.')
-				# recipients = [correspondence_email]
-				# if not os.environ['FLASK_MODE'] == 'TEST': # pragma: no cover - used to exclude this line from calculating test coverage
-				# 	send_email.delay(subject=subject,body=message_body,recipients=recipients) 
-				# 	""" If request received and person did not assign themselves as the clearer, then 
-				# 	send Laura an email """
-				# 	if form.self_clearing.data == False:
-				# 		subject = 'Lightserv automated email: New Clearing Request'
 
-				# 		hosturl = os.environ['HOSTURL']
-				# 		clearing_manager_link = f'https://{hosturl}' + url_for('clearing.clearing_manager')
-				# 		message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
-				# 			'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
-				# 			'A new request:\n'
-				# 			f'username: "{username}"\n'
-				# 			f'request_name: "{request_name}"\n'
-				# 			'was received and will need to be cleared.\n\n'
-				# 			f'Information about each clearing batch from this request can be viewed at the clearing management page: {clearing_manager_link}\n\n'
-				# 			'Thanks,\nThe Histology and Brain Registration Core Facility.')
-				# 		recipients = [x + '@princeton.edu' for x in current_app.config['CLEARING_ADMINS']]
-				# 		send_email.delay(subject=subject,body=message_body,recipients=recipients) 
-				# 	""" If username is not already part of the g_lightsheet_data group,
-				# 	send an email to pnihelp requesting that they are added """
-				# 	user_in_lightsheet_data_group = check_user_in_g_lightsheet_data(username)
-				# 	if not user_in_lightsheet_data_group:
-				# 		logger.debug(f"Username: {username} is not in g_lightsheet_data")
-				# 		logger.debug("sending email to pnihelp")
-				# 		subject = 'New lightsheet user bucket permissions'
-				# 		message_body = ('Hi,\n\nThis is an automated email sent from lightserv, '
-				# 			'the web application supporting the the light sheet microscopy facility for the U19 BRAIN CoGS project. '
-				# 			'A new user with:\n'
-				# 			f'netid: {username}\n'
-				# 			'needs to be added to the g_lightsheet_data group on bucket so that they can '
-				# 			f'see their data in /jukebox/LightSheetData\n\n'
-				# 			'Thanks,\nThe Histology and Brain Registration Core Facility.')
-				# 		recipients = ['pnihelp@princeton.edu']
-				# 		imaging_admins = current_app.config['IMAGING_ADMINS']
-				# 		for imaging_admin_username in imaging_admins:
-				# 			recipients.append(imaging_admin_username + '@princeton.edu')
-				# 		send_email.delay(subject=subject,body=message_body,recipients=recipients) 
-				# 	else:
-				# 		logger.debug(f"Username: {username} is already in g_lightsheet_data.")
-				# 		logger.debug("No need to send email to pnihelp")
-				# return redirect(url_for('requests.all_requests'))
+				hosturl = os.environ['HOSTURL']
+				imaging_manager_url = f'https://{hosturl}' + url_for('imaging.imaging_manager')
+				samples_need_reimaging_str = ', '.join(d['sample_name'] for d in sample_insert_list)
+				subject = 'Lightserv automated email: New Imaging request received'
+				message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+					'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
+					'A new imaging request for your request:\n'
+					f'request_name: {request_name}\n'
+					f'Samples that need re-imaging: {samples_need_reimaging_str}\n\n'
+					f'has been received. Check the imaging management GUI: {imaging_manager_url}\n'
+					'if you designated yourself as the imager for any of these samples\n\n'
+					'Otherwise, the imaging will be handled by the Core Facility, and you will receive '
+					'emails when the imaging is complete.\n\n'
+					'Thanks,\nThe Histology and Brain Registration Core Facility.')
+				request_contents = db_lightsheet.Request() & \
+					{'username':username,'request_name':request_name}
+				correspondence_email = request_contents.fetch1('correspondence_email')
+				recipients = [correspondence_email]
+
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					send_email.delay(subject=subject,body=message_body,recipients=recipients) # pragma: no cover - used to exclude this line from calculating test coverage
+
+				""" Now send an email to the imaging managers if
+				the person did not set themself as the imager """
+				if not (form.self_imaging == True):
+					subject = 'Lightserv automated email: New Imaging Request Submitted. Sample(s) ready for imaging'
+					hosturl = os.environ['HOSTURL']
+					message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
+						'A new imaging request for a previously existing request:\n'
+						f'username: "{username}"\n'
+						f'request_name: "{request_name}"\n\n'
+						'was just made.\n\n'
+						f'Samples that need re-imaging are: {samples_need_reimaging_str}\n\n'
+						f'The imaging batches containing these samples will now show up in the Imaging Management GUI: {imaging_manager_url}\n\n'
+						'Thanks,\nThe Histology and Brain Registration Core Facility.')
+					recipients = [x + '@princeton.edu' for x in current_app.config['IMAGING_ADMINS']]
+					if not os.environ['FLASK_MODE'] == 'TEST':
+						send_email.delay(subject=subject,body=message_body,recipients=recipients) 
+				return redirect(url_for('requests.all_requests'))
 			
 		else: # post request but not validated. Need to handle some errors
 
