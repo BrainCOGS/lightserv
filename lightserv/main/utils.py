@@ -208,10 +208,9 @@ def logged_in_as_imager(f):
 			logger.debug(f"User is logged in as: {current_user}")
 			username = kwargs['username']
 			request_name = kwargs['request_name']
+			imaging_request_number = kwargs['imaging_request_number']
 			imaging_batch_number = kwargs['imaging_batch_number']
-			imaging_batch_contents = db_lightsheet.Request.ImagingBatch() & f'request_name="{request_name}"' & \
-			 	f'username="{username}"' & \
-			 	f'imaging_batch_number="{imaging_batch_number}"'
+			imaging_batch_contents = db_lightsheet.Request.ImagingBatch() & kwargs
 			if len(imaging_batch_contents) == 0:
 				flash("No imaging batch exists with those parameters. Please try again.","danger")
 				logger.debug("No imaging request exists with those parameters. Redirecting to all requests page")
@@ -358,13 +357,12 @@ def check_clearing_completed(f):
 		request_name = kwargs['request_name']
 		sample_name = kwargs['sample_name']
 		username = kwargs['username']
-		sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
-			f'username="{username}"' & f'sample_name="{sample_name}"'
+		clearing_batch_sample_contents = db_lightsheet.Request.ClearingBatchSample() & kwargs
 		# print(sample_contents)
-		clearing_protocol, antibody1, antibody2 = sample_contents.fetch1(
+		clearing_protocol, antibody1, antibody2 = clearing_batch_sample_contents.fetch1(
 			'clearing_protocol','antibody1','antibody2')
-		clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'request_name="{request_name}"' & \
-	 		f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
+		clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & kwargs & \
+			f'clearing_protocol="{clearing_protocol}"' & \
 	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'
 		clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
 

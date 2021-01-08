@@ -9,8 +9,9 @@ from lightserv.main.utils import (logged_in, logged_in_as_clearer,
 								  image_manager,log_http_requests,mymkdir,
 								  check_imaging_completed)
 from lightserv.imaging.tables import (ImagingTable, dynamic_imaging_management_table,
-	SampleTable, ExistingImagingTable, ImagingChannelTable,ImagingBatchTable)
-from .forms import (ImagingForm, NewImagingRequestForm, ImagingBatchForm)
+	SampleTable, ExistingImagingTable, ImagingChannelTable,ImagingBatchTable,
+	RequestSummaryTable)
+from .forms import (NewImagingRequestForm, ImagingBatchForm)
 from . import tasks
 from . import utils
 from lightserv.main.tasks import send_email
@@ -57,7 +58,6 @@ def imaging_manager():
 	sample_contents = db_lightsheet.Request.Sample()
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
 	imaging_batch_contents = db_lightsheet.Request.ImagingBatch()
-	# imaging_channel_contents = db_lightsheet.Request.ImagingChannel()
 
 	imaging_request_contents = (clearing_batch_contents * sample_contents * \
 		request_contents * imaging_batch_contents).\
@@ -73,7 +73,8 @@ def imaging_manager():
 	
 	# ''' First get all entities that are currently being imaged '''
 	""" Get all entries currently being imaged """
-	imaging_request_contents = dj.U('username','request_name','imaging_batch_number').aggr(
+	imaging_request_contents = dj.U('username','request_name',
+		'imaging_batch_number','imaging_request_number').aggr(
 		imaging_request_contents,clearer='clearer',
 		clearing_progress='clearing_progress',
 		datetime_submitted='datetime_submitted',
@@ -114,12 +115,13 @@ def imaging_manager():
 		table_ready_to_image=table_ready_to_image,table_on_deck=table_on_deck,
 		table_already_imaged=table_already_imaged)
 
-@imaging.route("/imaging/imaging_batch_entry/<username>/<request_name>/<imaging_batch_number>",
+@imaging.route("/imaging/imaging_batch_entry/<username>/<request_name>/<imaging_request_number>/<imaging_batch_number>",
 	methods=['GET','POST'])
 @logged_in
 @logged_in_as_imager
 @log_http_requests
-def imaging_batch_entry(username,request_name,imaging_batch_number): 
+def imaging_batch_entry(username,request_name,
+	imaging_request_number,imaging_batch_number): 
 	""" Route for handling form data entered for imaging 
 	samples in batch entry form
 	"""
@@ -129,15 +131,15 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 	form = ImagingBatchForm(request.form)
 	rawdata_rootpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 		username,request_name)
-	imaging_request_number = 1 # TODO - make this variable to allow follow up imaging requests
-	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
-			f'username="{username}"' & f'imaging_batch_number={imaging_batch_number}' 
+	imaging_batch_restrict_dict = dict(username=username,request_name=request_name,
+		imaging_batch_number=imaging_batch_number,
+		imaging_request_number=imaging_request_number)
+	sample_contents = db_lightsheet.Request.ImagingBatchSample() & imaging_batch_restrict_dict 
 	
 	sample_dict_list = sample_contents.fetch(as_dict=True)
 
 	""" Figure out how many samples in this imaging batch """
-	imaging_batch_restrict_dict = dict(username=username,request_name=request_name,
-		imaging_batch_number=imaging_batch_number)
+	
 	imaging_batch_contents = db_lightsheet.Request.ImagingBatch() & imaging_batch_restrict_dict
 	number_in_batch = imaging_batch_contents.fetch1('number_in_imaging_batch')
 	
@@ -153,8 +155,10 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 	batch forms """
 	first_sample_dict = sample_contents.fetch(as_dict=True,limit=1)[0]
 	first_sample_name = first_sample_dict['sample_name']	
-	channel_contents_all_samples = (db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
-			f'username="{username}"' )
+	channel_restrict_dict = {'username':username,'request_name':request_name,
+		'imaging_request_number':imaging_request_number}
+	channel_contents_all_samples = db_lightsheet.Request.ImagingChannel() & channel_restrict_dict
+
 	batch_channel_contents = channel_contents_all_samples & f'sample_name="{first_sample_name}"'
 
 	batch_unique_image_resolutions = sorted(set(batch_channel_contents.fetch('image_resolution')))
@@ -336,6 +340,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 					logger.debug("Batch channel validation failed. Not applying batch parameters to all samples")
 				return redirect(url_for('imaging.imaging_batch_entry',
 							username=username,request_name=request_name,
+							imaging_request_number=imaging_request_number,
 							imaging_batch_number=imaging_batch_number))
 			else:
 				""" A few possibilites: 
@@ -400,6 +405,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 							flash("Otherwise channel was added OK","warning")
 						return redirect(url_for('imaging.imaging_batch_entry',
 							username=username,request_name=request_name,
+							imaging_request_number=imaging_request_number,
 							imaging_batch_number=imaging_batch_number))
 					
 					elif update_resolution_button_pressed:
@@ -556,6 +562,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 						
 						return redirect(url_for('imaging.imaging_batch_entry',
 							username=username,request_name=request_name,
+							imaging_request_number=imaging_request_number,
 							imaging_batch_number=imaging_batch_number))	
 					else:
 						""" Search the channel forms of this image resolution form to see
@@ -607,6 +614,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 									flash("Otherwise channel was deleted OK","warning")
 								return redirect(url_for('imaging.imaging_batch_entry',
 									username=username,request_name=request_name,
+									imaging_request_number=imaging_request_number,
 									imaging_batch_number=imaging_batch_number))
 							if add_flipped_channel_button_pressed:
 								""" ################################### """
@@ -691,6 +699,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 										flash("Otherwise channel was added OK","warning")
 								return redirect(url_for('imaging.imaging_batch_entry',
 									username=username,request_name=request_name,
+									imaging_request_number=imaging_request_number,
 									imaging_batch_number=imaging_batch_number))
 								""" Create a new ImagingChannel() entry for this channel """
 
@@ -1101,6 +1110,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 							logger.debug("Sample form not validated")
 						return redirect(url_for('imaging.imaging_batch_entry',
 									username=username,request_name=request_name,
+									imaging_request_number=imaging_request_number,
 									imaging_batch_number=imaging_batch_number))
 					else:
 						""" Either a sample update resolution or 
@@ -1136,6 +1146,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 								db_lightsheet.Request.ImagingChannel().insert1(channel_entry_dict)
 								return redirect(url_for('imaging.imaging_batch_entry',
 									username=username,request_name=request_name,
+									imaging_request_number=imaging_request_number,
 									imaging_batch_number=imaging_batch_number))
 							
 							elif update_resolution_button_pressed:
@@ -1290,6 +1301,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 								
 								return redirect(url_for('imaging.imaging_batch_entry',
 									username=username,request_name=request_name,
+									imaging_request_number=imaging_request_number,
 									imaging_batch_number=imaging_batch_number))	
 							else:
 								""" Search the channel forms of this image resolution form to see
@@ -1340,6 +1352,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 											flash("Otherwise channel was deleted OK","warning")
 										return redirect(url_for('imaging.imaging_batch_entry',
 											username=username,request_name=request_name,
+											imaging_request_number=imaging_request_number,
 											imaging_batch_number=imaging_batch_number))
 									elif add_flipped_channel_button_pressed:
 										""" ######################################### """
@@ -1410,6 +1423,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 											flash(flash_str,"success")
 										return redirect(url_for('imaging.imaging_batch_entry',
 											username=username,request_name=request_name,
+											imaging_request_number=imaging_request_number,
 											imaging_batch_number=imaging_batch_number))
 		else: # final submit button pressed. No validation necessary since all done in each sample form
 			
@@ -1420,6 +1434,7 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 				logger.info("Imaging is already complete so hitting the submit button again did nothing")
 				return redirect(url_for('imaging.imaging_batch_entry',username=username,
 					request_name=request_name,sample_name=sample_name,
+					imaging_request_number=imaging_request_number,
 					imaging_batch_number=imaging_batch_number))
 			
 						
@@ -1492,41 +1507,6 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 			date = now.strftime('%Y-%m-%d')
 			dj.Table._update(imaging_batch_contents,'imaging_performed_date',date)
 			
-			""" Finally, set up the 4-day reminder email that will be sent if 
-			user still has not submitted processing request (provided that there exists a processing 
-			request for this imaging request) """
-
-			# """ First check if there is a processing request for this imaging request.
-			# This will be processing_request_number=1 because we are in the imaging entry
-			# form here. """
-			# restrict_dict = dict(username=username,request_name=request_name,
-			# 	sample_name=sample_name,imaging_request_number=imaging_request_number,
-			# 	processing_request_number=1)
-			# processing_request_contents = db_lightsheet.Request.ProcessingRequest() & restrict_dict
-			# if len(processing_request_contents) > 0:
-			# 	subject = 'Lightserv automated email. Reminder to start processing.'
-			# 	body = ('Hello, this is a reminder that you still have not started '
-			# 			'the data processing pipeline for your sample:.\n\n'
-			# 			f'request_name: {request_name}\n'
-			# 			f'sample_name: {sample_name}\n\n'
-			# 			'To start processing your data, '
-			# 			f'go to the processing management GUI: {processing_manager_url} '
-			# 			'and find your sample to process.\n\n'
-			# 			'Thanks,\nThe Brain Registration and Histology Core Facility')    
-			# 	logger.debug("Sending reminder email 4 days in the future")
-			# 	request_contents = db_lightsheet.Request() & \
-			# 					{'username':username,'request_name':request_name}
-			# 	correspondence_email = request_contents.fetch1('correspondence_email')
-			# 	recipients = [correspondence_email]
-			# 	future_time = datetime.utcnow() + timedelta(days=4)
-			# 	reminder_email_kwargs = restrict_dict.copy()
-			# 	reminder_email_kwargs['subject'] = subject
-			# 	reminder_email_kwargs['body'] = body
-			# 	reminder_email_kwargs['recipients'] = recipients
-			# 	if not os.environ['FLASK_MODE'] == 'TEST': # pragma: no cover - used to exclude this line from calculating test coverage
-			# 		# tasks.send_processing_reminder_email.apply_async(
-			# 		# 	kwargs=reminder_email_kwargs,eta=future_time) 
-			# 		logger.debug("Not running celery task for reminder email while debugging.")
 			return redirect(url_for('imaging.imaging_manager'))
 
 	elif request.method == 'GET': # get request
@@ -1545,10 +1525,11 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 		for ii in range(len(batch_unique_image_resolutions)):
 			this_image_resolution = batch_unique_image_resolutions[ii]
 			logger.debug(this_image_resolution)
-			image_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
-				f'username="{username}" ' & f'request_name="{request_name}" ' & \
-				f'sample_name="{first_sample_name}" ' & \
-				f'image_resolution="{this_image_resolution}" '
+			image_resolution_restrict_dict = {'username':username,
+				'request_name':request_name,'sample_name':first_sample_name,
+				'imaging_request_number':imaging_request_number,
+				'image_resolution':this_image_resolution}
+			image_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & image_resolution_restrict_dict
 			notes_for_imager = image_resolution_request_contents.fetch1('notes_for_imager')
 
 			channel_contents_list_this_resolution = (
@@ -1598,7 +1579,11 @@ def imaging_batch_entry(username,request_name,imaging_batch_number):
 			channel_contents_this_sample = channel_contents_all_samples & \
 				f'sample_name="{this_sample_name}"'
 			""" Figure out clearing batch and if there were notes_for_clearer """
-			this_sample_contents = sample_contents & {'sample_name':this_sample_name}
+			sample_restrict_dict = {'sample_name':this_sample_name,
+									'imaging_request_number':imaging_request_number,
+									'imaging_batch_number':imaging_batch_number}
+			logger.debug(sample_restrict_dict)
+			this_sample_contents = db_lightsheet.Request.ClearingBatchSample() & sample_restrict_dict 
 			clearing_batch_number = this_sample_contents.fetch1('clearing_batch_number')
 			clearing_batch_restrict_dict = dict(username=username,request_name=request_name,
 				clearing_batch_number=clearing_batch_number)
@@ -1689,9 +1674,9 @@ def imaging_table(username,request_name,sample_name,imaging_request_number):
 			f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			f'imaging_request_number="{imaging_request_number}"' 
-	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
+	clearing_batch_sample_contents = db_lightsheet.Request.ClearingBatchSample() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' 
-	imaging_overview_table = ImagingTable(imaging_request_contents*sample_contents)
+	imaging_overview_table = ImagingTable(imaging_request_contents*clearing_batch_sample_contents)
 	imaging_progress = imaging_request_contents.fetch1('imaging_progress')
 	
 	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
@@ -1703,3 +1688,487 @@ def imaging_table(username,request_name,sample_name,imaging_request_number):
 	return render_template('imaging/imaging_log.html',
 		imaging_overview_table=imaging_overview_table,
 		imaging_channel_table=imaging_channel_table)
+
+
+@imaging.route("/imaging/new_imaging_request/<username>/<request_name>",methods=['GET','POST'])
+@logged_in
+@log_http_requests
+def new_imaging_request(username,request_name):
+	""" Route for a user to enter a new request via a form """
+	current_user = session['user']
+	logger.info(f"{current_user} accessed new imaging request route")
+
+	form = NewImagingRequestForm(request.form)
+	request_contents = db_lightsheet.Request() & {'username':username,'request_name':request_name}
+	species = request_contents.fetch1('species')
+	correspondence_email = request_contents.fetch1('correspondence_email')
+	all_imaging_modes = current_app.config['IMAGING_MODES']
+
+	""" figure out the new imaging request number to give the new request """
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & f'request_name="{request_name}"' & \
+			f'username="{username}"' 
+	previous_imaging_request_numbers = np.unique(imaging_request_contents.fetch('imaging_request_number'))
+	previous_max_imaging_request_number = max(previous_imaging_request_numbers)
+	new_imaging_request_number = previous_max_imaging_request_number + 1
+	all_imaging_modes = current_app.config['IMAGING_MODES']
+	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
+			f'username="{username}"'
+	number_of_samples = len(sample_contents)
+	logger.debug("New imaging request number:")
+	logger.debug(new_imaging_request_number)
+
+	if request.method == 'POST':
+		logger.info("POST request")
+		if form.validate_on_submit():
+			logger.info("Form validated")
+			""" figure out which button was pressed """
+			submit_keys = [x for x in form._fields.keys() if 'submit' in x and form[x].data == True]
+			if len(submit_keys) == 1: # submit key was final submit button
+				submit_key = submit_keys[0]
+			else: # submit key came from within a sub-form, meaning one of the resolution table setup buttons
+				logger.info("resolution table setup button pressed")
+				""" find which sample this came from """
+				submit_key = 'other'
+				for ii in range(len(form.imaging_samples.data)):
+					image_resolution_forms = form.imaging_samples[ii].image_resolution_forms
+					imaging_dict = form.imaging_samples.data[ii]
+					logger.debug("imaging dict:")
+					logger.debug(imaging_dict)
+					used_image_resolutions = [subform.image_resolution.data for subform in image_resolution_forms]
+					if imaging_dict['new_image_resolution_form_submit'] == True:
+						image_resolution_forsetup = imaging_dict['image_resolution_forsetup']
+						logger.debug("setting up image resolution form for image resolution:")
+						logger.debug(image_resolution_forsetup)
+						image_resolution_forms.append_entry()
+						resolution_table_index = len(image_resolution_forms.data)-1
+						""" now pick out which form we currently just made """
+						image_resolution_form = image_resolution_forms[resolution_table_index]
+						image_resolution_form.image_resolution.data = image_resolution_forsetup
+						used_image_resolutions.append(image_resolution_forsetup)
+						""" Set the focus point for javascript to scroll to """
+						if form.species.data == 'mouse' and image_resolution_forsetup !='2x':
+							column_name = f'imaging_samples-{ii}-image_resolution_forms-{resolution_table_index}-channel_forms-0-registration'
+						else:
+							column_name = f'imaging_samples-{ii}-image_resolution_forms-{resolution_table_index}-channel_forms-0-generic_imaging'
+							
+						# Now make 4 new channel formfields and set defaults and channel names
+						for x in range(4):
+							
+							# image_resolution_form.channels.append_entry()
+							channel_name = current_app.config['IMAGING_CHANNELS'][x]
+							logger.debug("Setting up channel form for channel:")
+							logger.debug(channel_name)
+							image_resolution_form.channel_forms[x].channel_name.data = channel_name
+							
+							if form.species.data == 'mouse' and channel_name == '488' and \
+								(image_resolution_forsetup == "1.3x" or image_resolution_forsetup == "1.1x"):
+								image_resolution_form.channel_forms[x].registration.data = 1
+								
+						resolution_choices = form.imaging_samples[ii].image_resolution_forsetup.choices
+						logger.debug(resolution_choices)
+						new_choices = [x for x in resolution_choices if x[0] not in used_image_resolutions]
+						logger.debug(new_choices)
+						form.imaging_samples[ii].image_resolution_forsetup.choices = new_choices
+						break
+				"""Now remove the image resolution the user just chose 
+				from the list of choices for the next image resolution table """
+				
+			""" Handle all of the different "*submit*" buttons pressed """
+			if submit_key == 'uniform_imaging_submit_button': # The uniform imaging button
+				logger.info("uniform imaging button pressed")
+				""" copy over all imaging/processing parameters from sample 1 to samples 2:last """
+				sample1_imaging_sample_dict = form.imaging_samples[0].data
+				sample1_image_resolution_form_dicts = sample1_imaging_sample_dict['image_resolution_forms']
+				for ii in range(number_of_samples):
+					if ii == 0: 
+						continue
+					this_sample_form = form.imaging_samples[ii]
+					this_sample_form.reimaging_this_sample.data = True 
+					""" Loop through the image resolutions and add each one """
+					for jj in range(len(sample1_image_resolution_form_dicts)):
+
+						sample1_image_resolution_form_dict = sample1_image_resolution_form_dicts[jj]
+						sample1_image_resolution = sample1_image_resolution_form_dict['image_resolution']
+						sample1_notes_for_imager = sample1_image_resolution_form_dict['notes_for_imager']
+						sample1_notes_for_processor = sample1_image_resolution_form_dict['notes_for_processor']
+						sample1_atlas_name = sample1_image_resolution_form_dict['atlas_name']
+						form.imaging_samples[ii].image_resolution_forms.append_entry()
+						this_image_resolution_form = form.imaging_samples[ii].image_resolution_forms[-1]
+						this_image_resolution_form.image_resolution.data = sample1_image_resolution
+						this_image_resolution_form.notes_for_imager.data = sample1_notes_for_imager
+						this_image_resolution_form.notes_for_processor.data = sample1_notes_for_processor
+						this_image_resolution_form.atlas_name.data = sample1_atlas_name
+						sample1_channel_form_dicts = sample1_image_resolution_form_dict['channel_forms']
+						""" Loop through channel dicts and copy the values for each key """
+						for kk in range(len(sample1_channel_form_dicts)):
+							sample1_channel_form_dict = sample1_channel_form_dicts[kk]
+							sample1_channel_name = sample1_channel_form_dict['channel_name']
+							sample1_channel_registration = sample1_channel_form_dict['registration']
+							sample1_channel_injection_detection = sample1_channel_form_dict['injection_detection']
+							sample1_channel_probe_detection = sample1_channel_form_dict['probe_detection']
+							sample1_channel_cell_detection = sample1_channel_form_dict['cell_detection']
+							sample1_channel_generic_imaging = sample1_channel_form_dict['generic_imaging']
+							this_channel_form = this_image_resolution_form.channel_forms[kk]
+							this_channel_form.channel_name.data = sample1_channel_name
+							this_channel_form.registration.data = sample1_channel_registration
+							this_channel_form.injection_detection.data = sample1_channel_injection_detection
+							this_channel_form.probe_detection.data = sample1_channel_probe_detection
+							this_channel_form.cell_detection.data = sample1_channel_cell_detection
+							this_channel_form.generic_imaging.data = sample1_channel_generic_imaging
+				column_name = 'uniform_imaging_submit_button'
+
+			elif submit_key == 'submit': # The final submit button
+				logger.debug("Final submission")
+
+				""" Start a transaction for doing the inserts.
+					This is done to avoid inserting only into Request()
+					table but not any of the dependent tables if there is an error 
+					at any point during any of the code block """
+				connection = db_lightsheet.Request.connection
+				with connection.transaction:
+					now = datetime.now()
+					date = now.strftime("%Y-%m-%d")
+					time = now.strftime("%H:%M:%S") 
+
+					''' Now loop through all samples and make the insert lists '''
+					sample_insert_list = [] # only to keep track of certain things for other inserts
+					clearing_batch_insert_list = []
+					imaging_batch_insert_list = []
+					imaging_request_insert_list = []
+					imaging_resolution_insert_list = []
+					processing_request_insert_list = []
+					processing_resolution_insert_list = [] 
+					channel_insert_list = []
+					sample_imaging_dict = {} # keep track of what imaging needs to be done for each sample -- used for making imaging batches later 
+					for ii in range(number_of_samples):
+						sample_form_dict = form.imaging_samples[ii].data  
+						sample_needs_reimaging = sample_form_dict['reimaging_this_sample']
+						if not sample_needs_reimaging:
+							continue    
+						sample_name = sample_form_dict['sample_name']              
+						sample_insert_dict = {}
+						""" Set up sample insert dict """
+						sample_insert_dict['request_name'] = request_name
+						''' Add primary keys that are not in the form '''
+						sample_insert_dict['username'] = username 
+						sample_insert_dict['sample_name'] = sample_name
+						sample_insert_list.append(sample_insert_dict)
+
+						""" Now imaging batch """
+						imaging_batch_insert_dict = {}
+						imaging_batch_insert_dict['username'] = username 
+						imaging_batch_insert_dict['request_name'] = request_name
+						imaging_batch_insert_dict['imaging_request_number'] = new_imaging_request_number
+						imaging_batch_insert_dict['imaging_request_date_submitted'] = date
+						imaging_batch_insert_dict['imaging_request_time_submitted'] = time
+
+						if form.self_imaging.data == True:
+							logger.debug("Self imaging selected!")
+							imaging_batch_insert_dict['imager'] = username
+						else:
+							logger.debug("Self imaging not selected")
+						imaging_batch_insert_dict['imaging_progress'] = 'incomplete'
+						imaging_res_channel_dict = {} 
+						
+					   
+						""" Set up ImagingRequest and ProcessingRequest insert dicts """
+						imaging_sample_form_dict = form.imaging_samples[ii].data
+						""" When user submits this request form it is always 
+						the first imaging request and processing request for this sample """
+
+						""" ImagingRequest """
+						imaging_request_insert_dict = {}
+						imaging_request_insert_dict['request_name'] = request_name
+						imaging_request_insert_dict['username'] = username 
+						imaging_request_insert_dict['sample_name'] = sample_name
+						imaging_request_insert_dict['imaging_request_number'] = new_imaging_request_number
+						if form.self_imaging.data:
+							imaging_request_insert_dict['imager'] = username
+						imaging_request_insert_dict['imaging_request_date_submitted'] = date
+						imaging_request_insert_dict['imaging_request_time_submitted'] = time
+						imaging_request_insert_dict['imaging_progress'] = "incomplete"
+						imaging_request_insert_list.append(imaging_request_insert_dict)
+						""" Make the directory on /jukebox corresponding to this imaging request """
+						raw_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+							username,request_name,sample_name,f'imaging_request_{new_imaging_request_number}',
+							'rawdata')
+						output_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+							username,request_name,sample_name,f'imaging_request_{new_imaging_request_number}',
+							'output')
+						viz_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+							username,request_name,sample_name,f'imaging_request_{new_imaging_request_number}',
+							'viz')
+						mymkdir(raw_path_to_make)
+						mymkdir(output_path_to_make)
+						mymkdir(viz_path_to_make)
+
+						logger.debug("Made raw, output and viz directories")
+
+						""" ProcessingRequest - make it regardless of microscope or resolution used """
+						processing_request_insert_dict = {}
+						processing_request_number = 1
+						processing_request_insert_dict['request_name'] = request_name
+						processing_request_insert_dict['username'] = username 
+						processing_request_insert_dict['sample_name'] = sample_name
+						processing_request_insert_dict['imaging_request_number'] = new_imaging_request_number
+						processing_request_insert_dict['processing_request_number'] = processing_request_number
+						processing_request_insert_dict['processing_request_date_submitted'] = date
+						processing_request_insert_dict['processing_request_time_submitted'] = time
+						processing_request_insert_dict['processing_progress'] = "incomplete"
+						""" The user is always the "processor" - i.e. the person
+						 who double-checks the processing form and hits GO """
+						processing_request_insert_dict['processor'] = username
+						processing_request_insert_list.append(processing_request_insert_dict)
+
+						""" Now insert each image resolution/channel combo """
+						
+						for resolution_dict in imaging_sample_form_dict['image_resolution_forms']:
+							# logger.debug(resolution_dict)
+							image_resolution = resolution_dict['image_resolution']
+							imaging_res_channel_dict[image_resolution] = []
+							""" imaging entry first """
+							imaging_resolution_insert_dict = {}
+							imaging_resolution_insert_dict['request_name'] = request_name
+							imaging_resolution_insert_dict['username'] = username 
+							imaging_resolution_insert_dict['sample_name'] = sample_name
+							imaging_resolution_insert_dict['imaging_request_number'] = new_imaging_request_number
+							imaging_resolution_insert_dict['image_resolution'] = image_resolution
+							if image_resolution in current_app.config['LAVISION_RESOLUTIONS']:
+								microscope = 'LaVision'
+								imaging_resolution_insert_dict['microscope'] = microscope
+							elif image_resolution in current_app.config['SMARTSPIM_RESOLUTIONS']:
+								microscope = 'SmartSPIM'
+								imaging_resolution_insert_dict['microscope'] = microscope
+							imaging_resolution_insert_dict['notes_for_imager'] = resolution_dict['notes_for_imager']
+							imaging_resolution_insert_list.append(imaging_resolution_insert_dict)
+							""" now processing entry (if not 2x imaging request)"""
+							if image_resolution != '2x':
+								processing_resolution_insert_dict = {}
+								processing_resolution_insert_dict['request_name'] = request_name
+								processing_resolution_insert_dict['username'] = username 
+								processing_resolution_insert_dict['sample_name'] = sample_name
+								processing_resolution_insert_dict['imaging_request_number'] = new_imaging_request_number
+								processing_resolution_insert_dict['processing_request_number'] = processing_request_number
+								processing_resolution_insert_dict['image_resolution'] = image_resolution
+								processing_resolution_insert_dict['notes_for_processor'] = resolution_dict['notes_for_processor']
+								processing_resolution_insert_dict['atlas_name'] = resolution_dict['atlas_name']
+								processing_resolution_insert_dict['final_orientation'] = resolution_dict['final_orientation']
+								processing_resolution_insert_list.append(processing_resolution_insert_dict)
+					 
+
+							""" now loop through the imaging channels and fill out the ImagingChannel entries """
+							for imaging_channel_dict in resolution_dict['channel_forms']:
+								""" The way to tell which channels were picked is to see 
+								which have at least one imaging mode selected """
+								
+								used_imaging_modes = [key for key in all_imaging_modes if imaging_channel_dict[key] == True]
+								if not any(used_imaging_modes):
+									continue
+								else:
+									channel_name = imaging_channel_dict['channel_name']
+									imaging_res_channel_dict[image_resolution].append(channel_name)
+									channel_insert_dict = {}
+									channel_insert_dict['imaging_request_number'] = new_imaging_request_number 
+									channel_insert_dict['request_name'] = request_name    
+									channel_insert_dict['username'] = username
+									channel_insert_dict['sample_name'] = sample_name
+									channel_insert_dict['image_resolution'] = resolution_dict['image_resolution']
+									for key,val in imaging_channel_dict.items(): 
+										if key == 'csrf_token': 
+											continue # pragma: no cover - used to exclude this line from calculating test coverage
+										channel_insert_dict[key] = val
+									channel_insert_list.append(channel_insert_dict)
+							# logger.info(channel_insert_list)
+							imaging_batch_insert_dict['imaging_dict'] = imaging_res_channel_dict
+						sample_imaging_dict[sample_name] = imaging_res_channel_dict
+						imaging_batch_insert_list.append(imaging_batch_insert_dict)
+					
+					
+					""" Now figure out the ImagingBatch() entries
+					and ImagingBatchSample() entries.
+					An imaging batch is determined by a set of samples
+					that need to be imaged at the same resolutions and same 
+					imaging channels at those resolutions for a given request. """
+				   
+					# Loop over existing imaging batch dictionaries in 
+					new_list = [] # dummy list of imaging dicts ('resolution1':[channel_name1,channel_name2,...],....)
+					good_indices = [] # indices of original imaging_batch_insert_list that we will use in the end
+					counts = [] # number in each batch, index shared with new_list
+					notes_for_clearer_each_batch = [] # concatenated 
+					for index,dict_ in enumerate(imaging_batch_insert_list):
+						imaging_dict = dict_['imaging_dict']
+						sample_name = sample_insert_list[index]['sample_name']
+						try: 
+							# if it does then find the index of new_list corresponding to this batch
+							i = new_list.index(imaging_dict)
+						except ValueError: 
+							# if it doesn't, then this is a new unique combo of keys
+							counts.append(1)
+							new_list.append(imaging_dict)
+							good_indices.append(index)
+						else: # only gets executed if try block doesn't generate an error
+							counts[i] += 1 
+					
+					""" remake imaging_batch_insert_list to only have unique entries """
+					imaging_batch_insert_list = [imaging_batch_insert_list[index] for index in good_indices]
+					for ii in range(len(imaging_batch_insert_list)):
+						insert_dict = imaging_batch_insert_list[ii]
+						insert_dict['number_in_imaging_batch'] = counts[ii]
+						insert_dict['imaging_batch_number'] = ii+1
+					
+					""" Now loop through all sample insert dicts and assign
+					imaging batch number  """
+					imaging_batch_sample_insert_list = []
+					imaging_batch_sample_keys = ['username','request_name','sample_name',
+						'imaging_request_number','imaging_batch_number']
+					for sample_insert_dict in sample_insert_list:
+						imaging_batch_sample_insert_dict = {
+							key:sample_insert_dict[key] for key in sample_insert_dict if key in imaging_batch_sample_keys}
+
+						imaging_batch_sample_insert_dict['imaging_request_number'] = new_imaging_request_number # always 1 since this is a new request
+						sample_name = sample_insert_dict['sample_name']
+						this_sample_imaging_dict = sample_imaging_dict[sample_name]
+						""" Figure out which imaging batch this corresponds to """
+						for imaging_batch_insert_dict in imaging_batch_insert_list:
+							imaging_batch_imaging_dict = imaging_batch_insert_dict['imaging_dict']
+							if imaging_batch_imaging_dict == this_sample_imaging_dict:
+								imaging_batch_number = imaging_batch_insert_dict.get('imaging_batch_number')
+								imaging_batch_sample_insert_dict['imaging_batch_number'] = imaging_batch_number                   
+						imaging_batch_sample_insert_list.append(imaging_batch_sample_insert_dict)
+					
+					logger.info("ImagingBatch() insert ")
+					logger.info(imaging_batch_insert_list)
+					db_lightsheet.Request.ImagingBatch().insert(imaging_batch_insert_list,)
+					
+					logger.info("ImagingBatchSample() insert ")
+					logger.info(imaging_batch_sample_insert_list)
+					db_lightsheet.Request.ImagingBatchSample().insert(imaging_batch_sample_insert_list,)
+					
+					logger.debug("Sample imaging dict:")
+					logger.debug(sample_imaging_dict)
+					
+					db_lightsheet.Request.ImagingRequest().insert(imaging_request_insert_list)
+					# logger.info("ProcessingRequest() insert:")
+					# logger.info(processing_request_insert_list)
+					""" If there were no processing resolution requests (because all were 2x imaging requests),
+					then don't make a processing request """
+					if len(processing_resolution_insert_list) > 0:
+						db_lightsheet.Request.ProcessingRequest().insert(processing_request_insert_list)
+						""" Make the directory on /jukebox corresponding to this processing request """
+					# logger.info("ImagingResolutionRequest() insert:")
+					# logger.info(imaging_resolution_insert_list)
+					db_lightsheet.Request.ImagingResolutionRequest().insert(imaging_resolution_insert_list)
+					# logger.info("ProcessingResolutionRequest() insert:")
+					# logger.info(processing_resolution_insert_list)
+					if len(processing_resolution_insert_list) > 0:
+						db_lightsheet.Request.ProcessingResolutionRequest().insert(processing_resolution_insert_list)
+					# logger.info('channel insert:')
+					# logger.info(channel_insert_list)
+					
+					db_lightsheet.Request.ImagingChannel().insert(channel_insert_list)
+				
+				flash("Your new imaging request was submitted successfully. You will receive an email at "
+					  f"{correspondence_email} with further instructions ","success")
+				flash("If you elected to clear or image any of your samples yourself "
+					 "then head to Task Management -> All Imaging Tasks in the top Menu Bar "
+					 "to start the imaging entry form when ready. "
+					 "If not, your samples will be imaged by the Core Facility and "
+					 "you will receive an email once they are done. You can check the "
+					 "status of your samples at your request page (see table below).", "success")
+				
+
+				hosturl = os.environ['HOSTURL']
+				imaging_manager_url = f'https://{hosturl}' + url_for('imaging.imaging_manager')
+				samples_need_reimaging_str = ', '.join(d['sample_name'] for d in sample_insert_list)
+				subject = 'Lightserv automated email: New Imaging request received'
+				message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+					'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
+					'A new imaging request for your request:\n'
+					f'request_name: {request_name}\n'
+					f'Samples that need re-imaging: {samples_need_reimaging_str}\n\n'
+					f'has been received. Check the imaging management GUI: {imaging_manager_url}\n'
+					'if you designated yourself as the imager for any of these samples\n\n'
+					'Otherwise, the imaging will be handled by the Core Facility, and you will receive '
+					'emails when the imaging is complete.\n\n'
+					'Thanks,\nThe Histology and Brain Registration Core Facility.')
+				request_contents = db_lightsheet.Request() & \
+					{'username':username,'request_name':request_name}
+				correspondence_email = request_contents.fetch1('correspondence_email')
+				recipients = [correspondence_email]
+
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					send_email.delay(subject=subject,body=message_body,recipients=recipients) # pragma: no cover - used to exclude this line from calculating test coverage
+
+				""" Now send an email to the imaging managers if
+				the person did not set themself as the imager """
+				if not (form.self_imaging == True):
+					subject = 'Lightserv automated email: New Imaging Request Submitted. Sample(s) ready for imaging'
+					hosturl = os.environ['HOSTURL']
+					message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
+						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
+						'A new imaging request for a previously existing request:\n'
+						f'username: "{username}"\n'
+						f'request_name: "{request_name}"\n\n'
+						'was just made.\n\n'
+						f'Samples that need re-imaging are: {samples_need_reimaging_str}\n\n'
+						f'The imaging batches containing these samples will now show up in the Imaging Management GUI: {imaging_manager_url}\n\n'
+						'Thanks,\nThe Histology and Brain Registration Core Facility.')
+					recipients = [x + '@princeton.edu' for x in current_app.config['IMAGING_ADMINS']]
+					if not os.environ['FLASK_MODE'] == 'TEST':
+						send_email.delay(subject=subject,body=message_body,recipients=recipients) 
+				return redirect(url_for('requests.all_requests'))
+			
+		else: # post request but not validated. Need to handle some errors
+
+			if 'submit' in form.errors:
+				for error_str in form.errors['submit']:
+					flash(error_str,'danger')
+			
+			logger.debug("Not validated! See error dict below:")
+			logger.debug(form.errors)
+			logger.debug("")
+			flash_str = 'There were errors below. Correct them before proceeding'
+			flash(flash_str,'danger')
+			""" deal with errors in the samples section - those will not always 
+			show up in the proper place """
+			
+			if 'imaging_samples' in form.errors:
+				for obj in form.errors['imaging_samples']:
+					flash(obj,'danger')
+			if 'number_of_samples' in form.errors:
+				for error_str in form.errors['number_of_samples']:
+					flash(error_str,'danger')
+
+	if request.method=='GET':
+		logger.info("GET request")
+		form.species.data = species
+		form.number_of_samples.data = number_of_samples
+		""" Clear out any previously existing imaging sample forms """
+		while len(form.imaging_samples) > 0:
+			form.imaging_samples.pop_entry() # pragma: no cover - used to exclude this line from calculating test coverage
+		""" Make nsamples sets of sample fields and render them """
+		for sample_dict in sample_contents:
+			sample_name = sample_dict['sample_name']
+			logger.debug("Sample form checked:")
+			logger.debug(sample_dict)
+			form.imaging_samples.append_entry()
+			sample_form = form.imaging_samples[-1]
+			sample_form.sample_name.data = sample_name
+
+		column_name = 'imaging_samples-0-sample_name'
+		# form.subject_fullname.choices = [('test','test')] 
+
+	if 'column_name' not in locals():
+		column_name = ''
+	
+	request_summary_table = RequestSummaryTable(request_contents)
+	existing_imaging_contents = db_lightsheet.Request.ImagingChannel() & \
+		{'username':username,'request_name':request_name}
+	existing_imaging_table = ExistingImagingTable(existing_imaging_contents)
+
+	logger.debug(f"Column name right before render is: {column_name}")
+
+	return render_template('imaging/new_imaging_request.html',form=form,
+		request_summary_table=request_summary_table,
+		existing_imaging_table=existing_imaging_table,
+		column_name=column_name)

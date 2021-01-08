@@ -49,10 +49,45 @@
 <hr class='class-1'>
 
 <div id='new_imaging_request'>
-	<h4 align="center"> Q: How do I request additional imaging for a sample I already submitted?</h4>
+	<h4 align="center"> Q: How do I request additional imaging for a sample(s) I already submitted?</h4>
 	<p>
-		<b>A:</b> This is currently not supported through this portal. If you need additional imaging for a sample after you have submitted your request, please contact us right away at lightservhelper@gmail.com. 
+		<b>A:</b> To request additional imaging for certain samples, you first need to determine which request these samples belong to. If you're not sure, go to your <a href="{{url_for('requests.all_samples')}}">Samples</a> page, search for the sample. The request name in that row is what you have to know. Once you know the request name go to your <a href="{{url_for('requests.all_requests')}}">Requests</a> page and find the request in the table for which you want additional imaging. In the table row corresponding to this request, there is a "Need additonal imaging?" link. Clicking that link will open up a form where you can enter details about the additional imaging you need for some or all of the samples in that request. There is also a table on that page showing you all of the imaging you have already requested for that request, so you don't accidentally request imaging we already know you want. When you submit that form, a new imaging request is created and the imagers at the core facility will be notified. You can see all of your imaging requests for each sample in your request by clicking the "View request status" link at your <a href="{{url_for('requests.all_requests')}}">Requests</a> page. 
+
 	</p>
+	<p>
+		To better understand the structure of requests, see:  <a href="{{ url_for('main.FAQ',_anchor='request_structure') }}">Q: What are imaging request numbers and processing request numbers?</a>
+	</p>
+</div>
+
+<!-- <hr class='class-1'> -->
+
+<!-- <div id='new_processing_request'>
+	<h4 align="center"> Q: How do I request additional processing for a set of images?</h4>
+	<p>
+		<b>A:</b> The easiest way to do this is to go to <a href="{{url_for('requests.all_samples')}}">Your Samples</a> page, and find the sample in the table for which you want additional imaging. Then find the imaging request for that sample for which you want to request additional processing. In the same row as your imaging request, there is a "Request additonal processing" link. Clicking that link will take you to a form where you can request additional processing. This form only works for a single sample/imaging request at a time. To better understand the structure of requests, see:  <a href="{{ url_for('main.FAQ',_anchor='request_structure') }}">Q: What are imaging request numbers and processing request numbers?</a> 
+	</p>
+</div> -->
+
+<hr class='class-1'>
+
+<div id='request_structure'>
+<h4 align="center"> Q: What are imaging request numbers and processing request numbers?</h4>
+	<p>
+		<b>A:</b> When you submit a request via the "New Request" form, you provide all of the information that allows us to clear, image and process your collection of samples. Ideally, this request encompasses all of the steps you ever want done for this collection of samples. But what if you get your images back at one resolution and then decide you would like to image that sample at a different, perhaps higher resolution? Rather than having you resubmit an entire new request form, we instead have you fill out a "New Imaging Request" form. This makes it so you don't have to re-enter a bunch of information about the request, sample and clearing parameters. Because the sample is the same as in the original request, we can tie this new imaging request back to original request. We do this using the imaging request number. Your original request has imaging_request_number=1 by default. Any subsequent imaging requests are assigned imaging_request_number=2, then 3, etc... The number of imaging requests you can make for a sample is unlimited.
+	</p>
+	
+	<div align="center" class='mb-2'>
+		<img src="{{ url_for('static',filename='FAQ/simple_request_structure_graph.png') }}">	
+		</br>
+		<b>Fig 2.1</b>: The original request structure when you submit a request via the "New Request Form". In this example the request has two samples. Each sample has a single imaging request, and each imaging request has a single processing request.
+	</div>
+	<hr class='class-2'>
+	<div align="center" class='mb-2 mt-4'>
+		<img src="{{ url_for('static',filename='FAQ/two_imaging_request_structure_graph.png') }}">	
+		</br>
+		<b>Fig 2.2</b>: A request structure with two samples, where Sample 1 has two imaging requests. In this example, the user requested additional imaging for Sample 1, but they did not need any additional imaging for  Sample 2. Each imaging request has a single processing request (this is the default). To learn how to make an additional imaging request for a single sample, see: <a href="{{ url_for('main.FAQ',_anchor='new_imaging_request') }}">Q: How do I request additional imaging for a sample I already submitted?</a>
+	</div>
+
 </div>
 
 <hr class='class-1'>

@@ -697,7 +697,6 @@ def test_request_all_rat_clearing_protocols_ahoag(test_client,
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_ahoag fixture --------')
 
-
 @pytest.fixture(scope='function') 
 def test_multisample_request_nonadmin_clearing_notes(test_client,test_login_nonadmin,test_delete_request_db_contents):
 	""" Submits a new request as 'lightserv-test' (a nonadmin) with multiple samples that can be used for various tests.
@@ -883,13 +882,12 @@ def test_archival_request_nonadmin(test_client,test_login_nonadmin,test_delete_r
 	 'clearing_batch_number': 1, 'clearing_progress': 'complete', 'number_in_batch': 1, 'notes_for_clearer': ''}
 	imaging_batch_insert_dict = {
 	'username': 'lightserv-test', 'request_name': 'test_archival_request', 
-	 'imaging_batch_number': 1, 'imaging_progress': 'complete', 
+	 'imaging_batch_number': 1, 'imaging_request_number': 1, 'imaging_progress': 'complete', 
 	 'number_in_imaging_batch': 1,'imaging_request_date_submitted':'2019-02-26',
 	 'imaging_request_time_submitted':'12:55:22','imaging_dict':{}}
 	sample_insert_dict = {
-	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'clearing_protocol': 'iDISCO abbreviated clearing',
-	 'antibody1': '', 'antibody2': '', 'clearing_batch_number': 1, 'sample_name': 'sample-001',
-	 'imaging_batch_number':1}
+	'username': 'lightserv-test', 'request_name': 'test_archival_request',
+	 'sample_name': 'sample-001'}
 	imaging_request_insert_dict = {
 	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'imaging_request_number': 1,
 	 'imaging_progress': 'complete', 'imaging_request_date_submitted': '2019-02-26',
@@ -1249,8 +1247,10 @@ def test_multisample_multichannel_request_nonadmin(test_client,
 			'clearing_samples-0-sample_name':'sample-001',
 			'clearing_samples-0-expected_handoff_date':today_proper_format,
 			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-notes_for_clearer':'Sample 1 clearing notes',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-notes_for_imager':'Sample 1 imaging notes',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
@@ -1261,8 +1261,11 @@ def test_multisample_multichannel_request_nonadmin(test_client,
 			'clearing_samples-1-sample_name':'sample-002',
 			'clearing_samples-1-expected_handoff_date':today_proper_format,
 			'clearing_samples-1-perfusion_date':today_proper_format,
+			'clearing_samples-1-notes_for_clearer':'Sample 2 clearing notes',
+
 			'imaging_samples-1-image_resolution_forsetup':'1.3x',
 			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-notes_for_imager':'Sample 2 imaging notes',
 			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
 			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
@@ -1273,8 +1276,11 @@ def test_multisample_multichannel_request_nonadmin(test_client,
 			'clearing_samples-2-sample_name':'sample-003',
 			'clearing_samples-2-expected_handoff_date':today_proper_format,
 			'clearing_samples-2-perfusion_date':today_proper_format,
+			'clearing_samples-2-notes_for_clearer':'Sample 3 clearing notes',
+
 			'imaging_samples-2-image_resolution_forsetup':'1.3x',
 			'imaging_samples-2-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-2-image_resolution_forms-0-notes_for_imager':'Sample 3 imaging notes',
 			'imaging_samples-2-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-registration':True,
 			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-channel_name':'488',
@@ -1792,6 +1798,7 @@ def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
 	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='ahoag',
 			request_name='admin_request',
+			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data1,
 		follow_redirects=True)
@@ -1803,6 +1810,7 @@ def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='ahoag',
 			request_name='admin_request',
+			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data2,
 		follow_redirects=True)
@@ -1836,6 +1844,7 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='nonadmin_request',
+			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data1,
 		follow_redirects=True)
@@ -1847,6 +1856,7 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='nonadmin_request',
+			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data2,
 		follow_redirects=True)
@@ -1904,6 +1914,7 @@ def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_clear
 	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='nonadmin_request',
+			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data1,
 		follow_redirects=True)
@@ -1937,6 +1948,7 @@ def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_clear
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='nonadmin_request',
+			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data2,
 		follow_redirects=True)	
@@ -1949,6 +1961,7 @@ def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_clear
 	response3 = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='nonadmin_request',
+			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data3,
 		follow_redirects=True)
@@ -1985,6 +1998,7 @@ def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_reques
 	response = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='nonadmin_request',
+			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data,
 		follow_redirects=True)
@@ -1996,6 +2010,7 @@ def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_reques
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='nonadmin_request',
+			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data2,
 		follow_redirects=True)
@@ -2068,6 +2083,7 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 		}
 	response = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='ahoag',request_name='admin_multichannel_request',
+			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data,
 		follow_redirects=True)
@@ -2079,6 +2095,7 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='ahoag',
 			request_name='admin_multichannel_request',
+			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data2,
 		follow_redirects=True)
@@ -2123,6 +2140,7 @@ def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadm
 	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='viz_processed',
+			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data1,
 		follow_redirects=True)
@@ -2134,6 +2152,7 @@ def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadm
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='viz_processed',
+			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data2,
 		follow_redirects=True)
@@ -2142,6 +2161,63 @@ def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadm
 		sess['user'] = 'lightserv-test'
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
+
+@pytest.fixture(scope='function') 
+def test_new_imaging_request_nonadmin(test_client,
+	test_cleared_multisample_multichannel_request_nonadmin):
+	""" A fixture for creating a new imaging request based on a previously 
+	existing request
+
+	Makes a new imaging request with 2 imaging batches.
+	Make sure they are inserted correctly """	
+
+	print('----------Setup test_new_imaging_request_nonadmin fixture ----------')
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
+	username = 'lightserv-test'
+	request_name = "nonadmin_manysamp_request"
+	response = test_client.post(
+		url_for('imaging.new_imaging_request',username=username,
+			request_name=request_name,),data={
+			'species':'mouse',
+			'number_of_samples':3,
+			'imaging_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-reimaging_this_sample':True,
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			'imaging_samples-1-sample_name':'sample-002',
+			'imaging_samples-1-reimaging_this_sample':True,
+			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-1-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-1-image_resolution_forsetup':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			'imaging_samples-2-sample_name':'sample-003',
+			'imaging_samples-2-reimaging_this_sample':True,
+			'imaging_samples-2-image_resolution_forms-0-image_resolution':'3.6x',
+			'imaging_samples-2-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-2-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-2-image_resolution_forsetup':'1.3x',
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	yield test_client
+	print('----------Teardown test_new_imaging_request_nonadmin fixture ----------')
+
 
 
 """ Fixtures for processing """

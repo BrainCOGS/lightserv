@@ -1311,8 +1311,6 @@ def test_submit_good_mouse_request_3p6x(test_client,
 	assert microscope == 'SmartSPIM'
 	assert image_resolution == '3.6x'
 
-
-
 def test_submit_multisample_multichannel_request(test_client,test_login_nonadmin,
 	test_multisample_multichannel_request_nonadmin):
 	""" Test submitting a request for 3 samples 
@@ -1372,6 +1370,122 @@ def test_submit_paxinos_mouse_request(test_client,
 	processing_resolution_request_contents = db_lightsheet.Request.ProcessingResolutionRequest() & restrict_dict
 	atlas_name = processing_resolution_request_contents.fetch1('atlas_name')
 	assert atlas_name == 'paxinos'
+
+def test_clearing_and_imaging_batches_properly_assigned(test_client,test_login_nonadmin,
+	test_delete_request_db_contents):
+	""" Ensure that clearing and imaging batches are 
+	properly assigned when multiple samples with different parameters
+	are entered. First two samples are in same imaging batch, same clearing batch.
+	Sample 3 is in same clearing batch but different imaging batch.
+	Sample 4 is in same imaging batch as first two but different clearing batch
+
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	username = test_login_nonadmin['user']
+	request_name = "nonadmin_request"
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':request_name,
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':4,
+			'raw_data_retention_preference':"important",
+			'username':username,
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'clearing_samples-1-expected_handoff_date':today_proper_format,
+			'clearing_samples-1-perfusion_date':today_proper_format,
+			'clearing_samples-1-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-1-sample_name':'sample-002',
+			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-1-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-1-image_resolution_forsetup':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'clearing_samples-2-expected_handoff_date':today_proper_format,
+			'clearing_samples-2-perfusion_date':today_proper_format,
+			'clearing_samples-2-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-2-sample_name':'sample-003',
+			'imaging_samples-2-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-2-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-2-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-2-image_resolution_forsetup':'1.3x',
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			'clearing_samples-3-expected_handoff_date':today_proper_format,
+			'clearing_samples-3-perfusion_date':today_proper_format,
+			'clearing_samples-3-clearing_protocol':'uDISCO',
+			'clearing_samples-3-sample_name':'sample-004',
+			'imaging_samples-3-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-3-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-3-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-3-image_resolution_forsetup':'1.3x',
+			'imaging_samples-3-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-3-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"core facility requests" in response.data
+	assert b"This is a demo request" in response.data
+	assert b"New Request Form" not in response.data
+
+	""" Make sure clearing and imaging batches were assigned correctly
+	by checking the db contents """
+	clearing_batch_1_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'clearing_batch_number':1}
+	clearing_batch_1_contents = db_lightsheet.Request().ClearingBatch() & clearing_batch_1_restrict_dict
+	number_of_samples_in_clearing_batch_1 = clearing_batch_1_contents.fetch1('number_in_batch')
+	assert number_of_samples_in_clearing_batch_1 == 3
+	clearing_batch_1_sample_contents = db_lightsheet.Request().ClearingBatchSample() & clearing_batch_1_restrict_dict
+	samples_in_clearing_batch_1 = clearing_batch_1_sample_contents.fetch('sample_name')
+	assert 'sample-004' not in samples_in_clearing_batch_1
+
+	clearing_batch_2_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'clearing_batch_number':2}
+	clearing_batch_2_contents = db_lightsheet.Request().ClearingBatch() & clearing_batch_2_restrict_dict
+	number_of_samples_in_clearing_batch_2 = clearing_batch_2_contents.fetch1('number_in_batch')
+	assert number_of_samples_in_clearing_batch_2 == 1
+	clearing_batch_2_sample_contents = db_lightsheet.Request().ClearingBatchSample() & clearing_batch_2_restrict_dict
+	sample_in_clearing_batch_2 = clearing_batch_2_sample_contents.fetch1('sample_name')
+	assert sample_in_clearing_batch_2 == 'sample-004' 
+
+	imaging_batch_1_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'imaging_batch_number':1}
+	imaging_batch_1_contents = db_lightsheet.Request().ImagingBatch() & imaging_batch_1_restrict_dict
+	number_of_samples_in_imaging_batch_1 = imaging_batch_1_contents.fetch1('number_in_imaging_batch')
+	assert number_of_samples_in_imaging_batch_1 == 3
+	imaging_batch_1_sample_contents = db_lightsheet.Request().ImagingBatchSample() & imaging_batch_1_restrict_dict
+	samples_in_imaging_batch_1 = imaging_batch_1_sample_contents.fetch('sample_name')
+	assert 'sample-003' not in samples_in_imaging_batch_1
+
+	imaging_batch_2_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'imaging_batch_number':2}
+	imaging_batch_2_contents = db_lightsheet.Request().ImagingBatch() & imaging_batch_2_restrict_dict
+	number_of_samples_in_imaging_batch_2 = imaging_batch_2_contents.fetch1('number_in_imaging_batch')
+	assert number_of_samples_in_imaging_batch_2 == 1
+	imaging_batch_2_sample_contents = db_lightsheet.Request().ImagingBatchSample() & imaging_batch_2_restrict_dict
+	sample_in_imaging_batch_2 = imaging_batch_2_sample_contents.fetch1('sample_name')
+	assert sample_in_imaging_batch_2 == 'sample-003'
 
 """ Testing all_requests() """
 
@@ -1657,7 +1771,6 @@ def test_delete_request_validation(test_client,test_single_sample_request_nonadm
 	assert b'core facility requests:' in response.data
 	assert b'nonadmin_request' in response.data
 	assert b'Only lightserv-test can delete their own request.' in response.data 	
-
 
 def test_delete_request_denied_if_clearing_started(test_client,test_cleared_request_nonadmin):
 	""" Test that request cannot be deleted if clearing has been started (or completed) already
