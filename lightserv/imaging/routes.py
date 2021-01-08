@@ -155,8 +155,10 @@ def imaging_batch_entry(username,request_name,
 	batch forms """
 	first_sample_dict = sample_contents.fetch(as_dict=True,limit=1)[0]
 	first_sample_name = first_sample_dict['sample_name']	
-	channel_contents_all_samples = (db_lightsheet.Request.ImagingChannel() & f'request_name="{request_name}"' & \
-			f'username="{username}"' )
+	channel_restrict_dict = {'username':username,'request_name':request_name,
+		'imaging_request_number':imaging_request_number}
+	channel_contents_all_samples = db_lightsheet.Request.ImagingChannel() & channel_restrict_dict
+
 	batch_channel_contents = channel_contents_all_samples & f'sample_name="{first_sample_name}"'
 
 	batch_unique_image_resolutions = sorted(set(batch_channel_contents.fetch('image_resolution')))
@@ -338,6 +340,7 @@ def imaging_batch_entry(username,request_name,
 					logger.debug("Batch channel validation failed. Not applying batch parameters to all samples")
 				return redirect(url_for('imaging.imaging_batch_entry',
 							username=username,request_name=request_name,
+							imaging_request_number=imaging_request_number,
 							imaging_batch_number=imaging_batch_number))
 			else:
 				""" A few possibilites: 
@@ -402,6 +405,7 @@ def imaging_batch_entry(username,request_name,
 							flash("Otherwise channel was added OK","warning")
 						return redirect(url_for('imaging.imaging_batch_entry',
 							username=username,request_name=request_name,
+							imaging_request_number=imaging_request_number,
 							imaging_batch_number=imaging_batch_number))
 					
 					elif update_resolution_button_pressed:
@@ -558,6 +562,7 @@ def imaging_batch_entry(username,request_name,
 						
 						return redirect(url_for('imaging.imaging_batch_entry',
 							username=username,request_name=request_name,
+							imaging_request_number=imaging_request_number,
 							imaging_batch_number=imaging_batch_number))	
 					else:
 						""" Search the channel forms of this image resolution form to see
@@ -609,6 +614,7 @@ def imaging_batch_entry(username,request_name,
 									flash("Otherwise channel was deleted OK","warning")
 								return redirect(url_for('imaging.imaging_batch_entry',
 									username=username,request_name=request_name,
+									imaging_request_number=imaging_request_number,
 									imaging_batch_number=imaging_batch_number))
 							if add_flipped_channel_button_pressed:
 								""" ################################### """
@@ -693,6 +699,7 @@ def imaging_batch_entry(username,request_name,
 										flash("Otherwise channel was added OK","warning")
 								return redirect(url_for('imaging.imaging_batch_entry',
 									username=username,request_name=request_name,
+									imaging_request_number=imaging_request_number,
 									imaging_batch_number=imaging_batch_number))
 								""" Create a new ImagingChannel() entry for this channel """
 
@@ -1103,6 +1110,7 @@ def imaging_batch_entry(username,request_name,
 							logger.debug("Sample form not validated")
 						return redirect(url_for('imaging.imaging_batch_entry',
 									username=username,request_name=request_name,
+									imaging_request_number=imaging_request_number,
 									imaging_batch_number=imaging_batch_number))
 					else:
 						""" Either a sample update resolution or 
@@ -1138,6 +1146,7 @@ def imaging_batch_entry(username,request_name,
 								db_lightsheet.Request.ImagingChannel().insert1(channel_entry_dict)
 								return redirect(url_for('imaging.imaging_batch_entry',
 									username=username,request_name=request_name,
+									imaging_request_number=imaging_request_number,
 									imaging_batch_number=imaging_batch_number))
 							
 							elif update_resolution_button_pressed:
@@ -1292,6 +1301,7 @@ def imaging_batch_entry(username,request_name,
 								
 								return redirect(url_for('imaging.imaging_batch_entry',
 									username=username,request_name=request_name,
+									imaging_request_number=imaging_request_number,
 									imaging_batch_number=imaging_batch_number))	
 							else:
 								""" Search the channel forms of this image resolution form to see
@@ -1342,6 +1352,7 @@ def imaging_batch_entry(username,request_name,
 											flash("Otherwise channel was deleted OK","warning")
 										return redirect(url_for('imaging.imaging_batch_entry',
 											username=username,request_name=request_name,
+											imaging_request_number=imaging_request_number,
 											imaging_batch_number=imaging_batch_number))
 									elif add_flipped_channel_button_pressed:
 										""" ######################################### """
@@ -1412,6 +1423,7 @@ def imaging_batch_entry(username,request_name,
 											flash(flash_str,"success")
 										return redirect(url_for('imaging.imaging_batch_entry',
 											username=username,request_name=request_name,
+											imaging_request_number=imaging_request_number,
 											imaging_batch_number=imaging_batch_number))
 		else: # final submit button pressed. No validation necessary since all done in each sample form
 			
@@ -1422,6 +1434,7 @@ def imaging_batch_entry(username,request_name,
 				logger.info("Imaging is already complete so hitting the submit button again did nothing")
 				return redirect(url_for('imaging.imaging_batch_entry',username=username,
 					request_name=request_name,sample_name=sample_name,
+					imaging_request_number=imaging_request_number,
 					imaging_batch_number=imaging_batch_number))
 			
 						
@@ -1512,10 +1525,11 @@ def imaging_batch_entry(username,request_name,
 		for ii in range(len(batch_unique_image_resolutions)):
 			this_image_resolution = batch_unique_image_resolutions[ii]
 			logger.debug(this_image_resolution)
-			image_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
-				f'username="{username}" ' & f'request_name="{request_name}" ' & \
-				f'sample_name="{first_sample_name}" ' & \
-				f'image_resolution="{this_image_resolution}" '
+			image_resolution_restrict_dict = {'username':username,
+				'request_name':request_name,'sample_name':first_sample_name,
+				'imaging_request_number':imaging_request_number,
+				'image_resolution':this_image_resolution}
+			image_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & image_resolution_restrict_dict
 			notes_for_imager = image_resolution_request_contents.fetch1('notes_for_imager')
 
 			channel_contents_list_this_resolution = (
@@ -1660,9 +1674,9 @@ def imaging_table(username,request_name,sample_name,imaging_request_number):
 			f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' & \
 			f'imaging_request_number="{imaging_request_number}"' 
-	sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & \
+	clearing_batch_sample_contents = db_lightsheet.Request.ClearingBatchSample() & f'request_name="{request_name}"' & \
 			f'username="{username}"' & f'sample_name="{sample_name}"' 
-	imaging_overview_table = ImagingTable(imaging_request_contents*sample_contents)
+	imaging_overview_table = ImagingTable(imaging_request_contents*clearing_batch_sample_contents)
 	imaging_progress = imaging_request_contents.fetch1('imaging_progress')
 	
 	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
