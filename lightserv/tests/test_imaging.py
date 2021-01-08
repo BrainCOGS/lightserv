@@ -64,16 +64,7 @@ def test_multisample_multichannel_request_in_imaging_manager(test_client,
 def test_imaging_batch_entry_form_GET(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
 	test_login_zmd):
-	""" Test the single sample section of the imaging batch entry form.
-
-	First, test validation.
-
-	Then, test adding/deleting channel
-
-	Then, test changing image resolution
-
-	Then, test that the subform submits.
-
+	""" Test a GET request to imaging batch entry form renders 
 	"""
 
 	response = test_client.get(url_for('imaging.imaging_batch_entry',
@@ -83,6 +74,34 @@ def test_imaging_batch_entry_form_GET(test_client,
 			imaging_batch_number=1),
 		follow_redirects=True)
 	assert b'Imaging Entry Form' in response.data
+	
+	""" Make sure all clearing and imaging notes
+	that were left by the user for each sample
+	show up in the sample section """
+	assert b'Sample 1 clearing notes' in response.data
+	assert b'Sample 2 clearing notes' in response.data
+	assert b'Sample 3 clearing notes' in response.data
+	assert b'Sample 1 imaging notes' in response.data
+	assert b'Sample 2 imaging notes' in response.data
+	assert b'Sample 3 imaging notes' not in response.data # Sample 3 is in imaging batch 2
+
+	response = test_client.get(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_request_number=1,
+			imaging_batch_number=2),
+		follow_redirects=True)
+	assert b'Imaging Entry Form' in response.data
+	""" Make sure all clearing and imaging notes
+	that were left by the user for each sample
+	show up in the sample section """
+	assert b'Sample 1 clearing notes' in response.data
+	assert b'Sample 2 clearing notes' in response.data
+	assert b'Sample 3 clearing notes' in response.data
+	assert b'Sample 1 imaging notes' not in response.data # Only sample 3 is in imaging batch 2
+	assert b'Sample 2 imaging notes' not in response.data # Only sample 3 is in imaging batch 2
+	assert b'Sample 3 imaging notes' in response.data 
+
 
 def test_imaging_batch_entry_form_single_sample(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,

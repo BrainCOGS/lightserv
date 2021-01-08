@@ -70,6 +70,23 @@ class AllRequestTable(Table):
 	
 	samples_link = LinkCol('View request status', 'requests.request_overview',url_kwargs=url_kwargs,
 		anchor_attrs=anchor_attrs,allow_sort=False)
+	new_imaging_request_kwargs = {'username':'username','request_name':'request_name'}
+	new_imaging_request_tooltip_text = ('Click the link in the row for a request if you need more imaging '
+										'than you originally requested for any samples in that request. '
+										'The "View request status" link will show you the samples in each request '
+										'if you need to look them up. '
+										'You can submit a new imaging request at any point in the request, '
+										'even if clearing is not yet done. ')
+	new_imaging_request_html_attrs = {'class':'infolink','tabindex':"0",
+	'role':"button",'data-trigger':"focus", 'data-toggle':'popover',
+	'title':"How to request additional imaging:" ,'data-content':new_imaging_request_tooltip_text}
+	
+	new_imaging_request_link = LinkCol('Need additional imaging?', 'imaging.new_imaging_request',
+		url_kwargs=new_imaging_request_kwargs,
+		anchor_attrs={"target":"_blank",},
+		th_html_attrs=new_imaging_request_html_attrs,
+		allow_sort=False)
+	
 	delete_request_kwargs = {'username':'username','request_name':'request_name'}
 	delete_request_tooltip_text = ('If this column shows "N/A" '
 		'then you can no longer delete the request at this point. '
