@@ -1117,6 +1117,9 @@ def processing_job_status_checker():
 		and update the progress """
 		this_processing_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & \
 		f'lightsheet_pipeline_spock_jobid={jobid}'
+		if len(this_processing_resolution_content) == 0:
+			logger.debug("No ProcessingResolutionRequest() associated with this jobid. Skipping")
+			continue
 		logger.debug("this processing resolution content:")
 		logger.debug(this_processing_resolution_content)
 		dj.Table._update(this_processing_resolution_content,
@@ -1686,6 +1689,9 @@ def smartspim_stitching_job_status_checker():
 		and update the progress """
 		this_stitching_content = all_stitching_entries & \
 			f'smartspim_stitching_spock_jobid={jobid}'
+		if len(this_stitching_content) == 0:
+			logger.debug("No entry found in SmartspimStitchedChannel() table")
+			continue
 		logger.debug("this stitching content:")
 		logger.debug(this_stitching_content)
 		dj.Table._update(this_stitching_content,
