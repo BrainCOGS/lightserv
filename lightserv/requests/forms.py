@@ -97,6 +97,9 @@ class NewRequestForm(FlaskForm):
 	enter_for_otheruser = BooleanField('Check if you are filling out this form for someone else',default=False)
 	other_username = StringField('Netid of that person',
 		validators=[Length(max=20)])
+	enter_for_auditor = BooleanField('Check if you want to grant another user access to this request as an auditor',default=False)
+	auditor_username = StringField('Netid of the auditor',
+		validators=[Length(max=20)])
 	request_name = StringField(
 		'Request name - a unique identifier for this request -- max 64 characters --',
 		validators=[InputRequired(),Length(max=64)])

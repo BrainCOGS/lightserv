@@ -60,10 +60,14 @@ def all_requests():
         legend = 'All core facility requests'
     else:
         legend = 'Your core facility requests'
-        request_contents = request_contents & f'username="{current_user}"'
-        # sample_contents = sample_contents & f'username="{current_user}"'
-        imaging_request_contents = imaging_request_contents & f'username="{current_user}"'
-        processing_request_contents = processing_request_contents & f'username="{current_user}"'
+        restrict_OR_list = [{"username":current_user},{"auditor":current_user}]
+        request_contents = request_contents & restrict_OR_list
+        imaging_request_contents = (request_contents*imaging_request_contents & restrict_OR_list).proj(
+            'imager',
+            'imaging_progress')
+        processing_request_contents = (request_contents*processing_request_contents & restrict_OR_list).proj(
+            'processor',
+            'processing_progress')
     # logger.debug(request_contents)
     ''' Now figure out what fraction of the samples in each request are cleared/imaged/processed '''    
     replicated_args = dict(is_archival='is_archival',number_of_samples='number_of_samples',description='description',
@@ -275,7 +279,7 @@ def all_samples():
     logger.info(f"{current_user} accessed all_samples page")
     request_contents = db_lightsheet.Request()
     request_contents = request_contents.proj('description','species','number_of_samples',
-        'is_archival',
+        'is_archival','auditor',
         datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
     sample_contents = db_lightsheet.Request.Sample()
     clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
@@ -283,11 +287,15 @@ def all_samples():
     processing_request_contents = db_lightsheet.Request.ProcessingRequest()
     if current_user not in current_app.config['CLEARING_ADMINS']:
         legend = 'Your core facility samples (from all of your requests)'
-        sample_contents = sample_contents & f'username="{current_user}"'
-        request_contents = request_contents & f'username="{current_user}"'
-        clearing_batch_contents = clearing_batch_contents & f'username="{current_user}"'
-        imaging_request_contents = imaging_request_contents & f'username="{current_user}"'
-        processing_request_contents = processing_request_contents & f'username="{current_user}"'
+        restrict_OR_list = [{"username":current_user},{"auditor":current_user}]
+        request_contents = request_contents & restrict_OR_list
+        sample_contents = (request_contents*sample_contents & restrict_OR_list).proj()
+        clearing_batch_contents = (request_contents*clearing_batch_contents & restrict_OR_list).proj(
+            'clearer','clearing_progress','link_to_clearing_spreadsheet')
+        imaging_request_contents = (request_contents*imaging_request_contents & restrict_OR_list).proj(
+            'imager','imaging_progress')
+        processing_request_contents = (request_contents*processing_request_contents & restrict_OR_list).proj(
+            'processor','processing_progress')
     else:
         legend = 'All core facility samples (from all requests)'
     
@@ -568,13 +576,29 @@ def new_request():
                         username = current_user
                         logger.info(f"Form filled out by current user with username={username}.")
 
-                    princeton_email_current_user = current_user + '@princeton.edu'
+                    """ Check if someone wants an auditor on their request """
+
+                    if form.auditor_username.data:
+                        auditor_username = form.auditor_username.data
+                        logger.info(f"Auditor entered: {auditor_username}")
+                        auditor_princeton_email = auditor_username + '@princeton.edu'
+                        """ insert into User() db table 
+                        with skip_duplicates=True in case username 
+                        is not already in there. """
+                        auditor_user_insert_dict = dict(username=auditor_username,
+                            princeton_email=auditor_princeton_email)
+                        db_lightsheet.User().insert1(auditor_user_insert_dict,skip_duplicates=True)
+                    else:
+                        auditor_username = None
+                    princeton_email_current_user = current_user + '@princeton.edu' # for autofill
                     
                     current_user_insert_dict = dict(username=current_user,
                         princeton_email=princeton_email_current_user)
                     db_lightsheet.User().insert1(current_user_insert_dict,skip_duplicates=True)
+                    
                     request_insert_dict = dict(request_name=form.request_name.data,
                         username=username,requested_by=current_user,
+                        auditor=auditor_username,
                         labname=form.labname.data.lower(),
                         correspondence_email=form.correspondence_email.data.lower(),
                         description=form.description.data,species=form.species.data,

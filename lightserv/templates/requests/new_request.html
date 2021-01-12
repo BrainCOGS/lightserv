@@ -12,23 +12,49 @@
 						{% if form.clearing_samples|length > 0 %}
 							{{ form.enter_for_otheruser(disabled=true, class="form-check-input", onclick="return false;") }}
 						{% else %}
-							{{ form.enter_for_otheruser(class="form-check-input", onchange="togglefield(this)" ) }}
+							{{ form.enter_for_otheruser(class="form-check-input", onchange="toggleotherfield(this)" ) }}
 						{% endif %}
 						{{ form.enter_for_otheruser.label(class="form-check-label") }}
 					</div>
 				{% endif %}
-				<!-- <input type="checkbox" name="checkfield" id="g01-01"  onchange="togglefield(this)"/> -->
+
 				{% if form.clearing_samples|length > 0 and form.other_username.data %}
-					<div class="form-group" id="username_field" style="display: block">
+					<div class="form-group" id="other_username_field" style="display: block">
 						{{ form.other_username.label }}
 						{{ form.other_username(readonly=true, class="form-control form-control-lg") }}
 					</div>
 				{% else %}
-					<div class="form-group" id="username_field" style="display: none">
+					<div class="form-group" id="other_username_field" style="display: none">
 						{{ form.other_username.label }}
 						{{ form.other_username(class="form-control form-control-lg") }}
 					</div>
 				{% endif %}
+
+				<div class="checkbox mb-2">
+					{% if form.clearing_samples|length > 0 %}
+						{{ form.enter_for_auditor(disabled=true, class="form-check-input", onclick="return false;") }}
+					{% else %}
+						{{ form.enter_for_auditor(class="form-check-input", onchange="toggleauditorfield(this)" ) }}
+					{% endif %}
+					{{ form.enter_for_auditor.label(class="form-check-label") }}
+				</div>
+
+				{% if form.clearing_samples|length > 0 and form.auditor_username.data %}
+					<div class="form-group" id="auditor_username_field" style="display: block">
+						{{ form.auditor_username.label }}
+						{{ form.auditor_username(readonly=true, class="form-control form-control-lg") }}
+					</div>
+				{% else %}
+					<div class="form-group" id="auditor_username_field" style="display: none">
+						{{ form.auditor_username.label }}
+						{{ form.auditor_username(class="form-control form-control-lg") }}
+					</div>
+				{% endif %}
+
+				
+				
+
+				
 
 				<div class="form-group">
 					{% if form.labname.flags.required %}*{% endif %}
@@ -502,8 +528,17 @@
 	</div>
 
 <script>
-function togglefield(checkboxElem) {
-	var x = document.getElementById("username_field");
+function toggleotherfield(checkboxElem) {
+	var x = document.getElementById("other_username_field");
+	if (checkboxElem.checked) {
+		x.style.display = "block";
+	} else {
+		x.style.display = "none";
+		}
+	}
+
+function toggleauditorfield(checkboxElem) {
+	var x = document.getElementById("auditor_username_field");
 	if (checkboxElem.checked) {
 		x.style.display = "block";
 	} else {

@@ -1178,6 +1178,64 @@ def test_submit_good_mouse_request_for_someone_else(test_client,
 	assert b"Request_for_someone_else" in response.data
 	assert b"New Request Form" not in response.data
 
+def test_submit_good_mouse_request_with_auditor(test_client,
+	test_login_nonadmin,test_delete_request_db_contents):
+	""" Ensure that entire new request form submits when good
+	data are used, and an auditor is given.
+
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+
+	""" Ensure that a Annie (aichen, an admin) 
+	can see the checkbox to submit the request
+	as another user
+	""" 
+
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Tank/Brody",'correspondence_email':"test@demo.com",
+			'request_name':"Request_with_auditor",
+			'auditor_username':'audit-user',
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'raw_data_retention_preference':"important",
+			'username':'lightserv-test',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"core facility requests" in response.data
+	assert b"Request_with_auditor" in response.data
+	assert b"New Request Form" not in response.data
+
+	""" Make sure auditor can see this request all all_requests and all_samples 
+	pages """
+	""" Log user in """
+	with test_client.session_transaction() as sess:
+		sess['user'] = "audit-user"
+	response = test_client.get(
+		url_for('requests.all_requests'),
+			content_type='multipart/form-data',
+			follow_redirects=True
+		)
+	assert b"core facility requests" in response.data
+	assert b"Request_with_auditor" in response.data
+	assert b"lightserv-test" in response.data
+
 def test_newlines_do_not_affect_clearing_batch_membership(test_client,
 	test_login_nonadmin,test_delete_request_db_contents):
 	""" Ensure that carriage returns
@@ -1757,8 +1815,8 @@ def test_delete_request_works(test_client,test_single_sample_request_nonadmin):
 	assert b'core facility requests:' in response.data
 	assert b'nonadmin_request' not in response.data 	
 
-def test_delete_request_validation(test_client,test_single_sample_request_nonadmin,test_login_zmd):
-	""" Test that zmd cannot delete a request for lightserv-test since only the one who submitted 
+def test_delete_request_validation(test_client,test_single_sample_request_nonadmin,test_login_aichen):
+	""" Test that aichen, an admin cannot delete a request for lightserv-test since only the one who submitted 
 	the request can delete it.
 
 	Uses the test_single_sample_request_nonadmin fixture

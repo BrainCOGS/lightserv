@@ -1295,6 +1295,47 @@ def test_multisample_multichannel_request_nonadmin(test_client,
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_single_request_nonadmin fixture --------')
 
+@pytest.fixture(scope='function') 
+def test_nonadmin_request_with_auditor(test_client,test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits a new request as 'lightserv-test' (a nonadmin) with an auditor "audit-user"
+	that can be used for various tests.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_single_request_nonadmin fixture ----------')
+	
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+		print(f"Current user is {current_user}")
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Tank/Brody",'correspondence_email':"lightserv-test@princeton.edu",
+			'request_name':"nonadmin_request_with_auditor",
+			'description':"This is a request by lightserv-test, a non admin",
+			'species':"mouse",'number_of_samples':1,
+			'raw_data_retention_preference':"important",
+			'username':current_user,
+			'auditor_username':'audit-user',
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_single_request_nonadmin fixture --------')
+	
+
 #############################
 """ Fixtures for clearing """
 #############################
