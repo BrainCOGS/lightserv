@@ -89,7 +89,8 @@ class AllRequestTable(Table):
 	
 	delete_request_kwargs = {'username':'username','request_name':'request_name'}
 	delete_request_tooltip_text = ('If this column shows "N/A" '
-		'then you can no longer delete the request at this point. '
+		'then either you are not the owner of this request or '
+		' you can no longer delete the request at this point. '
 		'This is because at least one of the clearing batches '
 		'in this request either is currently undergoing clearing or has already been cleared. '
 		 'Contact lightservhelper@gmail.com if you would still like to delete this request. ')
@@ -97,7 +98,8 @@ class AllRequestTable(Table):
 	'role':"button",'data-trigger':"focus", 'data-toggle':'popover',
 	'title':"How does deleting a request work?" ,'data-content':delete_request_tooltip_text}
 	
-	delete_request_link = ConditionalDeleteLinkCol('Delete request?', 'requests.delete_request',url_kwargs=delete_request_kwargs,
+	delete_request_link = ConditionalDeleteLinkCol('Delete request?', 
+		'requests.delete_request',url_kwargs=delete_request_kwargs,
 		anchor_attrs={
         "data-toggle":"modal",
         "data-target":"#deleteModal",

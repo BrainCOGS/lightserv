@@ -281,7 +281,6 @@ class UpdateNotesForm(FlaskForm):
 	notes = TextAreaField('Notes',validators=[Length(max=1000)])
 	submit = SubmitField('Submit Changes')	
 
-
 class ConfirmDeleteForm(FlaskForm):
 	# form_name = HiddenField('Form Name')
 	request_name = StringField('Type the request name you want to delete:', validators=[InputRequired()]) 

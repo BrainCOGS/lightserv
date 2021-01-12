@@ -260,8 +260,13 @@ class ConditionalDeleteLinkCol(LinkCol):
         return "Delete request?"
 
     def td_contents(self, item, attr_list):
-        restrict_dict = dict(username=item['username'],
-            request_name=item['request_name'])
+        username=item['username']
+        request_name=item['request_name']
+        current_user = session['user']
+        if current_user != username:
+            return "N/A"
+        restrict_dict = dict(username=username,
+            request_name=request_name)
         clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & restrict_dict
         clearing_batches_started = [clearing_dict['clearing_progress']!='incomplete' for clearing_dict in clearing_batch_contents]
         if any(clearing_batches_started):
