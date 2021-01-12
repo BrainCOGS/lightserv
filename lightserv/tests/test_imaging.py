@@ -52,8 +52,8 @@ def test_multisample_multichannel_request_in_imaging_manager(test_client,
 	and see their imaging request and that there is no ProcessingRequest() in the database  """
 
 	with test_client.session_transaction() as sess:
-		# have to log an imaging manager in because the imager was zmd, not the person who requested it
-		sess['user'] = 'zmd'
+		# have to log an imaging manager in because the imager was aichen, not the person who requested it
+		sess['user'] = 'aichen'
 	response = test_client.get(url_for('imaging.imaging_manager')
 		, follow_redirects=True)
 	assert b'Imaging management GUI' in response.data
@@ -63,7 +63,7 @@ def test_multisample_multichannel_request_in_imaging_manager(test_client,
 
 def test_imaging_batch_entry_form_GET(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
-	test_login_zmd):
+	test_login_aichen):
 	""" Test a GET request to imaging batch entry form renders 
 	"""
 
@@ -105,7 +105,7 @@ def test_imaging_batch_entry_form_GET(test_client,
 
 def test_imaging_batch_entry_form_single_sample(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
-	test_login_zmd):
+	test_login_aichen):
 	""" Test the single sample section of the imaging batch entry form.
 
 	First, test validation.
@@ -391,7 +391,7 @@ def test_imaging_batch_entry_form_single_sample(test_client,
 
 def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 	test_cleared_request_3p6x_smartspim_nonadmin,
-	test_login_zmd):
+	test_login_aichen):
 	""" Test that both the batch entry and an individual sample entry of the 
 	imaging batch entry form validates against bad data for 
 	a SmartSPIM 3.6x request
@@ -481,7 +481,7 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 
 def test_apply_batch_parameters(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
-	test_login_zmd):
+	test_login_aichen):
 	""" Test validation, changing image resolution, adding/deleting channel
 	and submission of applying the batch 
 	parameters to all samples """
@@ -771,8 +771,8 @@ def test_apply_batch_parameters(test_client,
 
 def test_imaging_batch_entry_entire_form_submits(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
-	test_login_zmd):
-	""" Test that Zahra (zmd, an imaging admin) can submit the entire imaging entry form
+	test_login_aichen):
+	""" Test that Zahra (aichen, an imaging admin) can submit the entire imaging entry form
 	for both samples and then the final submit button works and imaging_progress
 	is updated in the db """
 
@@ -920,7 +920,7 @@ def test_imaging_batch_entry_entire_form_submits(test_client,
 
 def test_add_ventral_up_channel_batch(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
-	test_login_zmd):
+	test_login_aichen):
 	
 	""" Test that clicking the button to add
 	a ventral up channel in the batch section
@@ -1238,7 +1238,7 @@ def test_add_ventral_up_channel_batch(test_client,
 
 def test_add_ventral_up_channel_individual_sample(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
-	test_login_zmd):
+	test_login_aichen):
 	
 	""" Test that clicking the button to add
 	a ventral up channel in an
@@ -1962,7 +1962,7 @@ def test_raw_precomputed_pipeline_starts_ventral_up_imaging(test_client,
 """ Tests for Imaging table """	
 
 def test_imaging_table_loads_nonadmin(test_client,test_imaged_request_nonadmin,
-	test_login_zmd):
+	test_login_aichen):
 	""" Test that the imaging table page loads properly for an imaged request """
 	from lightserv import db_lightsheet
 	
@@ -1973,7 +1973,7 @@ def test_imaging_table_loads_nonadmin(test_client,test_imaged_request_nonadmin,
 	assert b'Imaging Log' in response.data
 
 def test_imaging_table_redirects_incomplete_imaging_nonadmin(test_client,test_cleared_request_nonadmin,
-	test_login_zmd):
+	test_login_aichen):
 	""" Test that the imaging table page redirects to request_overview
 	when imaging request is not yet complete """
 	from lightserv import db_lightsheet

@@ -128,25 +128,9 @@ def test_login_ll3(test_client):
 	pass
 
 @pytest.fixture(scope='function')
-def test_login_zmd(test_client):
-	""" Log Zahra in. Requires a test_client fixture to do this. """
-	print('----------Setup login_zmd response----------')
-	username = 'zmd'
-	with test_client.session_transaction() as sess:
-		sess['user'] = username
-	all_usernames = db_lightsheet.User().fetch('username') 
-	if username not in all_usernames:
-		email = username + '@princeton.edu'
-		user_dict = {'username':username,'princeton_email':email}
-		db_lightsheet.User().insert1(user_dict)
-	yield sess
-	print('----------Teardown login_zmd response----------')
-	pass
-
-@pytest.fixture(scope='function')
 def test_login_aichen(test_client):
-	""" Log Annie in. Requires a test_client fixture to do this. """
-	print('----------Setup login_zmd response----------')
+	""" Log Zahra in. Requires a test_client fixture to do this. """
+	print('----------Setup login_aichen response----------')
 	username = 'aichen'
 	with test_client.session_transaction() as sess:
 		sess['user'] = username
@@ -156,7 +140,23 @@ def test_login_aichen(test_client):
 		user_dict = {'username':username,'princeton_email':email}
 		db_lightsheet.User().insert1(user_dict)
 	yield sess
-	print('----------Teardown login_zmd response----------')
+	print('----------Teardown login_aichen response----------')
+	pass
+
+@pytest.fixture(scope='function')
+def test_login_aichen(test_client):
+	""" Log Annie in. Requires a test_client fixture to do this. """
+	print('----------Setup login_aichen response----------')
+	username = 'aichen'
+	with test_client.session_transaction() as sess:
+		sess['user'] = username
+	all_usernames = db_lightsheet.User().fetch('username') 
+	if username not in all_usernames:
+		email = username + '@princeton.edu'
+		user_dict = {'username':username,'princeton_email':email}
+		db_lightsheet.User().insert1(user_dict)
+	yield sess
+	print('----------Teardown login_aichen response----------')
 	pass
 
 @pytest.fixture(scope='function')
@@ -1818,9 +1818,9 @@ def test_cleared_multisample_multichannel_request_nonadmin(test_client,
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
-	test_login_zmd,test_delete_request_db_contents):
+	test_login_aichen,test_delete_request_db_contents):
 	""" Images the cleared request by 'ahoag' (clearer='ahoag')
-	with imager='zmd' """
+	with imager='aichen' """
 	print('----------Setup test_imaged_request_ahoag fixture ----------')
 	data1 = {
 		'sample_forms-0-sample_name':'sample-001',
@@ -1860,13 +1860,13 @@ def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
-	test_delete_request_db_contents,test_login_zmd):
+	test_delete_request_db_contents,test_login_aichen):
 	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
-	with imager='zmd' """
+	with imager='aichen' """
 
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'zmd'
+		sess['user'] = 'aichen'
 	""" First submit sample 1 """
 	data1 = {
 		'sample_forms-0-sample_name':'sample-001',
@@ -1908,13 +1908,13 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 
 @pytest.fixture(scope='function') 
 def test_request_resolution_switched_nonadmin(test_client,test_cleared_request_nonadmin,
-	test_delete_request_db_contents,test_login_zmd):
+	test_delete_request_db_contents,test_login_aichen):
 	""" In the imaging entry form, Zahra switches the image resolution to 1.1x
 	but does not submit the form """
 
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'zmd'
+		sess['user'] = 'aichen'
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-change_resolution':True,
@@ -1933,13 +1933,13 @@ def test_request_resolution_switched_nonadmin(test_client,test_cleared_request_n
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_cleared_request_nonadmin,
-	test_delete_request_db_contents,test_login_zmd):
+	test_delete_request_db_contents,test_login_aichen):
 	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
-	with imager='zmd' and adds a ventral up 488 channel in addition to dorsal up 488 channel """
+	with imager='aichen' and adds a ventral up 488 channel in addition to dorsal up 488 channel """
 
 	print('----------Setup test_imaged_request_dorsal_up_and_ventral_up_nonadmin fixture ----------')
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'zmd'
+		sess['user'] = 'aichen'
 
 	""" First add flipped channel in sample section since we only have 1 sample """
 	data1 = {
@@ -2013,13 +2013,13 @@ def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_clear
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_request_generic_imaging_nonadmin,
-	test_delete_request_db_contents,test_login_zmd):
+	test_delete_request_db_contents,test_login_aichen):
 	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
-	with imager='zmd' """
+	with imager='aichen' """
 
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'zmd'
+		sess['user'] = 'aichen'
 	
 	
 	data = {
@@ -2062,13 +2062,13 @@ def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_reques
 
 @pytest.fixture(scope='function') 
 def imaged_request_lightserv_test(test_client,test_cleared_request_nonadmin,
-	test_delete_request_db_contents,test_login_zmd):
+	test_delete_request_db_contents,test_login_aichen):
 	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
-	with imager='zmd' """
+	with imager='aichen' """
 
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'zmd'
+		sess['user'] = 'aichen'
 	# print(db_lightsheet.Request.Sample())
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
@@ -2095,9 +2095,9 @@ def imaged_request_lightserv_test(test_client,test_cleared_request_nonadmin,
 
 @pytest.fixture(scope='function') 
 def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel_request_ahoag,
-	test_login_zmd,test_delete_request_db_contents):
+	test_login_aichen,test_delete_request_db_contents):
 	""" Images the multi-channel cleared request by 'ahoag' (clearer='ahoag')
-	with imager='zmd' """
+	with imager='aichen' """
 
 	print('----------Setup test_imaged_multichannel_request_ahoag fixture ----------')
 
@@ -2146,13 +2146,13 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadmin,
-	test_delete_request_db_contents,test_login_zmd):
+	test_delete_request_db_contents,test_login_aichen):
 	""" Images the cleared viz request by 'lightserv-test' (clearer='ll3')
-	with imager='zmd' """
+	with imager='aichen' """
 
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'zmd'
+		sess['user'] = 'aichen'
 	""" First submit sample 1 """
 	data1 = {
 		'sample_forms-0-sample_name':'viz_processed-001',
@@ -2267,7 +2267,7 @@ def test_new_imaging_request_nonadmin(test_client,
 def processing_request_ahoag(test_client,test_imaged_request_ahoag,
 	test_delete_request_db_contents):
 	""" A fixture for having a request by ahoag that has been cleared 
-	(by zmd), imaged (by zmd) and then the processing is started (by ahoag) for reuse. """
+	(by aichen), imaged (by aichen) and then the processing is started (by ahoag) for reuse. """
 
 	print('----------Setup processing_request_ahoag fixture ----------')
 
@@ -2320,7 +2320,7 @@ def completed_processing_request_ahoag(test_client,processing_request_ahoag,
 def processing_request_nonadmin(test_client,test_imaged_request_nonadmin,
 	test_delete_request_db_contents):
 	""" A fixture for having a request by lightserv-test that has been cleared 
-	(by zmd), imaged (by zmd) and processed (by lightserv-test) for reuse. """
+	(by aichen), imaged (by aichen) and processed (by lightserv-test) for reuse. """
 
 	print('----------Setup processing_request_nonadmin fixture ----------')
 
@@ -2350,7 +2350,7 @@ def processing_request_nonadmin(test_client,test_imaged_request_nonadmin,
 def processing_request_viz_nonadmin(test_client,test_imaged_request_viz_nonadmin,
 	test_delete_request_db_contents):
 	""" A fixture for having the viz request by lightserv-test that has been cleared 
-	(by zmd), imaged (by zmd) and processed (by lightserv-test) for reuse. """
+	(by aichen), imaged (by aichen) and processed (by lightserv-test) for reuse. """
 
 	print('----------Setup processing_request_nonadmin fixture ----------')
 
