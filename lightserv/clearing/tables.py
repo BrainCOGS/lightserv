@@ -1,5 +1,5 @@
 from flask import request
-from flask_table import create_table,Table, Col, LinkCol, ButtonCol
+from flask_table import create_table,Table, Col, LinkCol, ButtonCol, DateCol
 from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import DateTimeCol, DesignatedRoleCol
@@ -493,7 +493,6 @@ class UdiscoRatTable(Table):
     clearing_babb_wash1_notes = Col('clearing_babb_wash1_notes')
     clearing_notes = Col('clearing_notes')
 
-
 class IdiscoEdUTable(Table):
     border = True
     no_items = "No Clearing Yet"
@@ -633,3 +632,41 @@ class IdiscoEdUTable(Table):
 
     clearing_notes                              = Col('clearing_notes')
 
+class AntibodyOverviewTable(Table):
+    border = True
+    no_items = "No Antibodies Yet"
+    html_attrs = {"style":'font-size:14px'} # gets assigned to table header
+    # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px; background: white;'}
+    
+    # column_html_attrs=column_html_attrs
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    brief_descriptor = Col('Brief exp description',column_html_attrs=column_html_attrs)
+    animal_model = Col('Animal model',column_html_attrs=column_html_attrs)
+    primary_antibody = Col('Primary antibody',column_html_attrs=column_html_attrs)
+    primary_concentration = Col('Primary concentration used',column_html_attrs=column_html_attrs)
+    primary_order_info = Col('Primary order info',column_html_attrs=column_html_attrs)
+    secondary_antibody = Col('Secondary antibody',column_html_attrs=column_html_attrs)
+    secondary_concentration = Col('Secondary concentration used',column_html_attrs=column_html_attrs)
+    secondary_order_info = Col('Secondary order info',column_html_attrs=column_html_attrs)
+    notes = Col('notes',column_html_attrs=column_html_attrs)
+
+class AntibodyHistoryTable(Table):
+    border = True
+    no_items = "No Antibodies Yet"
+    html_attrs = {"style":'font-size:14px'} # gets assigned to table header
+    # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px; background: white;'}
+    
+    # column_html_attrs=column_html_attrs
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    date = DateCol('Date',column_html_attrs=column_html_attrs)
+    brief_descriptor = Col('Brief exp description',column_html_attrs=column_html_attrs)
+    animal_model = Col('Animal model',column_html_attrs=column_html_attrs)
+    primary_antibody = Col('Primary antibody',column_html_attrs=column_html_attrs)
+    primary_concentration = Col('Primary concentration used',column_html_attrs=column_html_attrs)
+    primary_order_info = Col('Primary order info',column_html_attrs=column_html_attrs)
+    secondary_antibody = Col('Secondary antibody',column_html_attrs=column_html_attrs)
+    secondary_concentration = Col('Secondary concentration used',column_html_attrs=column_html_attrs)
+    secondary_order_info = Col('Secondary order info',column_html_attrs=column_html_attrs)
+    notes = Col('notes',column_html_attrs=column_html_attrs)

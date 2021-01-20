@@ -575,3 +575,37 @@ class Request(dj.Manual):
         ----
         link_to_clearing_spreadsheet = NULL : varchar(256)
         """
+
+
+@schema
+class AntibodyOverview(dj.Manual):
+    definition = """
+    # Antibodies and concentrations used in the Core Facility
+    brief_descriptor          : varchar(64)
+    animal_model              : varchar(32)
+    primary_antibody          : varchar(64)
+    secondary_antibody        : varchar(64)
+    primary_concentration     : varchar(32)
+    secondary_concentration   : varchar(32)
+    ---
+    primary_order_info        : varchar(32)
+    secondary_order_info      : varchar(32)
+    notes                     : varchar(256)
+    """
+
+@schema
+class AntibodyHistory(dj.Manual):
+    definition = """
+    # History of antibodies and concentrations used in the Core Facility
+    date                      : date # The date this antibody combo was attempted
+    brief_descriptor          : varchar(64)
+    animal_model              : varchar(32)
+    primary_antibody          : varchar(64)
+    secondary_antibody        : varchar(64)
+    primary_concentration     : varchar(32)
+    secondary_concentration   : varchar(32)
+    ---
+    primary_order_info        : varchar(32)
+    secondary_order_info      : varchar(32)
+    notes                     : varchar(256)
+    """

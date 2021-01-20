@@ -4,7 +4,8 @@ from flask import (render_template, url_for, flash,
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 									  iDiscoAbbreviatedRatForm, uDiscoForm,  iDiscoEduForm )
 from lightserv.clearing.tables import (ClearingTable,IdiscoPlusTable,
-	dynamic_clearing_management_table,SamplesTable)
+	dynamic_clearing_management_table,SamplesTable,
+	AntibodyOverviewTable,AntibodyHistoryTable)
 from lightserv import db_lightsheet, smtp_connect
 from .utils import (determine_clearing_form, add_clearing_calendar_entry,
 				   determine_clearing_dbtable, determine_clearing_table) 
@@ -312,3 +313,30 @@ def clearing_table(username,request_name,clearing_protocol,clearing_batch_number
 
 	return render_template('clearing/clearing_table.html',overview_table=overview_table,
 		clearing_contents=db_contents,table=table)
+
+
+@clearing.route("/clearing/antibody_overview",
+	methods=['GET'])
+@logged_in_as_clearing_manager
+@log_http_requests
+def antibody_overview():
+	""" Show all antibodies currently in the db """ 
+	antibody_overview_contents = db_lightsheet.AntibodyOverview()
+
+	overview_table = AntibodyOverviewTable(antibody_overview_contents)
+
+	return render_template('clearing/antibody_overview.html',
+		overview_table=overview_table)
+
+@clearing.route("/clearing/antibody_history",
+	methods=['GET'])
+@logged_in_as_clearing_manager
+@log_http_requests
+def antibody_history():
+	""" Show all antibodies currently in the db """ 
+	antibody_history_contents = db_lightsheet.AntibodyHistory()
+
+	history_table = AntibodyHistoryTable(antibody_history_contents)
+
+	return render_template('clearing/antibody_history.html',
+		history_table=history_table)
