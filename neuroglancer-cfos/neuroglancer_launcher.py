@@ -91,13 +91,28 @@ with viewer.txn() as s:
 	s.layout = 'xy'
 	# s.crossSectionOrientation = [0.5,0.5,-0.5,0.5]
 	s.crossSectionScale = 0.00002
+	has_image = 0
+	has_atlas = 0
+	has_cells = 0
 	for ii,layer in enumerate(s.layers):
 		if 'atlas' in layer.name:
+			has_atlas = 1
 			atlas_layer_index = ii
 			break
-	atlas_layer = s.layers[atlas_layer_index]
-	atlas_layer.selectedAlpha = 0.09
-  
+		if 'data' in layer.name:
+			has_image = 1
+			image_layer_index = ii
+		if 'cell' in layer.name:
+			has_cells = 1
+			cell_layer_index = ii
+
+	if has_atlas:
+		atlas_layer = s.layers[atlas_layer_index]
+		atlas_layer.selectedAlpha = 0.2
+	if has_image:
+		image_layer = s.layers[image_layer_index]
+		image_layer.shader = """void main() {emitGrayscale(1.0-toNormalized(getDataValue())*575.0);}"""
+  	
 logging.debug("neuroglancer viewer is now available")
 logging.debug("made it here!")
 
