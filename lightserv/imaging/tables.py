@@ -129,6 +129,7 @@ class ImagingBatchTable(Table):
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     username = Col('username',column_html_attrs=column_html_attrs)
     request_name = Col('request name',column_html_attrs=column_html_attrs)
+    imaging_request_number = Col('imaging request number',column_html_attrs=column_html_attrs)
     imaging_batch_number = Col('imaging batch number',column_html_attrs=column_html_attrs)
     number_in_imaging_batch = Col('number of samples in batch',column_html_attrs=column_html_attrs)
     imager = Col('imager',column_html_attrs=column_html_attrs)
