@@ -16,15 +16,9 @@ kv = redis.Redis(host="redis", decode_responses=True)  # container simply named 
 
 logging.basicConfig(level=logging.DEBUG)
 
-flask_mode = os.environ['FLASK_MODE']
-if flask_mode == 'DEV':
-    neuroglancer.set_static_content_source(
-        url="http://nglancerstatic-dev:8080"
-    )
-elif flask_mode == 'PROD':
-    neuroglancer.set_static_content_source(
-        url="http://nglancerstatic-prod:8080"
-    )
+neuroglancer.set_static_content_source(
+    url="https://neuroglancer-braincogs.appspot.com"
+)
 ## neuroglancer setup segment:  
 ## set the tornado server that is launched to talk on all ips and at port 8080
 neuroglancer.set_server_bind_address("0.0.0.0", "8080")

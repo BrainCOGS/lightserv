@@ -17,27 +17,10 @@ logging.basicConfig(level=logging.DEBUG)
 # we are currently using the seunglab hosted neuroglancer static resources
 # ideally this would be self hosted for local development against nglancer
 logging.info("configuring neuroglancer defaults")
-# neuroglancer.set_static_content_source(
-#     url="https://neuromancer-seung-import.appspot.com"
-# )
-if flask_mode == 'DEV':
-	neuroglancer.set_static_content_source(
-	    url="http://nglancerstatic-dev:8080"
-	)
-	kv = redis.Redis(host="redis", decode_responses=True)  # container simply named redis
 
-elif flask_mode == 'PROD':
-	neuroglancer.set_static_content_source(
-	    url="http://nglancerstatic-prod:8080"
-	)
-	kv = redis.Redis(host="redis", decode_responses=True)  # container simply named redis
-
-elif flask_mode == 'TEST':
-	neuroglancer.set_static_content_source(
-	    url="http://nglancerstatic-dev:8080"
-	)
-	kv = redis.Redis(host="testredis", decode_responses=True)  # container simply named redis
-
+neuroglancer.set_static_content_source(
+    url="https://neuroglancer-braincogs.appspot.com"
+)
 ## neuroglancer setup segment:	
 ## set the tornado server that is launched to talk on all ips and at port 8080
 neuroglancer.set_server_bind_address("0.0.0.0", "8080")
