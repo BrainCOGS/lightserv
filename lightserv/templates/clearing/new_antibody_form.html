@@ -1,0 +1,161 @@
+{% extends "layout.html" %}
+{% block content %}
+	<h1 align="center"> New Antibody Trial Entry Form </h1>
+	<hr class='class-1'>
+
+	 <div class="content-section mt-4">
+		<form id="antibody_entry_form" method="POST" action="">
+			{{ form.hidden_tag() }}
+			<div class="form-group">
+				{{ form.date.label(class="font-weight-bold mt-4",id='larger')}}
+				{{ form.date(class='datepicker',id='date-field') }}
+				<button type="button" class="btn btn-sm btn-primary" onclick="autoFillDate()">Autofill with current date</button>
+			</div>
+			<div class="form-group">
+				{{ form.brief_descriptor.label(id='larger')}}
+				{% if form.brief_descriptor.errors %}
+					{{ form.brief_descriptor(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.brief_descriptor.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.brief_descriptor(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.animal_model.label(id='larger')}}
+				{% if form.animal_model.errors %}
+					{{ form.animal_model(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.animal_model.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.animal_model(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.primary_antibody.label(id='larger')}}
+				{% if form.primary_antibody.errors %}
+					{{ form.primary_antibody(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.primary_antibody.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.primary_antibody(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.primary_concentration.label(id='larger')}}
+				{% if form.primary_concentration.errors %}
+					{{ form.primary_concentration(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.primary_concentration.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.primary_concentration(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.primary_order_info.label(id='larger')}}
+				{% if form.primary_order_info.errors %}
+					{{ form.primary_order_info(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.primary_order_info.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.primary_order_info(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.secondary_antibody.label(id='larger')}}
+				{% if form.secondary_antibody.errors %}
+					{{ form.secondary_antibody(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.secondary_antibody.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.secondary_antibody(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.secondary_concentration.label(id='larger')}}
+				{% if form.secondary_concentration.errors %}
+					{{ form.secondary_concentration(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.secondary_concentration.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.secondary_concentration(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.secondary_order_info.label(id='larger')}}
+				{% if form.secondary_order_info.errors %}
+					{{ form.secondary_order_info(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.secondary_order_info.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.secondary_order_info(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.notes.label(id='larger')}}
+				{% if form.notes.errors %}
+					{{ form.notes(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.notes.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.notes(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.submit(class="btn btn-success mt-2") }}
+			</div>
+	</form>
+
+
+	<script> 
+		function autoFillDate() { 
+			var d = new Date();
+			var datestring = d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+			var elem = document.getElementById('date-field');
+			// var evt = document.createEvent("HTMLEvents");
+			// evt.initEvent("change", false, true);
+			elem.value = datestring;
+			var myevent = new Event('change');
+			// Dispatch it.
+			elem.dispatchEvent(myevent);
+			// elem.onchange()
+		}
+	</script>
+
+{% endblock content %}

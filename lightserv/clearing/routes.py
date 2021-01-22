@@ -2,7 +2,8 @@ from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup,current_app)
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
-									  iDiscoAbbreviatedRatForm, uDiscoForm,  iDiscoEduForm )
+		  iDiscoAbbreviatedRatForm, uDiscoForm,  iDiscoEduForm,
+		  NewAntibodyForm )
 from lightserv.clearing.tables import (ClearingTable,IdiscoPlusTable,
 	dynamic_clearing_management_table,SamplesTable,
 	AntibodyOverviewTable,AntibodyHistoryTable)
@@ -340,3 +341,30 @@ def antibody_history():
 
 	return render_template('clearing/antibody_history.html',
 		history_table=history_table)
+
+@clearing.route("/clearing/new_antibody",
+	methods=['GET','POST'])
+@logged_in_as_clearing_manager
+@log_http_requests
+def new_antibody():
+	""" Show all antibodies currently in the db """ 
+	form = NewAntibodyForm()
+
+	if request.method == 'POST':
+		logger.debug("POST request")
+		if form.validate_on_submit():
+			logger.debug("Form validated")
+			form_columns = ['date','brief_descriptor','animal_model',
+			'primary_antibody','primary_concentration','primary_order_info',
+			'secondary_antibody','secondary_concentration','secondary_order_info','notes',]
+			antibody_history_insert_dict = {}
+			for col in form.data:
+				if col in form_columns:
+					antibody_history_insert_dict[col] = form[col].data
+			logger.debug("inserting:")
+			logger.debug(antibody_history_insert_dict)
+			db_lightsheet.AntibodyHistory().insert1(antibody_history_insert_dict)
+			flash("New antibody entry successfully captured","success")
+			return redirect(url_for('clearing.antibody_history'))
+	return render_template('clearing/new_antibody_form.html',
+		form=form)

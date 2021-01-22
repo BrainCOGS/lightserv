@@ -586,7 +586,6 @@ class uDiscoRatForm(FlaskForm):
 
 	submit = SubmitField('Submit')
 
-
 class iDiscoEduForm(FlaskForm):
 	""" The form for entering clearing information """
 	title = 'iDISCO+ Immunostaining'
@@ -789,4 +788,19 @@ class experimentalForm(FlaskForm):
 	""" The form for the experimental clearing """
 	title = 'experimental'
 	link_to_clearing_spreadsheet = StringField('Link to clearing spreadsheet:',validators=[DataRequired(),Length(max=500)])
+	submit = SubmitField('Submit')
+
+class NewAntibodyForm(FlaskForm):
+	""" The form for entering a new antibody trial """
+	title = 'new antibody form'
+	date = DateField('Date')
+	brief_descriptor = StringField('Brief exp description',validators=[InputRequired()])
+	animal_model = StringField('Animal model',validators=[InputRequired()])
+	primary_antibody = StringField('Primary antibody',validators=[InputRequired()])
+	primary_concentration = StringField('Primary concentration used',validators=[InputRequired()])
+	primary_order_info = StringField('Primary order info',validators=[Optional()])
+	secondary_antibody = StringField('Secondary antibody',validators=[InputRequired()])
+	secondary_concentration = StringField('Secondary concentration used',validators=[InputRequired()])
+	secondary_order_info = StringField('Secondary order info',validators=[Optional()])
+	notes = StringField('Comments',validators=[Optional()])
 	submit = SubmitField('Submit')
