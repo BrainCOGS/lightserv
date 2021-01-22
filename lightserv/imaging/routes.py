@@ -829,11 +829,11 @@ def imaging_batch_entry(username,request_name,
 								ventral_up = channel_form.ventral_up.data
 								if ventral_up:
 									rawdata_fullpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
-										username,request_name,this_sample_name,'imaging_request_1',
+										username,request_name,this_sample_name,f'imaging_request_{imaging_request_number}',
 										'rawdata',f'resolution_{image_resolution}_ventral_up',rawdata_subfolder)
 								else:
 									rawdata_fullpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
-										username,request_name,this_sample_name,'imaging_request_1',
+										username,request_name,this_sample_name,f'imaging_request_{imaging_request_number}',
 										'rawdata',f'resolution_{image_resolution}',rawdata_subfolder)
 								if rawdata_subfolder in subfolder_dict.keys():
 									subfolder_dict[rawdata_subfolder].append(channel_dict)
@@ -948,7 +948,7 @@ def imaging_batch_entry(username,request_name,
 									subfolder_dict = sample_subfolder_dicts[image_resolution]
 									""" Make rawdata/ subdirectories for this resolution """
 									imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-													 request_name,this_sample_name,f"imaging_request_1",
+													 request_name,this_sample_name,f"imaging_request_{imaging_request_number}",
 													 "rawdata",f"resolution_{image_resolution}")
 									mymkdir(imaging_dir)
 									for form_channel_dict in form_resolution_dict['channel_forms']:
@@ -1019,12 +1019,12 @@ def imaging_batch_entry(username,request_name,
 											mymkdir(raw_viz_dir)
 											if ventral_up:
 												imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-															 request_name,this_sample_name,f"imaging_request_1",
+															 request_name,this_sample_name,f"imaging_request_{imaging_request_number}",
 															 "rawdata",f"resolution_{image_resolution}_ventral_up")
 												channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}_ventral_up')
 											else:
 												imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-															 request_name,this_sample_name,f"imaging_request_1",
+															 request_name,this_sample_name,f"imaging_request_{imaging_request_number}",
 															 "rawdata",f"resolution_{image_resolution}")
 												channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
 											mymkdir(channel_viz_dir)
