@@ -581,16 +581,16 @@ class Request(dj.Manual):
 class AntibodyOverview(dj.Manual):
     definition = """
     # Antibodies and concentrations used in the Core Facility
-    brief_descriptor          : varchar(64)
-    animal_model              : varchar(32)
-    primary_antibody          : varchar(64)
-    secondary_antibody        : varchar(64)
-    primary_concentration     : varchar(32)
-    secondary_concentration   : varchar(32)
+    brief_descriptor          : varchar(128)
+    animal_model              : varchar(128)
+    primary_antibody          : varchar(128)
+    secondary_antibody        : varchar(128)
+    primary_concentration     : varchar(128)
+    secondary_concentration   : varchar(128)
     ---
-    primary_order_info        : varchar(32)
-    secondary_order_info      : varchar(32)
-    notes                     : varchar(256)
+    primary_order_info        : varchar(128)
+    secondary_order_info      : varchar(128)
+    notes                     : varchar(512)
     """
 
 @schema
@@ -598,14 +598,14 @@ class AntibodyHistory(dj.Manual):
     definition = """
     # History of antibodies and concentrations used in the Core Facility
     date                      : date # The date this antibody combo was attempted
-    brief_descriptor          : varchar(64)
-    animal_model              : varchar(32)
-    primary_antibody          : varchar(64)
-    secondary_antibody        : varchar(64)
-    primary_concentration     : varchar(32)
-    secondary_concentration   : varchar(32)
+    brief_descriptor          : varchar(128)
+    animal_model              : varchar(128)
+    primary_antibody          : varchar(128)
+    secondary_antibody        : varchar(128)
+    primary_concentration     : varchar(128)
+    secondary_concentration   : varchar(128)
     ---
-    primary_order_info        : varchar(32)
-    secondary_order_info      : varchar(32)
-    notes                     : varchar(256)
+    primary_order_info        : varchar(128)
+    secondary_order_info      : varchar(128)
+    notes                     : varchar(512)
     """
