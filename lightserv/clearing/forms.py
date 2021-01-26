@@ -795,13 +795,30 @@ class NewAntibodyForm(FlaskForm):
 	into the antibody history table """
 	title = 'new antibody form'
 	date = DateField('Date')
-	brief_descriptor = StringField('Brief exp description',validators=[InputRequired(),Length(128)])
-	animal_model = StringField('Animal model',validators=[InputRequired(),Length(128)])
-	primary_antibody = StringField('Primary antibody',validators=[InputRequired(),Length(128)])
-	primary_concentration = StringField('Primary concentration used',validators=[InputRequired(),Length(128)])
-	primary_order_info = StringField('Primary order info',validators=[Optional(),Length(128)])
-	secondary_antibody = StringField('Secondary antibody',validators=[InputRequired(),Length(128)])
-	secondary_concentration = StringField('Secondary concentration used',validators=[InputRequired(),Length(128)])
-	secondary_order_info = StringField('Secondary order info',validators=[Optional(),Length(128)])
-	notes = StringField('Comments',validators=[Optional(),Length(512)])
+	brief_descriptor = StringField('Brief exp description',validators=[InputRequired(),Length(max=128)])
+	animal_model = StringField('Animal model',validators=[InputRequired(),Length(max=128)])
+	primary_antibody = StringField('Primary antibody',validators=[InputRequired(),Length(max=128)])
+	primary_concentration = StringField('Primary concentration used',validators=[InputRequired(),Length(max=128)])
+	primary_order_info = StringField('Primary order info',validators=[Optional(),Length(max=128)])
+	secondary_antibody = StringField('Secondary antibody',validators=[InputRequired(),Length(max=128)])
+	secondary_concentration = StringField('Secondary concentration used',validators=[InputRequired(),Length(max=128)])
+	secondary_order_info = StringField('Secondary order info',validators=[Optional(),Length(max=128)])
+	notes = StringField('Comments',validators=[Optional(),Length(max=512)])
 	submit = SubmitField('Submit')
+
+
+class EditAntibodyForm(FlaskForm):
+	""" The form for entering a new antibody trial
+	into the antibody history table """
+	title = 'Edit antibody history form'
+	date = DateField('Date')
+	brief_descriptor = StringField('Brief exp description',)
+	animal_model = StringField('Animal model',)
+	primary_antibody = StringField('Primary antibody',)
+	primary_concentration = StringField('Primary concentration used',)
+	primary_order_info = StringField('Primary order info',validators=[Optional(),Length(max=128)])
+	secondary_antibody = StringField('Secondary antibody',)
+	secondary_concentration = StringField('Secondary concentration used',)
+	secondary_order_info = StringField('Secondary order info',validators=[Optional(),Length(max=128)])
+	notes = StringField('Comments',validators=[Optional(),Length(max=512)])
+	submit = SubmitField('Submit changes')

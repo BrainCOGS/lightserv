@@ -651,6 +651,29 @@ class AntibodyOverviewTable(Table):
     secondary_order_info = Col('Secondary order info',column_html_attrs=column_html_attrs)
     notes = Col('notes',column_html_attrs=column_html_attrs)
 
+class AntibodyHistorySingleEntryTable(Table):
+    border = True
+    no_items = "No Entry Yet"
+
+    html_attrs = {"style":'font-size:14px'} # gets assigned to table header
+    # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:110px; background: white;'}
+    
+    classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    username = Col('Username',column_html_attrs=column_html_attrs)
+    request_name = Col('Request name',column_html_attrs=column_html_attrs)
+    date = DateCol('Date',column_html_attrs=column_html_attrs)
+    brief_descriptor = Col('Brief exp description',column_html_attrs=column_html_attrs)
+    animal_model = Col('Animal model',column_html_attrs=column_html_attrs)
+    primary_antibody = Col('Primary antibody',column_html_attrs=column_html_attrs)
+    primary_concentration = Col('Primary concentration used',column_html_attrs=column_html_attrs)
+    primary_order_info = Col('Primary order info',column_html_attrs=column_html_attrs)
+    secondary_antibody = Col('Secondary antibody',column_html_attrs=column_html_attrs)
+    secondary_concentration = Col('Secondary concentration used',column_html_attrs=column_html_attrs)
+    secondary_order_info = Col('Secondary order info',column_html_attrs=column_html_attrs)
+    notes = Col('notes',column_html_attrs=column_html_attrs)
+    
+
 class AntibodyHistoryTable(Table):
     border = True
     no_items = "No Antibodies Yet"
@@ -673,7 +696,19 @@ class AntibodyHistoryTable(Table):
     secondary_concentration = Col('Secondary concentration used',column_html_attrs=column_html_attrs)
     secondary_order_info = Col('Secondary order info',column_html_attrs=column_html_attrs)
     notes = Col('notes',column_html_attrs=column_html_attrs)
-
+    url_kwargs = {'username':'username','request_name':'request_name',
+        'date':'date','brief_descriptor':'brief_descriptor',
+        'animal_model':'animal_model','primary_antibody':'primary_antibody',
+        'primary_concentration':'primary_concentration',
+        'primary_order_info':'primary_order_info',
+        'secondary_antibody':'secondary_antibody',
+        'secondary_concentration':'secondary_concentration',
+        'secondary_order_info':'secondary_order_info',
+        'notes':'notes'}
+    edit_entry = LinkCol('Update entry',
+         'clearing.edit_antibody_entry',url_kwargs=url_kwargs,
+            anchor_attrs={'target':'_blank'},allow_sort=False,
+            column_html_attrs=column_html_attrs)
     def sort_url(self, col_key, reverse=False):
         if reverse:
             direction = 'desc'

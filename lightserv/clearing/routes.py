@@ -3,10 +3,11 @@ from flask import (render_template, url_for, flash,
 				   Markup,current_app)
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 		  iDiscoAbbreviatedRatForm, uDiscoForm,  iDiscoEduForm,
-		  NewAntibodyForm )
+		  NewAntibodyForm, EditAntibodyForm )
 from lightserv.clearing.tables import (ClearingTable,IdiscoPlusTable,
 	dynamic_clearing_management_table,SamplesTable,
-	AntibodyOverviewTable,AntibodyHistoryTable)
+	AntibodyOverviewTable,AntibodyHistoryTable,
+	AntibodyHistorySingleEntryTable)
 from lightserv import db_lightsheet, smtp_connect
 from .utils import (determine_clearing_form, add_clearing_calendar_entry,
 				   determine_clearing_dbtable, determine_clearing_table) 
@@ -343,6 +344,81 @@ def antibody_history():
 
 	return render_template('clearing/antibody_history.html',
 		history_table=history_table)
+
+@clearing.route("/clearing/edit_antibody_entry",
+	methods=['GET','POST'])
+@logged_in_as_clearing_manager
+@log_http_requests
+def edit_antibody_entry():
+	""" Edit an existing antibody history entry """ 
+	date = request.args.get('date')
+	date_corr_format = datetime.datetime.strptime(date,'%Y-%m-%d')
+	username = request.args.get('username')
+	request_name = request.args.get('request_name')
+	brief_descriptor = request.args.get('brief_descriptor')
+	animal_model = request.args.get('animal_model')
+	primary_antibody = request.args.get('primary_antibody')
+	primary_order_info = request.args.get('primary_order_info')
+	secondary_antibody = request.args.get('secondary_antibody')
+	primary_concentration = request.args.get('primary_concentration')
+	secondary_concentration = request.args.get('secondary_concentration')
+	secondary_order_info = request.args.get('secondary_order_info')
+	notes = request.args.get('notes')
+	existing_contents = [{
+		'date':date_corr_format,
+		'username':username,
+		'request_name':request_name,
+		'brief_descriptor':brief_descriptor,
+		'animal_model':animal_model,
+		'primary_antibody':primary_antibody,
+		'secondary_antibody':secondary_antibody,
+		'primary_concentration':primary_concentration,
+		'secondary_concentration':secondary_concentration,
+		'primary_order_info':primary_order_info,
+		'secondary_order_info':secondary_order_info,
+		'notes':notes,
+		}]
+	# logger.debug("received args:")
+	# logger.debug(dict(request.args))
+	existing_entry_table = AntibodyHistorySingleEntryTable(existing_contents)
+	form = EditAntibodyForm()
+	restrict_dict = {
+		'date':date_corr_format,
+		'brief_descriptor':brief_descriptor,
+		'animal_model':animal_model,
+		'primary_antibody':primary_antibody,
+		'secondary_antibody':secondary_antibody,
+		'primary_concentration':primary_concentration,
+		'secondary_concentration':secondary_concentration,
+		}
+	existing_db_entry = db_lightsheet.AntibodyHistory() & restrict_dict
+	if request.method == 'POST':
+		logger.debug("POST request")
+		if form.validate_on_submit():
+			logger.debug("Form validated")
+			form_columns = ['primary_order_info',
+			'secondary_order_info','notes',]
+			""" Make a replacement insert into the db """
+			antibody_history_insert_dict = existing_db_entry.fetch1()
+			for col in form.data:
+				if col in form_columns:
+					antibody_history_insert_dict[col] = form[col].data
+			logger.debug("inserting:")
+			logger.debug(antibody_history_insert_dict)
+			db_lightsheet.AntibodyHistory().insert1(antibody_history_insert_dict,
+				replace=True)
+			flash("Antibody entry successfully updated","success")
+			return redirect(url_for('clearing.antibody_history'))
+	if request.method == 'GET':
+		form.date.data = date_corr_format
+		form.brief_descriptor.data = brief_descriptor
+		form.animal_model.data = animal_model
+		form.primary_antibody.data = primary_antibody
+		form.secondary_antibody.data = secondary_antibody
+		form.primary_concentration.data = primary_concentration
+		form.secondary_concentration.data = secondary_concentration
+	return render_template('clearing/edit_antibody_form.html',
+		form=form,existing_entry_table=existing_entry_table)
 
 @clearing.route("/clearing/new_antibody",
 	methods=['GET','POST'])
