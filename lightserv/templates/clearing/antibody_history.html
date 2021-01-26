@@ -3,6 +3,11 @@
 	<h1 align="center"> Antibody Testing History </h1>
 	<hr class='class-2'>
 	<div align="center">
+	{% if history_table.items|length > 3 %}
+		<div class="tableFixHead">
+	{% else %}
+		<div class="tableFixHeadShort">
+	{% endif %}
 		{{ history_table }}
 	</div>
 
