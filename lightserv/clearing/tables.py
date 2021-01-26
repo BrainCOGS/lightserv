@@ -654,12 +654,15 @@ class AntibodyOverviewTable(Table):
 class AntibodyHistoryTable(Table):
     border = True
     no_items = "No Antibodies Yet"
+    allow_sort = True
+
     html_attrs = {"style":'font-size:14px'} # gets assigned to table header
     # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
-    column_html_attrs = {'style':'word-wrap: break-word; max-width:200px; background: white;'}
+    column_html_attrs = {'style':'word-wrap: break-word; max-width:110px; background: white;'}
     
-    # column_html_attrs=column_html_attrs
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
+    username = Col('Username',column_html_attrs=column_html_attrs)
+    request_name = Col('Request name',column_html_attrs=column_html_attrs)
     date = DateCol('Date',column_html_attrs=column_html_attrs)
     brief_descriptor = Col('Brief exp description',column_html_attrs=column_html_attrs)
     animal_model = Col('Animal model',column_html_attrs=column_html_attrs)
@@ -670,3 +673,12 @@ class AntibodyHistoryTable(Table):
     secondary_concentration = Col('Secondary concentration used',column_html_attrs=column_html_attrs)
     secondary_order_info = Col('Secondary order info',column_html_attrs=column_html_attrs)
     notes = Col('notes',column_html_attrs=column_html_attrs)
+
+    def sort_url(self, col_key, reverse=False):
+        if reverse:
+            direction = 'desc'
+        else:
+            direction = 'asc'
+        next_url = os.path.join('/',*request.url.split('?')[0].split('/')[3:])
+        next_url += f'?sort={col_key}&direction={direction}'
+        return next_url

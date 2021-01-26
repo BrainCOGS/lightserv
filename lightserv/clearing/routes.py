@@ -315,7 +315,6 @@ def clearing_table(username,request_name,clearing_protocol,clearing_batch_number
 	return render_template('clearing/clearing_table.html',overview_table=overview_table,
 		clearing_contents=db_contents,table=table)
 
-
 @clearing.route("/clearing/antibody_overview",
 	methods=['GET'])
 @logged_in_as_clearing_manager
@@ -335,9 +334,12 @@ def antibody_overview():
 @log_http_requests
 def antibody_history():
 	""" Show all antibodies currently in the db """ 
+	sort = request.args.get('sort', 'date') # first is the variable name, second is default value
+	reverse = (request.args.get('direction', 'desc') == 'desc')
 	antibody_history_contents = db_lightsheet.AntibodyHistory()
 
-	history_table = AntibodyHistoryTable(antibody_history_contents)
+	history_table = AntibodyHistoryTable(antibody_history_contents,
+		sort_by=sort,sort_reverse=reverse)
 
 	return render_template('clearing/antibody_history.html',
 		history_table=history_table)
@@ -348,6 +350,7 @@ def antibody_history():
 @log_http_requests
 def new_antibody():
 	""" Show all antibodies currently in the db """ 
+
 	form = NewAntibodyForm()
 
 	if request.method == 'POST':

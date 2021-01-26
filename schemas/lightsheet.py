@@ -605,6 +605,8 @@ class AntibodyHistory(dj.Manual):
     primary_concentration     : varchar(128)
     secondary_concentration   : varchar(128)
     ---
+    username = NULL           : varchar(20) # the user of the request. We don't always have this info so it's not a primary key
+    request_name = NULL       : varchar(64) # the name of the request. We don't always have this info so it's not a primary key
     primary_order_info        : varchar(128)
     secondary_order_info      : varchar(128)
     notes                     : varchar(512)
