@@ -344,6 +344,7 @@ def antibody_history():
 	antibody_history_contents = db_lightsheet.AntibodyHistory()
 	sorted_results = sorted(antibody_history_contents.fetch(as_dict=True),
         key=partial(table_sorter,sort_key=sort),reverse=reverse)
+	
 	history_table = AntibodyHistoryTable(sorted_results,
 		sort_by=sort,sort_reverse=reverse)
 
