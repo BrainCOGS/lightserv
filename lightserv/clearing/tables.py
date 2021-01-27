@@ -678,7 +678,14 @@ class AntibodyHistoryTable(Table):
     border = True
     no_items = "No Antibodies Yet"
     allow_sort = True
-
+    def sort_url(self, col_key, reverse=False):
+        if reverse:
+            direction = 'desc'
+        else:
+            direction = 'asc'
+        next_url = os.path.join('/',*request.url.split('?')[0].split('/')[3:])
+        next_url += f'?sort={col_key}&direction={direction}'
+        return next_url
     html_attrs = {"style":'font-size:14px'} # gets assigned to table header
     # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     column_html_attrs = {'style':'word-wrap: break-word; max-width:110px; background: white;'}
@@ -691,7 +698,7 @@ class AntibodyHistoryTable(Table):
 
     request_name = ConditionalRequestNameLinkCol('Request name',
          'requests.request_overview',url_kwargs=dict(username='username',request_name='request_name'),
-            anchor_attrs={'target':'_blank'},allow_sort=False,
+            anchor_attrs={'target':'_blank'},allow_sort=True,
             column_html_attrs=column_html_attrs)
     date = DateCol('Date',column_html_attrs=column_html_attrs)
     brief_descriptor = Col('Brief exp description',column_html_attrs=column_html_attrs)
@@ -716,11 +723,5 @@ class AntibodyHistoryTable(Table):
          'clearing.edit_antibody_entry',url_kwargs=url_kwargs,
             anchor_attrs={'target':'_blank'},allow_sort=False,
             column_html_attrs=column_html_attrs)
-    def sort_url(self, col_key, reverse=False):
-        if reverse:
-            direction = 'desc'
-        else:
-            direction = 'asc'
-        next_url = os.path.join('/',*request.url.split('?')[0].split('/')[3:])
-        next_url += f'?sort={col_key}&direction={direction}'
-        return next_url
+
+    

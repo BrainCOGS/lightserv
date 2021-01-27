@@ -308,7 +308,7 @@ class ConditionalRequestNameLinkCol(LinkCol):
         else:
             attrs = dict(href=self.url(item))
             attrs.update(self.anchor_attrs)
-            text = self.td_format(self.text(item, attr_list))
+            text = request_name
             return element('a', attrs=attrs, content=text, escape_content=False)
 
 

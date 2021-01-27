@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+{% block content %}
+	<h1 align="center"> Update Antibody Trial Entry Form </h1>
+	<hr class='class-1'>
+	<h3 align="center"> Existing data for this entry </h3>
+	{{existing_entry_table}}
+	<hr class='class 1'>
+	<h3 align="left"> Update this entry </h3>
+	 <div class="content-section mt-4">
+		<form id="antibody_entry_form" method="POST" action="">
+			{{ form.hidden_tag() }}
+			
+			<div class="form-group">
+				{{ form.primary_order_info.label(id='larger')}}
+				{% if form.primary_order_info.errors %}
+					{{ form.primary_order_info(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.primary_order_info.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.primary_order_info(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+
+			<div class="form-group">
+				{{ form.secondary_order_info.label(id='larger')}}
+				{% if form.secondary_order_info.errors %}
+					{{ form.secondary_order_info(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.secondary_order_info.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.secondary_order_info(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.notes.label(id='larger')}}
+				{% if form.notes.errors %}
+					{{ form.notes(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.notes.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.notes(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.submit(class="btn btn-success mt-2") }}
+			</div>
+	</form>
+
+
+	<script> 
+		function autoFillDate() { 
+			var d = new Date();
+			var datestring = d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+			var elem = document.getElementById('date-field');
+			// var evt = document.createEvent("HTMLEvents");
+			// evt.initEvent("change", false, true);
+			elem.value = datestring;
+			var myevent = new Event('change');
+			// Dispatch it.
+			elem.dispatchEvent(myevent);
+			// elem.onchange()
+		}
+	</script>
+
+{% endblock content %}

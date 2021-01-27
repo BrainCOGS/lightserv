@@ -12,12 +12,14 @@ from lightserv import db_lightsheet, smtp_connect
 from .utils import (determine_clearing_form, add_clearing_calendar_entry,
 				   determine_clearing_dbtable, determine_clearing_table) 
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,
-	 logged_in_as_clearing_manager, log_http_requests)
+	 logged_in_as_clearing_manager, log_http_requests,
+	 table_sorter)
 from lightserv.main.tasks import send_email
 import numpy as np
 import datajoint as dj
 import re, os, datetime
 import secrets
+from functools import partial
 
 import logging
 from werkzeug.routing import BaseConverter
@@ -337,9 +339,12 @@ def antibody_history():
 	""" Show all antibodies currently in the db """ 
 	sort = request.args.get('sort', 'date') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'desc') == 'desc')
+	logger.debug(sort)
+	logger.debug(reverse)
 	antibody_history_contents = db_lightsheet.AntibodyHistory()
-
-	history_table = AntibodyHistoryTable(antibody_history_contents,
+	sorted_results = sorted(antibody_history_contents.fetch(as_dict=True),
+        key=partial(table_sorter,sort_key=sort),reverse=reverse)
+	history_table = AntibodyHistoryTable(sorted_results,
 		sort_by=sort,sort_reverse=reverse)
 
 	return render_template('clearing/antibody_history.html',
