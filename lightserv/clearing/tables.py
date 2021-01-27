@@ -2,7 +2,8 @@ from flask import request
 from flask_table import create_table,Table, Col, LinkCol, ButtonCol, DateCol
 from functools import partial
 from lightserv.main.utils import table_sorter
-from lightserv.main.tables import DateTimeCol, DesignatedRoleCol
+from lightserv.main.tables import (DateTimeCol, DesignatedRoleCol,
+    ConditionalRequestNameLinkCol,NACol)
 
 import os
 
@@ -673,7 +674,6 @@ class AntibodyHistorySingleEntryTable(Table):
     secondary_order_info = Col('Secondary order info',column_html_attrs=column_html_attrs)
     notes = Col('notes',column_html_attrs=column_html_attrs)
     
-
 class AntibodyHistoryTable(Table):
     border = True
     no_items = "No Antibodies Yet"
@@ -684,8 +684,15 @@ class AntibodyHistoryTable(Table):
     column_html_attrs = {'style':'word-wrap: break-word; max-width:110px; background: white;'}
     
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
-    username = Col('Username',column_html_attrs=column_html_attrs)
-    request_name = Col('Request name',column_html_attrs=column_html_attrs)
+    username = NACol('Username',column_html_attrs=column_html_attrs)
+    # request_name = Col('Request name',column_html_attrs=column_html_attrs)
+    # username = Col('Username',column_html_attrs=column_html_attrs)
+    # request_url_kwargs = {'username':'username','request_name':'request_name'}
+
+    request_name = ConditionalRequestNameLinkCol('Request name',
+         'requests.request_overview',url_kwargs=dict(username='username',request_name='request_name'),
+            anchor_attrs={'target':'_blank'},allow_sort=False,
+            column_html_attrs=column_html_attrs)
     date = DateCol('Date',column_html_attrs=column_html_attrs)
     brief_descriptor = Col('Brief exp description',column_html_attrs=column_html_attrs)
     animal_model = Col('Animal model',column_html_attrs=column_html_attrs)

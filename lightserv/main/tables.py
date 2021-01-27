@@ -83,7 +83,17 @@ class NotAssignedCol(Col):
             return "Not assigned"
         else:
             return content
-   
+  
+class NACol(Col):
+    """ Subclassing Col to show 'N/A' if 
+    entry is None, otherwise show the original content """  
+    def td_format(self, content):
+        if not content or content == None or content == "None":
+            return "N/A"
+        else:
+            return content
+  
+
 class ProgressCol(Col):
     """ Conditional bold fonting """
     def __init__(self, name, attr=None, attr_list=None,
@@ -270,6 +280,30 @@ class ConditionalDeleteLinkCol(LinkCol):
         clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & restrict_dict
         clearing_batches_started = [clearing_dict['clearing_progress']!='incomplete' for clearing_dict in clearing_batch_contents]
         if any(clearing_batches_started):
+            return "N/A"
+        else:
+            attrs = dict(href=self.url(item))
+            attrs.update(self.anchor_attrs)
+            text = self.td_format(self.text(item, attr_list))
+            return element('a', attrs=attrs, content=text, escape_content=False)
+
+class ConditionalRequestNameLinkCol(LinkCol):
+    """Subclass of LinkCol to conditionally show no link 
+    or the link to a request overview if username and request_name
+    are provided 
+    If provided, show the link, if not show "N/A'"
+    """
+    def __init__(self,name,endpoint,**kwargs):
+        super(ConditionalRequestNameLinkCol, self).__init__(name,endpoint,**kwargs)
+    
+    def text(self, item, attr_list):
+        return "Link to request"
+
+    def td_contents(self, item, attr_list):
+        username=item['username']
+        request_name=item['request_name']
+        
+        if (not username) or (not request_name): 
             return "N/A"
         else:
             attrs = dict(href=self.url(item))
