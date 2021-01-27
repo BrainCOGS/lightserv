@@ -80,20 +80,21 @@
 								{% endif %}
 							
 								{# Antibody dropdown #}
-								{% if session['user'] == 'ahoag' or session['user'] == 'll3' %}
 									<li class="nav-item dropdown">
 								        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 								          Antibodies
 								        </a>
 								        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-								        	<a class="dropdown-item" href="{{ url_for('clearing.new_antibody')}}">Enter new antibody trial</a>
-											<a class="dropdown-item" href="{{ url_for('clearing.antibody_overview')}}">Antibody Cheat Sheet</a>
+        									{% if session['user'] == 'ahoag' or session['user'] == 'll3' %}
+
+									        	<a class="dropdown-item" href="{{ url_for('clearing.new_antibody')}}">Enter new antibody trial</a>
+												<a class="dropdown-item" href="{{ url_for('clearing.antibody_overview')}}">Antibody Cheat Sheet</a>
+											{% endif %}
 											<a class="dropdown-item" href="{{ url_for('clearing.antibody_history')}}">Antibody History</a>
 								        </div>
 								        
 									</li>
 
-								{% endif %}
 								
 							</div>
 								

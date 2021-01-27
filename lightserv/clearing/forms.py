@@ -806,7 +806,6 @@ class NewAntibodyForm(FlaskForm):
 	notes = StringField('Comments',validators=[Optional(),Length(max=512)])
 	submit = SubmitField('Submit')
 
-
 class EditAntibodyForm(FlaskForm):
 	""" The form for entering a new antibody trial
 	into the antibody history table """
@@ -820,5 +819,5 @@ class EditAntibodyForm(FlaskForm):
 	secondary_antibody = StringField('Secondary antibody',)
 	secondary_concentration = StringField('Secondary concentration used',)
 	secondary_order_info = StringField('Secondary order info',validators=[Optional(),Length(max=128)])
-	notes = StringField('Comments',validators=[Optional(),Length(max=512)])
+	notes = StringField('Notes',validators=[Optional(),Length(max=512)])
 	submit = SubmitField('Submit changes')

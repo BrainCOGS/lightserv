@@ -333,7 +333,6 @@ def antibody_overview():
 
 @clearing.route("/clearing/antibody_history",
 	methods=['GET'])
-@logged_in_as_clearing_manager
 @log_http_requests
 def antibody_history():
 	""" Show all antibodies currently in the db """ 
@@ -341,7 +340,14 @@ def antibody_history():
 	reverse = (request.args.get('direction', 'desc') == 'desc')
 	logger.debug(sort)
 	logger.debug(reverse)
+	current_user = session['user']
+	logger.info(f"{current_user} accessed antibody history")
 	antibody_history_contents = db_lightsheet.AntibodyHistory()
+
+	clearing_admins = current_app.config['CLEARING_ADMINS']
+	if current_user not in clearing_admins:
+		antibody_history_contents = antibody_history_contents & f'username="{current_user}"'
+
 	sorted_results = sorted(antibody_history_contents.fetch(as_dict=True),
         key=partial(table_sorter,sort_key=sort),reverse=reverse)
 	
@@ -353,7 +359,6 @@ def antibody_history():
 
 @clearing.route("/clearing/edit_antibody_entry",
 	methods=['GET','POST'])
-@logged_in_as_clearing_manager
 @log_http_requests
 def edit_antibody_entry():
 	""" Edit an existing antibody history entry """ 
