@@ -334,6 +334,7 @@ def antibody_overview():
 @clearing.route("/clearing/antibody_history",
 	methods=['GET'])
 @log_http_requests
+@logged_in
 def antibody_history():
 	""" Show all antibodies currently in the db """ 
 	sort = request.args.get('sort', 'date') # first is the variable name, second is default value
@@ -359,6 +360,7 @@ def antibody_history():
 
 @clearing.route("/clearing/edit_antibody_entry",
 	methods=['GET','POST'])
+@logged_in
 @log_http_requests
 def edit_antibody_entry():
 	""" Edit an existing antibody history entry """ 
