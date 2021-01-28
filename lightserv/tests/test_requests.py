@@ -832,6 +832,41 @@ def test_mouse_request(test_client,test_login_nonadmin,
 		)	
 	assert b'There can only be one registration channel per image resolution' in response.data  
 
+	""" Ensure that an AntibodyHistory() db entry is made when antibodies are requested """
+
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"nonadmin_antibody_request",
+			'description':"This is a test request with an antibody",
+			'species':"mouse",'number_of_samples':1,
+			'raw_data_retention_preference':"important",
+			'username':username,
+			'uniform_clearing':True,
+			'clearing_samples-0-clearing_protocol':'iDISCO+_immuno',
+			'clearing_samples-0-antibody1':'a primary antibody',
+			'clearing_samples-0-antibody2':'a secondary antibody',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'submit':True
+			},
+			content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	
+	assert b"core facility requests" in response.data
+	assert b"This is a demo request" in response.data
+	assert b"New Request Form" not in response.data
+	""" Check that an insert was made into the AntibodyHistory() table """
+	antibody_history_contents = db_lightsheet.AntibodyHistory() & 'request_name="nonadmin_antibody_request"'
+	print(antibody_history_contents)
+	assert len(antibody_history_contents) == 1
 def test_rat_request(test_client,test_login_nonadmin,
 	test_delete_request_db_contents):
 	
@@ -1290,8 +1325,9 @@ def test_newlines_do_not_affect_clearing_batch_membership(test_client,
 
 	""" Now check to make sure that only one clearing batch was made """
 	clearing_batch_results = db_lightsheet.Request().ClearingBatch() & 'request_name="test_request_newlines"'
-	print(clearing_batch_results)
 	assert len(clearing_batch_results) == 1
+
+
 
 def test_expected_handoff_date_required_for_non_self_clearing(
 	test_client,test_login_nonadmin,test_delete_request_db_contents):

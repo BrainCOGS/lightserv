@@ -934,6 +934,28 @@ def new_request():
                     logger.info("ClearingBatch() insert ")
                     logger.info(clearing_batch_insert_list)
                     db_lightsheet.Request.ClearingBatch().insert(clearing_batch_insert_list,)
+                    """ For each clearing batch decide if we need to make 
+                    an insert into the antibody history table.
+                    This just depends whether antibodies were used """
+                    for clearing_entry_dict in clearing_batch_insert_list:
+                        antibody1,antibody2 = clearing_entry_dict['antibody1'],clearing_entry_dict['antibody2']
+                        if antibody1 or antibody2:
+                            antibody_history_insert_dict = {}
+                            antibody_history_insert_dict['username'] = username
+                            antibody_history_insert_dict['request_name'] = form.request_name.data
+                            antibody_history_insert_dict['date'] = date
+                            antibody_history_insert_dict['primary_antibody'] = clearing_entry_dict['antibody1']
+                            antibody_history_insert_dict['secondary_antibody'] = clearing_entry_dict['antibody2']
+                            antibody_history_insert_dict['brief_descriptor'] = form.description.data[:128]
+                            antibody_history_insert_dict['animal_model'] = form.species.data
+                            antibody_history_insert_dict['primary_concentration'] = ''
+                            antibody_history_insert_dict['secondary_concentration'] = ''
+                            antibody_history_insert_dict['primary_order_info'] = ''
+                            antibody_history_insert_dict['secondary_order_info'] = ''
+                            antibody_history_insert_dict['notes'] = ''
+                            logger.info("AntibodyHistory() insert")
+                            logger.info(antibody_history_insert_dict)
+                            db_lightsheet.AntibodyHistory().insert1(antibody_history_insert_dict)
 
                     logger.info("ClearingBatchSample() insert ")
                     logger.info(clearing_batch_sample_insert_list)
