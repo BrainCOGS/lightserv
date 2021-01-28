@@ -758,3 +758,84 @@ def test_rat_clearing_table_has_db_content(test_client,test_cleared_rat_request)
 	assert b'Clearing Log' in response_abbreviated.data
 	assert b'some rat notes' in response_abbreviated.data
 	assert datetime.now().strftime('%Y-%m-%d %H').encode('utf-8') in response_abbreviated.data 
+
+
+""" Test clearing_table() """
+
+def test_antibody_table_access(test_client,test_delete_request_db_contents):
+	""" Test that ll3 can see all entries
+	to the antibody table """
+	date = '2021-01-02'
+	date_corr_format = datetime.strptime(date,'%Y-%m-%d')
+	""" Make some inserts first """
+	insert_dict1 = {
+	'username':'ejdennis',
+	'request_name':'test_antibody1',
+	'date':date_corr_format,	
+	'brief_descriptor': 'test rat antibody request', 
+	'animal_model':  'rat',
+	'primary_antibody':  'some primary',
+	'primary_order_info':  '',
+	'secondary_antibody':  'some seconary',
+	'primary_concentration':  '1:100',
+	'secondary_concentration':  '1:50',
+	'secondary_order_info':  '',
+	'notes':  'Here are the notes'
+	}
+	insert_dict2 = {
+	'username':'diamanti',
+	'request_name':'test_antibody2',
+	'date':date_corr_format,	
+	'brief_descriptor': 'test mouse antibody request', 
+	'animal_model':  'mouse',
+	'primary_antibody':  'some primary',
+	'primary_order_info':  '',
+	'secondary_antibody':  'some seconary',
+	'primary_concentration':  '1:100',
+	'secondary_concentration':  '1:50',
+	'secondary_order_info':  '',
+	'notes':  'Here are the notes'
+	}
+	insert_list = [insert_dict1,insert_dict2]
+	db_lightsheet.AntibodyHistory().insert(insert_list)
+	""" Log in as ll3 """
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'll3'
+	response = test_client.get(url_for('clearing.antibody_history'),
+	)
+	assert b'Antibody Testing History' in response.data
+
+	assert b'ejdennis' in response.data
+	assert b'diamanti' in response.data
+
+	""" Make sure a nonadmin cannot see the antibody history entry for a different user """
+	""" Log in as lightserv-test """
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
+	response = test_client.get(url_for('clearing.antibody_history'),
+	)
+	assert b'ejdennis' not in response.data
+	assert b'diamanti' not in response.data
+	
+	""" Now make sure ejdennis can her entry but not mika's """
+	""" Log in as ejdennis """
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'ejdennis'
+	response = test_client.get(url_for('clearing.antibody_history'),
+	)
+	assert b'ejdennis' in response.data
+	assert b'diamanti' not in response.data
+
+	""" Make sure ejdennis can edit her entry """
+	kwargs = insert_dict1.copy()
+	kwargs['date'] = date
+	response = test_client.post(url_for('clearing.edit_antibody_entry',
+		**kwargs),data={
+		'notes':'updated notes!',
+		'submit':True
+	},follow_redirects=True,
+	)
+	assert b'Antibody entry successfully updated' in response.data
+	assert b'Antibody Testing History' in response.data
+	assert b'updated notes!' in response.data
+

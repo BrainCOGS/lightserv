@@ -819,5 +819,5 @@ class EditAntibodyForm(FlaskForm):
 	secondary_antibody = StringField('Secondary antibody',)
 	secondary_concentration = StringField('Secondary concentration used',)
 	secondary_order_info = StringField('Secondary order info',validators=[Optional(),Length(max=128)])
-	notes = StringField('Notes',validators=[Optional(),Length(max=512)])
+	notes = TextAreaField('Notes',validators=[Optional(),Length(max=512)])
 	submit = SubmitField('Submit changes')
