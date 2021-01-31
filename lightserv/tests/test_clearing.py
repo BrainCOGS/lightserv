@@ -760,7 +760,7 @@ def test_rat_clearing_table_has_db_content(test_client,test_cleared_rat_request)
 	assert datetime.now().strftime('%Y-%m-%d %H').encode('utf-8') in response_abbreviated.data 
 
 
-""" Test clearing_table() """
+""" Test antibody_history() """
 
 def test_antibody_table_access(test_client,test_delete_request_db_contents):
 	""" Test that ll3 can see all entries
@@ -808,23 +808,23 @@ def test_antibody_table_access(test_client,test_delete_request_db_contents):
 	assert b'ejdennis' in response.data
 	assert b'diamanti' in response.data
 
-	""" Make sure a nonadmin cannot see the antibody history entry for a different user """
+	""" Make sure a nonadmin cannot see the antibody history for both users  """
 	""" Log in as lightserv-test """
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'lightserv-test'
 	response = test_client.get(url_for('clearing.antibody_history'),
 	)
-	assert b'ejdennis' not in response.data
-	assert b'diamanti' not in response.data
+	assert b'ejdennis' in response.data
+	assert b'diamanti' in response.data
 	
-	""" Now make sure ejdennis can her entry but not mika's """
+	""" Now make sure ejdennis can her entry and mika's """
 	""" Log in as ejdennis """
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'ejdennis'
 	response = test_client.get(url_for('clearing.antibody_history'),
 	)
 	assert b'ejdennis' in response.data
-	assert b'diamanti' not in response.data
+	assert b'diamanti' in response.data
 
 	""" Make sure ejdennis can edit her entry """
 	kwargs = insert_dict1.copy()
@@ -838,4 +838,18 @@ def test_antibody_table_access(test_client,test_delete_request_db_contents):
 	assert b'Antibody entry successfully updated' in response.data
 	assert b'Antibody Testing History' in response.data
 	assert b'updated notes!' in response.data
+
+	""" Make sure mika cannot edit ejdennis' entry """
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'diamanti'
+
+	response = test_client.post(url_for('clearing.edit_antibody_entry',
+		**kwargs),data={
+		'notes':'updated notes v2!',
+		'submit':True
+	},follow_redirects=True,
+	)
+	assert b'You do not have permission to update this entry' in response.data
+	assert b'Antibody Testing History' in response.data
+	assert b'updated notes v2!' not in response.data
 
