@@ -12,6 +12,7 @@ hosturl = os.environ['HOSTURL']
 
 flask_mode = os.environ['FLASK_MODE']
 
+kv = redis.Redis(host="redis", decode_responses=True)  # container simply named redis
 
 logging.basicConfig(level=logging.DEBUG)
 # we are currently using the seunglab hosted neuroglancer static resources
