@@ -210,6 +210,8 @@ def test_delete_request_db_contents(test_client):
 	yield # this is where the test is run
 	print('-------Teardown test_delete_request_db_contents fixture --------')
 	db_lightsheet.Request().delete()
+	db_lightsheet.AntibodyHistory().delete()
+	db_lightsheet.AntibodyOverview().delete()
 	# db_admin.UserActionLog().delete()	
 	# db_admin.LightsheetPipelineSpockJob().delete()	
 
@@ -294,7 +296,8 @@ def test_delete_spockadmin_db_contents(test_client):
 ################################
 
 @pytest.fixture(scope='function') 
-def test_single_sample_request_ahoag(test_client,test_login,test_delete_request_db_contents):
+def test_single_sample_request_ahoag(test_client,
+	test_login,test_delete_request_db_contents):
 	""" Submits a new request as 'ahoag' with a single sample that can be used for various tests.
 
 	It uses the test_delete_request_db_contents fixture, which means that 
@@ -331,7 +334,8 @@ def test_single_sample_request_ahoag(test_client,test_login,test_delete_request_
 	print('-------Teardown test_single_request_ahoag fixture --------')
 
 @pytest.fixture(scope='function') 
-def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
+def test_single_sample_request_nonadmin(test_client,
+	test_login_nonadmin,test_delete_request_db_contents):
 	""" Submits a new request as 'lightserv-test' (a nonadmin) that can be used for various tests.
 
 	It uses the test_delete_request_db_contents fixture, which means that 
@@ -369,7 +373,8 @@ def test_single_sample_request_nonadmin(test_client,test_login_nonadmin,test_del
 	print('-------Teardown test_single_request_nonadmin fixture --------')
 	
 @pytest.fixture(scope='function') 
-def test_single_sample_idiscoplus_request_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
+def test_single_sample_idiscoplus_request_nonadmin(test_client,
+	test_login_nonadmin,test_delete_request_db_contents):
 	""" Submits a new request as 'lightserv-test' (a nonadmin) 
 	with iDISCO+_immno staining requested as the clearing protocol
 	that can be used for various tests.
@@ -411,7 +416,8 @@ def test_single_sample_idiscoplus_request_nonadmin(test_client,test_login_nonadm
 	print('-------Teardown test_single_request_nonadmin fixture --------')
 	
 @pytest.fixture(scope='function') 
-def test_single_sample_request_4x_ahoag(test_client,test_login,test_delete_request_db_contents):
+def test_single_sample_request_4x_ahoag(test_client,
+	test_login,test_delete_request_db_contents):
 	""" Submits a new request as 'ahoag' with a single sample requesting 4x resolution
 	that can be used for various tests.
 
@@ -449,7 +455,8 @@ def test_single_sample_request_4x_ahoag(test_client,test_login,test_delete_reque
 	print('-------Teardown test_single_request_ahoag fixture --------')
 
 @pytest.fixture(scope='function') 
-def test_request_4x_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
+def test_request_4x_nonadmin(test_client,
+	test_login_nonadmin,test_delete_request_db_contents):
 	""" Submits a new request as 'lightserv-user' with a single sample requesting 4x resolution
 	that can be used for various tests.
 
@@ -486,7 +493,8 @@ def test_request_4x_nonadmin(test_client,test_login_nonadmin,test_delete_request
 	print('-------Teardown test_request_4x_nonadmin fixture --------')
 
 @pytest.fixture(scope='function') 
-def test_multichannel_request_ahoag(test_client,test_login,test_delete_request_db_contents):
+def test_multichannel_request_ahoag(test_client,
+	test_login,test_delete_request_db_contents):
 	""" Submits a new request as 'ahoag' with a single sample 
 	requesting two different imaging channels
 	that can be used for various tests.
@@ -526,7 +534,8 @@ def test_multichannel_request_ahoag(test_client,test_login,test_delete_request_d
 	print('-------Teardown test_multichannel_request_ahoag fixture --------')
 
 @pytest.fixture(scope='function') 
-def test_two_requests_ahoag(test_client,test_login,test_delete_request_db_contents):
+def test_two_requests_ahoag(test_client,
+	test_login,test_delete_request_db_contents):
 	""" Submits two new requests as 'ahoag' that can be used for various tests.
 
 	It uses the test_delete_request_db_contents fixture, which means that 
@@ -585,7 +594,8 @@ def test_two_requests_ahoag(test_client,test_login,test_delete_request_db_conten
 	print('-------Teardown test_two_requests_ahoag fixture --------')
 
 @pytest.fixture(scope='function') 
-def test_request_all_mouse_clearing_protocols_ahoag(test_client,test_login,test_delete_request_db_contents):
+def test_request_all_mouse_clearing_protocols_ahoag(test_client,
+	test_login,test_delete_request_db_contents):
 	""" Submits a new request as 'ahoag' with a sample for each of the 4 
 	clearing protocols that can be used for mice.
 
@@ -698,7 +708,8 @@ def test_request_all_rat_clearing_protocols_ahoag(test_client,
 	print('-------Teardown test_single_request_ahoag fixture --------')
 
 @pytest.fixture(scope='function') 
-def test_multisample_request_nonadmin_clearing_notes(test_client,test_login_nonadmin,test_delete_request_db_contents):
+def test_multisample_request_nonadmin_clearing_notes(test_client,
+	test_login_nonadmin,test_delete_request_db_contents):
 	""" Submits a new request as 'lightserv-test' (a nonadmin) with multiple samples that can be used for various tests.
 	There are notes_for_clearer entries in multiple sample fields 
 	so we can test that we properly account for all notes
