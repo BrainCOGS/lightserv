@@ -689,6 +689,7 @@ class AntibodyHistoryTable(Table):
     html_attrs = {"style":'font-size:14px'} # gets assigned to table header
     # column_html_attrs = {'style':'text-align: center; min-width:10px'} # gets assigned to both th and td
     column_html_attrs = {'style':'word-wrap: break-word; max-width:110px; background: white;'}
+    column_html_attrs_thin = {'style':'word-wrap: break-word; max-width:90px; background: white;'}
     
     classes = ["table-striped"] # gets assigned to table classes. Striped is alternating bright and dark ros for visual ease.
     url_kwargs = {'username':'username','request_name':'request_name',
@@ -700,24 +701,27 @@ class AntibodyHistoryTable(Table):
         'secondary_concentration':'secondary_concentration',
         'secondary_order_info':'secondary_order_info',
         'notes':'notes'}
-    edit_entry = LinkCol('Update entry',
+    update_entry = LinkCol('Update entry',
          'clearing.edit_antibody_entry',url_kwargs=url_kwargs,
             anchor_attrs={'target':'_blank'},allow_sort=False,
-            column_html_attrs=column_html_attrs)
-    date = DateCol('Date',column_html_attrs=column_html_attrs)
+            column_html_attrs=column_html_attrs_thin)
+    date = DateCol('Date',column_html_attrs=column_html_attrs_thin)
     brief_descriptor = Col('Brief exp description',column_html_attrs=column_html_attrs)
-    primary_antibody = Col('Primary antibody',column_html_attrs=column_html_attrs)
-    secondary_antibody = Col('Secondary antibody',column_html_attrs=column_html_attrs)
-    animal_model = Col('Animal model',column_html_attrs=column_html_attrs)
     notes = Col('notes',column_html_attrs=column_html_attrs)
+
+    primary_antibody = Col('1st antibody',column_html_attrs=column_html_attrs)
+    primary_concentration = Col('1st conc. ',column_html_attrs=column_html_attrs)
+
+    secondary_antibody = Col('2nd antibody',column_html_attrs=column_html_attrs)
+    secondary_concentration = Col('2nd conc.',column_html_attrs=column_html_attrs)
+
+    animal_model = Col('Animal model',column_html_attrs=column_html_attrs_thin)
     username = NACol('Username',column_html_attrs=column_html_attrs)
     request_name = ConditionalRequestNameLinkCol('Request name',
          'requests.request_overview',url_kwargs=dict(username='username',request_name='request_name'),
             anchor_attrs={'target':'_blank'},allow_sort=True,
             column_html_attrs=column_html_attrs)
-    primary_concentration = Col('Primary concentration used',column_html_attrs=column_html_attrs)
     primary_order_info = Col('Primary order info',column_html_attrs=column_html_attrs)
-    secondary_concentration = Col('Secondary concentration used',column_html_attrs=column_html_attrs)
     secondary_order_info = Col('Secondary order info',column_html_attrs=column_html_attrs)
     
 

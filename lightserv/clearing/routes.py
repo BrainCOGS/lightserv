@@ -262,7 +262,6 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 						clearing_entry_dict[column_name]=form[column_name].data
 						logger.debug("inserting clearing entry:")
 						logger.debug(clearing_entry_dict)
-						# clearing_contents.delete_quick()
 						clearing_dbTable().insert1(clearing_entry_dict,replace=True)
 						logger.debug(f"Entered into database: {column_name}:{form[column_name].data}")
 						this_index = submit_keys.index(key)
@@ -417,7 +416,8 @@ def edit_antibody_entry():
 		logger.debug("POST request")
 		if form.validate_on_submit():
 			logger.debug("Form validated")
-			form_columns = ['primary_order_info',
+			form_columns = ['primary_antibody','primary_concentration',
+			'secondary_antibody','secondary_concentration','primary_order_info',
 			'secondary_order_info','notes',]
 			""" Make a replacement insert into the db """
 			antibody_history_insert_dict = existing_db_entry.fetch1()
@@ -426,8 +426,10 @@ def edit_antibody_entry():
 					antibody_history_insert_dict[col] = form[col].data
 			logger.debug("inserting:")
 			logger.debug(antibody_history_insert_dict)
+			# Delete existing entry
+			existing_db_entry.delete()
 			db_lightsheet.AntibodyHistory().insert1(antibody_history_insert_dict,
-				replace=True)
+				skip_duplicates=True)
 			flash("Antibody entry successfully updated","success")
 			return redirect(url_for('clearing.antibody_history'))
 	if request.method == 'GET':

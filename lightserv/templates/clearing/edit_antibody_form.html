@@ -11,6 +11,62 @@
 			{{ form.hidden_tag() }}
 			
 			<div class="form-group">
+				{{ form.primary_antibody.label(id='larger')}}
+				{% if form.primary_antibody.errors %}
+					{{ form.primary_antibody(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.primary_antibody.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.primary_antibody(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.primary_concentration.label(id='larger')}}
+				{% if form.primary_concentration.errors %}
+					{{ form.primary_concentration(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.primary_concentration.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.primary_concentration(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.secondary_antibody.label(id='larger')}}
+				{% if form.secondary_antibody.errors %}
+					{{ form.secondary_antibody(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.secondary_antibody.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.secondary_antibody(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
+				{{ form.secondary_concentration.label(id='larger')}}
+				{% if form.secondary_concentration.errors %}
+					{{ form.secondary_concentration(class="form-control form-control-lg is-invalid") }}
+					<div class="invalid-feedback">
+						{% for error in form.secondary_concentration.errors %}
+							<span>{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					{{ form.secondary_concentration(class="form-control form-control-lg") }}
+				{% endif %}
+			</div>
+
+			<div class="form-group">
 				{{ form.primary_order_info.label(id='larger')}}
 				{% if form.primary_order_info.errors %}
 					{{ form.primary_order_info(class="form-control form-control-lg is-invalid") }}
