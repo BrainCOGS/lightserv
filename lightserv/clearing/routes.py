@@ -440,6 +440,9 @@ def edit_antibody_entry():
 		form.secondary_antibody.data = secondary_antibody
 		form.primary_concentration.data = primary_concentration
 		form.secondary_concentration.data = secondary_concentration
+		form.primary_order_info.data = primary_order_info
+		form.secondary_order_info.data = secondary_order_info
+		form.notes.data = notes
 	return render_template('clearing/edit_antibody_form.html',
 		form=form,existing_entry_table=existing_entry_table)
 
