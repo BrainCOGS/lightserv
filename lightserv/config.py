@@ -8,6 +8,7 @@ from datetime import timedelta
 
 # Base class which I will inherit for use with DEV and TEST configs
 class BaseConfig(object):
+	MASTER_ADMINS = ['ahoag']
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	CLEARING_ADMINS = ['ahoag','ll3','aichen']
 	IMAGING_ADMINS = ['ahoag','ll3','aichen']
