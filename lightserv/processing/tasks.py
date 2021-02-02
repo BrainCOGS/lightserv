@@ -1216,7 +1216,7 @@ def processing_job_status_checker():
 				processing_progresses = processing_requests.fetch('processing_progress')
 				logger.debug("processing progresses for this request:")
 				logger.debug(processing_progresses)
-				if all([x=='COMPLETED' for x in processing_progresses]):
+				if all([x=='complete' for x in processing_progresses]):
 					logger.debug("All processing requests complete in this request. Sending email to user.")
 					processed_products_directory = os.path.join(data_bucket_rootpath,username,
 							 request_name,'$sample_name',
@@ -1232,6 +1232,7 @@ def processing_job_status_checker():
 					recipients = [correspondence_email]
 					if not os.environ['FLASK_MODE'] == 'TEST':
 						send_email.delay(subject=subject,body=body,recipients=recipients)
+					dj.Table._update(request_contents,'sent_processing_email',True)
 			else:
 				logger.debug("Not all processing resolution requests in this "
 							 "processing request are completely converted to "
@@ -1246,151 +1247,6 @@ def processing_job_status_checker():
 
 	client.close()
 
-
-		
-	""" Now for each outstanding processing request, go through list of 
-		jobids that are linked to that request and update the processing_progress
-		accordingly """
-	# processing_request_contents = db_lightsheet.Request.ProcessingRequest()
-	# running_processing_requests_modified_contents = (processing_request_contents & \
-	#     'processing_progress="running"').aggr(processing_resolution_contents,
-	#                number_of_jobs="count(*)",
-	#                number_of_pending_jobs='SUM(spock_job_progress="PENDING")',
-	#                number_of_completed_jobs='SUM(spock_job_progress="COMPLETED")',
-	#                number_of_problematic_jobs=f'SUM(spock_job_progress in {problematic_codes})',
-	#                spock_jobid ='spock_jobid') 
-	# """ For processing requests where all jobids have status=COMPLETE,
-	# then the processing_progress='complete' for the whole processing request """
-	# completed_processing_requests_modified_contents = (running_processing_requests_modified_contents & \
-	#     'number_of_completed_jobs = number_of_jobs')
-
-	# completed_processing_primary_keys_dict_list = completed_processing_requests_modified_contents.fetch(
-	#     'username',
-	#     'request_name',
-	#     'sample_name',
-	#     'imaging_request_number',
-	#     'processing_request_number',
-	#     as_dict=True)
-
-	# for d in completed_processing_primary_keys_dict_list:
-	#     logger.debug("Updating processing request table")
-	#     username = d.get('username')
-	#     request_name = d.get('request_name')
-	#     sample_name = d.get('sample_name')
-	#     imaging_request_number = d.get('imaging_request_number')
-	#     processing_request_number = d.get('processing_request_number')
-	#     dj.Table._update(processing_request_contents & \
-	#         f'username="{username}"' & f'request_name="{request_name}"' & \
-	#         f'sample_name="{sample_name}"' & f'imaging_request_number={imaging_request_number}' & \
-	#         f'processing_request_number={processing_request_number}',
-	#         'processing_progress','complete')
-		
-	#     """ Send email to user saying their entire processing request is complete """
-	#     sample_basepath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-	#         request_name,sample_name,f'imaging_request_{imaging_request_number}')
-
-	#     output_directory = os.path.join(sample_basepath,'output',
-	#             f'processing_request_{processing_request_number}')
-	#     msg = EmailMessage()
-	#     msg['Subject'] = 'Lightserv automated email: image processing complete'
-	#     msg['From'] = 'lightservhelper@gmail.com'
-	#     msg['To'] = 'ahoag@princeton.edu' # to me while in DEV phase
-
-					
-	#     message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
-	#         'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
-	#         'The processing for your request:\n\n'
-	#         f'request_name: "{request_name}"\n'
-	#         f'sample_name: "{sample_name}"\n'
-	#         f'imaging_request_number: {imaging_request_number}\n'
-	#         f'processing_request_number: {processing_request_number}\n\n'
-	#         'was completed successfully.'
-	#         'You can find your processed data here:'
-	#         f'\n{output_directory}'
-	#         '\n\nThanks,\nThe Histology and Brain Registration Core Facility.')
-	#     msg.set_content(message_body)
-	#     smtp_server = smtp_connect()
-	#     smtp_server.send_message(msg)
-	#     logger.debug("Sent email that processing was completed")
-	
-	# """ For processing requests where even just one jobid has a problematic status,
-	# then update the processing_progress='failed' for the whole processing request.
-	# Can provide more details in an email """
-	# problematic_processing_requests_modified_contents = (running_processing_requests_modified_contents & \
-	#     'number_of_problematic_jobs > 0')
-	# problematic_processing_primary_keys_dict_list = problematic_processing_requests_modified_contents.fetch(
-	#     'username',
-	#     'request_name',
-	#     'sample_name',
-	#     'imaging_request_number',
-	#     'processing_request_number',
-	#     as_dict=True)
-
-	# for d in problematic_processing_primary_keys_dict_list:
-	#     logger.debug("Updating processing request table")
-	#     username = d.get('username')
-	#     request_name = d.get('request_name')
-	#     sample_name = d.get('sample_name')
-	#     imaging_request_number = d.get('imaging_request_number')
-	#     processing_request_number = d.get('processing_request_number')
-	#     dj.Table._update(processing_request_contents & \
-	#         f'username="{username}"' & f'request_name="{request_name}"' & \
-	#         f'sample_name="{sample_name}"' & f'imaging_request_number={imaging_request_number}' & \
-	#         f'processing_request_number={processing_request_number}',
-	#         'processing_progress','failed')
-	#     sample_basepath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-	#         request_name,sample_name,f'imaging_request_{imaging_request_number}')
-
-	#     output_directory = os.path.join(sample_basepath,'output',
-	#             f'processing_request_{processing_request_number}')
-		
-	#     msg_user = Message('Lightserv automated email: FAILED processing request',
-	#                     sender='lightservhelper@gmail.com',
-	#                     recipients=['ahoag@princeton.edu']) # send it to me while in DEV phase
-					
-	#     msg_user.body = ('Hello!\n\nThis is an automated email sent from lightserv, '
-	#         'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
-	#         'The processing for your request:\n\n'
-	#         f'request_name: "{request_name}"\n'
-	#         f'sample_name: "{sample_name}"\n'
-	#         f'imaging_request_number: {imaging_request_number}\n'
-	#         f'processing_request_number: {processing_request_number}\n\n'
-	#         'has failed. '
-	#         '\n\nThank you for your patience while we look into why this happened. We will get back to you shortly. '
-	#         '\n\nIf you have any questions or comments about this please reply to this message.'
-	#         '\n\nThanks,\nThe Histology and Brain Registration Core Facility.')
-	#     mail.send(msg_user)
-
-	#     """ Now send a message to the admins to alert them that a processing request has failed """
-	#     resolution_contents_this_request = db_lightsheet.Request.ProcessingResolutionRequest() & \
-	#         f'username="{username}"' & \
-	#         f'request_name="{request_name}"' & f'sample_name="{sample_name}"' & \
-	#         f'imaging_request_number={imaging_request_number}' & \
-	#         f'processing_request_number={processing_request_number}'
-	#     job_dict_list = resolution_contents_this_request.fetch(
-	#         'image_resolution','spock_jobid','spock_job_progress',as_dict=True)
-	#     job_str_lines = '\n'.join(['{0} {1} {2}'.format(
-	#         job_dict['image_resolution'],job_dict['spock_jobid'],
-	#         job_dict['spock_job_progress']) for job_dict in job_dict_list])
-	#     msg_admin = Message('Lightserv automated email: FAILED processing request',
-	#                     sender='lightservhelper@gmail.com',
-	#                     recipients=['lightservhelper@gmail.com']) # send it to 
-					
-	#     msg_admin.body = ('Hello!\n\nThis is an automated email sent from lightserv, '
-	#         'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
-	#         'The processing for request:\n\n'
-	#         f'request_name: "{request_name}"\n'
-	#         f'sample_name: "{sample_name}"\n'
-	#         f'imaging_request_number: {imaging_request_number}\n'
-	#         f'processing_request_number: {processing_request_number}\n\n'
-	#         'has failed.\n\n'
-	#         'In particular, the statuses of all jobs in this processing request are:\n'
-	#         '#image_resolution  jobid     status\n'
-	#         '{}\n'.format(job_str_lines))
-
-	#     mail.send(msg_admin)
-
-	# for each running process, find all jobids in the processing resolution request tables
 	return "Checked processing job statuses"
 
 @cel.task()

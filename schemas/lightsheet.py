@@ -57,6 +57,7 @@ class Request(dj.Manual):
     testing = 0                     :   boolean
     is_archival = 0                 :   boolean
     raw_data_retention_preference = NULL  :   enum("important","kind of important","not important","not sure")
+    sent_processing_email = 0       :   boolean
     """  
     class Sample(dj.Part):
         definition = """ # Samples from a request

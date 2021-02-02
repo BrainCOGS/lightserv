@@ -349,11 +349,24 @@ def test_lightsheet_pipeline_starts(test_client,
 	all_channel_contents = db_lightsheet.Request.ImagingChannel() & f'username="{username}"' \
 		& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
 		f'imaging_request_number="{imaging_request_number}"'
-	print(all_channel_contents)
+	# print(all_channel_contents)
 	tasks.run_lightsheet_pipeline.run(**kwargs)
+	""" make sure entries were made in ProcessingPipelineSpockJob()
+	and ProcessingChannel() """
 	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
 	print(table_contents)
 	assert len(table_contents) > 0
+	status_step0 = table_contents.fetch1('status_step0')
+	assert status_step0 == 'SUBMITTED'
+	processing_channel_contents = db_lightsheet.Request.ProcessingChannel()
+	assert len(processing_channel_contents) == 2
+	""" Make sure ProcessingResolutionRequest() entry was updated
+	to have jobid and progress """
+	processing_resolution_contents = db_lightsheet.Request.ProcessingResolutionRequest()
+	spock_job_progress = processing_resolution_contents.fetch1('lightsheet_pipeline_spock_job_progress')
+	assert spock_job_progress == 'SUBMITTED'
+	spock_jobid = int(processing_resolution_contents.fetch1('lightsheet_pipeline_spock_jobid'))
+	assert spock_jobid > 0
 
 def test_lightsheet_pipeline_starts_dorsal_up_ventral_up(test_client,
 	processing_form_submitted_dorsal_up_ventral_up,
@@ -605,14 +618,22 @@ def test_registered_precomputed_pipeline_starts(test_client,
 	print(table_contents)
 	assert len(table_contents) > 0
 
-def test_lightsheet_pipeline_job_status_checker_works(test_client,
-	lightsheet_pipeline_complete):
-	""" Test the job status checker runs and updates the status of the 
-	job in the db from SUBMITTED to PENDING or RUNNING.
-	Runs a celery task synchronously """
+def test_job_status_checker_sends_email(test_client,
+	test_imaged_request_viz_nonadmin,
+	test_delete_spockadmin_db_contents):
+	"""
+	Test that the processing job status checker works 
+	and that it sends an email when all processing requests 
+	in a given request are complete """
+
+	""" 
+	Makes an entry into the spockadmin db for a previous run
+	where I know the result was complete """
+	print('----------Setup lightsheet_pipeline_complete fixture----------')
+
 	from lightserv.processing import tasks
-	import time
 	import datajoint as dj
+
 	username='lightserv-test'
 	request_name='viz_processed'
 	sample_name='viz_processed-001'
@@ -621,127 +642,42 @@ def test_lightsheet_pipeline_job_status_checker_works(test_client,
 	kwargs = dict(username=username,request_name=request_name,
 		sample_name=sample_name,imaging_request_number=imaging_request_number,
 		processing_request_number=processing_request_number)
-	""" Make sure there is an entry in the spockadmin db table that the job was SUBMITTED """
-
-	# all_channel_contents = db_lightsheet.Request.ImagingChannel() & f'username="{username}"' \
-	# 	& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
-	# 	f'imaging_request_number="{imaging_request_number}"'
-	# print(all_channel_contents)
+	all_channel_contents = db_lightsheet.Request.ImagingChannel() & f'username="{username}"' \
+		& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
+		f'imaging_request_number="{imaging_request_number}"'
 	# tasks.run_lightsheet_pipeline.run(**kwargs)
-	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
-	assert len(table_contents) == 1
-	status_step0 = table_contents.fetch1('status_step0')
-	""" Now run job status checker and make sure a new entry is made with the updated job status """
-	# Sleep to let job be registered with sbatch
-	time.sleep(5)
+	job_insert_dict = {
+	'jobid_step0':20915092,
+	'jobid_step1':20915093,
+	'jobid_step2':20915094,
+	'jobid_step3':20915095,
+	'status_step0':'SUBMITTED',
+	'status_step1':'SUBMITTED',
+	'status_step2':'SUBMITTED',
+	'status_step3': 'SUBMITTED',
+	'stitching_method':'blending',
+	'username':'lightserv-test'
+	}
+	db_spockadmin.ProcessingPipelineSpockJob().insert1(job_insert_dict) 
+	""" Update ProcessingResolutionRequest() to point to this jobid """
+	processing_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & {
+		'username':username,
+		'request_name':request_name
+	}
+	assert len(processing_resolution_content) == 1
+	dj.Table._update(processing_resolution_content,'lightsheet_pipeline_spock_job_progress','SUBMITTED')   
+	dj.Table._update(processing_resolution_content,'lightsheet_pipeline_spock_jobid',20915095)   
+
+	""" Now do job status checker and make sure it gets updated to COMPLETED """
 	tasks.processing_job_status_checker.run()
-	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
-	print(table_contents)
-	assert len(table_contents) == 2
-	
+	spock_table_contents = db_spockadmin.ProcessingPipelineSpockJob() & \
+		{'username':'lightserv-test'}
 	most_recent_contents = dj.U('jobid_step0','username',).aggr(
-		table_contents,timestamp='max(timestamp)')*table_contents
-	assert len(most_recent_contents) == 1
-	status_step0 = most_recent_contents.fetch1('status_step0')
-	assert status_step0 in ['PENDING','RUNNING','COMPLETED']
-
-def test_lightsheet_pipeline_job_status_checker_works(test_client,
-	lightsheet_pipeline_started):
-	""" Test the job status checker runs and updates the status of a 
-	job in the db corresponding to a test run of the lightsheet pipeline
-	from SUBMITTED to PENDING, RUNNING or COMPLETED.
-	Runs a celery task synchronously """
-	from lightserv.processing import tasks
-	import time
-	import datajoint as dj
-	username='lightserv-test'
-	request_name='viz_processed'
-	sample_name='viz_processed-001'
-	imaging_request_number=1
-	processing_request_number=1
-	kwargs = dict(username=username,request_name=request_name,
-		sample_name=sample_name,imaging_request_number=imaging_request_number,
-		processing_request_number=processing_request_number)
-	""" Make sure there is an entry in the spockadmin db table that the job was SUBMITTED """
-
-	# all_channel_contents = db_lightsheet.Request.ImagingChannel() & f'username="{username}"' \
-	# 	& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
-	# 	f'imaging_request_number="{imaging_request_number}"'
-	# print(all_channel_contents)
-	# tasks.run_lightsheet_pipeline.run(**kwargs)
-	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
-	assert len(table_contents) == 1
-	status_step0 = table_contents.fetch1('status_step0')
-	""" Now run job status checker and make sure a new entry is made with the updated job status """
-	# Sleep to let job be registered with sbatch
-	time.sleep(5)
-	tasks.processing_job_status_checker.run()
-	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
-	print(table_contents)
-	assert len(table_contents) == 2
-	
-	most_recent_contents = dj.U('jobid_step0','username',).aggr(
-		table_contents,timestamp='max(timestamp)')*table_contents
-	assert len(most_recent_contents) == 1
-	status_step0 = most_recent_contents.fetch1('status_step0')
-	assert status_step0 in ['PENDING','RUNNING','COMPLETED']
-
-# def test_job_status_checker_sends_email(test_client,
-# 	test_imaged_request_viz_nonadmin,
-# 	test_delete_spockadmin_db_contents):
-# 	"""
-# 	Makes an entry into the spockadmin db for a previous run
-# 	where I know the result was complete """
-# 	print('----------Setup lightsheet_pipeline_complete fixture----------')
-
-# 	from lightserv.processing import tasks
-# 	username='lightserv-test'
-# 	request_name='viz_processed'
-# 	sample_name='viz_processed-001'
-# 	imaging_request_number=1
-# 	processing_request_number=1
-# 	kwargs = dict(username=username,request_name=request_name,
-# 		sample_name=sample_name,imaging_request_number=imaging_request_number,
-# 		processing_request_number=processing_request_number)
-# 	all_channel_contents = db_lightsheet.Request.ImagingChannel() & f'username="{username}"' \
-# 		& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
-# 		f'imaging_request_number="{imaging_request_number}"'
-# 	# tasks.run_lightsheet_pipeline.run(**kwargs)
-# 	job_insert_dict = {
-# 	'jobid_step0':20915092,
-# 	'jobid_step1':20915093,
-# 	'jobid_step2':20915094,
-# 	'jobid_step3':20915095,
-# 	'status_step0':'SUBMITTED',
-# 	'status_step1':'SUBMITTED',
-# 	'status_step2':'SUBMITTED',
-# 	'status_step3': 'SUBMITTED',
-# 	'stitching_method':'blending',
-# 	'username':'lightserv-test'
-# 	}
-# 	db_spockadmin.ProcessingPipelineSpockJob().insert1(job_insert_dict) 
-# 	""" Make an insert into ProcessingResolutionRequest() for this jobid """
-# 	processing_resolution_contents = db_lightsheet.Request.ProcessingResolutionRequest()
-# 	print("processing_resolution_contents:")
-# 	print(processing_resolution_contents)
-# 	# image_resolution = "1.3x"
-
-# 	# processing_resolution_insert_dict = {
-# 	# 	'username':username,
-# 	# 	'request_name':request_name,
-# 	# 	'sample_name':sample_name,
-# 	# 	'imaging_request_number':imaging_request_number,
-# 	# 	'processing_request_number':processing_request_number,
-# 	# 	'image_resolution':image_resolution,
-# 	# 	'ventral_up':0,
-# 	# 	'atlas_name':'allen_2017,
-#  #        ----        
-#  #        atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas","paxinos")
-#  #        final_orientation                         :   enum("sagittal","coronal","horizontal")
-#  #        notes_for_processor = ""                  :   varchar(1024)
-#  #        notes_from_processing = ""                :   varchar(1024) 
-#  #        lightsheet_pipeline_spock_jobid = NULL            :   varchar(16)  # the jobid from the final step in the light sheet processing pipeline for LaVision
-#  #        lightsheet_pipeline_spock_job_progress = NULL     :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT") # the spock job status code for the final step in the light sheet processing pipeline
-#  #        brainpipe_commit = NULL   
-# 	# } 
-# 	# 
+		spock_table_contents,timestamp='max(timestamp)')*spock_table_contents
+	status_step3 = most_recent_contents.fetch1('status_step3')
+	assert status_step3 == 'COMPLETED'
+	""" Make sure processing email was sent """
+	request_contents = db_lightsheet.Request() & \
+		{'username':username,'request_name':request_name}
+	sent_email = request_contents.fetch1('sent_processing_email')
+	assert sent_email == 1
