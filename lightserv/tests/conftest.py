@@ -2479,6 +2479,33 @@ def processing_form_submitted_dorsal_up_ventral_up(test_client,
 
 	print('----------Teardown processing_form_submitted_dorsal_up_ventral_up fixture ----------')
 
+@pytest.fixture(scope='function')
+def lightsheet_pipeline_complete(test_client,
+	test_imaged_request_viz_nonadmin,
+	test_delete_spockadmin_db_contents):
+	""" A fixture that runs the light sheet pipeline synchronously.
+	Submits a test job to spock
+	and makes an entry into the spockadmin db to testing 
+	of job status checkers. """
+	print('----------Setup lightsheet_pipeline_complete fixture----------')
+
+	from lightserv.processing import tasks
+	username='lightserv-test'
+	request_name='viz_processed'
+	sample_name='viz_processed-001'
+	imaging_request_number=1
+	processing_request_number=1
+	kwargs = dict(username=username,request_name=request_name,
+		sample_name=sample_name,imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number)
+	all_channel_contents = db_lightsheet.Request.ImagingChannel() & f'username="{username}"' \
+		& f'request_name="{request_name}"'  & f'sample_name="{sample_name}"' & \
+		f'imaging_request_number="{imaging_request_number}"'
+	tasks.run_lightsheet_pipeline.run(**kwargs)
+	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
+	yield test_client
+
+	print('----------Teardown lightsheet_pipeline_complete fixture ----------')
 
 """ Fixtures for neuroglancer """
 

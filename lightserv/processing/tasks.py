@@ -1058,7 +1058,7 @@ def processing_job_status_checker():
 	if jobids == []:
 		return "No jobs to check"
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
-	logger.debug(f"Outstanding job ids are: {jobids}")
+	logger.debug(f"Outstanding job ids are: {jobids_str}")
 	port = 22
 	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
 	hostname = 'spock.pni.princeton.edu'
@@ -1073,26 +1073,28 @@ def processing_job_status_checker():
 		client.close()
 		return "Error connecting to spock"
 	logger.debug("connected to spock")
-	try:
-		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
-		stdin, stdout, stderr = client.exec_command(command)
+	# try:
+	command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
+	logger.debug("Running command on spock:")
+	logger.debug(command)
+	stdin, stdout, stderr = client.exec_command(command)
 
-		stdout_str = stdout.read().decode("utf-8")
-		logger.debug("The response from spock is:")
-		logger.debug(stdout_str)
-		response_lines = stdout_str.strip('\n').split('\n')
-		jobids_received = [x.split('|')[0].split('_')[0] for x in response_lines] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
-		status_codes_received = [x.split('|')[1] for x in response_lines]
-		logger.debug("Job ids received")
-		logger.debug(jobids_received)
-		logger.debug("Status codes received")
-		logger.debug(status_codes_received)
-		job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
-		job_insert_list = []
-	except:
-		logger.debug("Something went wrong fetching job statuses from spock.")
-		client.close()
-		return "Error fetching job statuses from spock"
+	stdout_str = stdout.read().decode("utf-8")
+	logger.debug("The response from spock is:")
+	logger.debug(stdout_str)
+	response_lines = stdout_str.strip('\n').split('\n')
+	jobids_received = [x.split('|')[0].split('_')[0] for x in response_lines] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
+	status_codes_received = [x.split('|')[1] for x in response_lines]
+	logger.debug("Job ids received")
+	logger.debug(jobids_received)
+	logger.debug("Status codes received")
+	logger.debug(status_codes_received)
+	job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
+	job_insert_list = []
+	# except:
+	# 	logger.debug("Something went wrong fetching job statuses from spock.")
+	# 	client.close()
+	# 	return "Error fetching job statuses from spock"
 
 	""" Loop through outstanding jobs and determine their statuses """
 	for jobid,indices_list in job_status_indices_dict.items():
@@ -1192,9 +1194,6 @@ def processing_job_status_checker():
 
 			logger.debug("job statuses for this processing request:")
 			logger.debug(processing_request_job_statuses)
-			# print(username,)
-			# logger.debug(processing_request_job_statuses)
-			# logger.debug(username,request_name,sample_name,imaging_request_number,processing_request_number)
 			data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
 
 			output_directory = os.path.join(data_bucket_rootpath,username,
@@ -1206,20 +1205,33 @@ def processing_job_status_checker():
 			if all(x=='COMPLETED' for x in processing_request_job_statuses):
 				logger.debug("The processing pipeline for all processing resolution requests"
 							 " in this processing request are complete!")
-				subject = 'Lightserv automated email: Processing done for your sample'
-				body = ('The processing for your sample:\n\n'
-						f'request_name: {request_name}\n'
-						f'sample_name: {sample_name}\n\n'
-						'is now complete. \n\n'
-						f'The processed products are available here: {output_directory}')
+				
 				restrict_dict_request = {'username':username,'request_name':request_name}
 				request_contents = db_lightsheet.Request() & restrict_dict_request
-				correspondence_email = request_contents.fetch1('correspondence_email')
-				recipients = [correspondence_email]
-				if not os.environ['FLASK_MODE'] == 'TEST':
-					send_email.delay(subject=subject,body=body,recipients=recipients)
+				
 				dj.Table._update(processing_request_contents,'processing_progress','complete')
-
+				""" Now figure out if all other processing requests for this request have been
+				fulfilled. If so, email the user """
+				processing_requests = db_lightsheet.Request.ProcessingRequest() & restrict_dict_request
+				processing_progresses = processing_requests.fetch('processing_progress')
+				logger.debug("processing progresses for this request:")
+				logger.debug(processing_progresses)
+				if all([x=='COMPLETED' for x in processing_progresses]):
+					logger.debug("All processing requests complete in this request. Sending email to user.")
+					processed_products_directory = os.path.join(data_bucket_rootpath,username,
+							 request_name,'$sample_name',
+							 f"imaging_request_{imaging_request_number}",
+							 "output",
+							 f"processing_request_{processing_request_number}")
+					subject = 'Lightserv automated email: Processing done.'
+					body = ('The processing is now complete for all samples in your request:\n\n'
+							f'username: {username}\n'
+							f'request_name: {request_name}\n\n'
+							f'The processed products are available in each sample directory: {processed_products_directory}')
+					correspondence_email = request_contents.fetch1('correspondence_email')
+					recipients = [correspondence_email]
+					if not os.environ['FLASK_MODE'] == 'TEST':
+						send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all processing resolution requests in this "
 							 "processing request are completely converted to "
