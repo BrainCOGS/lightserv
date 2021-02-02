@@ -849,17 +849,44 @@ def imaging_batch_entry(username,request_name,
 									number_of_rawfiles_found = 0
 									if image_resolution in ['3.6x','15x']:
 										number_of_rawfiles_expected = number_of_z_planes*n_rows*n_columns
-										""" For SmartSPIM
-										Add up all the files in the deepest directories """
-										all_subdirs = glob.glob(rawdata_fullpath + '/??????/??????_??????/')
-										logger.debug("Checking folders:")
-										logger.debug(all_subdirs)
-										total_counts = []
-										with concurrent.futures.ProcessPoolExecutor(max_workers=None) as executor:
-											for count in executor.map(utils.count_files, all_subdirs):
-												total_counts.append(count)
-										logger.debug(total_counts)
-										number_of_rawfiles_found = sum(total_counts)
+										""" For SmartSPIM, make sure the number of folders 
+										represents the tiling scheme, should be row/col.
+										Also count files in the deepest directories to get total file count"""
+										row_dirs = glob.glob(rawdata_fullpath + '/??????/')
+										logger.debug(row_dirs)
+										if len(row_dirs) != n_rows:
+											error_str = (f"You entered that there should be {n_rows} tiling row folders in rawdata folder, "
+											  f"but found {len(row_dirs)}")
+											logger.debug(error_str)
+											number_of_rawfiles_found = 0
+											validated=False
+											flash_str = flash_str_prefix + error_str
+											flash(flash_str,'danger')
+										else:
+											logger.debug("have correct number of row tile folders")
+											first_row_dir = row_dirs[0]
+											col_dirs = glob.glob(first_row_dir + '/??????_??????/')
+
+											if len(col_dirs) != n_columns:
+												error_str = (f"You entered that there should be {n_columns} tiling column folders in each tiling row folder, "
+												  f"but found {len(col_dirs)}")
+												logger.debug(error_str)
+												validated=False
+												number_of_rawfiles_found = 0
+												flash_str = flash_str_prefix + error_str
+												flash(flash_str,'danger')
+											else:
+												all_subdirs = glob.glob(rawdata_fullpath + '/??????/??????_??????/')
+												logger.debug("Checking folders:")
+												logger.debug(all_subdirs)
+												total_counts = []
+												with concurrent.futures.ProcessPoolExecutor(max_workers=None) as executor:
+													for count in executor.map(utils.count_files, all_subdirs):
+														total_counts.append(count)
+												logger.debug(total_counts)
+												number_of_rawfiles_found = sum(total_counts)
+										
+										
 									else:
 										""" For LaVision
 										We have to be careful here
@@ -887,8 +914,10 @@ def imaging_batch_entry(username,request_name,
 										# logger.debug(number_of_rawfiles_expected)
 										# logger.debug(number_of_rawfiles_found)
 									if number_of_rawfiles_found != number_of_rawfiles_expected:
-										error_str = (f"There should be {number_of_rawfiles_expected} raw files in rawdata folder, "
+
+										error_str = (f"You entered that there should be {number_of_rawfiles_expected} raw files in rawdata folder, "
 											  f"but found {number_of_rawfiles_found}")
+										logger.debug(error_str)
 										flash_str = flash_str_prefix + error_str
 										channel_form.rawdata_subfolder.errors = [error_str]
 										validated=False

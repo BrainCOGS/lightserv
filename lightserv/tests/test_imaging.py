@@ -102,7 +102,6 @@ def test_imaging_batch_entry_form_GET(test_client,
 	assert b'Sample 2 imaging notes' not in response.data # Only sample 3 is in imaging batch 2
 	assert b'Sample 3 imaging notes' in response.data 
 
-
 def test_imaging_batch_entry_form_single_sample(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
 	test_login_aichen):
@@ -477,7 +476,64 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 			imaging_batch_number=1),
 		data=sample_data,
 		follow_redirects=True)
-	assert b'There should be 49500 raw files in rawdata folder' in sample_response.data
+	assert b'You entered that there should be 49500 raw files in rawdata folder' in sample_response.data
+
+	""" Test that when the wrong number of rows in the tiling scheme is provided a validation error is raised.
+	Correct tiling scheme is 3x5
+	"""
+	sample_data = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-right_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'5x3',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':2.0,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3300,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'Ex_785_Em_3',
+		'sample_forms-0-submit':True
+		}
+	sample_response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_3p6x_smartspim_request',
+			imaging_request_number=1,
+			imaging_batch_number=1),
+		data=sample_data,
+		follow_redirects=True)
+	assert b'You entered that there should be 49500 raw files in rawdata folder' in sample_response.data
+	assert b"You entered that there should be 5 tiling row folders in rawdata folder, but found 3" in sample_response.data
+
+	""" Test that when the correct number of rows but wrong number of columns in the tiling scheme
+	are provided a validation error is raised.
+	Correct tiling scheme is 3x5
+	"""
+	sample_data = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-right_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'3x8',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':2.0,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3300,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'Ex_785_Em_3',
+		'sample_forms-0-submit':True
+		}
+	sample_response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_3p6x_smartspim_request',
+			imaging_request_number=1,
+			imaging_batch_number=1),
+		data=sample_data,
+		follow_redirects=True)
+	assert b'You entered that there should be 79200 raw files in rawdata folder' in sample_response.data
+	assert b"You entered that there should be 8 tiling column folders in each tiling row folder, but found 5" in sample_response.data
 
 def test_apply_batch_parameters(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,

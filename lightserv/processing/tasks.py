@@ -1091,10 +1091,6 @@ def processing_job_status_checker():
 	logger.debug(status_codes_received)
 	job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
 	job_insert_list = []
-	# except:
-	# 	logger.debug("Something went wrong fetching job statuses from spock.")
-	# 	client.close()
-	# 	return "Error fetching job statuses from spock"
 
 	""" Loop through outstanding jobs and determine their statuses """
 	for jobid,indices_list in job_status_indices_dict.items():
