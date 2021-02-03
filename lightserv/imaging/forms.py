@@ -79,8 +79,7 @@ class ImageResolutionForm(FlaskForm):
 
 	change_resolution = BooleanField("Change image resolution?",default=False)
 	new_image_resolution = SelectField('Select the new image resolution you want to use:', 
-		choices=[('1.3x','1.3x'),
-	('4x','4x'),('1.1x','1.1x'),('2x','2x')],validators=[Optional()])
+		choices=[],validators=[Optional()])
 	update_resolution_button = SubmitField('Update')
 	new_channel_dropdown = SelectField("Add additional channel?",choices=[('488','488'),
 	('555','555'),('647','647'),('790','790')],validators=[Optional()])

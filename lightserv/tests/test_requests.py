@@ -1389,6 +1389,8 @@ def test_submit_good_mouse_request_3p6x(test_client,
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-injection_detection':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-channel_name':'642',
 			'submit':True
 			},content_type='multipart/form-data',
 			follow_redirects=True

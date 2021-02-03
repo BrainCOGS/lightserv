@@ -14,10 +14,11 @@ class BaseConfig(object):
 	IMAGING_ADMINS = ['ahoag','ll3','aichen']
 	PROCESSING_ADMINS = ['ahoag','aichen']
 	LAVISION_RESOLUTIONS = ["1.1x","1.3x","2x","4x"]
-	SMARTSPIM_RESOLUTIONS = ["3.6x","15x"]
+	SMARTSPIM_RESOLUTIONS = ["3.6x"]
 	RESOLUTIONS_NO_PROCESSING = ["2x","3.6x","15x"] # resolutions we are not able to process
 	IMAGING_MODES = ['registration','injection_detection','probe_detection','cell_detection','generic_imaging']
-	IMAGING_CHANNELS = ['488','555','647','790']
+	LAVISION_IMAGING_CHANNELS = ['488','555','647','790']
+	SMARTSPIM_IMAGING_CHANNELS = ['488','561','642','785']
 	ADMINS_TO_EMAIL = ['ahoag'] # for problems with requests/spock jobs
 	WTF_CSRF_TIME_LIMIT = None # never expire
 	# WTF_CSRF_TIME_LIMIT = 5 # seconds 

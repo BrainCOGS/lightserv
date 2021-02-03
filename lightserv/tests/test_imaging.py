@@ -535,6 +535,116 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 	assert b'You entered that there should be 79200 raw files in rawdata folder' in sample_response.data
 	assert b"You entered that there should be 8 tiling column folders in each tiling row folder, but found 5" in sample_response.data
 
+def test_changing_microscope_changes_channels(test_client,
+	test_cleared_multisample_multichannel_request_nonadmin,
+	test_login_aichen):
+	""" Test that when the image resolution is changed
+	to a new microscope, the available channels change
+	because the two microscopes use different imaging channels.
+	Tests both batch and single sample sections. 
+
+	The test_cleared_multisample_multichannel_request_nonadmin
+	comes with:
+	Sample 1: 488 and 555 channels, 1.3x resolution
+	Sample 2: 488 and 555 channels, 1.3x resolution
+	Sample 3: 488 and 647 channels, 1.3x resolution
+	"""
+
+	""" Test changing resolution to new microscope at the batch level
+	results in updated channel names 
+	"""
+	data = {
+		'image_resolution_batch_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-1-channel_name':'555',
+		'image_resolution_batch_forms-0-channel_forms-1-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-new_image_resolution':'3.6x',
+		'image_resolution_batch_forms-0-update_resolution_button':True,
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
+		}
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_request_number=1,
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging Entry Form' in response.data
+	""" Check that the sample channel entries in the db were updated """
+	restrict_dict_ch488 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			channel_name='488')
+	restrict_dict_ch561 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			channel_name='561')
+	imaging_channel_contents_ch488 = db_lightsheet.Request.ImagingChannel() & restrict_dict_ch488
+	assert imaging_channel_contents_ch488.fetch1('image_resolution') == '3.6x'
+	imaging_channel_contents_ch561 = db_lightsheet.Request.ImagingChannel() & restrict_dict_ch561
+	assert imaging_channel_contents_ch561.fetch1('image_resolution') == '3.6x'
+
+	""" Now check that the channel names in the form are correct """
+	parsed_html = BeautifulSoup(response.data,features="html.parser")
+	batch_table_tag = parsed_html.find('table',
+		attrs={'id':'batch_resolution_3.6x_table'})
+	batch_table_rows = batch_table_tag.find_all('tr')
+	ch561_row = batch_table_rows[2].find_all('td')
+	ch561_channel_name = ch561_row[0].text[0:3]
+	assert ch561_channel_name == '561'
+
+	""" Now change image resolution of a single sample back to lavision """
+	data = {
+		'image_resolution_batch_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'561',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-new_image_resolution':'1.1x',
+		'sample_forms-0-image_resolution_forms-0-update_resolution_button':True,
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'561',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_resolution':'3.6x',
+		}
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			imaging_request_number=1,
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+	restrict_dict_ch488 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			channel_name='488')
+	restrict_dict_ch555 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			channel_name='555')
+	imaging_channel_contents_ch488 = db_lightsheet.Request.ImagingChannel() & restrict_dict_ch488
+	assert imaging_channel_contents_ch488.fetch1('image_resolution') == '1.1x'
+	imaging_channel_contents_ch555 = db_lightsheet.Request.ImagingChannel() & restrict_dict_ch555
+	assert imaging_channel_contents_ch555.fetch1('image_resolution') == '1.1x'
+
 def test_apply_batch_parameters(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
 	test_login_aichen):

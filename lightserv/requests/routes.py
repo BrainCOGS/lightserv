@@ -452,9 +452,13 @@ def new_request():
                             column_name = f'imaging_samples-{ii}-image_resolution_forms-{resolution_table_index}-channel_forms-0-generic_imaging'
                             
                         # Now make 4 new channel formfields and set defaults and channel names
+                        if image_resolution_forsetup in current_app.config['LAVISION_RESOLUTIONS']:
+                            all_imaging_channels = current_app.config['LAVISION_IMAGING_CHANNELS']
+                        else:
+                            all_imaging_channels = current_app.config['SMARTSPIM_IMAGING_CHANNELS']
                         for x in range(4):
                             # image_resolution_form.channels.append_entry()
-                            channel_name = current_app.config['IMAGING_CHANNELS'][x]
+                            channel_name = all_imaging_channels[x]
                             image_resolution_form.channel_forms[x].channel_name.data = channel_name
                             
                             if form.species.data == 'mouse' and channel_name == '488' and image_resolution_forsetup == "1.3x":

@@ -417,7 +417,25 @@ def imaging_batch_entry(username,request_name,
 						logger.debug("New image resolution is:")
 						logger.debug(new_image_resolution)
 						""" Update image resolution in all locations in the database """
-						
+						lavision_resolutions = current_app.config['LAVISION_RESOLUTIONS']
+						smartspim_resolutions = current_app.config['SMARTSPIM_RESOLUTIONS']
+						if this_image_resolution in lavision_resolutions:
+							this_microscope = 'lavision'
+						else:
+							this_microscope = 'smartspim'
+						if new_image_resolution in lavision_resolutions:
+							new_microscope = 'lavision'
+						else:
+							new_microscope = 'smartspim'
+
+						if new_microscope == this_microscope:
+							same_microscope = True
+						else:
+							same_microscope = False
+						logger.debug("New image resolution is:")
+						logger.debug(new_image_resolution)
+						logger.debug("Using same microscope as before?")
+						logger.debug(same_microscope)
 						sample_names_this_batch = [x['sample_name'] for x in sample_dict_list]
 						connection = db_lightsheet.Request.ImagingResolutionRequest.connection
 						with connection.transaction:
@@ -467,7 +485,7 @@ def imaging_batch_entry(username,request_name,
 									processing_resolution_request_insert_dict = {}
 									processing_resolution_request_insert_dict['request_name'] = request_name
 									processing_resolution_request_insert_dict['username'] = username 
-									processing_resolution_request_insert_dict['sample_name'] = sample_name
+									processing_resolution_request_insert_dict['sample_name'] = this_sample_name
 									processing_resolution_request_insert_dict['imaging_request_number'] = imaging_request_number
 									processing_resolution_request_insert_dict['processing_request_number'] = 1
 									processing_resolution_request_insert_dict['image_resolution'] = new_image_resolution
@@ -488,6 +506,17 @@ def imaging_batch_entry(username,request_name,
 								
 								""" Now ImagingChannel() """
 								[d.update({'image_resolution':new_image_resolution}) for d in imaging_channel_insert_dict_list]
+								if not same_microscope:
+									if new_microscope == 'smartspim':
+										for d in imaging_channel_insert_dict_list:
+											channel_name = d['channel_name']
+											new_channel_name = utils.translate_lavision_to_smartspim_channel(channel_name)
+											d.update({'channel_name':new_channel_name})
+									elif new_microscope == 'lavision':
+										for d in imaging_channel_insert_dict_list:
+											channel_name = d['channel_name']
+											new_channel_name = utils.translate_smartspim_to_lavision_channel(channel_name)
+											d.update({'channel_name':new_channel_name})
 								logger.debug("inserting ImagingChannel() entries:")
 								logger.debug(imaging_channel_insert_dict_list)
 								db_lightsheet.Request.ImagingChannel().insert(imaging_channel_insert_dict_list)
@@ -556,6 +585,17 @@ def imaging_batch_entry(username,request_name,
 											processing_resolution_request_insert_dict)
 										""" Finally ProcessingChannel() """
 										[d.update({'image_resolution':new_image_resolution}) for d in processing_channel_dicts_to_insert]
+										if not same_microscope:
+											if new_microscope == 'smartspim':
+												for d in processing_channel_dicts_to_insert:
+													channel_name = d['channel_name']
+													new_channel_name = utils.translate_lavision_to_smartspim_channel(channel_name)
+													d.update({'channel_name':new_channel_name})
+											elif new_microscope == 'lavision':
+												for d in processing_channel_dicts_to_insert:
+													channel_name = d['channel_name']
+													new_channel_name = utils.translate_smartspim_to_lavision_channel(channel_name)
+													d.update({'channel_name':new_channel_name})
 										logger.debug("Inserting ProcessingChannel() contents:")
 										logger.debug(processing_channel_dicts_to_insert)
 										db_lightsheet.Request.ProcessingChannel().insert(processing_channel_dicts_to_insert)
@@ -1179,15 +1219,32 @@ def imaging_batch_entry(username,request_name,
 									imaging_batch_number=imaging_batch_number))
 							
 							elif update_resolution_button_pressed:
-								""" ###################################### """
+								""" ############################################# """
 								""" SAMPLE CHANGE IMAGE RESOLUTION BUTTON PRESSED """
-								""" ###################################### """
+								""" ############################################# """
 								logger.debug("Update image resolution button pressed!")
 								new_image_resolution = form_resolution_dict['new_image_resolution']
+								""" Figure out if microscope was switched """
+								lavision_resolutions = current_app.config['LAVISION_RESOLUTIONS']
+								smartspim_resolutions = current_app.config['SMARTSPIM_RESOLUTIONS']
+								if this_image_resolution in lavision_resolutions:
+									this_microscope = 'lavision'
+								else:
+									this_microscope = 'smartspim'
+								if new_image_resolution in lavision_resolutions:
+									new_microscope = 'lavision'
+								else:
+									new_microscope = 'smartspim'
+
+								if new_microscope == this_microscope:
+									same_microscope = True
+								else:
+									same_microscope = False
 								logger.debug("New image resolution is:")
 								logger.debug(new_image_resolution)
+								logger.debug("Using same microscope as before?")
+								logger.debug(same_microscope)
 								""" Update image resolution in all locations in the database """
-								
 								connection = db_lightsheet.Request.ImagingResolutionRequest.connection
 								with connection.transaction:
 									image_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
@@ -1235,7 +1292,7 @@ def imaging_batch_entry(username,request_name,
 										processing_resolution_request_insert_dict = {}
 										processing_resolution_request_insert_dict['request_name'] = request_name
 										processing_resolution_request_insert_dict['username'] = username 
-										processing_resolution_request_insert_dict['sample_name'] = sample_name
+										processing_resolution_request_insert_dict['sample_name'] = this_sample_name
 										processing_resolution_request_insert_dict['imaging_request_number'] = imaging_request_number
 										processing_resolution_request_insert_dict['processing_request_number'] = 1
 										processing_resolution_request_insert_dict['image_resolution'] = new_image_resolution
@@ -1256,6 +1313,19 @@ def imaging_batch_entry(username,request_name,
 									
 									""" Now ImagingChannel() """
 									[d.update({'image_resolution':new_image_resolution}) for d in imaging_channel_insert_dict_list]
+									""" channel names need to be updated if microscope was switched """
+									if not same_microscope:
+										if new_microscope == 'smartspim':
+											for d in imaging_channel_insert_dict_list:
+												channel_name = d['channel_name']
+												new_channel_name = utils.translate_lavision_to_smartspim_channel(channel_name)
+												d.update({'channel_name':new_channel_name})
+										elif new_microscope == 'lavision':
+											for d in imaging_channel_insert_dict_list:
+												channel_name = d['channel_name']
+												new_channel_name = utils.translate_smartspim_to_lavision_channel(channel_name)
+												d.update({'channel_name':new_channel_name})
+
 									logger.debug("inserting ImagingChannel() entries:")
 									logger.debug(imaging_channel_insert_dict_list)
 									db_lightsheet.Request.ImagingChannel().insert(imaging_channel_insert_dict_list)
@@ -1324,6 +1394,18 @@ def imaging_batch_entry(username,request_name,
 												processing_resolution_request_insert_dict)
 											""" Finally ProcessingChannel() """
 											[d.update({'image_resolution':new_image_resolution}) for d in processing_channel_dicts_to_insert]
+											""" channel names need to be updated if microscope was switched """
+											if not same_microscope:
+												if new_microscope == 'smartspim':
+													for d in processing_channel_dicts_to_insert:
+														channel_name = d['channel_name']
+														new_channel_name = utils.translate_lavision_to_smartspim_channel(channel_name)
+														d.update({'channel_name':new_channel_name})
+												elif new_microscope == 'lavision':
+													for d in processing_channel_dicts_to_insert:
+														channel_name = d['channel_name']
+														new_channel_name = utils.translate_smartspim_to_lavision_channel(channel_name)
+														d.update({'channel_name':new_channel_name})
 											logger.debug("Inserting ProcessingChannel() contents:")
 											logger.debug(processing_channel_dicts_to_insert)
 											db_lightsheet.Request.ProcessingChannel().insert(processing_channel_dicts_to_insert)
@@ -1567,7 +1649,9 @@ def imaging_batch_entry(username,request_name,
 			form.image_resolution_batch_forms.append_entry()
 			this_resolution_form = form.image_resolution_batch_forms[-1]
 			this_resolution_form.image_resolution.data = this_image_resolution
-
+			""" Set up options for new image resolution dropdown """
+			all_image_resolutions = current_app.config['LAVISION_RESOLUTIONS'] + current_app.config['SMARTSPIM_RESOLUTIONS']
+			this_resolution_form.new_image_resolution.choices = [(x,x) for x in all_image_resolutions if x!=this_image_resolution]
 			''' Now add the channel subforms to the image resolution form '''
 			used_channels = []
 			registration_channel_used = False
@@ -1589,7 +1673,11 @@ def imaging_batch_entry(username,request_name,
 				this_channel_form.z_step.data = channel_content['z_step']
 				this_channel_form.left_lightsheet_used.data = channel_content['left_lightsheet_used']
 				this_channel_form.right_lightsheet_used.data = channel_content['right_lightsheet_used']
-			all_imaging_channels = current_app.config['IMAGING_CHANNELS']
+			if this_image_resolution in current_app.config['LAVISION_RESOLUTIONS']:
+				all_imaging_channels = current_app.config['LAVISION_IMAGING_CHANNELS']
+			else:
+				all_imaging_channels = current_app.config['SMARTSPIM_IMAGING_CHANNELS']
+
 			available_channels = [x for x in all_imaging_channels if x not in used_channels]
 			this_resolution_form.new_channel_dropdown.choices = [(x,x) for x in available_channels]
 			available_imaging_modes = current_app.config['IMAGING_MODES']
@@ -1611,7 +1699,6 @@ def imaging_batch_entry(username,request_name,
 			sample_restrict_dict = {'sample_name':this_sample_name,
 									'imaging_request_number':imaging_request_number,
 									'imaging_batch_number':imaging_batch_number}
-			logger.debug(sample_restrict_dict)
 			this_sample_contents = db_lightsheet.Request.ClearingBatchSample() & sample_restrict_dict 
 			clearing_batch_number = this_sample_contents.fetch1('clearing_batch_number')
 			clearing_batch_restrict_dict = dict(username=username,request_name=request_name,
@@ -1646,6 +1733,9 @@ def imaging_batch_entry(username,request_name,
 				this_sample_form.image_resolution_forms.append_entry()
 				this_resolution_form = this_sample_form.image_resolution_forms[-1]
 				this_resolution_form.image_resolution.data = this_image_resolution
+				""" Set up options for new image resolution dropdown """
+				all_image_resolutions = current_app.config['LAVISION_RESOLUTIONS'] + current_app.config['SMARTSPIM_RESOLUTIONS']
+				this_resolution_form.new_image_resolution.choices = [(x,x) for x in all_image_resolutions if x!=this_image_resolution]
 
 				if notes_for_imager:
 					this_resolution_form.notes_for_imager.data = notes_for_imager 
@@ -1680,7 +1770,10 @@ def imaging_batch_entry(username,request_name,
 					this_channel_form.right_lightsheet_used.data = channel_content['right_lightsheet_used']
 					this_channel_form.number_of_z_planes.data = channel_content['number_of_z_planes']
 					this_channel_form.rawdata_subfolder.data = channel_content['rawdata_subfolder']
-				all_imaging_channels = current_app.config['IMAGING_CHANNELS']
+				if this_image_resolution in current_app.config['LAVISION_RESOLUTIONS']:
+					all_imaging_channels = current_app.config['LAVISION_IMAGING_CHANNELS']
+				else:
+					all_imaging_channels = current_app.config['SMARTSPIM_IMAGING_CHANNELS']
 				available_channels = [x for x in all_imaging_channels if x not in used_channels]
 				this_resolution_form.new_channel_dropdown.choices = [(x,x) for x in available_channels]
 				available_imaging_modes = current_app.config['IMAGING_MODES']
