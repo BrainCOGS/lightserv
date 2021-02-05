@@ -1467,13 +1467,16 @@ def test_submit_paxinos_mouse_request(test_client,
 	atlas_name = processing_resolution_request_contents.fetch1('atlas_name')
 	assert atlas_name == 'paxinos'
 
-def test_clearing_and_imaging_batches_properly_assigned(test_client,test_login_nonadmin,
+def test_clearing_and_imaging_batches_properly_assigned(test_client,
+	test_login_nonadmin,
 	test_delete_request_db_contents):
 	""" Ensure that clearing and imaging batches are 
 	properly assigned when multiple samples with different parameters
-	are entered. First two samples are in same imaging batch, same clearing batch.
-	Sample 3 is in same clearing batch but different imaging batch.
-	Sample 4 is in same imaging batch as first two but different clearing batch
+	are entered.
+	Sample 1: CB #1, IB #1
+	Sample 2: CB #1, IB #1
+	Sample 3: CB #1, IB #2
+	Sample 4: CB #2, IB #1 
 
 	DOES enter data into the db so it uses the fixture:
 	test_delete_request_db_contents, which simply deletes 
@@ -1563,25 +1566,47 @@ def test_clearing_and_imaging_batches_properly_assigned(test_client,test_login_n
 	sample_in_clearing_batch_2 = clearing_batch_2_sample_contents.fetch1('sample_name')
 	assert sample_in_clearing_batch_2 == 'sample-004' 
 
-	imaging_batch_1_restrict_dict = {'username':username,
+	clearing_batch_1_imaging_batch_1_restrict_dict = {'username':username,
 		'request_name':request_name,
+		'clearing_batch_number':1,
 		'imaging_batch_number':1}
-	imaging_batch_1_contents = db_lightsheet.Request().ImagingBatch() & imaging_batch_1_restrict_dict
-	number_of_samples_in_imaging_batch_1 = imaging_batch_1_contents.fetch1('number_in_imaging_batch')
-	assert number_of_samples_in_imaging_batch_1 == 3
-	imaging_batch_1_sample_contents = db_lightsheet.Request().ImagingBatchSample() & imaging_batch_1_restrict_dict
-	samples_in_imaging_batch_1 = imaging_batch_1_sample_contents.fetch('sample_name')
-	assert 'sample-003' not in samples_in_imaging_batch_1
+	clearing_batch_1_imaging_batch_1_contents = db_lightsheet.Request().ImagingBatch() & clearing_batch_1_imaging_batch_1_restrict_dict
+	number_of_samples_in_clearing_batch_1_imaging_batch_1 = clearing_batch_1_imaging_batch_1_contents.fetch1(
+		'number_in_imaging_batch')
+	assert number_of_samples_in_clearing_batch_1_imaging_batch_1 == 2
+	clearing_batch_1_imaging_batch_1_sample_contents = db_lightsheet.Request().ImagingBatchSample() & \
+		clearing_batch_1_imaging_batch_1_restrict_dict
+	samples_in_clearing_batch_1_imaging_batch_1 = clearing_batch_1_imaging_batch_1_sample_contents.fetch('sample_name')
+	assert 'sample-003' not in samples_in_clearing_batch_1_imaging_batch_1 \
+		and 'sample-004' not in samples_in_clearing_batch_1_imaging_batch_1
 
-	imaging_batch_2_restrict_dict = {'username':username,
+	clearing_batch_1_imaging_batch_2_restrict_dict = {'username':username,
 		'request_name':request_name,
+		'clearing_batch_number':1,
 		'imaging_batch_number':2}
-	imaging_batch_2_contents = db_lightsheet.Request().ImagingBatch() & imaging_batch_2_restrict_dict
-	number_of_samples_in_imaging_batch_2 = imaging_batch_2_contents.fetch1('number_in_imaging_batch')
-	assert number_of_samples_in_imaging_batch_2 == 1
-	imaging_batch_2_sample_contents = db_lightsheet.Request().ImagingBatchSample() & imaging_batch_2_restrict_dict
-	sample_in_imaging_batch_2 = imaging_batch_2_sample_contents.fetch1('sample_name')
-	assert sample_in_imaging_batch_2 == 'sample-003'
+	clearing_batch_1_imaging_batch_2_contents = db_lightsheet.Request().ImagingBatch() & \
+		clearing_batch_1_imaging_batch_2_restrict_dict
+	number_of_samples_in_clearing_batch_1_imaging_batch_2 = clearing_batch_1_imaging_batch_2_contents.fetch1(
+		'number_in_imaging_batch')
+	assert number_of_samples_in_clearing_batch_1_imaging_batch_2 == 1
+	clearing_batch_1_imaging_batch_2_sample_contents = db_lightsheet.Request().ImagingBatchSample() & \
+		clearing_batch_1_imaging_batch_2_restrict_dict
+	sample_in_clearing_batch_1_imaging_batch_2 = clearing_batch_1_imaging_batch_2_sample_contents.fetch1('sample_name')
+	assert sample_in_clearing_batch_1_imaging_batch_2 == 'sample-003'
+
+	clearing_batch_2_imaging_batch_1_restrict_dict = {'username':username,
+		'request_name':request_name,
+		'clearing_batch_number':2,
+		'imaging_batch_number':1}
+	clearing_batch_2_imaging_batch_1_contents = db_lightsheet.Request().ImagingBatch() & clearing_batch_2_imaging_batch_1_restrict_dict
+	number_of_samples_in_clearing_batch_2_imaging_batch_1 = clearing_batch_2_imaging_batch_1_contents.fetch1(
+		'number_in_imaging_batch')
+	assert number_of_samples_in_clearing_batch_2_imaging_batch_1 == 1
+	clearing_batch_2_imaging_batch_1_sample_contents = db_lightsheet.Request().ImagingBatchSample() & \
+		clearing_batch_2_imaging_batch_1_restrict_dict
+	sample_in_clearing_batch_2_imaging_batch_1 = clearing_batch_2_imaging_batch_1_sample_contents.fetch1('sample_name')
+	assert sample_in_clearing_batch_2_imaging_batch_1 == 'sample-004' 
+ 
 
 """ Testing all_requests() """
 
@@ -1813,7 +1838,7 @@ def test_clearing_table_link_works(test_client,test_cleared_request_nonadmin):
 			break
 	anchor = data_row[clearing_log_column_index].find_all('a',href=True)[0]
 	href = anchor['href']
-	assert href == "/clearing/clearing_table/lightserv-test/nonadmin_request/iDISCO%20abbreviated%20clearing/1/"
+	assert href == "/clearing/clearing_table/lightserv-test/nonadmin_request/1"
 
 def test_archival_nonadmin_request_overview(test_client,test_archival_request_nonadmin):
 	""" Check that lightserv-test, a nonadmin cannot see their

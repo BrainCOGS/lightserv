@@ -70,11 +70,11 @@ class Request(dj.Manual):
     class ClearingBatch(dj.Part):
         definition = """ # Samples from a particular request
         -> Request
+        clearing_batch_number        :   tinyint
+        ----
         clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","uDISCO (rat)","iDISCO_EdU","experimental")
         antibody1 = ''               :   varchar(100)
         antibody2 = ''               :   varchar(100)
-        clearing_batch_number        :   tinyint
-        ----
         antibody1_lot = NULL         :   varchar(64)
         antibody2_lot = NULL         :   varchar(64)
         clearing_progress            :   enum("incomplete","in progress","complete")
@@ -91,11 +91,14 @@ class Request(dj.Manual):
         -> master.Sample                
         -> master.ClearingBatch
         ----
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","uDISCO (rat)","iDISCO_EdU","experimental")
+        antibody1 = ''               :   varchar(100)
+        antibody2 = ''               :   varchar(100)
         """
 
     class ImagingBatch(dj.Part):
         definition = """ # Batch of Samples to image the same way
-        -> Request
+        -> master.ClearingBatch
         imaging_batch_number                      :   tinyint
         imaging_request_number                    :   tinyint
         ----
@@ -234,6 +237,9 @@ class Request(dj.Manual):
         definition = """ # iDISCO+ clearing table
         -> master.ClearingBatch           
         ----
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","uDISCO (rat)","iDISCO_EdU","experimental")
+        antibody1 = ''               :   varchar(100)
+        antibody2 = ''               :   varchar(100)
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request handling that could affect clearing
         time_dehydr_pbs_wash1 = NULL                             :   datetime
         dehydr_pbs_wash1_notes = ""                              :   varchar(250)
@@ -255,7 +261,6 @@ class Request(dj.Manual):
         dehydr_methanol_100percent_wash2_notes = ""                 :   varchar(250)
         time_dehydr_peroxide_wash1 = NULL                            :   datetime
         dehydr_peroxide_wash1_notes = ""                             :   varchar(250)
-        
         time_rehydr_methanol_100percent_wash1 = NULL                :   datetime
         rehydr_methanol_100percent_wash1_notes = ""                 :   varchar(250)
         time_rehydr_methanol_80percent_wash1 = NULL                 :   datetime
@@ -347,6 +352,9 @@ class Request(dj.Manual):
         definition = """ # iDISCO abbreviated clearing table
         -> master.ClearingBatch           
         ----
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","uDISCO (rat)","iDISCO_EdU","experimental")
+        antibody1 = ''               :   varchar(100)
+        antibody2 = ''               :   varchar(100)
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request handling that could affect clearing
         time_pbs_wash1 = NULL                                    :   datetime
         pbs_wash1_notes = ""                                     :   varchar(250)
@@ -383,6 +391,9 @@ class Request(dj.Manual):
         definition = """ # iDISCO Abbreviated Rat clearing table
         -> master.ClearingBatch              
         ----
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","uDISCO (rat)","iDISCO_EdU","experimental")
+        antibody1 = ''               :   varchar(100)
+        antibody2 = ''               :   varchar(100)
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
         time_pbs_wash1 = NULL                                    :   datetime
         pbs_wash1_notes = ""                                     :   varchar(250)
@@ -419,6 +430,9 @@ class Request(dj.Manual):
         definition = """ # uDISCO clearing table
         -> master.ClearingBatch              
         ----
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","uDISCO (rat)","iDISCO_EdU","experimental")
+        antibody1 = ''               :   varchar(100)
+        antibody2 = ''               :   varchar(100)
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
         time_dehydr_pbs_wash1 = NULL                             :   datetime
         dehydr_pbs_wash1_notes = ""                              :   varchar(250)
@@ -447,6 +461,9 @@ class Request(dj.Manual):
         definition = """ # uDISCO clearing table
         -> master.ClearingBatch              
         ----
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","uDISCO (rat)","iDISCO_EdU","experimental")
+        antibody1 = ''               :   varchar(100)
+        antibody2 = ''               :   varchar(100)
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
         time_dehydr_pbs_wash1 = NULL                             :   datetime
         dehydr_pbs_wash1_notes = ""                              :   varchar(250)
@@ -475,6 +492,9 @@ class Request(dj.Manual):
         definition = """ # uDISCO clearing table
         -> master.ClearingBatch              
         ----
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","uDISCO (rat)","iDISCO_EdU","experimental")
+        antibody1 = ''               :   varchar(100)
+        antibody2 = ''               :   varchar(100)
         exp_notes = ""                                           :   varchar(500)  # Note anything unusual that happened during request that could affect clearing
         time_dehydr_pbs_wash1 = NULL                             :   datetime
         dehydr_pbs_wash1_notes = ""                              :   varchar(250)
@@ -574,6 +594,9 @@ class Request(dj.Manual):
         definition = """ # Experimental clearing table
         -> master.ClearingBatch              
         ----
+        clearing_protocol            :   enum("iDISCO+_immuno","iDISCO abbreviated clearing","iDISCO abbreviated clearing (rat)","uDISCO","uDISCO (rat)","iDISCO_EdU","experimental")
+        antibody1 = ''               :   varchar(100)
+        antibody2 = ''               :   varchar(100)
         link_to_clearing_spreadsheet = NULL : varchar(256)
         """
 

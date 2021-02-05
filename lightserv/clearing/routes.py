@@ -92,18 +92,19 @@ def clearing_manager():
 		table_ready_to_clear=table_ready_to_clear,
 		table_already_cleared=table_already_cleared)
 
-@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>",
+@clearing.route("/clearing/clearing_entry/<username>/<request_name>/<clearing_batch_number>",
 	methods=['GET','POST'])
 @logged_in
 @logged_in_as_clearer
 @log_http_requests
-def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number): 
+def clearing_entry(username,request_name,clearing_batch_number): 
 	current_user = session['user']
 	logger.debug(f'{current_user} accessed clearing entry form')
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'request_name="{request_name}"' & \
-			f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
+			f'username="{username}"' & \
 			f'clearing_batch_number={clearing_batch_number}'				
-	antibody1,antibody2 = clearing_batch_contents.fetch1('antibody1','antibody2')
+	clearing_protocol,antibody1,antibody2 = clearing_batch_contents.fetch1(
+		'clearing_protocol','antibody1','antibody2')
 	clearing_table = ClearingTable(clearing_batch_contents)
 	""" Make the samples table to sit directly underneath the clearing table """
 	sample_keys = {'username':username,'request_name':request_name,
@@ -131,6 +132,8 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 	else:
 		form = determine_clearing_form(clearing_protocol,existing_form=request.form)
 
+	''' If there are not clearing contents then this is the first time the form 
+	has been opened and the clearing is just getting started. '''
 	if not clearing_contents:
 
 		insert_dict = {'username':username,'request_name':request_name,
@@ -147,11 +150,9 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 			clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
 			if clearing_progress == 'complete':
 				return redirect(url_for('clearing.clearing_entry',username=username,
-			request_name=request_name,clearing_protocol=clearing_protocol,
-			antibody1=antibody1,antibody2=antibody2,clearing_batch_number=clearing_batch_number))
+			request_name=request_name,clearing_batch_number=clearing_batch_number))
 			submit_keys = [x for x in form._fields.keys() if 'submit' in x]
-			# logger.debug('Submit keys:')
-			# logger.debug(submit_keys)
+	
 			for key in submit_keys:
 				if form[key].data:
 					if key == 'submit': # The final submit button
@@ -295,22 +296,24 @@ def clearing_entry(username,request_name,clearing_protocol,clearing_batch_number
 		column_name=column_name,form_id=form_id,
 		notes_for_clearer=notes_for_clearer)
 
-@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_protocol>/<clearing_batch_number>/",
+@clearing.route("/clearing/clearing_table/<username>/<request_name>/<clearing_batch_number>",
 	methods=['GET'])
 @logged_in_as_clearing_manager
 @log_http_requests
-def clearing_table(username,request_name,clearing_protocol,clearing_batch_number):
+def clearing_table(username,request_name,clearing_batch_number):
 	""" Show the clearing contents for a clearing batch """ 
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & f'request_name="{request_name}"' & \
-			f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
+			f'username="{username}"' & \
 			f'clearing_batch_number={clearing_batch_number}'
-
+	clearing_protocol = clearing_batch_contents.fetch1('clearing_protocol')
 	overview_table = ClearingTable(clearing_batch_contents)
 	clearing_table.table_id = 'horizontal'
 	dbTable = determine_clearing_dbtable(clearing_protocol)
 	db_contents = dbTable() & f'request_name="{request_name}"' & \
-			f'username="{username}"' & f'clearing_protocol="{clearing_protocol}"' & \
+			f'username="{username}"' & \
 			f'clearing_batch_number={clearing_batch_number}'
+	logger.debug("Showing db contents in table:")
+	logger.debug(db_contents)
 	table = determine_clearing_table(clearing_protocol)(db_contents)
 	table.table_id = 'vertical'
 

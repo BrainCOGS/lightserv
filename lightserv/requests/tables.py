@@ -182,7 +182,6 @@ class AllSamplesTable(Table):
 	clearer = NotAssignedCol('clearer')
 	clearing_progress = Col('clearing progress')
 	clearing_url_kwargs = {'username':'username','request_name':'request_name',
-	'clearing_protocol':'clearing_protocol',
 	'clearing_batch_number':'clearing_batch_number'}
 	anchor_attrs = {}
 	clearing_log = ClearingTableLinkCol('Clearing log', 
@@ -343,7 +342,6 @@ def create_dynamic_samples_table(contents,table_id,ignore_columns=[],name='Dynam
 		Col('clearing progress',column_html_attrs=column_html_attrs))
 
 	clearing_url_kwargs = {'username':'username','request_name':'request_name',
-		'clearing_protocol':'clearing_protocol',
 		'clearing_batch_number':'clearing_batch_number'}
 	anchor_attrs = {}
 	table_class.add_column('view_clearing_link',

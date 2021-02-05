@@ -45,6 +45,7 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
 
     ''' Now only add the start_imaging_link if the table is being imaged or ready to image '''
     imaging_url_kwargs = {'username':'username','request_name':'request_name',
+        'clearing_batch_number':'clearing_batch_number',
         'imaging_batch_number':'imaging_batch_number',
         'imaging_request_number':'imaging_request_number'}
 
@@ -72,6 +73,8 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
     # table_class.add_column('imaging_request_number',Col('imaging request number',
     #     column_html_attrs=column_html_attrs))
     # if table_id == 'horizontal_ready_to_image_table':
+    table_class.add_column('clearing_batch_number',Col('clearing batch number',
+        column_html_attrs=column_html_attrs))
     table_class.add_column('imaging_request_number',Col('imaging request number',
         column_html_attrs=column_html_attrs))
     table_class.add_column('imaging_batch_number',Col('imaging batch number',

@@ -102,12 +102,10 @@ def logged_in_as_clearer(f):
 
 			request_name = kwargs['request_name']
 			username = kwargs['username']
-			clearing_protocol = kwargs['clearing_protocol']
 			clearing_batch_number = kwargs['clearing_batch_number']
 			
 			clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & \
 				f'request_name="{request_name}"' & f'username="{username}"' & \
-				f'clearing_protocol="{clearing_protocol}"' & \
 				f'clearing_batch_number={clearing_batch_number}'
 			if len(clearing_batch_contents) == 0:
 				flash("No clearing batch exists with those parameters. Please try again.","danger")
@@ -209,6 +207,7 @@ def logged_in_as_imager(f):
 			logger.debug(f"User is logged in as: {current_user}")
 			username = kwargs['username']
 			request_name = kwargs['request_name']
+			clearing_batch_number = kwargs['clearing_batch_number']
 			imaging_request_number = kwargs['imaging_request_number']
 			imaging_batch_number = kwargs['imaging_batch_number']
 			imaging_batch_contents = db_lightsheet.Request.ImagingBatch() & kwargs
@@ -359,12 +358,11 @@ def check_clearing_completed(f):
 		sample_name = kwargs['sample_name']
 		username = kwargs['username']
 		clearing_batch_sample_contents = db_lightsheet.Request.ClearingBatchSample() & kwargs
-		# print(sample_contents)
-		clearing_protocol, antibody1, antibody2 = clearing_batch_sample_contents.fetch1(
-			'clearing_protocol','antibody1','antibody2')
-		clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & kwargs & \
-			f'clearing_protocol="{clearing_protocol}"' & \
-	 		f'antibody1="{antibody1}"' & f'antibody2="{antibody2}"'
+		clearing_batch_number = clearing_batch_sample_contents.fetch1('clearing_batch_number')
+		restrict_dict = {'username':username,'request_name':request_name,
+			'clearing_batch_number':clearing_batch_number}
+		clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & restrict_dict
+
 		clearing_progress = clearing_batch_contents.fetch1('clearing_progress')
 
 		if clearing_progress != 'complete':
@@ -568,7 +566,6 @@ def clearing_not_yet_started(f):
 		else:
 			return f(*args, **kwargs)
 	return decorated_function
-
 
 def check_user_in_g_lightsheet_data(username): 
 	""" Check whether a user is in the 
