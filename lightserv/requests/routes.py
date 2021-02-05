@@ -150,12 +150,15 @@ def request_overview(username,request_name):
     request_contents = request_contents.proj('description','species','number_of_samples',
         'is_archival',datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
     sample_contents = db_lightsheet.Request.Sample() & f'request_name="{request_name}"' & f'username="{username}"' 
+    
     clearing_batch_contents = db_lightsheet.Request.ClearingBatch() & \
-    f'request_name="{request_name}"' & f'username="{username}"' 
+        f'request_name="{request_name}"' & f'username="{username}"' 
+    clearing_batch_sample_contents = db_lightsheet.Request.ClearingBatchSample() & \
+        f'request_name="{request_name}"' & f'username="{username}"' 
     imaging_request_contents = db_lightsheet.Request.ImagingRequest() & \
-     f'request_name="{request_name}"' & f'username="{username}"' 
+        f'request_name="{request_name}"' & f'username="{username}"' 
     processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
-     f'request_name="{request_name}"' & f'username="{username}"' 
+        f'request_name="{request_name}"' & f'username="{username}"' 
 
     # combined_contents = (samples_contents * clearing_batch_contents * \
     #     imaging_request_contents * processing_request_contents)
@@ -165,7 +168,8 @@ def request_overview(username,request_name):
         imaging_progress='imaging_progress',imager='imager',
         is_archival='is_archival',
         link_to_clearing_spreadsheet='link_to_clearing_spreadsheet')
-    sample_joined_contents = request_contents * sample_contents * clearing_batch_contents
+    sample_joined_contents = request_contents * clearing_batch_sample_contents * clearing_batch_contents.proj(
+    'clearing_progress','clearer','link_to_clearing_spreadsheet')
     imaging_joined_contents = sample_joined_contents.aggr(
         imaging_request_contents,
         **replicated_args,
