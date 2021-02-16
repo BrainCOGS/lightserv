@@ -2,7 +2,7 @@ version: "3.4"
 
 services:
   confproxy:
-    env_file: .dockerenv
+    env_file: .testdockerenv
     image: jupyterhub/configurable-http-proxy:3.1.1
     # expose the proxy to the world
     ports:
