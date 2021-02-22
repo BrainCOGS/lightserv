@@ -59,6 +59,21 @@ def test_multisample_multichannel_request_in_imaging_manager(test_client,
 	assert b'Imaging management GUI' in response.data
 	assert b'nonadmin_manysamp_request' in response.data 
 
+def test_microscope_column_correct(test_client,test_cleared_request_both_microscopes_nonadmin
+	):
+	""" Test that microscope column shows 'lavision & smartspim' if both requested
+	"""
+
+	with test_client.session_transaction() as sess:
+		# have to log an imaging manager in because the imager was aichen, not the person who requested it
+		sess['user'] = 'aichen'
+	response = test_client.get(url_for('imaging.imaging_manager')
+		, follow_redirects=True)
+	assert b'Imaging management GUI' in response.data
+	assert b'nonadmin_bothmicroscopes_request' in response.data
+	assert b'lavision & smartspim' in response.data 
+
+
 """ Tests for imaging entry form """
 
 def test_imaging_batch_entry_form_GET(test_client,
@@ -895,10 +910,10 @@ def test_apply_batch_parameters(test_client,
 	parsed_html = BeautifulSoup(response.data,features="html.parser")
 	header_tag_sample1 = parsed_html.find('h3',
 		attrs={'id':'sample_0_image_resolution_header_0'})
-	assert header_tag_sample1.text == '(1/1) Image resolution: 1.1x'
+	assert header_tag_sample1.text == '(1/1) Image resolution: 1.1x (LaVision microscope)'
 	header_tag_sample2 = parsed_html.find('h3',
 		attrs={'id':'sample_1_image_resolution_header_0'})
-	assert header_tag_sample2.text == '(1/1) Image resolution: 1.1x'
+	assert header_tag_sample2.text == '(1/1) Image resolution: 1.1x (LaVision microscope)'
 
 
 	""" Test that hitting the apply batch parameters button 

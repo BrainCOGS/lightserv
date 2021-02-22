@@ -58,12 +58,14 @@ def imaging_manager():
 	sample_contents = db_lightsheet.Request.Sample()
 	clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
 	imaging_batch_contents = db_lightsheet.Request.ImagingBatch()
+	imaging_resolution_contents = db_lightsheet.Request.ImagingResolutionRequest()
 
 	imaging_request_contents = (clearing_batch_contents * sample_contents * \
-		request_contents * imaging_batch_contents).\
+		request_contents * imaging_batch_contents * imaging_resolution_contents).\
 		proj('clearer','clearing_progress',
 		'imaging_request_date_submitted','imaging_request_time_submitted',
 		'imaging_progress','imager','species','number_in_imaging_batch',
+		'microscope',
 		datetime_submitted='TIMESTAMP(imaging_request_date_submitted,imaging_request_time_submitted)')
 
 	if current_user not in imaging_admins:
@@ -81,7 +83,10 @@ def imaging_manager():
 		datetime_submitted='datetime_submitted',
 		imaging_progress='imaging_progress',imager='imager',
 		species='species',number_in_imaging_batch='number_in_imaging_batch',
-		all_samples_cleared='SUM(IF(clearing_progress="complete",1,0))=count(*)')
+		all_samples_cleared='SUM(IF(clearing_progress="complete",1,0))=count(*)',
+		all_samples_lavision='SUM(IF(microscope="lavision",1,0))=count(*)',
+	    all_samples_smartspim='SUM(IF(microscope="smartspim",1,0))=count(*)'
+	    )
 	
 	contents_being_imaged = imaging_request_contents & 'all_samples_cleared=1' & \
 		'imaging_progress="in progress"'

@@ -3,7 +3,7 @@ from flask_table import create_table,Table, Col, LinkCol, ButtonCol
 from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import (BooltoStringCol, DateTimeCol,
-    DesignatedRoleCol, ProgressCol)
+    DesignatedRoleCol, ProgressCol,ConditionalMicroscopeCol)
 import os
 
 def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
@@ -18,12 +18,6 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
         next_url += f'?sort={col_key}&direction={direction}&table_id={table_id}'
         return next_url
     
-    # def dynamic_get_tr_attrs(self, item, reverse=False):
-    #     if item['imaging_request_number'] > 1:
-    #         return {'bgcolor':'#757680'} # gray
-    #     else:
-    #         return {}
-
     options = dict(
         border = True,
         allow_sort = True,
@@ -66,13 +60,13 @@ def dynamic_imaging_management_table(contents,table_id,ignore_columns=[],
         column_html_attrs=column_html_attrs))
     table_class.add_column('request_name',Col('request name',
         column_html_attrs=column_html_attrs))
-    # table_class.add_column('sample_name',Col('sample name',
-    #     column_html_attrs=column_html_attrs))
     table_class.add_column('username',Col('username',
         column_html_attrs=column_html_attrs))    
-    # table_class.add_column('imaging_request_number',Col('imaging request number',
-    #     column_html_attrs=column_html_attrs))
-    # if table_id == 'horizontal_ready_to_image_table':
+    microscope_url_kwargs = {'all_samples_lavision':'all_samples_lavision',
+        'all_samples_smartspim':'all_samples_smartspim'}
+    table_class.add_column('microscope',ConditionalMicroscopeCol('microscope',
+        'imaging.imaging_batch_entry',url_kwargs=microscope_url_kwargs,
+        column_html_attrs=column_html_attrs,))    
     table_class.add_column('clearing_batch_number',Col('clearing batch number',
         column_html_attrs=column_html_attrs))
     table_class.add_column('imaging_request_number',Col('imaging request number',

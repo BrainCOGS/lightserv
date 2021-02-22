@@ -94,6 +94,24 @@ class NACol(Col):
             return content
   
 
+class ConditionalMicroscopeCol(LinkCol):
+    """A hack of LinkCol to conditionally show which 
+    microscope to use or both depending on input from 
+    multiple columns. 
+    """
+    def __init__(self,name,endpoint,**kwargs):
+        super(ConditionalMicroscopeCol, self).__init__(name,endpoint,**kwargs)
+    
+    def td_contents(self, item, attr_list):
+        all_samples_lavision=item['all_samples_lavision']
+        all_samples_smartspim=item['all_samples_smartspim']
+        if all_samples_lavision:
+            return "lavision"
+        if all_samples_smartspim:
+            return "smartspim"
+        else:
+            return "lavision & smartspim"
+
 class ProgressCol(Col):
     """ Conditional bold fonting """
     def __init__(self, name, attr=None, attr_list=None,
@@ -325,8 +343,6 @@ class RequestTable(Table):
     description = Col('description',column_html_attrs=column_html_attrs)
     species = Col('species',column_html_attrs=column_html_attrs)
     number_of_samples = Col('number_of_samples',column_html_attrs=column_html_attrs)
-
-
 
 class AdminTable(Table):
     """ Table showing user actions """
