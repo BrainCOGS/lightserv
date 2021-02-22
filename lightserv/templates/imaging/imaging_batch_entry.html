@@ -29,14 +29,20 @@
 
 		{% for ii in range(form.image_resolution_batch_forms|length) %}
 			{% set image_resolution_form = form.image_resolution_batch_forms[ii] %}
+
 			<!-- Render hiddenfield for image resolution -->
 			{{ image_resolution_form.image_resolution() }}
 			{% set image_resolution = image_resolution_form.image_resolution.data %}
+			{% if image_resolution in ["1.1x","1.3x","2x","4x"] %}
+				{% set microscope = "LaVision" %}
+			{% else %}
+				{% set microscope = "SmartSPIM" %}
+			{% endif %}
 			<hr class='class-2'>
 			{% if image_resolution == '2x' %}
-				<h3 class='infolink' tabindex="0" role="button" data-trigger="focus",data-toggle="popover" data-content="Make sure to use organic dipping cap on 2x objective if sample went through oil-based clearing protocol like iDISCO or uDISCO."> ({{ ii + 1 }}/{{form.image_resolution_batch_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+				<h3 class='infolink' tabindex="0" role="button" data-trigger="focus",data-toggle="popover" data-content="Make sure to use organic dipping cap on 2x objective if sample went through oil-based clearing protocol like iDISCO or uDISCO."> ({{ ii + 1 }}/{{form.image_resolution_batch_forms|length }}) Image resolution: {{ image_resolution }} ({{microscope}} microscope)</h3>
 	        {% else %}
-				<h3 class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Do NOT use the zoom body (at a value other than 1) for this objective. If you do, we will very likely not be able to process the images. An exception is if no processing is needed (i.e. only raw images are required)."> ({{ ii + 1 }}/{{form.image_resolution_batch_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+				<h3 class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Do NOT use the zoom body (at a value other than 1) for this objective. If you do, we will very likely not be able to process the images. An exception is if no processing is needed (i.e. only raw images are required)."> ({{ ii + 1 }}/{{form.image_resolution_batch_forms|length }}) Image resolution: {{ image_resolution }} ({{microscope}} microscope)</h3>
 			{% endif %}
 			<div class="checkbox mb-2">
 				{{ image_resolution_form.change_resolution(class="form-check-input",onchange="togglefield(this)") }}
@@ -340,12 +346,17 @@
 				<!-- Render hiddenfield for image resolution -->
 				{{ image_resolution_form.image_resolution() }}
 				{% set image_resolution = image_resolution_form.image_resolution.data %}
+				{% if image_resolution in ["1.1x","1.3x","2x","4x"] %}
+					{% set microscope = "LaVision" %}
+				{% else %}
+					{% set microscope = "SmartSPIM" %}
+				{% endif %}
 
 				<hr class='class-2'>
 				{% if image_resolution == '2x' %}
-					<h3 class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Make sure to use organic dipping cap on 2x objective if sample went through oil-based clearing protocol like iDISCO or uDISCO."> ({{ ii + 1 }}/{{sample_form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} </h3>
+					<h3 class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Make sure to use organic dipping cap on 2x objective if sample went through oil-based clearing protocol like iDISCO or uDISCO."> ({{ ii + 1 }}/{{sample_form.image_resolution_forms|length }}) Image resolution: {{ image_resolution }} ({{microscope}} microscope)</h3>
 		        {% else %}
-					<h3 id="sample_{{kk}}_image_resolution_header_{{ii}}" class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Do NOT use the zoom body (at a value other than 1) for this objective. If you do, we will very likely not be able to process the images. An exception is if no processing is needed (i.e. only raw images are required).">({{ ii + 1 }}/{{sample_form.image_resolution_forms|length }}) Image resolution: {{ image_resolution}}</h3>
+					<h3 id="sample_{{kk}}_image_resolution_header_{{ii}}" class='infolink' tabindex="0" role="button" data-trigger="focus" data-toggle="popover" data-content="Do NOT use the zoom body (at a value other than 1) for this objective. If you do, we will very likely not be able to process the images. An exception is if no processing is needed (i.e. only raw images are required).">({{ ii + 1 }}/{{sample_form.image_resolution_forms|length }}) Image resolution: {{ image_resolution}} ({{microscope}} microscope)</h3>
 				{% endif %}
 
 
