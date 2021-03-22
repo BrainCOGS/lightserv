@@ -166,15 +166,11 @@ def dynamic_pystripe_management_table(contents,table_id,ignore_columns=[],
     anchor_attrs = {}
     if table_id == 'horizontal_ready_to_pystripe_table':
         table_class.add_column('start_pystripe_link',LinkCol('Start form',
-         'processing.processing_entry',url_kwargs=pystripe_url_kwargs,
+         'processing.pystripe_entry',url_kwargs=pystripe_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))
     elif table_id == 'horizontal_being_processed_table':
         table_class.add_column('continue_processing_link',LinkCol('Continue processing',
-         'processing.processing_entry',url_kwargs=pystripe_url_kwargs,
-            anchor_attrs=anchor_attrs,allow_sort=False))
-    elif table_id == 'horizontal_already_processed_table':
-        table_class.add_column('view_processing_link',LinkCol('View processing log',
-         'processing.processing_entry',url_kwargs=pystripe_url_kwargs,
+         'processing.pystripe_entry',url_kwargs=pystripe_url_kwargs,
             anchor_attrs=anchor_attrs,allow_sort=False))
     # table_class.add_column('datetime_submitted',DateTimeCol('datetime submitted'))
     table_class.add_column('request_name',Col('request name',

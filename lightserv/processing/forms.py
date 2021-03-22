@@ -39,18 +39,25 @@ class StartProcessingForm(FlaskForm):
 	image_resolution_forms = FieldList(FormField(SubProcessingForm),min_entries=0,
 		max_entries=max_number_of_resolutions)
 	notes_from_processing = TextAreaField("Note down anything additional about the processing"
-									   " that you would like recorded. -- max 1024 characters --",validators=[Length(max=1024)])
+									   " that you would like recorded. -- max 1024 characters --",
+									   validators=[Length(max=1024)])
 	
 	submit = SubmitField('Start the processing pipeline for this sample')	
 
+class ChannelPystripeForm(FlaskForm):
+	""" A form that contains channels of the same resolution
+	and same orientation. For example there could be four total channels
+	in a processing request but two are 1.3x 488, 555 dorsal up and the 
+	other two are 1.3x 488, 555 ventral up """
+	image_resolution = HiddenField('Image resolution')
+	channel_name = HiddenField('Channel name')
+	pystripe_started = HiddenField('Pipeline started',default=False)
+	flat_name = StringField('Flat field filename',default='flat.tiff',validators=[Length(max=64)])
+	start_pystripe = SubmitField('Start pystripe')	
 
-# class NewProcessingRequestForm(FlaskForm):
-# 	""" The form for entering imaging information """
-# 	max_number_of_resolutions=4
-# 	image_resolution_forms = FieldList(FormField(ImageResolutionProcessingForm),min_entries=0,
-# 		max_entries=max_number_of_resolutions)
-# 	notes_from_processing = TextAreaField("Note down anything additional about the processing"
-# 									   " that you would like recorded.",default="",validators=[Length(max=1024)])
 	
-# 	submit = SubmitField('Submit new processing request')	
-
+class PystripeEntryForm(FlaskForm):
+	""" The form for entering flat information and then starting Pystripe """
+	max_number_of_channels = 4 # Only have 3.6x imaging so 4 possible channels
+	channel_forms = FieldList(FormField(ChannelPystripeForm),min_entries=0,
+		max_entries=max_number_of_channels)

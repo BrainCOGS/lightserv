@@ -1,7 +1,7 @@
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup, current_app)
-from lightserv.processing.forms import StartProcessingForm
+from lightserv.processing.forms import StartProcessingForm,PystripeEntryForm
 from lightserv.processing.tables import (create_dynamic_processing_overview_table,
 	dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable,
 	ProcessingChannelTable,dynamic_pystripe_management_table)
@@ -178,6 +178,144 @@ def pystripe_manager():
 		table_ready_to_pystripe=table_ready_to_pystripe,
 		table_already_pystriped=table_already_pystriped,
 		table_currently_being_pystriped=table_currently_being_pystriped)
+
+@processing.route("/processing/pystripe_entry/<username>/<request_name>/<sample_name>/<imaging_request_number>/<processing_request_number>",
+	methods=['GET','POST'])
+@logged_in
+@logged_in_as_processor
+@check_clearing_completed
+@check_imaging_completed
+@log_http_requests
+def pystripe_entry(username,request_name,sample_name,imaging_request_number,processing_request_number):
+	""" Route for the person assigned as data processor for a sample 
+	to start the pystripe script after a Flat has been generated. """
+	logger.info(f"{session['user']} accessed pystripe_entry route")
+	restrict_dict = {'username':username,
+					 'request_name':request_name,
+					 'sample_name':sample_name,
+					 'imaging_request_number':imaging_request_number,
+					 'processing_request_number':processing_request_number}
+	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel() & restrict_dict
+
+	form = PystripeEntryForm(request.form)
+	
+	if request.method == 'POST': # post request
+		if processing_progress != 'incomplete':
+			flash(f"Processing is {processing_progress} for this sample.  "
+			"It cannot be re-processed. To open a new processing request, "
+			"see your request page",'warning')
+			return redirect(url_for('processing.processing_manager'))
+		logger.info('post request')
+		if form.validate_on_submit():
+			logger.debug("form validated")
+			logger.debug("form data after POST request")
+			logger.debug(form.data)
+			''' Now update the db table with the data collected in the form'''
+			
+			""" loop through and update the atlas to be used based on what the user supplied """
+			for image_resolution_form in form.image_resolution_forms:
+
+				# logger.debug("form resolution dict:")
+				# logger.debug(form_resolution_dict)
+				this_image_resolution = image_resolution_form.image_resolution.data
+				this_image_resolution = this_image_resolution if 'ventral_up' not in this_image_resolution else this_image_resolution.strip('_ventral_up')
+				ventral_up = image_resolution_form.ventral_up.data
+				logger.debug("Image resolution:")				
+				logger.debug(this_image_resolution)
+				logger.debug("ventral_up?")
+				logger.debug(ventral_up)
+				atlas_name = image_resolution_form.atlas_name.data
+				logger.debug("Atlas name:")
+				logger.debug(atlas_name)
+				logger.debug(type(atlas_name))
+				""" Make processing path on /jukebox """
+				if ventral_up: 
+					processing_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+					username,request_name,sample_name,f'imaging_request_{imaging_request_number}',
+					'output',f'processing_request_{processing_request_number}',
+					f'resolution_{this_image_resolution}_ventral_up')
+				else:
+					processing_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+					username,request_name,sample_name,f'imaging_request_{imaging_request_number}',
+					'output',f'processing_request_{processing_request_number}',
+					f'resolution_{this_image_resolution}')
+				mymkdir(processing_path_to_make)
+				restrict_dict = {'image_resolution':this_image_resolution,'ventral_up':ventral_up}
+				this_processing_resolution_content = processing_resolution_request_contents & restrict_dict
+				""" If a processing resolution request does not already exist for this resolution/ventral_up 
+				combination then just make a new one """
+				if len(this_processing_resolution_content) == 0:
+					logger.debug("Making a new ProcessingResolutionRequest insert since one did not exist")
+					image_resolution_to_insert = this_image_resolution if 'ventral_up' not in this_image_resolution else this_image_resolution.strip("_ventral_up")
+					processing_resolution_request_insert_dict = dict(
+						username=username,request_name=request_name,
+						sample_name=sample_name,
+						image_resolution=image_resolution_to_insert,
+						imaging_request_number=imaging_request_number,
+						processing_request_number=processing_request_number,
+						ventral_up=ventral_up,
+						atlas_name=atlas_name,
+						final_orientation='sagittal',
+						)
+					db_lightsheet.Request.ProcessingResolutionRequest().insert1(
+						processing_resolution_request_insert_dict
+					)
+					this_processing_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & \
+						f'image_resolution="{image_resolution_to_insert}"' & f'ventral_up={ventral_up}'
+
+				logger.info("updating atlas and notes_from_processing in ProcessingResolutionRequest() with user's form data")
+				processing_resolution_insert_dict = this_processing_resolution_content.fetch1()
+				processing_resolution_insert_dict['atlas_name'] = atlas_name
+				processing_resolution_insert_dict['notes_from_processing'] = form.notes_from_processing.data
+				db_lightsheet.Request.ProcessingResolutionRequest().insert1(processing_resolution_insert_dict,replace=True)
+			logger.info(f"Starting light sheet pipeline task")
+
+			if not os.environ['FLASK_MODE'] == 'TEST': # pragma: no cover - used to exclude this line from calculating test coverage
+				run_lightsheet_pipeline.delay(username=username,request_name=request_name,sample_name=sample_name,
+					imaging_request_number=imaging_request_number,
+					processing_request_number=processing_request_number)
+			dj.Table._update(processing_request_contents,'processing_progress','running')
+			logger.debug("Updated processing_progress in ProcessingRequest() table")
+			flash("Your data processing has begun. You will receive an email "
+				  "when it is completed.","success")
+		
+			
+			return redirect(url_for('requests.all_requests'))
+		else:
+			logger.debug(form.errors) # pragma: no cover - used to exclude this line from calculating test coverage
+	
+	while len(form.channel_forms) > 0:
+		form.channel_forms.pop_entry() # pragma: no cover - used to exclude this line from calculating test coverage
+	""" Figure out the unique number of image resolutions """
+	""" for each unique image resolution figure out if there is ventral up imaging.
+	If there is, then we need to create a new image resolution subform """
+	for stitching_dict in stitching_contents:
+		image_resolution = stitching_dict['image_resolution']
+		channel_name = stitching_dict['channel_name']
+		logger.debug("Making form for resolution/channel:")
+		logger.debug(image_resolution)
+		logger.debug(channel_name)
+		
+		form.channel_forms.append_entry()
+		this_channel_form = form.channel_forms[-1]
+		this_channel_form.image_resolution.data = image_resolution
+		this_channel_form.channel_name.data = channel_name
+		# Figure out pystripe already started for this channel
+		# This amounts to checking if there is an entry in the 
+		# SmartspimPystripeChannel() table
+		restrict_dict_pystripe = restrict_dict.copy()
+		restrict_dict_pystripe['image_resolution'] = image_resolution
+		restrict_dict_pystripe['channel_name'] = channel_name
+		pystripe_started_contents = db_lightsheet.Request.SmartspimPystripeChannel &\
+			restrict_dict_pystripe
+		if len(pystripe_started_contents) > 0:
+			this_channel_form.pystripe_started.data = True
+			this_channel_form.flat_name.data = pystripe_started_contents.fetch1('flatfield_filename')
+
+	data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
+	return render_template('processing/pystripe_entry.html',
+		data_bucket_rootpath=data_bucket_rootpath,
+		form=form)	
 
 
 @processing.route("/processing/processing_entry/<username>/<request_name>/<sample_name>/<imaging_request_number>/<processing_request_number>",
