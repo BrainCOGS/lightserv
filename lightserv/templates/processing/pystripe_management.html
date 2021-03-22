@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1 align="center"> Pystripe management GUI </h1>
+<hr class="class-5">	
+
+<h3>Samples currently being pystripe-corrected:</h3>
+{% if table_currently_being_pystriped.items|length > 3 %}
+  <div class="mb-4 tableFixHead">
+{% else %}
+  <div class="mb-4 tableFixHeadShort">
+{% endif %}
+    {{ table_currently_being_pystriped }}
+  </div>
+
+<hr class="class-5"> 
+
+<h3>Samples ready to be pystripe-corrected:</h3>
+{% if table_ready_to_pystripe.items|length > 3 %}
+  <div class="mb-4 tableFixHead">
+{% else %}
+  <div class="mb-4 tableFixHeadShort">
+{% endif %}
+    {{ table_ready_to_pystripe }}
+  </div>
+
+<hr class="class-5">  
+
+<h3>Samples already pystripe-corrected:</h3>
+{% if table_already_pystriped.items|length > 3 %}
+  <div class="mb-4 tableFixHead">
+{% else %}
+  <div class="mb-4 tableFixHeadShort">
+{% endif %}
+    {{ table_already_pystriped }}
+  </div>
+<hr class="class-5">	
+
+{% endblock content %}
