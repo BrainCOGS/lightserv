@@ -4,7 +4,7 @@ from flask import (render_template, url_for, flash,
 from lightserv.processing.forms import StartProcessingForm
 from lightserv.processing.tables import (create_dynamic_processing_overview_table,
 	dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable,
-	ProcessingChannelTable)
+	ProcessingChannelTable,dynamic_pystripe_management_table)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests,mymkdir)
@@ -107,6 +107,78 @@ def processing_manager():
 		table_being_processed=table_being_processed,
 		table_ready_to_process=table_ready_to_process,table_on_deck=table_on_deck,
 		table_already_processed=table_already_processed)
+
+@processing.route("/processing/pystripe_manager",methods=['GET','POST'])
+@logged_in
+@log_http_requests
+def pystripe_manager():
+	"""  """
+	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
+	reverse = (request.args.get('direction', 'asc') == 'desc')
+	current_user = session['user']
+	logger.info(f"{current_user} accessed pystripe_manager manager")
+
+	processing_admins = current_app.config['PROCESSING_ADMINS']
+	
+	# Select smartspim samples that have been fully imaged (all channels)
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() 
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() 
+	imaged_channel_contents = imaging_channel_contents * imaging_request_contents &\
+		{'imaging_progress':'complete'}
+	
+	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel()
+	
+	imaged_aggr_contents = dj.U('username','request_name','sample_name',
+		'imaging_request_number').aggr(
+		imaged_channel_contents,
+		n_channels_imaged='count(*)')
+	
+	stitched_aggr_contents = dj.U('username','request_name','sample_name',
+		'imaging_request_number',
+		'processing_request_number').aggr(
+		stitching_contents,
+		n_channels_stitched='count(*)')
+	
+	imaged_and_stitched_contents = imaged_aggr_contents * stitched_aggr_contents &\
+		'n_channels_imaged=n_channels_stitched'
+	
+	pystripe_channel_contents = db_lightsheet.Request.SmartspimPystripeChannel() 
+
+	if current_user not in processing_admins:
+		imaged_and_stitched_contents = imaged_and_stitched_contents & {'username':current_user}
+		pystripe_channel_contents = pystripe_channel_contents & {'username':current_user}
+
+	''' Get all entities that are currently being pystriped.'''
+	contents_currently_being_pystriped = imaged_and_stitched_contents * pystripe_channel_contents & \
+		{'pystripe_performed':0}
+
+	currently_being_pystriped_table_id = 'horizontal_currently_being_pystriped_table'
+	table_currently_being_pystriped = dynamic_pystripe_management_table(contents_currently_being_pystriped,
+		table_id=currently_being_pystriped_table_id,
+		sort_by=sort,sort_reverse=reverse)
+
+	''' Next get all entities that are ready to be pystriped.
+	These are entries of the stitching table that are not in the pystripe table yet. '''
+
+	contents_ready_to_pystripe = imaged_and_stitched_contents - pystripe_channel_contents
+	ready_to_pystripe_table_id = 'horizontal_ready_to_pystripe_table'
+	table_ready_to_pystripe = dynamic_pystripe_management_table(contents_ready_to_pystripe,
+		table_id=ready_to_pystripe_table_id,
+		sort_by=sort,sort_reverse=reverse)
+
+	contents_already_pystriped = imaged_and_stitched_contents * pystripe_channel_contents & \
+		{'pystripe_performed':1}
+
+	already_pystriped_table_id = 'horizontal_already_pystriped_table'
+	table_already_pystriped = dynamic_pystripe_management_table(contents_already_pystriped,
+		table_id=already_pystriped_table_id,
+		sort_by=sort,sort_reverse=reverse)
+	
+	return render_template('processing/pystripe_management.html',
+		table_ready_to_pystripe=table_ready_to_pystripe,
+		table_already_pystriped=table_already_pystriped,
+		table_currently_being_pystriped=table_currently_being_pystriped)
+
 
 @processing.route("/processing/processing_entry/<username>/<request_name>/<sample_name>/<imaging_request_number>/<processing_request_number>",
 	methods=['GET','POST'])
