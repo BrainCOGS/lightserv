@@ -56,6 +56,16 @@ class SmartspimStitchingSpockJob(dj.Manual):
     """
 
 @schema 
+class SmartspimPystripeSpockJob(dj.Manual):
+    definition = """    # Spock job management table for the entire light sheet pipeline
+    jobid_step0                   : varchar(16) # the jobid on spock for the first step in the pipeline.
+    timestamp = CURRENT_TIMESTAMP : timestamp
+    ---    
+    username                      : varchar(32)
+    status_step0                  : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT") # 
+    """
+
+@schema 
 class RawPrecomputedSpockJob(dj.Manual):
     definition = """    # Spock job management table for precomputed jobs
     jobid_step2  : varchar(16) # the jobid on spock of step2 (downsampling) in the precomputed pipeline. Used as primary key so that the progress of the precomputed pipeline can be probed.

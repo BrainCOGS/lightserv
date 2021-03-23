@@ -8,7 +8,7 @@ from lightserv.processing.tables import (create_dynamic_processing_overview_tabl
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests,mymkdir)
-from lightserv.processing.tasks import run_lightsheet_pipeline
+from lightserv.processing.tasks import run_lightsheet_pipeline, smartspim_pystripe
 from lightserv import cel
 import datajoint as dj
 from datetime import datetime
@@ -198,108 +198,90 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number,proc
 	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel() & restrict_dict
 
 	form = PystripeEntryForm(request.form)
-	
+
+	ventral_up=False
 	if request.method == 'POST': # post request
-		if processing_progress != 'incomplete':
-			flash(f"Processing is {processing_progress} for this sample.  "
-			"It cannot be re-processed. To open a new processing request, "
-			"see your request page",'warning')
-			return redirect(url_for('processing.processing_manager'))
-		logger.info('post request')
-		if form.validate_on_submit():
-			logger.debug("form validated")
-			logger.debug("form data after POST request")
-			logger.debug(form.data)
-			''' Now update the db table with the data collected in the form'''
-			
-			""" loop through and update the atlas to be used based on what the user supplied """
-			for image_resolution_form in form.image_resolution_forms:
+		logger.debug("POST request")
+		
+		""" loop through channels forms and find the one that was submitted,
+		then do validation check  """
+		for ii,channel_form in enumerate(form.channel_forms):
+			submitted = channel_form.start_pystripe.data
+			if submitted:
+				logger.debug(f"Channel form {ii} submitted")
+				if channel_form.validate_on_submit():
+					logger.debug("Channel form submitted and validated")
+					channel_name = channel_form.channel_name.data
+					image_resolution = channel_form.image_resolution.data
+					flat_name = channel_form.flat_name.data
+					data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
+					channel_names = current_app.config['SMARTSPIM_IMAGING_CHANNELS']
+					channel_index = channel_names.index(channel_name)
+					rawdata_subfolder = f'Ex_{channel_name}_Em_{channel_index}'
+					flat_name_fullpath = os.path.join(data_bucket_rootpath,username,
+						request_name,sample_name,
+						f'imaging_request_{imaging_request_number}',
+						'rawdata',f'resolution_{image_resolution}',
+						f'{rawdata_subfolder}_stitched',flat_name)
 
-				# logger.debug("form resolution dict:")
-				# logger.debug(form_resolution_dict)
-				this_image_resolution = image_resolution_form.image_resolution.data
-				this_image_resolution = this_image_resolution if 'ventral_up' not in this_image_resolution else this_image_resolution.strip('_ventral_up')
-				ventral_up = image_resolution_form.ventral_up.data
-				logger.debug("Image resolution:")				
-				logger.debug(this_image_resolution)
-				logger.debug("ventral_up?")
-				logger.debug(ventral_up)
-				atlas_name = image_resolution_form.atlas_name.data
-				logger.debug("Atlas name:")
-				logger.debug(atlas_name)
-				logger.debug(type(atlas_name))
-				""" Make processing path on /jukebox """
-				if ventral_up: 
-					processing_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
-					username,request_name,sample_name,f'imaging_request_{imaging_request_number}',
-					'output',f'processing_request_{processing_request_number}',
-					f'resolution_{this_image_resolution}_ventral_up')
+					# Now start pystripe 
+					kwargs = dict(username=username,
+							request_name=request_name,
+							sample_name=sample_name,
+							imaging_request_number=imaging_request_number,
+							processing_request_number=processing_request_number,
+							channel_name=channel_name,
+							image_resolution=image_resolution,
+							ventral_up=ventral_up,
+							rawdata_subfolder=rawdata_subfolder,
+							flat_name_fullpath = flat_name_fullpath)
+					
+					if not os.environ['FLASK_MODE'] == "TEST":
+						smartspim_pystripe.delay(**kwargs)
+					pystripe_channel_insert_dict = {
+						'username':username,
+						'request_name':request_name,
+						'sample_name':sample_name,
+						'imaging_request_number':imaging_request_number,
+						'processing_request_number':processing_request_number,
+						'image_resolution':image_resolution,
+						'channel_name':channel_name,
+						'ventral_up':ventral_up,
+						'flatfield_filename':os.path.basename(flat_name_fullpath),
+					}
+					db_lightsheet.Request.SmartspimPystripeChannel().insert1(
+						pystripe_channel_insert_dict,skip_duplicates=True) # it is possible the async task makes the insert first
+					flash(f"Started pystripe for channel: {channel_name}","success")
 				else:
-					processing_path_to_make = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
-					username,request_name,sample_name,f'imaging_request_{imaging_request_number}',
-					'output',f'processing_request_{processing_request_number}',
-					f'resolution_{this_image_resolution}')
-				mymkdir(processing_path_to_make)
-				restrict_dict = {'image_resolution':this_image_resolution,'ventral_up':ventral_up}
-				this_processing_resolution_content = processing_resolution_request_contents & restrict_dict
-				""" If a processing resolution request does not already exist for this resolution/ventral_up 
-				combination then just make a new one """
-				if len(this_processing_resolution_content) == 0:
-					logger.debug("Making a new ProcessingResolutionRequest insert since one did not exist")
-					image_resolution_to_insert = this_image_resolution if 'ventral_up' not in this_image_resolution else this_image_resolution.strip("_ventral_up")
-					processing_resolution_request_insert_dict = dict(
-						username=username,request_name=request_name,
-						sample_name=sample_name,
-						image_resolution=image_resolution_to_insert,
-						imaging_request_number=imaging_request_number,
-						processing_request_number=processing_request_number,
-						ventral_up=ventral_up,
-						atlas_name=atlas_name,
-						final_orientation='sagittal',
-						)
-					db_lightsheet.Request.ProcessingResolutionRequest().insert1(
-						processing_resolution_request_insert_dict
-					)
-					this_processing_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & \
-						f'image_resolution="{image_resolution_to_insert}"' & f'ventral_up={ventral_up}'
-
-				logger.info("updating atlas and notes_from_processing in ProcessingResolutionRequest() with user's form data")
-				processing_resolution_insert_dict = this_processing_resolution_content.fetch1()
-				processing_resolution_insert_dict['atlas_name'] = atlas_name
-				processing_resolution_insert_dict['notes_from_processing'] = form.notes_from_processing.data
-				db_lightsheet.Request.ProcessingResolutionRequest().insert1(processing_resolution_insert_dict,replace=True)
-			logger.info(f"Starting light sheet pipeline task")
-
-			if not os.environ['FLASK_MODE'] == 'TEST': # pragma: no cover - used to exclude this line from calculating test coverage
-				run_lightsheet_pipeline.delay(username=username,request_name=request_name,sample_name=sample_name,
-					imaging_request_number=imaging_request_number,
-					processing_request_number=processing_request_number)
-			dj.Table._update(processing_request_contents,'processing_progress','running')
-			logger.debug("Updated processing_progress in ProcessingRequest() table")
-			flash("Your data processing has begun. You will receive an email "
-				  "when it is completed.","success")
-		
+					logger.debug("not validated")
+					flash("There was an error. See below","danger")
+		# return redirect(url_for('requests.all_requests'))
+	if request.method == "GET":
+		logger.debug("GET request")
+		# Remove old forms and regenerate
+		while len(form.channel_forms) > 0:
+			form.channel_forms.pop_entry() # pragma: no cover - used to exclude this line from calculating test coverage
+		# Loop over channels and add subform for each one
+		for stitching_dict in stitching_contents:
+			image_resolution = stitching_dict['image_resolution']
+			channel_name = stitching_dict['channel_name']
+			logger.debug("Making form for resolution/channel:")
+			logger.debug(image_resolution)
+			logger.debug(channel_name)
 			
-			return redirect(url_for('requests.all_requests'))
-		else:
-			logger.debug(form.errors) # pragma: no cover - used to exclude this line from calculating test coverage
-	
-	while len(form.channel_forms) > 0:
-		form.channel_forms.pop_entry() # pragma: no cover - used to exclude this line from calculating test coverage
-	""" Figure out the unique number of image resolutions """
-	""" for each unique image resolution figure out if there is ventral up imaging.
-	If there is, then we need to create a new image resolution subform """
-	for stitching_dict in stitching_contents:
-		image_resolution = stitching_dict['image_resolution']
-		channel_name = stitching_dict['channel_name']
-		logger.debug("Making form for resolution/channel:")
-		logger.debug(image_resolution)
-		logger.debug(channel_name)
+			form.channel_forms.append_entry()
+			this_channel_form = form.channel_forms[-1]
+			this_channel_form.username.data = username
+			this_channel_form.request_name.data = request_name
+			this_channel_form.sample_name.data = sample_name
+			this_channel_form.imaging_request_number.data = imaging_request_number
+			this_channel_form.image_resolution.data = image_resolution
+			this_channel_form.channel_name.data = channel_name
+	# Loop over existing channel forms and strike out any for which pystriped has been started
+	for this_channel_form in form.channel_forms:
+		image_resolution = this_channel_form.image_resolution.data
+		channel_name = this_channel_form.channel_name.data
 		
-		form.channel_forms.append_entry()
-		this_channel_form = form.channel_forms[-1]
-		this_channel_form.image_resolution.data = image_resolution
-		this_channel_form.channel_name.data = channel_name
 		# Figure out pystripe already started for this channel
 		# This amounts to checking if there is an entry in the 
 		# SmartspimPystripeChannel() table
@@ -311,7 +293,8 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number,proc
 		if len(pystripe_started_contents) > 0:
 			this_channel_form.pystripe_started.data = True
 			this_channel_form.flat_name.data = pystripe_started_contents.fetch1('flatfield_filename')
-
+	logger.debug("Form data:")
+	print(form.data)
 	data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
 	return render_template('processing/pystripe_entry.html',
 		data_bucket_rootpath=data_bucket_rootpath,

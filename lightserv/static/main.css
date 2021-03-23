@@ -234,12 +234,14 @@ th     { background:#eee; }
 
 .big-checkbox {width: 50px; height: 30px;}
 
+/* For striking out a table row*/
+td { position: relative; }
+tr.strikeout td:before {
+  content: " ";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  border-bottom: 3px solid black;
+  width: 100%;
 
-.strikediag {
-  background: linear-gradient(to left top, transparent 47.75%, currentColor 49.5%, currentColor 50.5%, transparent 52.25%);
-}
-
-table tr.crossed
-{
-   background-image: linear-gradient(to bottom right,  transparent calc(50% - 1px), red, transparent calc(50% + 1px)); 
 }

@@ -585,6 +585,144 @@ def smartspim_stitch(**kwargs):
 	return "SUBMITTED spock job"
 
 @cel.task()
+def smartspim_pystripe(**kwargs):
+	""" An asynchronous celery task (runs in a background process) which
+	runs a script on spock to run pystripe on smartspim images for a given 
+	imaging channel
+	"""
+	username=kwargs['username']
+	request_name=kwargs['request_name']
+	sample_name=kwargs['sample_name']
+	imaging_request_number=kwargs['imaging_request_number']
+	processing_request_number=kwargs['processing_request_number']
+	channel_name=kwargs['channel_name']
+	image_resolution=kwargs['image_resolution']
+	ventral_up=kwargs['ventral_up']
+	rawdata_subfolder=kwargs['rawdata_subfolder']
+	flat_name_fullpath = kwargs['flat_name_fullpath']
+
+	pystripe_channel_insert_dict = {
+		'username':username,
+		'request_name':request_name,
+		'sample_name':sample_name,
+		'imaging_request_number':imaging_request_number,
+		'processing_request_number':processing_request_number,
+		'image_resolution':image_resolution,
+		'channel_name':channel_name,
+		'ventral_up':ventral_up,
+		'flatfield_filename':os.path.basename(flat_name_fullpath),
+	}
+	
+	if ventral_up:
+		stitched_input_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+				username,request_name,sample_name,
+				f"imaging_request_{imaging_request_number}",
+				'rawdata',
+				f"resolution_{image_resolution}_ventral_up",
+				rawdata_subfolder + '_stitched')
+		corrected_output_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+				username,request_name,sample_name,
+				f"imaging_request_{imaging_request_number}",
+				'rawdata',
+				f"resolution_{image_resolution}_ventral_up",
+				rawdata_subfolder + '_corrected')
+	else:
+		stitched_input_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+				username,request_name,sample_name,
+				f"imaging_request_{imaging_request_number}",
+				'rawdata',
+				f"resolution_{image_resolution}",
+				rawdata_subfolder + '_stitched')
+		corrected_output_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+				username,request_name,sample_name,
+				f"imaging_request_{imaging_request_number}",
+				'rawdata',
+				f"resolution_{image_resolution}",
+				rawdata_subfolder + '_corrected')
+	# Make corrected output dir 
+	mymkdir(corrected_output_dir)
+	
+	""" Now run pystripe via paramiko """
+
+	hostname = 'spock.pni.princeton.edu'
+	
+	processing_code_dir = os.path.join(
+		current_app.config['PROCESSING_CODE_DIR'],
+		'smartspim')
+	pipeline_shell_script = 'spim_pystripe_pipeline.sh'
+	""" Set up the communication with spock """
+
+	""" First get the git commit from brainpipe """
+	command_get_commit = f'cd {processing_code_dir}; git rev-parse --short HEAD'
+	
+	if os.environ['FLASK_MODE'] == 'TEST':        
+		command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pystripe.sh"""
+	else:
+		command = """cd %s;%s/%s %s %s %s""" % \
+		(
+			processing_code_dir,
+			processing_code_dir,
+			pipeline_shell_script,
+			stitched_input_dir,
+			flat_name_fullpath,
+			corrected_output_dir,
+		)
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
+	port = 22
+
+	client = paramiko.SSHClient()
+	client.load_system_host_keys()
+	client.set_missing_host_key_policy(paramiko.WarningPolicy)
+	try:
+		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+	except paramiko.ssh_exception.AuthenticationException:
+		logger.info(f"Failed to connect to spock to start job. ")
+		pystripe_channel_insert_dict['smartspim_stitching_spock_job_progress'] = 'NOT_SUBMITTED'
+
+		db_lightsheet.Request.SmartspimPystripeChannel().insert1(
+			pystripe_channel_insert_dict) 
+		
+	logger.debug("Command:")
+	logger.debug(command)
+	stdin, stdout, stderr = client.exec_command(command)
+	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
+	logger.debug("Stdout Response:")
+	logger.debug(response)
+	error_response = str(stderr.read().decode("utf-8"))
+	if error_response:
+		logger.debug("Stderr Response:")
+		logger.debug(error_response)
+	else:
+		logger.debug("No Stderr Response")
+	logger.debug("")
+	jobid_step0 = response.split('\n')
+	status = 'SUBMITTED'
+	entry_dict = {}
+	entry_dict['username'] = username
+	entry_dict['jobid_step0'] = jobid_step0
+	entry_dict['status_step0'] = status
+
+	""" Update the job status table in spockadmin schema """
+	logger.debug(entry_dict)
+	db_spockadmin.SmartspimPystripeSpockJob.insert1(entry_dict)    
+	logger.info(f"SmartspimPystripeSpockJob() entry successfully inserted, jobid (step 0): {jobid_step0}")
+
+	""" Update the request tables in lightsheet schema """ 
+
+	pystripe_channel_insert_dict['smartspim_pystripe_spock_jobid'] = jobid_step0
+	pystripe_channel_insert_dict['smartspim_pystripe_spock_job_progress'] = 'SUBMITTED'
+
+	now = datetime.now()
+	pystripe_channel_insert_dict['datetime_pystripe_started'] = now
+	logger.debug("inserting into SmartspimPystripeChannel():")
+	logger.debug(pystripe_channel_insert_dict)
+	db_lightsheet.Request.SmartspimPystripeChannel().insert1(
+			pystripe_channel_insert_dict,replace=True) 
+	client.close()
+	return "SUBMITTED pystripe spock job"
+
+
+@cel.task()
 def make_precomputed_stitched_data(**kwargs):
 	""" Celery task for making precomputed dataset
 	(i.e. one that can be read by cloudvolume) from 

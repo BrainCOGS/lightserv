@@ -19,33 +19,39 @@
 
 			{% for ii in range(form.channel_forms|length) %}
 				{% set channel_form = form.channel_forms[ii] %}
-				<!-- Render hiddenfield for image resolution -->
+				<!-- Render hiddenfields -->
+				{{ channel_form.username() }}
+				{{ channel_form.request_name() }}
+				{{ channel_form.sample_name() }}
+				{{ channel_form.imaging_request_number() }}
 				{{ channel_form.image_resolution() }}
 				{{ channel_form.channel_name() }}
+				{{ channel_form.pystripe_started() }}
 				{% set image_resolution = channel_form.image_resolution.data %}
 				{% set channel_name = channel_form.channel_name.data %}
-				{% set pystripe_started = channel_form.pystripe_started.data %}
+				{% set pystripe_started = channel_form.pystripe_started.data == true %}
+				<!-- {{ pystripe_started }} -->
 				{% if pystripe_started %}
-					<tr class='crossed'>
+					<tr class='strikeout'>
 				{% else %}
 					<tr>
 				{% endif %}
 	                <td>SmartSPIM</td>
 	                <td>{{ image_resolution }}</td>
 	                <td>{{ channel_name }}</td>
-	                <td>
+	                <td style="word-wrap: break-word; max-width:200px;">
 	                	{% if pystripe_started %}
 	                		{{ channel_form.flat_name.data }}
 	                	{% else %}
 		                	{% if channel_form.flat_name.errors %}
-			                	{{ channel_form.flat_name(class="form-control form-control-lg is-invalid",oninput="update_charbox(this)") }}
+			                	{{ channel_form.flat_name(class="form-control form-control-sm is-invalid",oninput="update_charbox(this)") }}
 								<div class="invalid-feedback">
 									{% for error in channel_form.flat_name.errors %}
 										<span>{{ error }}</span>
 									{% endfor %}
 								</div>
 							{% else %}
-								{{ channel_form.flat_name(class="form-control form-control-lg") }}
+								{{ channel_form.flat_name(class="form-control form-control-sm") }}
 							{% endif %}
 						{% endif %}
 	                </td>
@@ -54,7 +60,7 @@
 	                		Already started
 	                	{% else %}
 		                	<div class="form-group">
-								{{ channel_form.start_pystripe(class="btn btn-lg btn-info mt-2") }}
+								{{ channel_form.start_pystripe(class="btn btn-sm btn-info") }}
 							</div>
 						{% endif %}
 	                </td>
