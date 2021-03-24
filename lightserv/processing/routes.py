@@ -116,7 +116,7 @@ def pystripe_manager():
 	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	current_user = session['user']
-	logger.info(f"{current_user} accessed pystripe_manager manager")
+	logger.info(f"{current_user} accessed pystripe_manager")
 
 	processing_admins = current_app.config['PROCESSING_ADMINS']
 	
@@ -213,7 +213,6 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 
 	form = PystripeEntryForm(request.form)
 
-
 	if request.method == 'POST': # post request
 		logger.debug("POST request")
 		
@@ -223,11 +222,11 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 			submitted = channel_form.start_pystripe.data
 			if submitted:
 				logger.debug(f"Channel form {ii} submitted")
+				logger.debug(channel_form.data)
 				if channel_form.validate_on_submit():
-					print(channel_form.data)
-					logger.debug("Channel form submitted and validated")
+					logger.debug("Channel form validated")
 					channel_name = channel_form.channel_name.data
-					ventral_up = channel_form.ventral_up.data
+					ventral_up = int(channel_form.ventral_up.data) # for testing it turns 0 into '0' for some reason
 					image_resolution = channel_form.image_resolution.data
 					flat_name = channel_form.flat_name.data
 					data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
@@ -235,18 +234,20 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 					channel_index = channel_names.index(channel_name)
 					rawdata_subfolder = f'Ex_{channel_name}_Em_{channel_index}'
 					if ventral_up:
+						logger.debug("have ventral up imaging")
 						flat_name_fullpath = os.path.join(data_bucket_rootpath,username,
 							request_name,sample_name,
 							f'imaging_request_{imaging_request_number}',
 							'rawdata',f'resolution_{image_resolution}_ventral_up',
 							f'{rawdata_subfolder}_stitched',flat_name)
 					else:
+						logger.debug("have dorsal up imaging")
 						flat_name_fullpath = os.path.join(data_bucket_rootpath,username,
 							request_name,sample_name,
 							f'imaging_request_{imaging_request_number}',
 							'rawdata',f'resolution_{image_resolution}',
 							f'{rawdata_subfolder}_stitched',flat_name)
-
+					
 					# Now start pystripe task
 					kwargs = dict(username=username,
 							request_name=request_name,
@@ -261,6 +262,8 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 					
 					if not os.environ['FLASK_MODE'] == "TEST":
 						smartspim_pystripe.delay(**kwargs)
+					else:
+						logger.debug("Not running pystripe async task because we are in TEST mode.")
 					pystripe_channel_insert_dict = {
 						'username':username,
 						'request_name':request_name,
@@ -278,15 +281,19 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 					ventral_up_str = 'ventral up' if ventral_up else 'dorsal up' 
 					flash(f"Started pystripe for channel: {channel_name}, {ventral_up_str}","success")
 					# Figure out if this is the last channel to be pystriped. If so, then reroute back to the pystripe manager
-
+					
 					pystripe_channel_contents = db_lightsheet.Request.SmartspimPystripeChannel() & restrict_dict
 					if len(pystripe_channel_contents) == len(form.channel_forms):
 						flash("Pystripe has been started for all channels in the sample.","success")
 						return redirect(url_for('processing.pystripe_manager'))
+					return redirect(url_for('processing.pystripe_entry',username=username,
+						request_name=request_name,sample_name=sample_name,
+						imaging_request_number=imaging_request_number))
 				else:
 					logger.debug("not validated")
+					logger.debug("here are the errors")
+					logger.debug(channel_form.errors)
 					flash("There was an error. See below","danger")
-
 	elif request.method == "GET":
 		logger.debug("GET request")
 		# Remove old forms and regenerate

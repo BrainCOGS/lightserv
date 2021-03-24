@@ -1184,9 +1184,12 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 														channel_name=channel_name,
 														ventral_up=ventral_up,
 														rawdata_subfolder=rawdata_subfolder)
-												smartspim_stitch.delay(**stitching_kwargs)
-												logger.debug("Smartspim stitching task sent with these kwargs:")
-												logger.debug(stitching_kwargs)
+												if not os.environ['FLASK_MODE'] == 'TEST': 
+													smartspim_stitch.delay(**stitching_kwargs)
+													logger.debug("Smartspim stitching task sent with these kwargs:")
+													logger.debug(stitching_kwargs)
+												else:
+													logger.debug("Not running stitching pipeline because we are in TEST mode")
 								flash(f"Imaging entry for sample {this_sample_name} was successful","success")
 						else:
 							logger.debug("Sample form not validated")

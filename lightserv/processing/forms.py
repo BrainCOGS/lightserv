@@ -66,10 +66,11 @@ class ChannelPystripeForm(FlaskForm):
 	start_pystripe = SubmitField('Start pystripe')	
 
 	def validate_flat_name(self,flat_name):
+		print("validating flat name")
 		data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
 		channel_names = current_app.config['SMARTSPIM_IMAGING_CHANNELS']
 		channel_index = channel_names.index(self.channel_name.data)
-		if self.ventral_up.data:
+		if int(self.ventral_up.data):
 			flat_name_fullpath = os.path.join(data_bucket_rootpath,self.username.data,
 				self.request_name.data,self.sample_name.data,
 				f'imaging_request_{self.imaging_request_number.data}',

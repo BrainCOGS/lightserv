@@ -1895,8 +1895,9 @@ def test_cleared_request_both_microscopes_nonadmin(test_client,
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_cleared_request_4x_nonadmin fixture --------')
 
-
+#############################
 """ Fixtures for imaging  """
+#############################
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
@@ -1991,6 +1992,59 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 		sess['user'] = 'lightserv-test'
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
+
+@pytest.fixture(scope='function') 
+def test_imaged_smartspim_request_nonadmin(test_client,
+	test_cleared_request_3p6x_smartspim_nonadmin,
+	test_delete_request_db_contents,test_login_aichen):
+	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
+	with imager='aichen' """
+
+	print('----------Setup test_imaged_smartspim_request_nonadmin fixture ----------')
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'aichen'
+	""" First submit sample 1 """
+	data1 = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-right_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.1,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'3x5',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3600,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'Ex_488_Em_0',
+		'sample_forms-0-submit':True
+		}
+	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_3p6x_smartspim_request',
+			clearing_batch_number=1,
+			imaging_request_number=1,
+			imaging_batch_number=1),
+		data=data1,
+		follow_redirects=True)
+	
+	data2 = {
+		'submit':True
+		}
+
+	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_3p6x_smartspim_request',
+			clearing_batch_number=1,
+			imaging_request_number=1,
+			imaging_batch_number=1),
+		data=data2,
+		follow_redirects=True)
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
+	yield test_client
+	print('----------Teardown test_imaged_smartspim_request_nonadmin fixture ----------')
+
 
 @pytest.fixture(scope='function') 
 def test_request_resolution_switched_nonadmin(test_client,test_cleared_request_nonadmin,
@@ -2354,9 +2408,43 @@ def test_new_imaging_request_nonadmin(test_client,
 	yield test_client
 	print('----------Teardown test_new_imaging_request_nonadmin fixture ----------')
 
+#####################################
+""" Fixtures for SmartSPIM
+Stitching and Pystripe correction """
+#####################################
 
+@pytest.fixture(scope='function')
+def smartspim_stitched_request(test_client,
+	test_imaged_smartspim_request_nonadmin):
+	""" A fixture that runs the stitching task synchronously.
+	Submits a test job to spock
+	and makes an entry into the spockadmin db to testing 
+	of job status checkers. """
+	print('----------Setup smartspim_stitched_request fixture----------')
 
+	from lightserv.processing import tasks
+	username='lightserv-test'
+	request_name='nonadmin_3p6x_smartspim_request'
+	sample_name='sample-001'
+	imaging_request_number=1
+	image_resolution = '3.6x'
+	channel_name = '488'
+	ventral_up = 0
+	rawdata_subfolder = 'Ex_488_Em_0'
+	stitching_kwargs = dict(username=username,request_name=request_name,
+							sample_name=sample_name,imaging_request_number=imaging_request_number,
+							image_resolution=image_resolution,
+							channel_name=channel_name,
+							ventral_up=ventral_up,
+							rawdata_subfolder=rawdata_subfolder)
+	tasks.smartspim_stitch.run(**stitching_kwargs)
+	yield test_client
+
+	print('----------Teardown smartspim_stitched_request fixture ----------')
+
+###############################
 """ Fixtures for processing """
+###############################
 
 @pytest.fixture(scope='function')
 def processing_request_ahoag(test_client,test_imaged_request_ahoag,

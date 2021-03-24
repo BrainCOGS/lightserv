@@ -457,7 +457,6 @@ def smartspim_stitch(**kwargs):
 		'ventral_up':ventral_up,
 	}
 	
-
 	if ventral_up:
 		rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 				username,request_name,sample_name,
@@ -500,8 +499,8 @@ def smartspim_stitch(**kwargs):
 	""" First get the git commit from brainpipe """
 	command_get_commit = f'cd {processing_code_dir}; git rev-parse --short HEAD'
 	
-	if os.environ['FLASK_MODE'] == 'TEST':        
-		command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pipeline.sh"""
+	if os.environ['FLASK_MODE'] == 'TEST' or os.environ['FLASK_MODE'] == 'DEV':        
+		command = f"""cd {processing_code_dir}/testing;./test_stitching.sh"""
 	else:
 		command = """cd %s;%s/%s %s %s""" % \
 		(
@@ -524,13 +523,7 @@ def smartspim_stitch(**kwargs):
 		stitching_channel_insert_dict['smartspim_stitching_spock_job_progress'] = 'NOT_SUBMITTED'
 		db_lightsheet.Request.SmartspimStitchedChannel().insert1(
 			stitching_channel_insert_dict) 
-		flash("Error submitting your job to spock. "
-			  "Most likely the ssh key was not copied correctly to your account on spock. "
-			  "The key can be found in an email that was sent to you from "
-			  "lightservhelper@gmail.com when you submitted your request. "
-			  "Please check that the permissions of your ~/.ssh folder on spock are set to 700 "
-			  "and the permissions of the .ssh/authorized_keys file is 640:","danger")
-		return redirect(url_for('main.FAQ',_anchor='ssh_key'))
+		return "FAILED"
 	logger.debug("Command:")
 	logger.debug(command)
 	stdin, stdout, stderr = client.exec_command(command)
@@ -626,6 +619,7 @@ def smartspim_pystripe(**kwargs):
 				'rawdata',
 				f"resolution_{image_resolution}_ventral_up",
 				rawdata_subfolder + '_corrected')
+
 		print(f"Using ventral up stitched dir: {stitched_input_dir}")
 	else:
 		stitched_input_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
