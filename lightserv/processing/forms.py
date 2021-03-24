@@ -60,6 +60,7 @@ class ChannelPystripeForm(FlaskForm):
 	image_resolution = HiddenField('Image resolution')
 	channel_name = HiddenField('Channel name')
 	pystripe_started = HiddenField('Pipeline started',default=False)
+	pystripe_status = HiddenField('Pystripe status',default=False)
 	flat_name = StringField('Flat field filename',default='flat.tiff',validators=[Length(max=64)])
 	start_pystripe = SubmitField('Start pystripe')	
 

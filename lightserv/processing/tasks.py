@@ -655,7 +655,7 @@ def smartspim_pystripe(**kwargs):
 	""" First get the git commit from brainpipe """
 	command_get_commit = f'cd {processing_code_dir}; git rev-parse --short HEAD'
 	
-	if os.environ['FLASK_MODE'] == 'TEST':        
+	if os.environ['FLASK_MODE'] == 'TEST' or os.environ['FLASK_MODE'] == 'DEV' :        
 		command = f"""cd {processing_code_dir}/testing; {processing_code_dir}/testing/test_pystripe.sh"""
 	else:
 		command = """cd %s;%s/%s %s %s %s""" % \
@@ -1818,6 +1818,182 @@ def smartspim_stitching_job_status_checker():
 	logger.debug(job_insert_list)
 	db_spockadmin.SmartspimStitchingSpockJob.insert(job_insert_list)
 	logger.debug("Entry in SmartspimStitchingSpockJob() admin table with latest status")
+
+	client.close()
+
+
+	
+	# for each running process, find all jobids in the processing resolution request tables
+	return "Checked processing job statuses"
+
+@cel.task()
+def smartspim_pystripe_job_status_checker():
+	""" 
+	A celery task that will be run in a schedule
+
+	Checks all outstanding smartspim pystripe job statuses on spock
+	and updates their status in the db_spockadmin.SmartspimPystripeSpockJob()
+	in db_spockadmin
+	and SmartspimPystripeChannel() in db_lightsheet.
+
+	When the pystripe pipeline is done, check to 
+	see if all channels in this sample are 
+	done stitching. If so, send the email to user/admins
+	saying the data are pystriped.
+ 
+
+	"""
+	all_pystripe_entries = db_lightsheet.Request.SmartspimPystripeChannel()
+   
+	""" First get all rows with latest timestamps """
+	job_contents = db_spockadmin.SmartspimPystripeSpockJob()
+	unique_contents = dj.U('jobid_step0','username',).aggr(
+		job_contents,timestamp='max(timestamp)')*job_contents
+	
+	""" Get a list of all jobs we need to check up on, i.e.
+	those that could conceivably change. Also list the problematic_codes
+	which will be used later for error reporting to the user.
+	"""
+
+	# static_codes = ('COMPLETED','FAILED','BOOT_FAIL','CANCELLED','DEADLINE','OUT_OF_MEMORY','REVOKED')
+	ongoing_codes = ('SUBMITTED','RUNNING','PENDING','REQUEUED','RESIZING','SUSPENDED')
+	incomplete_contents = unique_contents & f'status_step0 in {ongoing_codes}'
+	jobids = list(incomplete_contents.fetch('jobid_step0'))
+	if jobids == []:
+		return "No jobs to check"
+	jobids_str = ','.join(str(jobid) for jobid in jobids)
+	logger.debug(f"Outstanding job ids are: {jobids}")
+	port = 22
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
+	hostname = 'spock.pni.princeton.edu'
+
+	client = paramiko.SSHClient()
+	client.load_system_host_keys()
+	client.set_missing_host_key_policy(paramiko.WarningPolicy)
+	try:
+		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+	except:
+		logger.debug("Something went wrong connecting to spock.")
+		client.close()
+		return "Error connecting to spock"
+	logger.debug("connected to spock")
+	try:
+		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
+		stdin, stdout, stderr = client.exec_command(command)
+
+		stdout_str = stdout.read().decode("utf-8")
+		logger.debug("The response from spock is:")
+		logger.debug(stdout_str)
+		response_lines = stdout_str.strip('\n').split('\n')
+		jobids_received = [x.split('|')[0].split('_')[0] for x in response_lines] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
+		status_codes_received = [x.split('|')[1] for x in response_lines]
+		logger.debug("Job ids received")
+		logger.debug(jobids_received)
+		logger.debug("Status codes received")
+		logger.debug(status_codes_received)
+		job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
+		job_insert_list = []
+	except:
+		logger.debug("Something went wrong fetching job statuses from spock.")
+		client.close()
+		return "Error fetching job statuses from spock"
+
+	""" Loop through outstanding jobs and determine their statuses """
+	for jobid,indices_list in job_status_indices_dict.items():
+		logger.debug(f"Working on jobid={jobid}")
+		job_insert_dict = {'jobid_step0':jobid}
+		status_codes = [status_codes_received[ii] for ii in indices_list]
+		status_step0 = determine_status_code(status_codes)
+		logger.debug(f"Status code for this job is: {status_step0}")
+		job_insert_dict['status_step0'] = status_step0
+		""" Find the username, other jobids associated with this jobid """
+		username_thisjob = (unique_contents & f'jobid_step0={jobid}').fetch1(
+			'username')
+		job_insert_dict['username']=username_thisjob
+		job_insert_dict['jobid_step0']=jobid
+
+		""" Get the lightsheet SmartspimPystripeChannel() entry associated with this jobid
+		and update the progress """
+		this_pystripe_content = all_pystripe_entries & \
+			f'smartspim_pystripe_spock_jobid={jobid}'
+		if len(this_pystripe_content) == 0:
+			logger.debug("No entry found in SmartspimPystripeChannel() table")
+			continue
+		logger.debug("this pystripe content:")
+		logger.debug(this_pystripe_content)
+		dj.Table._update(this_pystripe_content,
+			'smartspim_pystripe_spock_job_progress',status_step0)
+		logger.debug("Updated smartspim_pystripe_spock_job_progress in SmartspimPystripeChannel() table ")
+		
+		if status_step0 == 'COMPLETED':
+			""" Find all SmartspimPystripeChannel() entries from this same sample_name """
+			logger.debug("checking to see whether all channels in this sample name "
+						 "have completed pystripe")
+			(username,request_name,sample_name,imaging_request_number,image_resolution) = this_pystripe_content.fetch1(
+					"username","request_name","sample_name",
+					"imaging_request_number","image_resolution")
+			logger.debug("Made it here 1")
+			restrict_dict_imaging_channel = dict(username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number)
+			imaging_channel_contents = \
+				db_lightsheet.Request.ImagingChannel() & \
+				restrict_dict_imaging_channel
+			ventral_up_allchannels = imaging_channel_contents.fetch('ventral_up')
+
+			pystripe_channel_contents = \
+				db_lightsheet.Request.SmartspimPystripeChannel() & \
+				restrict_dict_imaging_channel
+			logger.debug("Made it here 2")
+			""" Loop through and pool all of the job statuses """
+			pystripe_job_statuses = pystripe_channel_contents.fetch(
+				'smartspim_pystripe_spock_job_progress')
+	
+			data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
+			if any(ventral_up_allchannels):
+				output_directory = os.path.join(data_bucket_rootpath,username,
+								 request_name,sample_name,
+								 f"imaging_request_{imaging_request_number}",
+								 "rawdata",
+								 f"resolution_{image_resolution}_ventral_up")
+			else:
+				output_directory = os.path.join(data_bucket_rootpath,username,
+							 request_name,sample_name,
+							 f"imaging_request_{imaging_request_number}",
+							 "rawdata",
+							 f"resolution_{image_resolution}")
+
+			if all(x=='COMPLETED' for x in pystripe_job_statuses) and \
+				len(pystripe_job_statuses) == len(imaging_channel_contents):
+				if len(pystripe_channel_contents) > 1:
+					all_channels_pystripe_list = pystripe_channel_contents.fetch('channel_name')
+					all_channels_pystripe = ', '.join(all_channels_pystripe_list) 
+				else:
+					all_channels_pystripe = pystripe_channel_contents.fetch1('channel_name')
+				logger.debug("The pystripe pipeline for all channels"
+							 " in this imaging request are complete!")
+				subject = 'Lightserv automated email: Preprocessed SmartSPIM images ready'
+				body = ('All images for your sample:\n\n'
+						f'request_name: {request_name}\n'
+						f'sample_name: {sample_name}\n'
+						'are done preprocessing.   \n\n'
+						'The preprocessed image TIFF stacks are available for each channel in the *_corrected/ subfolders '
+						f'on bucket here: {output_directory}')
+				restrict_dict_request = {'username':username,'request_name':request_name}
+				request_contents = db_lightsheet.Request() & restrict_dict_request
+				correspondence_email = request_contents.fetch1('correspondence_email')
+				recipients = [correspondence_email]
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					send_email.delay(subject=subject,body=body,recipients=recipients)
+			else:
+				logger.debug("Not all channels in this "
+							 "imaging request are done being pystriped")
+
+		job_insert_list.append(job_insert_dict)
+
+	logger.debug("Insert list:")
+	logger.debug(job_insert_list)
+	db_spockadmin.SmartspimPystripeSpockJob.insert(job_insert_list)
+	logger.debug("Entry in SmartspimPystripeSpockJob() admin table with latest status")
 
 	client.close()
 

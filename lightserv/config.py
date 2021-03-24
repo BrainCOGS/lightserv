@@ -67,9 +67,13 @@ class DevConfig(BaseConfig):
 		# 'task': 'lightserv.processing.tasks.stitched_precomputed_job_status_checker',
 		# 'schedule': timedelta(seconds=7)
 		# },
-		'smartspim_stitching_job_status_checker': {
-		'task': 'lightserv.processing.tasks.smartspim_stitching_job_status_checker',
-		'schedule': timedelta(seconds=30)
+		# 'smartspim_stitching_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.smartspim_stitching_job_status_checker',
+		# 'schedule': timedelta(seconds=30)
+		# },
+		'smartspim_pystripe_job_status_checker': {
+		'task': 'lightserv.processing.tasks.smartspim_pystripe_job_status_checker',
+		'schedule': timedelta(seconds=10)
 		},
 		'ng_viewer_cleanser': {
 		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',

@@ -14,7 +14,7 @@
 	                <th>Image resolution</th>
 	                <th>Channel wavelength(nm)</th>
 	                <th>Flat file name</th>
-	                <th>Start pystripe</th>
+	                <th>Pystripe status</th>
 	            </tr>
 
 			{% for ii in range(form.channel_forms|length) %}
@@ -27,15 +27,12 @@
 				{{ channel_form.image_resolution() }}
 				{{ channel_form.channel_name() }}
 				{{ channel_form.pystripe_started() }}
+				{{ channel_form.pystripe_status() }}
 				{% set image_resolution = channel_form.image_resolution.data %}
 				{% set channel_name = channel_form.channel_name.data %}
 				{% set pystripe_started = channel_form.pystripe_started.data == true %}
 				<!-- {{ pystripe_started }} -->
-				{% if pystripe_started %}
-					<tr class='strikeout'>
-				{% else %}
-					<tr>
-				{% endif %}
+				<tr>
 	                <td>SmartSPIM</td>
 	                <td>{{ image_resolution }}</td>
 	                <td>{{ channel_name }}</td>
@@ -57,7 +54,7 @@
 	                </td>
 	                <td>
 	                	{% if pystripe_started %}
-	                		Already started
+	                		{{channel_form.pystripe_status.data}}
 	                	{% else %}
 		                	<div class="form-group">
 								{{ channel_form.start_pystripe(class="btn btn-sm btn-info") }}
@@ -67,7 +64,7 @@
 	            </tr>
 				
 	        {% endfor %} 
-			
+		
 		</fieldset>
 	</form>
 {% endblock content %}
