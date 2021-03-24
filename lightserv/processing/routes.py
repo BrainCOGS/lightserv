@@ -124,7 +124,7 @@ def pystripe_manager():
 	imaging_request_contents = db_lightsheet.Request.ImagingRequest() 
 	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() 
 	imaged_channel_contents = imaging_channel_contents * imaging_request_contents &\
-		{'imaging_progress':'complete'}
+		{'imaging_progress':'complete'} & 'image_resolution="3.6x"'
 	
 	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel()
 	
@@ -148,16 +148,22 @@ def pystripe_manager():
 		imaged_and_stitched_contents = imaged_and_stitched_contents & {'username':current_user}
 		pystripe_channel_contents = pystripe_channel_contents & {'username':current_user}
 
+	combined_contents = imaged_and_stitched_contents * pystripe_channel_contents
+	''' Figure out which imaging requests are currently being pystriped, ready to be pystriped
+	and already completed being pystriped '''
+	pystripe_imaging_requests = dj.U('username','request_name','sample_name',
+    'imaging_request_number').aggr(combined_contents,
+                                   username='username',
+                                   n_channels_imaged='n_channels_imaged',
+                                   n_channels_pystriped='sum(pystripe_performed)',
+                                   n_channels_started='count(*)',
+                                  )
+
 	''' Get all entities that are currently being pystriped.'''
-	channels_currently_being_pystriped = imaged_and_stitched_contents * pystripe_channel_contents & \
-    {'pystripe_performed':0}
 	
-	imaging_requests_currently_being_pystriped = dj.U('username','request_name','sample_name',
-    'imaging_request_number').aggr(channels_currently_being_pystriped,
-                                      username='username',
-                                      request_name='request_name',
-                                      sample_name='sample_name',
-                                      imaging_request_number='imaging_request_number')
+	logger.debug(pystripe_imaging_requests)
+	imaging_requests_currently_being_pystriped = pystripe_imaging_requests &\
+		'n_channels_pystriped!=n_channels_imaged' & 'n_channels_started>0' 
 
 	currently_being_pystriped_table_id = 'horizontal_currently_being_pystriped_table'
 	table_currently_being_pystriped = dynamic_pystripe_management_table(imaging_requests_currently_being_pystriped,
@@ -173,11 +179,11 @@ def pystripe_manager():
 		table_id=ready_to_pystripe_table_id,
 		sort_by=sort,sort_reverse=reverse)
 
-	contents_already_pystriped = imaged_and_stitched_contents * pystripe_channel_contents & \
-		{'pystripe_performed':1}
+	imaging_requests_already_pystriped = pystripe_imaging_requests &\
+		'n_channels_pystriped=n_channels_imaged'
 
 	already_pystriped_table_id = 'horizontal_already_pystriped_table'
-	table_already_pystriped = dynamic_pystripe_management_table(contents_already_pystriped,
+	table_already_pystriped = dynamic_pystripe_management_table(imaging_requests_already_pystriped,
 		table_id=already_pystriped_table_id,
 		sort_by=sort,sort_reverse=reverse)
 	
@@ -264,7 +270,7 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 
 					pystripe_channel_contents = db_lightsheet.Request.SmartspimPystripeChannel() & restrict_dict
 					if len(pystripe_channel_contents) == len(form.channel_forms):
-						flash("Pystripe has been started for all channels in this sample.","success")
+						flash("Pystripe has been started for all channels in the sample.","success")
 						return redirect(url_for('processing.pystripe_manager'))
 				else:
 					logger.debug("not validated")

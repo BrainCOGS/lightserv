@@ -55,6 +55,7 @@
 							        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
 										<a class="dropdown-item" href="{{ url_for('clearing.clearing_manager')}}">All Clearing Tasks</a>
 										<a class="dropdown-item" href="{{ url_for('imaging.imaging_manager')}}">All Imaging Tasks</a>
+										<a class="dropdown-item" href="{{ url_for('processing.pystripe_manager')}}">All Pystripe Tasks</a>
 										<a class="dropdown-item" href="{{ url_for('processing.processing_manager')}}">All Processing Tasks</a>
 
 										{% if session['user'] == 'ahoag' or session['user'] == 'thiberge' %}

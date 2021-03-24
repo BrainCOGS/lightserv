@@ -1923,9 +1923,14 @@ def smartspim_pystripe_job_status_checker():
 		logger.debug(this_pystripe_content)
 		dj.Table._update(this_pystripe_content,
 			'smartspim_pystripe_spock_job_progress',status_step0)
-		logger.debug("Updated smartspim_pystripe_spock_job_progress in SmartspimPystripeChannel() table ")
+		logger.debug("Updated SmartspimPystripeChannel() entry with current job status")
 		
 		if status_step0 == 'COMPLETED':
+			this_pystripe_content = all_pystripe_entries & \
+			f'smartspim_pystripe_spock_jobid={jobid}'
+			dj.Table._update(this_pystripe_content,
+			'pystripe_performed',1)
+			logger.debug("Pystripe complete, marking pystripe_performed=1 in SmartspimPystripeChannel() channel")
 			""" Find all SmartspimPystripeChannel() entries from this same sample_name """
 			logger.debug("checking to see whether all channels in this sample name "
 						 "have completed pystripe")
