@@ -59,6 +59,7 @@ class ChannelPystripeForm(FlaskForm):
 	imaging_request_number = HiddenField('imaging request number')
 	image_resolution = HiddenField('Image resolution')
 	channel_name = HiddenField('Channel name')
+	ventral_up = HiddenField('Ventral up?')
 	pystripe_started = HiddenField('Pipeline started',default=False)
 	pystripe_status = HiddenField('Pystripe status',default=False)
 	flat_name = StringField('Flat field filename',default='flat.tiff',validators=[Length(max=64)])
@@ -68,17 +69,24 @@ class ChannelPystripeForm(FlaskForm):
 		data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
 		channel_names = current_app.config['SMARTSPIM_IMAGING_CHANNELS']
 		channel_index = channel_names.index(self.channel_name.data)
-		flat_name_fullpath = os.path.join(data_bucket_rootpath,self.username.data,
-			self.request_name.data,self.sample_name.data,
-			f'imaging_request_{self.imaging_request_number.data}',
-			'rawdata',f'resolution_{self.image_resolution.data}',
-			f'Ex_{self.channel_name.data}_Em_{channel_index}_stitched',flat_name.data)
+		if self.ventral_up.data:
+			flat_name_fullpath = os.path.join(data_bucket_rootpath,self.username.data,
+				self.request_name.data,self.sample_name.data,
+				f'imaging_request_{self.imaging_request_number.data}',
+				'rawdata',f'resolution_{self.image_resolution.data}_ventral_up',
+				f'Ex_{self.channel_name.data}_Em_{channel_index}_stitched',flat_name.data)
+		else:
+			flat_name_fullpath = os.path.join(data_bucket_rootpath,self.username.data,
+				self.request_name.data,self.sample_name.data,
+				f'imaging_request_{self.imaging_request_number.data}',
+				'rawdata',f'resolution_{self.image_resolution.data}',
+				f'Ex_{self.channel_name.data}_Em_{channel_index}_stitched',flat_name.data)
 		print(flat_name_fullpath)
 		if not os.path.exists(flat_name_fullpath):
 			raise ValidationError(f"No file found named: {flat_name_fullpath}")
 
 class PystripeEntryForm(FlaskForm):
 	""" The form for entering flat information and then starting Pystripe """
-	max_number_of_channels = 4 # Only have 3.6x imaging so 4 possible channels
+	max_number_of_channels = 8 # Only have 3.6x imaging so 4 possible channels*2 since each channel can be ventral up or dorsal up
 	channel_forms = FieldList(FormField(ChannelPystripeForm),min_entries=0,
 		max_entries=max_number_of_channels)

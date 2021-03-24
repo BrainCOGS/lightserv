@@ -626,6 +626,7 @@ def smartspim_pystripe(**kwargs):
 				'rawdata',
 				f"resolution_{image_resolution}_ventral_up",
 				rawdata_subfolder + '_corrected')
+		print(f"Using ventral up stitched dir: {stitched_input_dir}")
 	else:
 		stitched_input_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 				username,request_name,sample_name,

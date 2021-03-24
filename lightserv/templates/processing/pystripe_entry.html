@@ -13,6 +13,7 @@
 	                <th>Microscope</th>
 	                <th>Image resolution</th>
 	                <th>Channel wavelength(nm)</th>
+	                <th>Ventral or Dorsal up?</th>
 	                <th>Flat file name</th>
 	                <th>Pystripe status</th>
 	            </tr>
@@ -26,16 +27,25 @@
 				{{ channel_form.imaging_request_number() }}
 				{{ channel_form.image_resolution() }}
 				{{ channel_form.channel_name() }}
+				{{ channel_form.ventral_up() }}
 				{{ channel_form.pystripe_started() }}
 				{{ channel_form.pystripe_status() }}
 				{% set image_resolution = channel_form.image_resolution.data %}
 				{% set channel_name = channel_form.channel_name.data %}
+				{% set ventral_up = channel_form.ventral_up.data %}
 				{% set pystripe_started = channel_form.pystripe_started.data == true %}
 				<!-- {{ pystripe_started }} -->
 				<tr>
 	                <td>SmartSPIM</td>
 	                <td>{{ image_resolution }}</td>
 	                <td>{{ channel_name }}</td>
+	                <td>
+	                	{% if ventral_up %}
+	                		Ventral
+	                	{% else %}
+	                		Dorsal
+	                	{% endif %}
+	                </td>
 	                <td style="word-wrap: break-word; max-width:200px;">
 	                	{% if pystripe_started %}
 	                		{{ channel_form.flat_name.data }}
@@ -52,6 +62,7 @@
 							{% endif %}
 						{% endif %}
 	                </td>
+
 	                <td>
 	                	{% if pystripe_started %}
 	                		{{channel_form.pystripe_status.data}}

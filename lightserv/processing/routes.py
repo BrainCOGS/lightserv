@@ -148,6 +148,15 @@ def pystripe_manager():
 		imaged_and_stitched_contents = imaged_and_stitched_contents & {'username':current_user}
 		pystripe_channel_contents = pystripe_channel_contents & {'username':current_user}
 
+	''' Get contents ready to be pystriped.
+	These are entries of the stitching table that are not in the pystripe table yet. '''
+
+	contents_ready_to_pystripe = imaged_and_stitched_contents - pystripe_channel_contents
+	ready_to_pystripe_table_id = 'horizontal_ready_to_pystripe_table'
+	table_ready_to_pystripe = dynamic_pystripe_management_table(contents_ready_to_pystripe,
+		table_id=ready_to_pystripe_table_id,
+		sort_by=sort,sort_reverse=reverse)
+
 	combined_contents = imaged_and_stitched_contents * pystripe_channel_contents
 	''' Figure out which imaging requests are currently being pystriped, ready to be pystriped
 	and already completed being pystriped '''
@@ -160,8 +169,7 @@ def pystripe_manager():
                                   )
 
 	''' Get all entities that are currently being pystriped.'''
-	
-	logger.debug(pystripe_imaging_requests)
+
 	imaging_requests_currently_being_pystriped = pystripe_imaging_requests &\
 		'n_channels_pystriped!=n_channels_imaged' & 'n_channels_started>0' 
 
@@ -170,14 +178,7 @@ def pystripe_manager():
 		table_id=currently_being_pystriped_table_id,
 		sort_by=sort,sort_reverse=reverse)
 
-	''' Next get all entities that are ready to be pystriped.
-	These are entries of the stitching table that are not in the pystripe table yet. '''
-
-	contents_ready_to_pystripe = imaged_and_stitched_contents - pystripe_channel_contents
-	ready_to_pystripe_table_id = 'horizontal_ready_to_pystripe_table'
-	table_ready_to_pystripe = dynamic_pystripe_management_table(contents_ready_to_pystripe,
-		table_id=ready_to_pystripe_table_id,
-		sort_by=sort,sort_reverse=reverse)
+	
 
 	imaging_requests_already_pystriped = pystripe_imaging_requests &\
 		'n_channels_pystriped=n_channels_imaged'
@@ -212,7 +213,7 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 
 	form = PystripeEntryForm(request.form)
 
-	ventral_up=False
+
 	if request.method == 'POST': # post request
 		logger.debug("POST request")
 		
@@ -223,19 +224,28 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 			if submitted:
 				logger.debug(f"Channel form {ii} submitted")
 				if channel_form.validate_on_submit():
+					print(channel_form.data)
 					logger.debug("Channel form submitted and validated")
 					channel_name = channel_form.channel_name.data
+					ventral_up = channel_form.ventral_up.data
 					image_resolution = channel_form.image_resolution.data
 					flat_name = channel_form.flat_name.data
 					data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
 					channel_names = current_app.config['SMARTSPIM_IMAGING_CHANNELS']
 					channel_index = channel_names.index(channel_name)
 					rawdata_subfolder = f'Ex_{channel_name}_Em_{channel_index}'
-					flat_name_fullpath = os.path.join(data_bucket_rootpath,username,
-						request_name,sample_name,
-						f'imaging_request_{imaging_request_number}',
-						'rawdata',f'resolution_{image_resolution}',
-						f'{rawdata_subfolder}_stitched',flat_name)
+					if ventral_up:
+						flat_name_fullpath = os.path.join(data_bucket_rootpath,username,
+							request_name,sample_name,
+							f'imaging_request_{imaging_request_number}',
+							'rawdata',f'resolution_{image_resolution}_ventral_up',
+							f'{rawdata_subfolder}_stitched',flat_name)
+					else:
+						flat_name_fullpath = os.path.join(data_bucket_rootpath,username,
+							request_name,sample_name,
+							f'imaging_request_{imaging_request_number}',
+							'rawdata',f'resolution_{image_resolution}',
+							f'{rawdata_subfolder}_stitched',flat_name)
 
 					# Now start pystripe task
 					kwargs = dict(username=username,
@@ -265,7 +275,8 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 					}
 					db_lightsheet.Request.SmartspimPystripeChannel().insert1(
 						pystripe_channel_insert_dict,skip_duplicates=True) # it is possible the async task makes the insert first
-					flash(f"Started pystripe for channel: {channel_name}","success")
+					ventral_up_str = 'ventral up' if ventral_up else 'dorsal up' 
+					flash(f"Started pystripe for channel: {channel_name}, {ventral_up_str}","success")
 					# Figure out if this is the last channel to be pystriped. If so, then reroute back to the pystripe manager
 
 					pystripe_channel_contents = db_lightsheet.Request.SmartspimPystripeChannel() & restrict_dict
@@ -285,6 +296,7 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 		for stitching_dict in stitching_contents:
 			image_resolution = stitching_dict['image_resolution']
 			channel_name = stitching_dict['channel_name']
+			ventral_up = stitching_dict['ventral_up']
 			
 			form.channel_forms.append_entry()
 			this_channel_form = form.channel_forms[-1]
@@ -294,6 +306,7 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 			this_channel_form.imaging_request_number.data = imaging_request_number
 			this_channel_form.image_resolution.data = image_resolution
 			this_channel_form.channel_name.data = channel_name
+			this_channel_form.ventral_up.data = ventral_up
 
 	"""" If either GET or POST, loop over existing channel forms and 
 	strike out any for which pystriped has already been started """
@@ -301,6 +314,7 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 	for this_channel_form in form.channel_forms:
 		image_resolution = this_channel_form.image_resolution.data
 		channel_name = this_channel_form.channel_name.data
+		ventral_up = this_channel_form.ventral_up.data
 		
 		# Figure out if pystripe already started for this channel
 		# This amounts to checking if there is an entry in the 
@@ -308,6 +322,7 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 		restrict_dict_pystripe = restrict_dict.copy()
 		restrict_dict_pystripe['image_resolution'] = image_resolution
 		restrict_dict_pystripe['channel_name'] = channel_name
+		restrict_dict_pystripe['ventral_up'] = ventral_up
 		pystripe_started_contents = db_lightsheet.Request.SmartspimPystripeChannel &\
 			restrict_dict_pystripe
 		if len(pystripe_started_contents) > 0:
