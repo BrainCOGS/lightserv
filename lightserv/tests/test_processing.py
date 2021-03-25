@@ -274,6 +274,97 @@ def test_dorsal_up_and_ventral_up_processing(test_client,
 	processing_progress = processing_request_contents.fetch1('processing_progress')
 	assert processing_progress == 'running'
 
+""" Tests for smartspim stitching """
+def test_smartspim_stitching_works(test_client,
+	smartspim_stitched_request):
+	""" Test that stitching task runs and db is updated """
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
+	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel()
+	stitching_results = stitching_contents.fetch1()
+	assert len(stitching_contents) == 1
+	assert stitching_results['request_name'] == 'nonadmin_3p6x_smartspim_request'
+
+
+""" Tests for pystripe manager """
+
+def test_access_pystripe_manager(test_client,
+	smartspim_stitched_request):
+	""" Test that sg3271, an imaging admin can access the pystripe task manager
+	and see the stitched channel that needs to be corrected with pystripe """
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'sg3271'
+	response = test_client.get(url_for('processing.pystripe_manager')
+		, follow_redirects=True)
+	assert b'Pystripe management GUI' in response.data
+	assert b'nonadmin_3p6x_smartspim_request' in response.data
+
+""" Tests for pystripe_entry """
+
+def test_get_pystripe_entry(test_client,
+	smartspim_stitched_request):
+	""" Test that sg3271, an imaging admin can access the pystripe_entry
+	route and see the stitched channel that needs to be corrected with pystripe """
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'sg3271'
+	username='lightserv-test'
+	request_name = 'nonadmin_3p6x_smartspim_request'
+	sample_name = 'sample-001'
+	imaging_request_number=1
+	kwargs = dict(username=username,
+		request_name=request_name,
+		sample_name=sample_name,
+		imaging_request_number=imaging_request_number)
+	response = test_client.get(url_for('processing.pystripe_entry',
+		**kwargs)
+		, follow_redirects=True)
+	assert b'Pystripe Setup Form' in response.data
+	assert b'488' in response.data
+	assert request_name.encode('utf-8') in response.data
+	assert sample_name.encode('utf-8') in response.data
+	assert b'Start pystripe' in response.data
+	
+def test_post_pystripe_entry(test_client,
+	smartspim_stitched_request):
+	""" Test that sg3271, an imaging admin can post the pystripe task manager
+	and see the stitched channel that needs to be corrected with pystripe """
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'sg3271'
+	username='lightserv-test'
+	request_name = 'nonadmin_3p6x_smartspim_request'
+	sample_name = 'sample-001'
+	imaging_request_number=1
+	kwargs = dict(username=username,
+		request_name=request_name,
+		sample_name=sample_name,
+		imaging_request_number=imaging_request_number)
+
+	data = {
+	'channel_forms-0-username':username,
+	'channel_forms-0-request_name':request_name,
+	'channel_forms-0-sample_name':sample_name,
+	'channel_forms-0-imaging_request_number':imaging_request_number,
+	'channel_forms-0-image_resolution':'3.6x',
+	'channel_forms-0-channel_name':'488',
+	'channel_forms-0-ventral_up':0,
+	'channel_forms-0-pystripe_started':False,
+	'channel_forms-0-flat_name':'flat.tiff',
+	'channel_forms-0-start_pystripe':True,
+	}
+	response = test_client.post(url_for('processing.pystripe_entry',
+		**kwargs),
+		data=data
+		, follow_redirects=True)
+	assert b'Pystripe Setup Form' not in response.data
+	assert b'Pystripe management GUI' in response.data
+	# Make sure a db entry was made in the SmartspimPystripeChannel() table
+	pystripe_contents = db_lightsheet.Request.SmartspimPystripeChannel()
+	assert len(pystripe_contents) == 1
+	pystripe_result = pystripe_contents.fetch1()
+	assert pystripe_result['request_name'] == request_name
+	assert pystripe_result['pystripe_performed'] == False
+
+
 """ Tests for processing_table """
 
 def test_ahoag_access_processing_table(test_client,processing_request_ahoag):

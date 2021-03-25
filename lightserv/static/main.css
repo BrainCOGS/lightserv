@@ -233,3 +233,15 @@ th     { background:#eee; }
 }*/
 
 .big-checkbox {width: 50px; height: 30px;}
+
+/* For striking out a table row*/
+td { position: relative; }
+tr.strikeout td:before {
+  content: " ";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  border-bottom: 3px solid black;
+  width: 100%;
+
+}

@@ -1,14 +1,14 @@
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup, current_app)
-from lightserv.processing.forms import StartProcessingForm
+from lightserv.processing.forms import StartProcessingForm,PystripeEntryForm
 from lightserv.processing.tables import (create_dynamic_processing_overview_table,
 	dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable,
-	ProcessingChannelTable)
+	ProcessingChannelTable,dynamic_pystripe_management_table)
 from lightserv import db_lightsheet
 from lightserv.main.utils import (logged_in, table_sorter,logged_in_as_processor,
 	check_clearing_completed,check_imaging_completed,log_http_requests,mymkdir)
-from lightserv.processing.tasks import run_lightsheet_pipeline
+from lightserv.processing.tasks import run_lightsheet_pipeline, smartspim_pystripe
 from lightserv import cel
 import datajoint as dj
 from datetime import datetime
@@ -107,6 +107,244 @@ def processing_manager():
 		table_being_processed=table_being_processed,
 		table_ready_to_process=table_ready_to_process,table_on_deck=table_on_deck,
 		table_already_processed=table_already_processed)
+
+@processing.route("/processing/pystripe_manager",methods=['GET','POST'])
+@logged_in
+@log_http_requests
+def pystripe_manager():
+	"""  """
+	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
+	reverse = (request.args.get('direction', 'asc') == 'desc')
+	current_user = session['user']
+	logger.info(f"{current_user} accessed pystripe_manager")
+
+	processing_admins = current_app.config['PROCESSING_ADMINS']
+	
+	# Select smartspim samples that have been fully imaged (all channels)
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() 
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() 
+	imaged_channel_contents = imaging_channel_contents * imaging_request_contents &\
+		{'imaging_progress':'complete'} & 'image_resolution="3.6x"'
+	
+	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel()
+	
+	imaged_aggr_contents = dj.U('username','request_name','sample_name',
+		'imaging_request_number').aggr(
+		imaged_channel_contents,
+		n_channels_imaged='count(*)')
+	
+	stitched_aggr_contents = dj.U('username','request_name','sample_name',
+		'imaging_request_number',
+		'processing_request_number').aggr(
+		stitching_contents,
+		n_channels_stitched='count(*)')
+	
+	imaged_and_stitched_contents = imaged_aggr_contents * stitched_aggr_contents &\
+		'n_channels_imaged=n_channels_stitched'
+	
+	pystripe_channel_contents = db_lightsheet.Request.SmartspimPystripeChannel() 
+
+	if current_user not in processing_admins:
+		imaged_and_stitched_contents = imaged_and_stitched_contents & {'username':current_user}
+		pystripe_channel_contents = pystripe_channel_contents & {'username':current_user}
+
+	''' Get contents ready to be pystriped.
+	These are entries of the stitching table that are not in the pystripe table yet. '''
+
+	contents_ready_to_pystripe = imaged_and_stitched_contents - pystripe_channel_contents
+	ready_to_pystripe_table_id = 'horizontal_ready_to_pystripe_table'
+	table_ready_to_pystripe = dynamic_pystripe_management_table(contents_ready_to_pystripe,
+		table_id=ready_to_pystripe_table_id,
+		sort_by=sort,sort_reverse=reverse)
+
+	combined_contents = imaged_and_stitched_contents * pystripe_channel_contents
+	''' Figure out which imaging requests are currently being pystriped, ready to be pystriped
+	and already completed being pystriped '''
+	pystripe_imaging_requests = dj.U('username','request_name','sample_name',
+    'imaging_request_number').aggr(combined_contents,
+                                   username='username',
+                                   n_channels_imaged='n_channels_imaged',
+                                   n_channels_pystriped='sum(pystripe_performed)',
+                                   n_channels_started='count(*)',
+                                  )
+
+	''' Get all entities that are currently being pystriped.'''
+
+	imaging_requests_currently_being_pystriped = pystripe_imaging_requests &\
+		'n_channels_pystriped!=n_channels_imaged' & 'n_channels_started>0' 
+
+	currently_being_pystriped_table_id = 'horizontal_currently_being_pystriped_table'
+	table_currently_being_pystriped = dynamic_pystripe_management_table(imaging_requests_currently_being_pystriped,
+		table_id=currently_being_pystriped_table_id,
+		sort_by=sort,sort_reverse=reverse)
+
+	
+
+	imaging_requests_already_pystriped = pystripe_imaging_requests &\
+		'n_channels_pystriped=n_channels_imaged'
+
+	already_pystriped_table_id = 'horizontal_already_pystriped_table'
+	table_already_pystriped = dynamic_pystripe_management_table(imaging_requests_already_pystriped,
+		table_id=already_pystriped_table_id,
+		sort_by=sort,sort_reverse=reverse)
+	
+	return render_template('processing/pystripe_management.html',
+		table_ready_to_pystripe=table_ready_to_pystripe,
+		table_already_pystriped=table_already_pystriped,
+		table_currently_being_pystriped=table_currently_being_pystriped)
+
+@processing.route("/processing/pystripe_entry/<username>/<request_name>/<sample_name>/<imaging_request_number>",
+	methods=['GET','POST'])
+@logged_in
+@check_clearing_completed
+@check_imaging_completed
+@log_http_requests
+def pystripe_entry(username,request_name,sample_name,imaging_request_number):
+	""" Route to start the pystripe script for a set of channels in a
+	single imaging request for a single sample after a Flat has been generated. """
+	processing_request_number = 1 # pystripe is only ever run once per image - hence hardcoded processing_request_number
+	logger.info(f"{session['user']} accessed pystripe_entry route")
+	restrict_dict = {'username':username,
+					 'request_name':request_name,
+					 'sample_name':sample_name,
+					 'imaging_request_number':imaging_request_number,
+					 'processing_request_number':processing_request_number} 
+	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel() & restrict_dict
+
+	form = PystripeEntryForm(request.form)
+
+	if request.method == 'POST': # post request
+		logger.debug("POST request")
+		
+		""" loop through channels forms and find the one that was submitted,
+		then do validation check  """
+		for ii,channel_form in enumerate(form.channel_forms):
+			submitted = channel_form.start_pystripe.data
+			if submitted:
+				logger.debug(f"Channel form {ii} submitted")
+				logger.debug(channel_form.data)
+				if channel_form.validate_on_submit():
+					logger.debug("Channel form validated")
+					channel_name = channel_form.channel_name.data
+					ventral_up = int(channel_form.ventral_up.data) # for testing it turns 0 into '0' for some reason
+					image_resolution = channel_form.image_resolution.data
+					flat_name = channel_form.flat_name.data
+					data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
+					channel_names = current_app.config['SMARTSPIM_IMAGING_CHANNELS']
+					channel_index = channel_names.index(channel_name)
+					rawdata_subfolder = f'Ex_{channel_name}_Em_{channel_index}'
+					if ventral_up:
+						logger.debug("have ventral up imaging")
+						flat_name_fullpath = os.path.join(data_bucket_rootpath,username,
+							request_name,sample_name,
+							f'imaging_request_{imaging_request_number}',
+							'rawdata',f'resolution_{image_resolution}_ventral_up',
+							f'{rawdata_subfolder}_stitched',flat_name)
+					else:
+						logger.debug("have dorsal up imaging")
+						flat_name_fullpath = os.path.join(data_bucket_rootpath,username,
+							request_name,sample_name,
+							f'imaging_request_{imaging_request_number}',
+							'rawdata',f'resolution_{image_resolution}',
+							f'{rawdata_subfolder}_stitched',flat_name)
+					
+					# Now start pystripe task
+					kwargs = dict(username=username,
+							request_name=request_name,
+							sample_name=sample_name,
+							imaging_request_number=imaging_request_number,
+							processing_request_number=processing_request_number,
+							channel_name=channel_name,
+							image_resolution=image_resolution,
+							ventral_up=ventral_up,
+							rawdata_subfolder=rawdata_subfolder,
+							flat_name_fullpath = flat_name_fullpath)
+					
+					if not os.environ['FLASK_MODE'] == "TEST":
+						smartspim_pystripe.delay(**kwargs)
+					else:
+						logger.debug("Not running pystripe async task because we are in TEST mode.")
+					pystripe_channel_insert_dict = {
+						'username':username,
+						'request_name':request_name,
+						'sample_name':sample_name,
+						'imaging_request_number':imaging_request_number,
+						'processing_request_number':processing_request_number,
+						'image_resolution':image_resolution,
+						'channel_name':channel_name,
+						'ventral_up':ventral_up,
+						'flatfield_filename':os.path.basename(flat_name_fullpath),
+						'smartspim_pystripe_spock_job_progress':"SUBMITTED",
+					}
+					db_lightsheet.Request.SmartspimPystripeChannel().insert1(
+						pystripe_channel_insert_dict,skip_duplicates=True) # it is possible the async task makes the insert first
+					ventral_up_str = 'ventral up' if ventral_up else 'dorsal up' 
+					flash(f"Started pystripe for channel: {channel_name}, {ventral_up_str}","success")
+					# Figure out if this is the last channel to be pystriped. If so, then reroute back to the pystripe manager
+					
+					pystripe_channel_contents = db_lightsheet.Request.SmartspimPystripeChannel() & restrict_dict
+					if len(pystripe_channel_contents) == len(form.channel_forms):
+						flash("Pystripe has been started for all channels in the sample.","success")
+						return redirect(url_for('processing.pystripe_manager'))
+					return redirect(url_for('processing.pystripe_entry',username=username,
+						request_name=request_name,sample_name=sample_name,
+						imaging_request_number=imaging_request_number))
+				else:
+					logger.debug("not validated")
+					logger.debug("here are the errors")
+					logger.debug(channel_form.errors)
+					flash("There was an error. See below","danger")
+	elif request.method == "GET":
+		logger.debug("GET request")
+		# Remove old forms and regenerate
+		while len(form.channel_forms) > 0:
+			form.channel_forms.pop_entry() # pragma: no cover - used to exclude this line from calculating test coverage
+		# Loop over channels and add subform for each one
+		for stitching_dict in stitching_contents:
+			image_resolution = stitching_dict['image_resolution']
+			channel_name = stitching_dict['channel_name']
+			ventral_up = stitching_dict['ventral_up']
+			
+			form.channel_forms.append_entry()
+			this_channel_form = form.channel_forms[-1]
+			this_channel_form.username.data = username
+			this_channel_form.request_name.data = request_name
+			this_channel_form.sample_name.data = sample_name
+			this_channel_form.imaging_request_number.data = imaging_request_number
+			this_channel_form.image_resolution.data = image_resolution
+			this_channel_form.channel_name.data = channel_name
+			this_channel_form.ventral_up.data = ventral_up
+
+	"""" If either GET or POST, loop over existing channel forms and 
+	strike out any for which pystriped has already been started """
+	n_remaining_channels = len(form.channel_forms)
+	for this_channel_form in form.channel_forms:
+		image_resolution = this_channel_form.image_resolution.data
+		channel_name = this_channel_form.channel_name.data
+		ventral_up = this_channel_form.ventral_up.data
+		
+		# Figure out if pystripe already started for this channel
+		# This amounts to checking if there is an entry in the 
+		# SmartspimPystripeChannel() table
+		restrict_dict_pystripe = restrict_dict.copy()
+		restrict_dict_pystripe['image_resolution'] = image_resolution
+		restrict_dict_pystripe['channel_name'] = channel_name
+		restrict_dict_pystripe['ventral_up'] = ventral_up
+		pystripe_started_contents = db_lightsheet.Request.SmartspimPystripeChannel &\
+			restrict_dict_pystripe
+		if len(pystripe_started_contents) > 0:
+			this_channel_form.pystripe_started.data = True
+			flat_name,pystripe_status = pystripe_started_contents.fetch1(
+				'flatfield_filename','smartspim_pystripe_spock_job_progress')
+			this_channel_form.flat_name.data = flat_name
+			this_channel_form.pystripe_status.data = pystripe_status
+			n_remaining_channels-=1
+	
+	data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
+	return render_template('processing/pystripe_entry.html',
+		data_bucket_rootpath=data_bucket_rootpath,
+		form=form,n_remaining_channels=n_remaining_channels)	
+
 
 @processing.route("/processing/processing_entry/<username>/<request_name>/<sample_name>/<imaging_request_number>/<processing_request_number>",
 	methods=['GET','POST'])
