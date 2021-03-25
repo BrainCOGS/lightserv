@@ -18,12 +18,12 @@ cd viewer-launcher
 docker build -f ./viewer-launcher.Dockerfile -t viewer-launcher:test .
 
 ## build cloud volume test tag
-cd ../cloudvolume
+cd ../cloudvolume-docker
 
 docker build -f ./cloudvolume.Dockerfile -t cloudv_viewer:test .
 	
 ## build neuroglancer-raw test tag
-cd ../neuroglancer-raw
+cd ../neuroglancer-docker/neuroglancer-raw
 
 docker build -f ./neuroglancer.Dockerfile -t nglancer_raw_viewer:test .
 

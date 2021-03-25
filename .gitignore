@@ -29,5 +29,7 @@ screenshots
 **/stop_celery_prod.sh
 **/stop_flower_dev.sh
 **/add_smartspim_to_db.py
-**/setup_prod_schema.py
-**/setup_dev_schema.py
+setup_prod_schema.py
+setup_dev_schema.py
+rebuild_dev.sh
+rebuild_prod.sh
