@@ -172,6 +172,10 @@ class ProdConfig(BaseConfig):
 		'task': 'lightserv.processing.tasks.smartspim_stitching_job_status_checker',
 		'schedule': timedelta(minutes=10)
 		},
+		'smartspim_pystripe_job_status_checker': {
+		'task': 'lightserv.processing.tasks.smartspim_pystripe_job_status_checker',
+		'schedule': timedelta(minutes=20)
+		},
 		
 	}
 
