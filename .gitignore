@@ -32,4 +32,5 @@ screenshots
 setup_prod_schema.py
 setup_dev_schema.py
 rebuild_dev.sh
+rebuild_test.sh
 rebuild_prod.sh
