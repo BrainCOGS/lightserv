@@ -14,12 +14,12 @@ docker network rm lightserv-prod
 docker network create --attachable lightserv-prod
 
 ## build cloud volume latest tag
-cd ./cloudvolume
+cd ./cloudvolume-docker
 
 docker build -f ./cloudvolume.Dockerfile -t cloudv_viewer:prod .
 	
 ## build neuroglancer-raw prod tag
-cd ../neuroglancer-raw
+cd ../neuroglancer-docker/neuroglancer-raw
 
 docker build -f ./neuroglancer.Dockerfile -t nglancer_raw_viewer:prod .
 

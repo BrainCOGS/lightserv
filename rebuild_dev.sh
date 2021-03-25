@@ -17,7 +17,7 @@ docker network rm lightserv-dev
 docker network create --attachable lightserv-dev
 
 ## build cloud volume latest tag
-cd ./cloudvolume
+cd ./cloudvolume-docker
 
 docker build -f ./cloudvolume.Dockerfile -t cloudv_viewer:latest .
 	
