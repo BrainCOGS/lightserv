@@ -2,7 +2,7 @@ version: "3.4"
 
 services:
   flower:
-    env_file: .dockerenv
+    env_file: ../.dockerenv
     image: flaskcelery:prod
     command: ["celery",
               "flower",
@@ -12,8 +12,8 @@ services:
               "--port=5555",
               "--loglevel=info"]
     volumes:
-      - .:/app
-      - ./lib:/opt/libraries
+      - ..:/app
+      - ../lib:/opt/libraries
       - /jukebox/LightSheetData:/jukebox/LightSheetData
       - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
       - /var/run/docker.sock:/var/run/docker.sock

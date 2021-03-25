@@ -2,12 +2,12 @@ version: "3.4"
 
 services:
   testworker:
-    env_file: .testworkerdockerenv
+    env_file: ../.testworkerdockerenv
     image: flaskcelery:latest
     command: "celery worker -A celery_worker.cel --loglevel=info"
     volumes:
-      - .:/app
-      - ./lib:/opt/libraries
+      - ..:/app
+      - ../lib:/opt/libraries
       - /jukebox/LightSheetData:/jukebox/LightSheetData
       - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
 networks:
