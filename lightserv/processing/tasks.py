@@ -1799,8 +1799,8 @@ def smartspim_stitching_job_status_checker():
 						f' in the raw data channel directories on bucket here: {output_directory}')
 				restrict_dict_request = {'username':username,'request_name':request_name}
 				request_contents = db_lightsheet.Request() & restrict_dict_request
-				correspondence_email = request_contents.fetch1('correspondence_email')
-				recipients = [correspondence_email]
+				processing_admins = current_app.config['PROCSESING_ADMINS']
+				recipients = [x + '@princeton.edu' for x in processing_admins]
 				if not os.environ['FLASK_MODE'] == 'TEST':
 					send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
