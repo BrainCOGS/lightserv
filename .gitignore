@@ -17,7 +17,7 @@ scripts
 **/id_rsa.pub
 **/id_rsa
 sshconfig
-.dockerenv
+**/.dockerenv
 .testdockerenv
 checkroutes.sh
 .vscode
@@ -34,3 +34,6 @@ setup_dev_schema.py
 rebuild_dev.sh
 rebuild_test.sh
 rebuild_prod.sh
+start_dev.sh
+start_prod.sh
+start_test.sh

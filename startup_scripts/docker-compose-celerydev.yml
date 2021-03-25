@@ -2,7 +2,7 @@ version: "3.4"
 
 services:
   worker:
-    env_file: .dockerenv
+    env_file: ../.dockerenv
     image: flaskcelery:latest
     command: ["celery",
               "worker",
@@ -10,13 +10,13 @@ services:
               "celery_worker.cel",
               "--loglevel=info"]
     volumes:
-      - .:/app
-      - ./lib:/opt/libraries
+      - ..:/app
+      - ../lib:/opt/libraries
       - /jukebox/LightSheetData:/jukebox/LightSheetData
       - /jukebox/LightSheetTransfer:/jukebox/LightSheetTransfer
       - /var/run/docker.sock:/var/run/docker.sock
   scheduler:
-    env_file: .dockerenv
+    env_file: ../.dockerenv
     image: flaskcelery:latest
     command: ["celery",
               "beat",
@@ -26,8 +26,8 @@ services:
               "--loglevel=info",
               "--pidfile=/tmp/celerybeat.pid"]
     volumes:
-      - .:/app
-      - ./lib:/opt/libraries
+      - ..:/app
+      - ../lib:/opt/libraries
     depends_on:
       - worker
 networks:

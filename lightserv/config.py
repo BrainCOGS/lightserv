@@ -73,7 +73,7 @@ class DevConfig(BaseConfig):
 		# },
 		'smartspim_pystripe_job_status_checker': {
 		'task': 'lightserv.processing.tasks.smartspim_pystripe_job_status_checker',
-		'schedule': timedelta(seconds=10)
+		'schedule': timedelta(seconds=3)
 		},
 		'ng_viewer_cleanser': {
 		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
