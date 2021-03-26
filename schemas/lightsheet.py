@@ -242,6 +242,8 @@ class Request(dj.Manual):
         datetime_pystripe_completed = NULL                            :   datetime
         smartspim_pystripe_spock_jobid = NULL                         :   varchar(16)  # the jobid from running pystripe
         smartspim_pystripe_spock_job_progress = NULL                  :   enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT") # the spock job status code for pystripe
+        smartspim_corrected_precomputed_spock_jobid = NULL            : varchar(32)
+        smartspim_corrected_precomputed_spock_job_progress = NULL     : enum("NOT_SUBMITTED","SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT")
         """  
                 
     class IdiscoPlusClearing(dj.Part): # 

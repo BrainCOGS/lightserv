@@ -1148,6 +1148,119 @@ def make_precomputed_registered_data(**kwargs):
 		logger.info("Unable to update ProcessingChannel() table")
 	return "Finished task submitting precomputed pipeline for registered data"
 
+@cel.task()
+def make_precomputed_smartspim_corrected_data(**kwargs):
+	""" Celery task for making precomputed dataset
+	(i.e. one that can be read by cloudvolume) from 
+	corrected smartspim image data after pystripe has been run.  
+
+	Spawns a series of spock jobs for handling
+	the actual computation
+	"""
+	precomputed_kwargs = dict(
+				username = 'username',
+				request_name = 'requset_name',
+				sample_name = 'sample_name',
+				imaging_request_number = 'imaging_request_number',
+				processing_request_number = 'processing_request_number',
+				image_resolution = 'image_resolution',
+				channel_name = 'channel_name',
+				ventral_up = 'ventral_up')
+	""" Read in keys """
+	username = kwargs['username']
+	request_name = kwargs['request_name']
+	sample_name = kwargs['sample_name']
+	imaging_request_number = kwargs['imaging_request_number']
+	processing_request_number = kwargs['processing_request_number']
+	image_resolution = kwargs['image_resolution']
+	channel_name = kwargs['channel_name']
+	ventral_up = kwargs['ventral_up']
+
+	all_channels_smartspim = current_app.config["SMARTSPIM_IMAGING_CHANNELS"]
+	channel_index = all_channels_smartspim.index(channel_name)
+	if ventral_up:
+		image_resolution_subfolder = f"resolution_{image_resolution}_ventral_up"
+		layer_name = f"channel_{channel_name}_corrected_ventral_up"
+	else:
+		image_resolution_subfolder = f"resolution_{image_resolution}"
+		layer_name = f"channel_{channel_name}_corrected"
+	data_bucket_rootpath = current_app.config["DATA_BUCKET_ROOTPATH"]
+
+	blended_data_path = os.path.join(data_bucket_rootpath,
+		username,request_name,sample_name,
+		f"imaging_request_{imaging_request_number}",
+		"rawdata",
+		image_resolution_subfolder,
+		f"Ex_{channel_name}_Em_{channel_index}_corrected")
+	viz_dir = os.path.join(data_bucket_rootpath,
+		username,request_name,sample_name,
+		f"imaging_request_{imaging_request_number}",
+		"viz","rawdata")
+	
+	pickle_kwargs = dict(blended_data_path=blended_data_path,
+		layer_name=layer_name,
+		image_resolution=image_resolution)
+	
+	pickle_fullpath = viz_dir + '/precomputed_params.p'
+	with open(pickle_fullpath,'wb') as pkl_file:
+		pickle.dump(pickle_kwargs,pkl_file)
+	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
+
+	# """ Now set up the connection to spock """
+	if os.environ['FLASK_MODE'] == 'TEST' or os.environ['FLASK_MODE'] == 'DEV' :
+		command = "cd /jukebox/wang/ahoag/precomputed/smartspim/testing; ./test_precomputed_corrected_script.sh "
+	else:
+		command = ("cd /jukebox/wang/ahoag/precomputed/smartspim/corrected_pipeline; "
+				   f"/jukebox/wang/ahoag/precomputed/corrected_pipeline/precomputed_pipeline_corrected.sh {viz_dir}")
+	hostname = 'spock.pni.princeton.edu'
+	port=22
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
+	client = paramiko.SSHClient()
+	client.load_system_host_keys()
+	client.set_missing_host_key_policy(paramiko.WarningPolicy)
+
+	client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+	stdin, stdout, stderr = client.exec_command(command)
+	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
+	logger.debug("response from spock:")
+	logger.debug(response)
+	jobid_step0, jobid_step1, jobid_step2, jobid_step3  = response.split('\n')
+
+	status_step0 = 'SUBMITTED'
+	status_step1 = 'SUBMITTED'
+	status_step2 = 'SUBMITTED'
+	status_step3 = 'SUBMITTED'
+	entry_dict   = {
+				'username':username,
+				'jobid_step0':jobid_step0,
+				'jobid_step1':jobid_step1,
+				'jobid_step2, ':jobid_step2,
+				'jobid_step3, ':jobid_step3,
+				'status_step0':status_step0,
+				'status_step1':status_step1,'status_step2':status_step2,
+				'status_step3':status_step3,
+				}
+	logger.debug("Inserting into SmartspimCorrectedPrecomputedSpockJob():")
+	logger.debug(entry_dict)
+	db_spockadmin.SmartspimCorrectedPrecomputedSpockJob.insert1(entry_dict)    
+	logger.info(f"Precomputed (corrected data) job inserted into SmartspimCorrectedPrecomputedSpockJob() table: {entry_dict}")
+	logger.info(f"Precomputed (corrected data) job successfully submitted to spock, jobid_step3: {jobid_step3}")
+	
+	# Now insert into SmartspimPystripeChannel() table
+	restrict_dict_pystripe_table = dict(
+		username=username,request_name=request_name,
+		sample_name=sample_name,imaging_request_number=imaging_request_number,
+		processing_request_number=processing_request_number,
+		image_resolution=image_resolution,channel_name=channel_name,
+		ventral_up=ventral_up)
+	this_pystripe_channel_content = db_lightsheet.Request.SmartspimPystripeChannel() &\
+		restrict_dict_pystripe_table 
+	dj.Table._update(this_pystripe_channel_content,'smartspim_corrected_precomputed_spock_jobid',
+		str(jobid_step3))
+	dj.Table._update(this_pystripe_channel_content,'smartspim_corrected_precomputed_spock_job_progress',
+		"SUBMITTED")
+	return "Finished task submitting precomputed pipeline for SmartSPIM corrected data"
+
 
 #################################################
 ##### Tasks that will be scheduled regularly ####
@@ -1738,6 +1851,15 @@ def smartspim_stitching_job_status_checker():
 		and email the user"""
 		
 		if status_step3 == 'COMPLETED':
+			# update datetime stitching completed
+			this_stitching_content = all_stitching_entries & \
+				f'smartspim_stitching_spock_jobid={jobid}'
+			now = datetime.now()			
+			dj.Table._update(this_stitching_content,
+				'datetime_stitching_completed',now)
+			logger.debug("Updated datetime_stitching_completed in SmartspimStitchedChannel() table ")
+			
+
 			""" Find all SmartspimStitchedChannel() entries from this same processing resolution request """
 			logger.debug("checking to see whether all channels in this processing resolution request "
 						 "are completed stitching")
@@ -1921,18 +2043,43 @@ def smartspim_pystripe_job_status_checker():
 		logger.debug("Updated SmartspimPystripeChannel() entry with current job status")
 		
 		if status_step0 == 'COMPLETED':
+			# Update SmartspimPystripeChannel() entry to indicate that pystripe is complete
 			this_pystripe_content = all_pystripe_entries & \
 			f'smartspim_pystripe_spock_jobid={jobid}'
 			dj.Table._update(this_pystripe_content,
 			'pystripe_performed',1)
 			logger.debug("Pystripe complete, marking pystripe_performed=1 in SmartspimPystripeChannel() channel")
+			# Launch precomputed pipeline for corrected blended images
+			this_pystripe_dict = this_pystripe_content.fetch1()
+			username = this_pystripe_dict['username']
+			request_name = this_pystripe_dict['requset_name']
+			sample_name = this_pystripe_dict['sample_name']
+			imaging_request_number = this_pystripe_dict['imaging_request_number']
+			processing_request_number = this_pystripe_dict['processing_request_number']
+			image_resolution = this_pystripe_dict['image_resolution']
+			channel_name = this_pystripe_dict['channel_name']
+			ventral_up = this_pystripe_dict['ventral_up']
+			
+			precomputed_kwargs = dict(
+				username = 'username',
+				request_name = 'requset_name',
+				sample_name = 'sample_name',
+				imaging_request_number = 'imaging_request_number',
+				processing_request_number = 'processing_request_number',
+				image_resolution = 'image_resolution',
+				channel_name = 'channel_name',
+				ventral_up = 'ventral_up')
+
+			make_precomputed_smartspim_corrected_data.delay(**precomputed_kwargs)
+
+			logger.info("Started precomputed job for corrected data")
+
 			""" Find all SmartspimPystripeChannel() entries from this same sample_name """
 			logger.debug("checking to see whether all channels in this sample name "
 						 "have completed pystripe")
 			(username,request_name,sample_name,imaging_request_number,image_resolution) = this_pystripe_content.fetch1(
 					"username","request_name","sample_name",
 					"imaging_request_number","image_resolution")
-			logger.debug("Made it here 1")
 			restrict_dict_imaging_channel = dict(username=username,request_name=request_name,
 				sample_name=sample_name,imaging_request_number=imaging_request_number)
 			imaging_channel_contents = \
@@ -1943,11 +2090,10 @@ def smartspim_pystripe_job_status_checker():
 			pystripe_channel_contents = \
 				db_lightsheet.Request.SmartspimPystripeChannel() & \
 				restrict_dict_imaging_channel
-			logger.debug("Made it here 2")
 			""" Loop through and pool all of the job statuses """
 			pystripe_job_statuses = pystripe_channel_contents.fetch(
 				'smartspim_pystripe_spock_job_progress')
-	
+		
 			data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
 			if any(ventral_up_allchannels):
 				output_directory = os.path.join(data_bucket_rootpath,username,
@@ -1984,6 +2130,7 @@ def smartspim_pystripe_job_status_checker():
 				recipients = [correspondence_email]
 				if not os.environ['FLASK_MODE'] == 'TEST':
 					send_email.delay(subject=subject,body=body,recipients=recipients)
+
 			else:
 				logger.debug("Not all channels in this "
 							 "imaging request are done being pystriped")
@@ -3529,3 +3676,233 @@ def registered_precomputed_job_status_checker():
 
 	return "Checked registered precomputed job statuses"
 
+""" Smartspim corrected precomputed pipeline """
+@cel.task()
+def smartspim_corrected_precomputed_job_status_checker():
+	""" 
+	A celery task that will be run in a schedule
+
+	Checks all outstanding job statuses on spock
+	for the precomputed smartspim corrected pipeline
+	and updates their status in the SmartspimCorrectedPrecomputedSpockJob()
+	in db_spockadmin
+	and SmartspimPystripeChannel() in db_lightsheet 
+	"""
+   
+	""" First get all rows with latest timestamps """
+	job_contents = db_spockadmin.SmartspimCorrectedPrecomputedSpockJob()
+	unique_contents = dj.U('jobid_step3','username',).aggr(
+		job_contents,timestamp='max(timestamp)')*job_contents
+	
+	""" Get a list of all jobs we need to check up on, i.e.
+	those that could conceivably change. """
+
+	ongoing_codes = ('SUBMITTED','RUNNING','PENDING','REQUEUED','RESIZING','SUSPENDED')
+	incomplete_contents = unique_contents & f'status_step3 in {ongoing_codes}'
+	jobids = list(incomplete_contents.fetch('jobid_step3'))
+	if jobids == []:
+		return "No jobs to check"
+	jobids_str = ','.join(str(jobid) for jobid in jobids)
+	logger.debug(f"Outstanding job ids are: {jobids}")
+	port = 22
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
+	hostname = 'spock.pni.princeton.edu'
+
+	client = paramiko.SSHClient()
+	client.load_system_host_keys()
+	client.set_missing_host_key_policy(paramiko.WarningPolicy)
+	
+	try:
+		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+	except:
+		logger.debug("Something went wrong connecting to spock.")
+		client.close()
+		return "Error connecting to spock"
+	logger.debug("connected to spock")
+	try:
+		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
+		stdin, stdout, stderr = client.exec_command(command)
+
+		stdout_str = stdout.read().decode("utf-8")
+		logger.debug("The response from spock is:")
+		logger.debug(stdout_str)
+		response_lines = stdout_str.strip('\n').split('\n')
+		jobids_received = [x.split('|')[0].split('_')[0] for x in response_lines] # They could be listed as array jobs, e.g. 18521829_[0-5], 18521829_1, or just 18521829 depending on their status
+		status_codes_received = [x.split('|')[1] for x in response_lines]
+		logger.debug("Job ids received")
+		logger.debug(jobids_received)
+		logger.debug("Status codes received")
+		logger.debug(status_codes_received)
+		job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
+		job_insert_list = []
+	except:
+		logger.debug("Something went wrong fetching job statuses from spock.")
+		client.close()
+		return "Error fetching job statuses from spock"
+
+	""" Loop through the jobids and determine 
+	their status from the list of statuses for each of their array jobs"""
+	for jobid,indices_list in job_status_indices_dict.items():
+		logger.debug(f"Working on jobid={jobid}")
+		job_insert_dict = {'jobid_step3':jobid}
+		status_codes = [status_codes_received[ii] for ii in indices_list]
+		status_step3 = determine_status_code(status_codes)
+		logger.debug(f"Status code for this job is: {status_step3}")
+		job_insert_dict['status_step3'] = status_step3
+		""" Find the username, other jobids associated with this jobid """
+		(username_thisjob,lightsheet_thisjob,
+			jobid_step0,jobid_step1,jobid_step2) = (
+				unique_contents & f'jobid_step2={jobid}').fetch1(
+				'username','lightsheet',
+				'jobid_step0','jobid_step1','jobid_step2')
+		job_insert_dict['username']=username_thisjob
+		job_insert_dict['jobid_step0']=jobid_step0
+		job_insert_dict['jobid_step1']=jobid_step1
+		job_insert_dict['jobid_step2']=jobid_step2
+		jobid_step_dict = {
+			'step0':jobid_step0,
+			'step1':jobid_step1,
+			'step2':jobid_step2}
+		
+		""" Similarly, figure out the status codes for the earlier dependency jobs """
+		this_run_earlier_jobids_str = ','.join([jobid_step0,jobid_step1,jobid_step2])
+		try:
+			command_earlier_steps = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(this_run_earlier_jobids_str)
+			stdin_earlier_steps, stdout_earlier_steps, stderr_earlier_steps = client.exec_command(command_earlier_steps)
+		except:
+			logger.debug("Something went wrong fetching steps 0-1 job statuses from spock.")
+			client.close()
+			return "Error fetching steps 0-1 job statuses from spock"
+		stdout_str_earlier_steps = stdout_earlier_steps.read().decode("utf-8")
+		try:
+			response_lines_earlier_steps = stdout_str_earlier_steps.strip('\n').split('\n')
+			jobids_received_earlier_steps = [x.split('|')[0].split('_')[0] for x in response_lines_earlier_steps] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
+			status_codes_received_earlier_steps = [x.split('|')[1] for x in response_lines_earlier_steps]
+		except:
+			logger.debug("Something went wrong parsing output of sacct query for steps 0-2 on spock")
+			client.close()
+			return "Error parsing sacct query of jobids for steps 0-2 on spock"
+
+		job_status_indices_dict_earlier_steps = {jobid:[i for i, x in enumerate(jobids_received_earlier_steps) \
+			if x == jobid] for jobid in set(jobids_received_earlier_steps)} 
+		
+		""" Loop through the jobids from the earlier steps
+		and figure out their statuses from their array job statuses"""
+		for step_counter in range(2):
+			step = f'step{step_counter}'
+			jobid_earlier_step = jobid_step_dict[step]
+			indices_list_earlier_step = job_status_indices_dict_earlier_steps[jobid_earlier_step]
+			status_codes_earlier_step = [status_codes_received_earlier_steps[ii] for ii in indices_list_earlier_step]
+			status = determine_status_code(status_codes_earlier_step)
+			status_step_str = f'status_step{step_counter}'
+			job_insert_dict[status_step_str] = status
+			step_counter +=1 
+
+		job_insert_list.append(job_insert_dict)
+
+		""" Get the pystripe channel entry associated with this jobid
+		and update the progress """
+		restrict_dict = dict(smartspim_corrected_precomputed_spock_jobid=jobid)
+		replace_key = 'smartspim_corrected_precomputed_spock_job_progress'
+		this_pystripe_channel_content = db_lightsheet.Request.SmartspimPystripeChannel() & restrict_dict
+		logger.debug("this pystripe channel content:")
+		logger.debug(this_pystripe_channel_content)
+		dj.Table._update(this_pystripe_channel_content,replace_key,status_step3)
+		logger.debug(f"Updated {replace_key} in SmartspimPystripeChannel() table ")
+
+		""" If this pipeline run is now 100 percent complete,
+		figure out if all of the other stitched precomputed
+		pipelines that exist in this same processing request
+		and see if they are also complete.
+		If so, then email the user that their stitched images
+		are ready to be visualized"""
+
+		if status_step3 == 'COMPLETED':
+			""" Find all pystripe channels from this same imaging request """
+			username,request_name,sample_name,imaging_request_number = this_pystripe_channel_content.fetch1(
+				'username','request_name','sample_name','imaging_request_number')
+			pystripe_imaging_request_restrict_dict = dict(
+				username=username,
+				request_name=request_name,
+				sample_name=sample_name,
+				imaging_request_number=imaging_request_number)
+			pystripe_channel_contents_this_imaging_request = db_lightsheet.Request.SmartspimPystripeChannel() & \
+				pystripe_imaging_request_restrict_dict
+
+			# Loop over all channels in this imaging request and see 
+			# if they are all done with the precomputed pipeline
+			pystripe_channel_precomputed_job_statuses = []
+			for pystripe_channel_dict in pystripe_channel_contents_this_imaging_request:
+				job_status = pystripe_channel_dict['smartspim_corrected_precomputed_spock_job_progress']				
+				pystripe_channel_precomputed_job_statuses.append(job_status)
+			logger.debug("job statuses for this imaging request:")
+			logger.debug(pystripe_channel_precomputed_job_statuses)
+			
+
+			if all(x=='COMPLETED' for x in pystripe_channel_precomputed_job_statuses):
+
+				logger.debug("all pystriped imaging channels in this imaging request"
+							 " completely converted to precomputed format!")
+				neuroglancer_form_relative_url = os.path.join(
+					'/neuroglancer',
+					'general_data_setup',
+					username,
+					request_name,
+					sample_name,
+					str(imaging_request_number),
+					"1")
+				neuroglancer_form_full_url = 'https://' + os.environ['HOSTURL'] + neuroglancer_form_relative_url
+				subject = 'Lightserv automated email: Preprocessed data ready to be visualized'
+				body = ('The stitched and corrected data for sample:\n\n'
+						f'request_name: {request_name}\n'
+						f'sample_name: {sample_name}\n'
+						f'imaging_request_number: {imaging_request_number}\n'
+						'are now ready to be visualized. '
+						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
+				restrict_dict_request = {'username':username,'request_name':request_name}
+				request_contents = db_lightsheet.Request() & restrict_dict_request
+				correspondence_email = request_contents.fetch1('correspondence_email')
+				recipients = [correspondence_email]
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					send_email.delay(subject=subject,body=body,recipients=recipients)
+			else:
+				logger.debug("Not all processing channels in this request"
+							 " are completely converted to precomputed format")
+		elif status_step3 == 'CANCELLED' or status_step3 == 'FAILED':
+			logger.debug('smartspim corrected precomputed pipeline failed. Alerting user and admins')
+			(username,request_name,sample_name,imaging_request_number,
+				image_resolution,channel_name) = this_pystripe_channel_content.fetch1(
+				'username','request_name','sample_name','imaging_request_number',
+				'image_resolution','channel_name')
+			subject = 'Lightserv automated email: Preprocessed data visualization FAILED'
+			# body = ('The visualization of your stitched and corrected data for sample:\n\n'
+			# 		f'request_name: {request_name}\n'
+			# 		f'sample_name: {sample_name}\n\n'
+			# 		f'imaging_request_number: {imaging_request_number}\n'
+			# 		f'image_resolution: {image_resolution}\n'
+			# 		f'channel_name: {channel_name}\n\n'
+			# 		'failed. We are investigating why this happened and will contact you shortly. '
+			# 		f'If you have any questions or know why this might have happened, '
+			# 		'feel free to respond to this email.')
+			admin_body = ('The visualization of the stitched data for sample:\n\n'
+					f'request_name: {request_name}\n'
+					f'sample_name: {sample_name}\n'
+					f'imaging_request_number: {imaging_request_number}\n'
+					f'image_resolution: {image_resolution}\n'
+					f'channel_name: {channel_name}\n\n'
+					'failed. Email sent to user. ')
+			# request_contents = db_lightsheet.Request() & \
+			# 					{'username':username,'request_name':request_name}
+			# correspondence_email = request_contents.fetch1('correspondence_email')
+			# recipients = [correspondence_email]
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				# send_email.delay(subject=subject,body=body,recipients=recipients)
+				send_admin_email.delay(subject=subject,body=admin_body)
+	logger.debug("Insert list:")
+	logger.debug(job_insert_list)
+	db_spockadmin.SmartspimCorrectedPrecomputedSpockJob.insert(job_insert_list)
+	logger.debug("Entry in SmartspimCorrectedPrecomputedSpockJob() spockadmin table with latest status")
+
+	client.close()
+
+	return "Checked smartspim corrected precomptued job statuses"
