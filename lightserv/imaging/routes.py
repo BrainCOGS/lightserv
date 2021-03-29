@@ -1126,7 +1126,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 												lightsheet_index_code = 'C00' # always for left lightsheet
 												precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
 												all_slices = glob.glob(
-													f"{raw_data_dir}/*RawDataStack[00 x 00*{lightsheet_index_code}*Filter000{channel_index}*tif")
+													f"{raw_data_dir}/*RawDataStack*{lightsheet_index_code}*Filter000{channel_index}*tif")
 												first_slice = all_slices[0]
 												first_im = Image.open(first_slice)
 												x_dim,y_dim = first_im.size
