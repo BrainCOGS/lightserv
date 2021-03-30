@@ -2,6 +2,21 @@
 {% block content %}
 	<h1 align="center"> Pystripe Setup Form </h1>
 	<hr class='class-1'>
+	<h3> Instructions: </h3>
+	<p> For each channel in the table below, type the name of the flat file (or leave it as the default if already correct; this will be the case unless you changed the name manually) that you saved using the FlatGenerate program on the SmartSPIM computer for each channel. Then hit the "start pystripe" button. The flat file (usually "flat.tiff") needs to be saved in the folder that ends in "_stitched" for this request/sample/channel combination. For example for:
+	<ul>
+		<li> username = "pbibawi" </li>
+		<li> request name = "pb_udisco" </li>
+		<li> sample name = "pb_udisco_X077" </li>
+		<li> imaging request = 1 </li>
+		<li> channel name = 488 </li>
+	</ul>
+	The path to the stitched folder is:
+	 <code>/jukebox/LightSheetData/lightserv/pbibawi/pb_udisco/pb_udisco_X077/imaging_request_1/rawdata/resolution_3.6x/Ex_488_Em_0_stitched/</code>. That is where you need to save the flat.tiff file for that request. 
+	</br>
+	</br>
+	 <b>Note</b>: In the table below, you only need to type the name of the file (like: flat.tiff) in the "Flat file name" column. You do not need to enter in all of the folders. The website figures out the folders based on the username, sample_name, etc... If you type in the wrong flat name you will get an error telling you what you need to fix.</p>
+ 	<hr class='class-2'>
 
 	<!-- BEGIN FORM -->
 	<form method="POST" action="">
