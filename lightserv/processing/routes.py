@@ -134,8 +134,7 @@ def pystripe_manager():
 		n_channels_imaged='count(*)')
 	
 	stitched_aggr_contents = dj.U('username','request_name','sample_name',
-		'imaging_request_number',
-		'processing_request_number').aggr(
+		'imaging_request_number').aggr(
 		stitching_contents,
 		n_channels_stitched='count(*)')
 	
@@ -202,13 +201,11 @@ def pystripe_manager():
 def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 	""" Route to start the pystripe script for a set of channels in a
 	single imaging request for a single sample after a Flat has been generated. """
-	processing_request_number = 1 # pystripe is only ever run once per image - hence hardcoded processing_request_number
 	logger.info(f"{session['user']} accessed pystripe_entry route")
 	restrict_dict = {'username':username,
 					 'request_name':request_name,
 					 'sample_name':sample_name,
-					 'imaging_request_number':imaging_request_number,
-					 'processing_request_number':processing_request_number} 
+					 'imaging_request_number':imaging_request_number} 
 	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel() & restrict_dict
 
 	form = PystripeEntryForm(request.form)
@@ -253,7 +250,6 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 							request_name=request_name,
 							sample_name=sample_name,
 							imaging_request_number=imaging_request_number,
-							processing_request_number=processing_request_number,
 							channel_name=channel_name,
 							image_resolution=image_resolution,
 							ventral_up=ventral_up,
@@ -269,7 +265,6 @@ def pystripe_entry(username,request_name,sample_name,imaging_request_number):
 						'request_name':request_name,
 						'sample_name':sample_name,
 						'imaging_request_number':imaging_request_number,
-						'processing_request_number':processing_request_number,
 						'image_resolution':image_resolution,
 						'channel_name':channel_name,
 						'ventral_up':ventral_up,

@@ -139,6 +139,7 @@ class Request(dj.Manual):
         notes_for_imager = ""                     :   varchar(1024)
         notes_from_imaging = ""                   :   varchar(1024)
         """
+    
     class ImagingChannel(dj.Part):
         definition = """ # Imaging parameters for a channel, belonging to a sample
         -> master.ImagingResolutionRequest
@@ -223,7 +224,6 @@ class Request(dj.Manual):
     class SmartspimStitchedChannel(dj.Part):
         definition = """ # Record of which SmartSPIM channels have undergone stitching
         -> master.ImagingChannel
-        -> master.ProcessingResolutionRequest
         ----
         datetime_stitching_started                                    :   datetime
         datetime_stitching_completed = NULL                           :   datetime

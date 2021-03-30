@@ -1080,6 +1080,8 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 										samples_imaging_progress_dict[this_sample_name] = 'complete'
 										""" Kick off celery task for creating precomputed data from this
 										raw data image dataset if there is stitching is not necessary.
+
+										Otherwise, initiate the stitching job
 										"""
 
 										if tiling_scheme == '1x1':

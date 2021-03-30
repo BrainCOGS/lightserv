@@ -451,7 +451,6 @@ def smartspim_stitch(**kwargs):
 		'request_name':request_name,
 		'sample_name':sample_name,
 		'imaging_request_number':imaging_request_number,
-		'processing_request_number':1,
 		'image_resolution':image_resolution,
 		'channel_name':channel_name,
 		'ventral_up':ventral_up,
@@ -553,7 +552,7 @@ def smartspim_stitch(**kwargs):
 	""" Update the job status table in spockadmin schema """
 	logger.debug(entry_dict)
 	db_spockadmin.SmartspimStitchingSpockJob.insert1(entry_dict)    
-	logger.info(f"SmartspimStitchedChannel() entry successfully inserted, jobid (step 0): {jobid_step0}")
+	logger.info(f"SmartspimStitchingSpockJob() entry successfully inserted, jobid (step 0): {jobid_step0}")
 
 	""" Update the request tables in lightsheet schema """ 
 	jobid_final_step = jobid_step3 
@@ -587,7 +586,6 @@ def smartspim_pystripe(**kwargs):
 	request_name=kwargs['request_name']
 	sample_name=kwargs['sample_name']
 	imaging_request_number=kwargs['imaging_request_number']
-	processing_request_number=kwargs['processing_request_number']
 	channel_name=kwargs['channel_name']
 	image_resolution=kwargs['image_resolution']
 	ventral_up=kwargs['ventral_up']
@@ -599,7 +597,6 @@ def smartspim_pystripe(**kwargs):
 		'request_name':request_name,
 		'sample_name':sample_name,
 		'imaging_request_number':imaging_request_number,
-		'processing_request_number':processing_request_number,
 		'image_resolution':image_resolution,
 		'channel_name':channel_name,
 		'ventral_up':ventral_up,
@@ -1159,10 +1156,9 @@ def make_precomputed_smartspim_corrected_data(**kwargs):
 	"""
 	precomputed_kwargs = dict(
 				username = 'username',
-				request_name = 'requset_name',
+				request_name = 'request_name',
 				sample_name = 'sample_name',
 				imaging_request_number = 'imaging_request_number',
-				processing_request_number = 'processing_request_number',
 				image_resolution = 'image_resolution',
 				channel_name = 'channel_name',
 				ventral_up = 'ventral_up')
@@ -1171,7 +1167,6 @@ def make_precomputed_smartspim_corrected_data(**kwargs):
 	request_name = kwargs['request_name']
 	sample_name = kwargs['sample_name']
 	imaging_request_number = kwargs['imaging_request_number']
-	processing_request_number = kwargs['processing_request_number']
 	image_resolution = kwargs['image_resolution']
 	channel_name = kwargs['channel_name']
 	ventral_up = kwargs['ventral_up']
@@ -1250,7 +1245,6 @@ def make_precomputed_smartspim_corrected_data(**kwargs):
 	restrict_dict_pystripe_table = dict(
 		username=username,request_name=request_name,
 		sample_name=sample_name,imaging_request_number=imaging_request_number,
-		processing_request_number=processing_request_number,
 		image_resolution=image_resolution,channel_name=channel_name,
 		ventral_up=ventral_up)
 	this_pystripe_channel_content = db_lightsheet.Request.SmartspimPystripeChannel() &\
@@ -2052,20 +2046,18 @@ def smartspim_pystripe_job_status_checker():
 			# Launch precomputed pipeline for corrected blended images
 			this_pystripe_dict = this_pystripe_content.fetch1()
 			username = this_pystripe_dict['username']
-			request_name = this_pystripe_dict['requset_name']
+			request_name = this_pystripe_dict['request_name']
 			sample_name = this_pystripe_dict['sample_name']
 			imaging_request_number = this_pystripe_dict['imaging_request_number']
-			processing_request_number = this_pystripe_dict['processing_request_number']
 			image_resolution = this_pystripe_dict['image_resolution']
 			channel_name = this_pystripe_dict['channel_name']
 			ventral_up = this_pystripe_dict['ventral_up']
 			
 			precomputed_kwargs = dict(
 				username = 'username',
-				request_name = 'requset_name',
+				request_name = 'request_name',
 				sample_name = 'sample_name',
 				imaging_request_number = 'imaging_request_number',
-				processing_request_number = 'processing_request_number',
 				image_resolution = 'image_resolution',
 				channel_name = 'channel_name',
 				ventral_up = 'ventral_up')
