@@ -1854,23 +1854,22 @@ def smartspim_stitching_job_status_checker():
 			logger.debug("Updated datetime_stitching_completed in SmartspimStitchedChannel() table ")
 			
 
-			""" Find all SmartspimStitchedChannel() entries from this same processing resolution request """
-			logger.debug("checking to see whether all channels in this processing resolution request "
+			""" Find all SmartspimStitchedChannel() entries from this same imaging resolution request """
+			logger.debug("checking to see whether all channels in this imaging resolution request "
 						 "are completed stitching")
 			(username,request_name,sample_name,imaging_request_number,
-				processing_request_number,image_resolution) = this_stitching_content.fetch1(
+				image_resolution) = this_stitching_content.fetch1(
 					"username","request_name","sample_name",
-					"imaging_request_number","processing_request_number",
+					"imaging_request_number",
 					"image_resolution")
 			
 			restrict_dict_stitching_resolution = dict(username=username,request_name=request_name,
 				sample_name=sample_name,imaging_request_number=imaging_request_number,
-				processing_request_number=processing_request_number,
 				image_resolution=image_resolution)
-			processing_resolution_contents = \
-				db_lightsheet.Request.ProcessingResolutionRequest() & \
+			imaging_resolution_contents = \
+				db_lightsheet.Request.ImagingResolutionRequest() & \
 				restrict_dict_stitching_resolution
-			ventral_up = processing_resolution_contents.fetch1('ventral_up')
+			ventral_up = imaging_resolution_contents.fetch1('ventral_up')
 			stitching_channel_contents = \
 				db_lightsheet.Request.SmartspimStitchedChannel() & \
 				restrict_dict_stitching_resolution
@@ -1878,9 +1877,8 @@ def smartspim_stitching_job_status_checker():
 			""" Loop through and pool all of the job statuses """
 			stitching_job_statuses = stitching_channel_contents.fetch(
 				'smartspim_stitching_spock_job_progress')
-			
 
-			logger.debug("stitching job statuses for all channels in this processing resolution request :")
+			logger.debug("stitching job statuses for all channels in this imaging resolution request :")
 			logger.debug(stitching_job_statuses)
 			data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
 			if ventral_up:
@@ -1917,8 +1915,8 @@ def smartspim_stitching_job_status_checker():
 				request_contents = db_lightsheet.Request() & restrict_dict_request
 				processing_admins = current_app.config['PROCSESING_ADMINS']
 				recipients = [x + '@princeton.edu' for x in processing_admins]
-				if not os.environ['FLASK_MODE'] == 'TEST':
-					send_email.delay(subject=subject,body=body,recipients=recipients)
+				# if not os.environ['FLASK_MODE'] == 'TEST':
+					# send_email.delay(subject=subject,body=body,recipients=recipients)
 			else:
 				logger.debug("Not all channels in this "
 							 "processing resolution request are done stitching")
@@ -1932,8 +1930,6 @@ def smartspim_stitching_job_status_checker():
 
 	client.close()
 
-
-	
 	# for each running process, find all jobids in the processing resolution request tables
 	return "Checked processing job statuses"
 
