@@ -136,7 +136,7 @@ def pystripe_manager():
 	stitched_aggr_contents = dj.U('username','request_name','sample_name',
 		'imaging_request_number').aggr(
 		stitching_contents,
-		n_channels_stitched='count(*)')
+		n_channels_stitched='sum(smartspim_stitching_spock_job_progress="COMPLETED")')
 	
 	imaged_and_stitched_contents = imaged_aggr_contents * stitched_aggr_contents &\
 		'n_channels_imaged=n_channels_stitched'
@@ -177,7 +177,6 @@ def pystripe_manager():
 		table_id=currently_being_pystriped_table_id,
 		sort_by=sort,sort_reverse=reverse)
 
-	
 
 	imaging_requests_already_pystriped = pystripe_imaging_requests &\
 		'n_channels_pystriped=n_channels_imaged'
