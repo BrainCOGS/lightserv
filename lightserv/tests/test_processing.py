@@ -284,7 +284,7 @@ def test_smartspim_stitching_works(test_client,
 	stitching_results = stitching_contents.fetch1()
 	assert len(stitching_contents) == 1
 	assert stitching_results['request_name'] == 'nonadmin_3p6x_smartspim_request'
-
+	assert stitching_results['smartspim_stitching_spock_job_progress'] == 'COMPLETED'
 
 """ Tests for pystripe manager """
 
@@ -292,8 +292,10 @@ def test_access_pystripe_manager(test_client,
 	smartspim_stitched_request):
 	""" Test that sg3271, an imaging admin can access the pystripe task manager
 	and see the stitched channel that needs to be corrected with pystripe """
+
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'sg3271'
+	
 	response = test_client.get(url_for('processing.pystripe_manager')
 		, follow_redirects=True)
 	assert b'Pystripe management GUI' in response.data
@@ -708,6 +710,7 @@ def test_registered_precomputed_pipeline_starts(test_client,
 	table_contents = db_spockadmin.RegisteredPrecomputedSpockJob() 
 	print(table_contents)
 	assert len(table_contents) > 0
+
 
 def test_job_status_checker_sends_email(test_client,
 	test_imaged_request_viz_nonadmin,

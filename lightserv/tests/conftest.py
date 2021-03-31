@@ -2438,6 +2438,9 @@ def smartspim_stitched_request(test_client,
 							ventral_up=ventral_up,
 							rawdata_subfolder=rawdata_subfolder)
 	tasks.smartspim_stitch.run(**stitching_kwargs)
+	# Now update the stitching status
+	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel() & stitching_kwargs
+	dj.Table._update(stitching_contents,'smartspim_stitching_spock_job_progress',"COMPLETED")
 	yield test_client
 
 	print('----------Teardown smartspim_stitched_request fixture ----------')
