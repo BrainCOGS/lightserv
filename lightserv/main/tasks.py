@@ -33,6 +33,17 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
+def connect_to_spock():
+	hostname = 'spock.pni.princeton.edu'
+	
+	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
+	port = 22
+
+	client = paramiko.SSHClient()
+	client.load_system_host_keys()
+	client.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+	client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+	return client
 
 @cel.task()
 def send_email(subject,body,sender_email='lightservhelper@gmail.com',recipients=['ahoag@princeton.edu']):

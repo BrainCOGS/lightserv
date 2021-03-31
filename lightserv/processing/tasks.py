@@ -4,7 +4,8 @@ from flask import (render_template, url_for, flash,
 from lightserv.main.utils import mymkdir
 from lightserv.processing.utils import determine_status_code
 from lightserv import cel, db_lightsheet, db_spockadmin
-from lightserv.main.tasks import send_email, send_admin_email
+from lightserv.main.tasks import (send_email, send_admin_email,
+	connect_to_spock)
 
 import datajoint as dj
 from datetime import datetime
@@ -287,7 +288,6 @@ def run_lightsheet_pipeline(username,request_name,
 
 			""" Now run the spock pipeline via paramiko """
 
-			hostname = 'spock.pni.princeton.edu'
 			""" If we have tiled data then we need to run a different
 			pipeline than for non-tiled data since terastitcher needs 
 			to be used """
@@ -356,24 +356,9 @@ def run_lightsheet_pipeline(username,request_name,
 					n_array_jobs_step1,
 					n_channels_total
 				)
-			spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
-			port = 22
+			
+			client = connect_to_spock()
 
-			client = paramiko.SSHClient()
-			client.load_system_host_keys()
-			client.set_missing_host_key_policy(paramiko.WarningPolicy)
-			try:
-				client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
-			except paramiko.ssh_exception.AuthenticationException:
-				logger.info(f"Failed to connect to spock to start job. ")
-				dj.Table._update(this_processing_resolution_content,'lightsheet_pipeline_spock_job_progress','NOT_SUBMITTED')   
-				flash("Error submitting your job to spock. "
-					  "Most likely the ssh key was not copied correctly to your account on spock. "
-					  "The key can be found in an email that was sent to you from "
-					  "lightservhelper@gmail.com when you submitted your request. "
-					  "Please check that the permissions of your ~/.ssh folder on spock are set to 700 "
-					  "and the permissions of the .ssh/authorized_keys file is 640:","danger")
-				return redirect(url_for('main.FAQ',_anchor='ssh_key'))
 			logger.debug("Command:")
 			logger.debug(command)
 			stdin, stdout, stderr = client.exec_command(command)
@@ -487,7 +472,6 @@ def smartspim_stitch(**kwargs):
 	
 	""" Now run spim_stitch via paramiko """
 
-	hostname = 'spock.pni.princeton.edu'
 	
 	processing_code_dir = os.path.join(
 		current_app.config['PROCESSING_CODE_DIR'],
@@ -509,14 +493,8 @@ def smartspim_stitch(**kwargs):
 			rawdata_path,
 			stitched_output_dir,
 		)
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
-	port = 22
-
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
 	try:
-		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+		client = connect_to_spock()
 	except paramiko.ssh_exception.AuthenticationException:
 		logger.info(f"Failed to connect to spock to start job. ")
 		stitching_channel_insert_dict['smartspim_stitching_spock_job_progress'] = 'NOT_SUBMITTED'
@@ -635,8 +613,6 @@ def smartspim_pystripe(**kwargs):
 	mymkdir(corrected_output_dir)
 	
 	""" Now run pystripe via paramiko """
-
-	hostname = 'spock.pni.princeton.edu'
 	
 	processing_code_dir = os.path.join(
 		current_app.config['PROCESSING_CODE_DIR'],
@@ -659,14 +635,9 @@ def smartspim_pystripe(**kwargs):
 			flat_name_fullpath,
 			corrected_output_dir,
 		)
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
-	port = 22
-
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
+	
 	try:
-		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+		client = connect_to_spock()
 	except paramiko.ssh_exception.AuthenticationException:
 		logger.info(f"Failed to connect to spock to start job. ")
 		pystripe_channel_insert_dict['smartspim_stitching_spock_job_progress'] = 'NOT_SUBMITTED'
@@ -754,8 +725,8 @@ def make_precomputed_stitched_data(**kwargs):
 				f"resolution_{image_resolution}",
 				rawdata_subfolder)
 	kwargs['rawdata_path'] = rawdata_path
+
 	""" construct the terastitcher output path """
-	# brainname = rawdata_path[rawdata_path.rfind('/')+8:-9]
 	channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
 	logger.debug("CHANNEL INDEX PADDED")
 	logger.debug(channel_index_padded)
@@ -808,14 +779,8 @@ def make_precomputed_stitched_data(**kwargs):
 		command = ("cd /jukebox/wang/ahoag/precomputed/stitched_pipeline; "
 				   f"/jukebox/wang/ahoag/precomputed/stitched_pipeline/precomputed_pipeline_stitched.sh {viz_dir}")
 		# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
-	hostname = 'spock.pni.princeton.edu'
-	port=22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
-
-	client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+	
+	client = connect_to_spock()
 	stdin, stdout, stderr = client.exec_command(command)
 	# jobid_final_step = str(stdout.read().decode("utf-8").strip('\n'))
 	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
@@ -917,14 +882,7 @@ def make_precomputed_blended_data(**kwargs):
 	else:
 		command = ("cd /jukebox/wang/ahoag/precomputed/blended_pipeline; "
 				   f"/jukebox/wang/ahoag/precomputed/blended_pipeline/precomputed_pipeline_blended.sh {viz_dir}")   # command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
-	hostname = 'spock.pni.princeton.edu'
-	port=22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
-
-	client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+	client = connect_to_spock()
 	stdin, stdout, stderr = client.exec_command(command)
 	# jobid_final_step = str(stdout.read().decode("utf-8").strip('\n'))
 	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
@@ -1012,14 +970,7 @@ def make_precomputed_downsized_data(**kwargs):
 		# command = "cd /jukebox/wang/ahoag/precomputed/downsized_pipeline/testing; ./test_pipeline.sh "
 	logger.debug("command:")
 	logger.debug(command)
-	hostname = 'spock.pni.princeton.edu'
-	port=22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
-
-	client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+	client = connect_to_spock()
 	stdin, stdout, stderr = client.exec_command(command)
 	# jobid_final_step = str(stdout.read().decode("utf-8").strip('\n'))
 	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
@@ -1084,7 +1035,6 @@ def make_precomputed_registered_data(**kwargs):
 	logger.debug("registered data path is:")
 	logger.debug(registered_data_path)
 	
-	
 	slurmjobfactor = 20 # the number of processes to run per core
 
 	kwargs['slurmjobfactor'] = slurmjobfactor
@@ -1103,14 +1053,9 @@ def make_precomputed_registered_data(**kwargs):
 		# command = "cd /jukebox/wang/ahoag/precomputed/registered_pipeline/testing; ./test_pipeline.sh "
 	logger.debug("command:")
 	logger.debug(command)
-	hostname = 'spock.pni.princeton.edu'
-	port=22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
+	
+	client = connect_to_spock()
 
-	client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
 	stdin, stdout, stderr = client.exec_command(command)
 	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
 	logger.debug("response from spock:")
@@ -1207,14 +1152,9 @@ def make_precomputed_smartspim_corrected_data(**kwargs):
 	else:
 		command = ("cd /jukebox/wang/ahoag/precomputed/smartspim/corrected_pipeline; "
 				   f"/jukebox/wang/ahoag/precomputed/corrected_pipeline/precomputed_pipeline_corrected.sh {viz_dir}")
-	hostname = 'spock.pni.princeton.edu'
-	port=22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
+	
+	client = connect_to_spock()
 
-	client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
 	stdin, stdout, stderr = client.exec_command(command)
 	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
 	logger.debug("response from spock:")
@@ -1299,18 +1239,11 @@ def processing_job_status_checker():
 		return "No jobs to check"
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids_str}")
-	port = 22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
-	hostname = 'spock.pni.princeton.edu'
-
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
+	
 	try:
-		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+		client = connect_to_spock()
 	except:
 		logger.debug("Something went wrong connecting to spock.")
-		client.close()
 		return "Error connecting to spock"
 	logger.debug("connected to spock")
 	# try:
@@ -1526,18 +1459,11 @@ def processing_job_status_checker_noreg():
 		return "No jobs to check"
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
-	port = 22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
-	hostname = 'spock.pni.princeton.edu'
-
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
+	
 	try:
-		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+		client = connect_to_spock()
 	except:
 		logger.debug("Something went wrong connecting to spock.")
-		client.close()
 		return "Error connecting to spock"
 	logger.debug("connected to spock")
 	try:
@@ -1736,19 +1662,9 @@ def smartspim_stitching_job_status_checker():
 		return "No jobs to check"
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
-	port = 22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
-	hostname = 'spock.pni.princeton.edu'
-
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
-	try:
-		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
-	except:
-		logger.debug("Something went wrong connecting to spock.")
-		client.close()
-		return "Error connecting to spock"
+	
+	client = connect_to_spock()
+	
 	logger.debug("connected to spock")
 	try:
 		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
@@ -1902,19 +1818,8 @@ def smartspim_pystripe_job_status_checker():
 		return "No jobs to check"
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
-	port = 22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
-	hostname = 'spock.pni.princeton.edu'
-
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
-	try:
-		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
-	except:
-		logger.debug("Something went wrong connecting to spock.")
-		client.close()
-		return "Error connecting to spock"
+	
+	client = connect_to_spock()
 	logger.debug("connected to spock")
 	try:
 		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
@@ -2231,19 +2136,8 @@ def stitched_precomputed_job_status_checker():
 		return "No jobs to check"
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
-	port = 22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
-	hostname = 'spock.pni.princeton.edu'
-
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
-	try:
-		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
-	except:
-		logger.debug("Something went wrong connecting to spock.")
-		client.close()
-		return "Error connecting to spock"
+	
+	client = connect_to_spock()
 	logger.debug("connected to spock")
 	try:
 		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
@@ -2620,19 +2514,8 @@ def blended_precomputed_job_status_checker():
 		return "No jobs to check"
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
-	port = 22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
-	hostname = 'spock.pni.princeton.edu'
-
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
-	try:
-		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
-	except:
-		logger.debug("Something went wrong connecting to spock.")
-		client.close()
-		return "Error connecting to spock"
+	
+	client = connect_to_spock()
 	logger.debug("connected to spock")
 	try:
 		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
@@ -2997,20 +2880,8 @@ def downsized_precomputed_job_status_checker():
 		return "No jobs to check"
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
-	port = 22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
-	hostname = 'spock.pni.princeton.edu'
-
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
-	try:
-		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
-	except:
-		logger.debug("Something went wrong connecting to spock.")
-		client.close()
-		return "Error connecting to spock"
-	logger.debug("connected to spock")
+	
+	client = connect_to_spock()
 	try:
 		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
 		stdin, stdout, stderr = client.exec_command(command)
@@ -3387,19 +3258,9 @@ def registered_precomputed_job_status_checker():
 		return "No jobs to check"
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
-	port = 22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
-	hostname = 'spock.pni.princeton.edu'
+	
+	client = connect_to_spock()
 
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
-	try:
-		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
-	except:
-		logger.debug("Something went wrong connecting to spock.")
-		client.close()
-		return "Error connecting to spock"
 	logger.debug("connected to spock")
 	try:
 		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
@@ -3624,20 +3485,8 @@ def smartspim_corrected_precomputed_job_status_checker():
 		return "No jobs to check"
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
-	port = 22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME']
-	hostname = 'spock.pni.princeton.edu'
-
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
 	
-	try:
-		client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
-	except:
-		logger.debug("Something went wrong connecting to spock.")
-		client.close()
-		return "Error connecting to spock"
+	client = connect_to_spock()
 	logger.debug("connected to spock")
 	try:
 		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)

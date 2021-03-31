@@ -6,10 +6,10 @@ import math
 import paramiko
 import logging
 import datajoint as dj
-
 from lightserv import cel, db_spockadmin, db_lightsheet, smtp_connect
 from lightserv.processing.utils import determine_status_code
-from lightserv.main.tasks import send_email,send_admin_email
+from lightserv.main.tasks import (send_email,send_admin_email,
+	connect_to_spock)
 from email.message import EmailMessage
 
 logger = logging.getLogger(__name__)
@@ -94,14 +94,7 @@ def make_precomputed_rawdata(**kwargs):
 		# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 		# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_fail_pipeline.sh "
 
-	hostname = 'spock.pni.princeton.edu'
-	port=22
-	spock_username = current_app.config['SPOCK_LSADMIN_USERNAME'] # Use the service account for this step - if it gets overloaded we can switch to user accounts
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
-
-	client.connect(hostname, port=port, username=spock_username, allow_agent=False,look_for_keys=True)
+	client = connect_to_spock()
 	stdin, stdout, stderr = client.exec_command(command)
 
 	try:
@@ -181,15 +174,8 @@ def check_raw_precomputed_statuses():
 		return "No jobs to check"
 	jobids_str = ','.join(str(jobid) for jobid in jobids)
 	logger.debug(f"Outstanding job ids are: {jobids}")
-	port = 22
-	username = 'ahoag'
-	hostname = 'spock.pni.princeton.edu'
-	# try:
-	client = paramiko.SSHClient()
-	client.load_system_host_keys()
-	client.set_missing_host_key_policy(paramiko.WarningPolicy)
 	
-	client.connect(hostname, port=port, username=username, allow_agent=False,look_for_keys=True)
+	client = connect_to_spock()
 	logger.debug("connected to spock")
 	logger.debug("")
 	command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
