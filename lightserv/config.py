@@ -183,7 +183,7 @@ class ProdConfig(BaseConfig):
 		},
 		'LightSheetData_storage_capacity_checker': {
 		'task': 'lightserv.main.tasks.check_lightsheetdata_storage',
-		'schedule': crontab(hour=17, minute=44)
+		'schedule': crontab(hour=8, minute=30) # 8:30 AM every day
 		},
 		
 	}
