@@ -9,11 +9,11 @@
 		
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.css"  crossorigin="anonymous">
 
-		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
 		<link rel="stylesheet" href="{{ url_for('static', filename='awesome_bootstrap_checkbox.css') }}"/>
 		<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 		<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 		<script src="{{ url_for('static',filename='javascript/simsalabim-sisyphus-1878a0f/sisyphus.js') }}"></script>
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
 
 		{% if title %}
 				<title>Lightserv - {{ title }}</title>
@@ -27,7 +27,12 @@
 				<div class="container">
 				<!-- Navbar Left Side -->
 
-					<a class="navbar-brand mr-4" >Lightserv</a>
+					<a class="navbar-brand mr-2">
+						<img src="{{url_for('static',filename='gallery/icon_gs_resized.png')}}" alt="">
+					</a>
+					
+					<a class="navbar-brand" >Lightserv </a>
+				
 					<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
 						<span class="navbar-toggler-icon"></span>
 					</button>
@@ -79,7 +84,7 @@
 								        
 									</li>
 								{% endif %}
-							
+								
 								{# Antibody dropdown #}
 									<li class="nav-item dropdown">
 								        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
