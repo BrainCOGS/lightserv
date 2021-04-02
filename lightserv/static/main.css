@@ -2,7 +2,7 @@ body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   background: #fafafa;
   color: #333333;
-  margin-top: 5rem;
+  margin-top: 6rem;
 }
 
 
@@ -47,7 +47,6 @@ hr.class-5 {
 .bg-steel {
   background-color: #698596;
 }
-
 
 
 .site-header .navbar-nav .nav-link {
