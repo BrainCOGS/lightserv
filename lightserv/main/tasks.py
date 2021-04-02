@@ -92,3 +92,33 @@ def send_admin_email(subject,body,sender_email='lightservhelper@gmail.com'):
 def hello():
 	print("in celery task")
 	return "hello world"
+
+@cel.task()
+def check_lightsheetdata_storage():
+	print("Checking LightSheetData available storage capacity")
+	import subprocess
+	# Get the available storage using the "df -hG" command which reports the space always in GB so it is easy to parse
+	result = subprocess.run('df -BG | grep LightSheetData',shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
+	error = False
+	try:
+		avail_str = result.split()[3]
+		avail_GB = int(avail_str[:-1])
+	except:
+		error = True
+	if error == True:
+		subject = "Lightserv: (ERROR) daily LightSheetData health check"
+		body = "There was an error checking the storage capacity of LightSheetData on bucket. "
+	else:
+		if avail_GB < 2000:
+			subject = "Lightserv: WARNING! LightSheetData almost full"
+			body = (f"LightSheetData has {avail_GB} GB remaining. This is less than the 2 TB threshold that you set."
+					 " LightSheetData could get full very soon. Free up space before disaster strikes. ")
+		else:
+			subject = "Lightserv: (ALL CLEAR) LightSheetData has plenty of free space"
+			body = (f"LightSheetData has {avail_GB} GB remaining. This is above the 2 TB threshold that you set."
+					 " No action is needed at this time. ")
+	master_admin_netids = current_app.config['MASTER_ADMINS']
+	recipients = [x + "@princeton.edu" for x in master_admin_netids]
+	send_email.delay(subject=subject,
+		body=body,recipients=recipients)
+	return "Checked LightSheetData storage capacity"

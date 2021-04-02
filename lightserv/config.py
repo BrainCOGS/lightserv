@@ -5,6 +5,7 @@ for both testing and deployment """
 import os
 import datajoint as dj
 from datetime import timedelta
+from celery.schedules import crontab
 
 # Base class which I will inherit for use with DEV and TEST configs
 class BaseConfig(object):
@@ -71,10 +72,10 @@ class DevConfig(BaseConfig):
 		# 'task': 'lightserv.processing.tasks.smartspim_stitching_job_status_checker',
 		# 'schedule': timedelta(seconds=30)
 		# },
-		'smartspim_pystripe_job_status_checker': {
-		'task': 'lightserv.processing.tasks.smartspim_pystripe_job_status_checker',
-		'schedule': timedelta(seconds=8)
-		},
+		# 'smartspim_pystripe_job_status_checker': {
+		# 'task': 'lightserv.processing.tasks.smartspim_pystripe_job_status_checker',
+		# 'schedule': timedelta(seconds=8)
+		# },
 		'ng_viewer_cleanser': {
 		'task': 'lightserv.neuroglancer.tasks.ng_viewer_checker',
 		'schedule': timedelta(minutes=5)
@@ -106,6 +107,10 @@ class DevConfig(BaseConfig):
 		# 'registeredprecomp_job_status_checker': {
 		# 'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
 		# 'schedule': timedelta(seconds=25)
+		# },
+		# 'LightSheetData_storage_capacity_checker': {
+		# 'task': 'lightserv.main.tasks.check_lightsheetdata_storage',
+		# 'schedule': crontab(hour=17, minute=41)
 		# },
 		
 	}
@@ -175,6 +180,10 @@ class ProdConfig(BaseConfig):
 		'smartspim_pystripe_job_status_checker': {
 		'task': 'lightserv.processing.tasks.smartspim_pystripe_job_status_checker',
 		'schedule': timedelta(minutes=20)
+		},
+		'LightSheetData_storage_capacity_checker': {
+		'task': 'lightserv.main.tasks.check_lightsheetdata_storage',
+		'schedule': crontab(hour=17, minute=44)
 		},
 		
 	}
