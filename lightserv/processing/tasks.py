@@ -1099,14 +1099,7 @@ def make_precomputed_smartspim_corrected_data(**kwargs):
 	Spawns a series of spock jobs for handling
 	the actual computation
 	"""
-	precomputed_kwargs = dict(
-				username = 'username',
-				request_name = 'request_name',
-				sample_name = 'sample_name',
-				imaging_request_number = 'imaging_request_number',
-				image_resolution = 'image_resolution',
-				channel_name = 'channel_name',
-				ventral_up = 'ventral_up')
+	
 	""" Read in keys """
 	username = kwargs['username']
 	request_name = kwargs['request_name']
@@ -1887,13 +1880,13 @@ def smartspim_pystripe_job_status_checker():
 			ventral_up = this_pystripe_dict['ventral_up']
 			
 			precomputed_kwargs = dict(
-				username = 'username',
-				request_name = 'request_name',
-				sample_name = 'sample_name',
-				imaging_request_number = 'imaging_request_number',
-				image_resolution = 'image_resolution',
-				channel_name = 'channel_name',
-				ventral_up = 'ventral_up')
+				username = username,
+				request_name = request_name,
+				sample_name = sample_name,
+				imaging_request_number = imaging_request_number,
+				image_resolution = image_resolution,
+				channel_name = channel_name,
+				ventral_up = ventral_up)
 
 			make_precomputed_smartspim_corrected_data.delay(**precomputed_kwargs)
 
