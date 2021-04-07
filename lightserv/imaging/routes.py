@@ -950,7 +950,15 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 										and right lightsheet files always have C01 in filenames.
 										"""
 										number_of_rawfiles_expected = number_of_z_planes*(left_lightsheet_used+right_lightsheet_used)*n_rows*n_columns
-
+										# First identify if any files in the folder do not have the tiling info, e.g. [00 x 00] in them
+										# Brainpipe does not handle these files well so we need to rename them
+										all_raw_files_no_tiling = glob.glob(rawdata_fullpath + f'/*RawDataStack_*Filter*.tif')
+										if len(all_raw_files_no_tiling) > 0:
+											logger.info("Found raw files with no tiling string, e.g. [00 x 00]. Renaming them")
+										for f in all_raw_files_no_tiling:
+											renamed_f = f.replace('RawDataStack_','RawDataStack[00 x 00]_')
+											print(f,renamed_f)
+											os.rename(f,renamed_f)
 										if left_lightsheet_used and right_lightsheet_used:
 											number_of_rawfiles_found_left_lightsheet = \
 												len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
@@ -960,14 +968,10 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 											number_of_rawfiles_found += number_of_rawfiles_found_right_lightsheet
 										else:
 											# doesn't matter if its left or right lightsheet. Since there is only one, their glob patterns will be identical
-											# logger.debug("channel index:")
-											# logger.debug(channel_index)
 											number_of_rawfiles_found = \
 												len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
-										# logger.debug(number_of_rawfiles_expected)
-										# logger.debug(number_of_rawfiles_found)
-									if number_of_rawfiles_found != number_of_rawfiles_expected:
 
+									if number_of_rawfiles_found != number_of_rawfiles_expected:
 										error_str = (f"You entered that there should be {number_of_rawfiles_expected} raw files in rawdata folder, "
 											  f"but found {number_of_rawfiles_found}")
 										logger.debug(error_str)
@@ -1008,6 +1012,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 
 						if all_channels_validated:
 							logger.debug("Sample form validated")
+
 							""" Loop through the image resolution forms and find all channels in the form  
 							and update the existing table entries with the new imaging information """
 							notes_from_imaging = sample_form.notes_from_imaging.data
