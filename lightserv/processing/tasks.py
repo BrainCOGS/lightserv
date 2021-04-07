@@ -1951,7 +1951,8 @@ def smartspim_pystripe_job_status_checker():
 				correspondence_email = request_contents.fetch1('correspondence_email')
 				recipients = [correspondence_email]
 				if not os.environ['FLASK_MODE'] == 'TEST':
-					send_email.delay(subject=subject,body=body,recipients=recipients)
+					pass
+					# send_email.delay(subject=subject,body=body,recipients=recipients)
 
 			else:
 				logger.debug("Not all channels in this "
