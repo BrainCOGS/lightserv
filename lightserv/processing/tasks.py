@@ -1108,6 +1108,9 @@ def make_precomputed_smartspim_corrected_data(**kwargs):
 	image_resolution = kwargs['image_resolution']
 	channel_name = kwargs['channel_name']
 	ventral_up = kwargs['ventral_up']
+	# Figure out z step from ImagingChannel() entry
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & kwargs
+	z_step = imaging_channel_contents.fetch1('z_step') # microns
 
 	all_channels_smartspim = current_app.config["SMARTSPIM_IMAGING_CHANNELS"]
 	channel_index = all_channels_smartspim.index(channel_name)
@@ -1132,7 +1135,8 @@ def make_precomputed_smartspim_corrected_data(**kwargs):
 	
 	pickle_kwargs = dict(blended_data_path=blended_data_path,
 		layer_name=layer_name,
-		image_resolution=image_resolution)
+		image_resolution=image_resolution,
+		z_step=z_step)
 	
 	pickle_fullpath = viz_dir + '/precomputed_params.p'
 	with open(pickle_fullpath,'wb') as pkl_file:
@@ -1162,8 +1166,8 @@ def make_precomputed_smartspim_corrected_data(**kwargs):
 				'username':username,
 				'jobid_step0':jobid_step0,
 				'jobid_step1':jobid_step1,
-				'jobid_step2, ':jobid_step2,
-				'jobid_step3, ':jobid_step3,
+				'jobid_step2':jobid_step2,
+				'jobid_step3':jobid_step3,
 				'status_step0':status_step0,
 				'status_step1':status_step1,'status_step2':status_step2,
 				'status_step3':status_step3,
