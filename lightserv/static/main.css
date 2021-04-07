@@ -253,3 +253,7 @@ tr.strikeout td:before {
   width: 100%;
 
 }
+
+tr.spaceUnder>td {
+  padding-bottom: 1em;
+}
