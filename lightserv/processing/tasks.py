@@ -1144,7 +1144,7 @@ def make_precomputed_smartspim_corrected_data(**kwargs):
 		command = "cd /jukebox/wang/ahoag/precomputed/smartspim/testing; ./test_precomputed_corrected_script.sh "
 	else:
 		command = ("cd /jukebox/wang/ahoag/precomputed/smartspim/corrected_pipeline; "
-				   f"/jukebox/wang/ahoag/precomputed/corrected_pipeline/precomputed_pipeline_corrected.sh {viz_dir}")
+				   f"/jukebox/wang/ahoag/precomputed/smartspim/corrected_pipeline/precomputed_pipeline_corrected.sh {viz_dir}")
 	
 	client = connect_to_spock()
 
