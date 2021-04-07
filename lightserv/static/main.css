@@ -220,6 +220,12 @@ li.widespace {
 .tableFixHeadLong      { overflow-y: auto; height: 650px; }
 .tableFixHeadLong thead th { position: sticky; top: 0; }
 
+th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
 table  { border-collapse: collapse; width: 100%; }
 th, td { padding: 8px 16px; }
 th     { background:#eee; }
