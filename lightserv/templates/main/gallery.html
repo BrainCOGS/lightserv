@@ -3,6 +3,38 @@
 <h1 align="center" class="mb-4">Brain Registration and Histology Core Facility Gallery </h1>
 <hr class='class-1'>
 
+	<div id="injection_analysis" class='mb-2'>
+			<h3 align="center"> Injection site recovery </h3>
+			<figure class="mb-4">
+				<div align="center" class=>
+					<img width="1000" src="{{ url_for('static',filename='gallery/092220_vectorandcrusIbil_openfieldonly-001_4lightservgallery.png') }}">
+				</div>
+				<figcaption align="center"> Data courtesy of Jess Verpeut (alum of Wang Lab)</figcaption>
+			</figure>
+
+			
+			<p align="left"> One of the main applications of the Core Facility is to identify the location and spread of an injection. In this example, Dr. Jess Verpeut injected DREADDs with an mcherry tag into bilateral Crus I of the cerebellum to study the effects of perturbation on behavior. A component of this analysis is measuring the volume and spread of the injection site throughout the cerebellum. The figure above shows our injection site localization for a single brain in the cohort. After imaging, brains were aligned to the Princeton Mouse Atlas, a light-sheet analog to the Allen Mouse Brain Atlas. A max projection of the atlas-aligned injection channel (647 nm) is shown in coronal and sagittal views in the left panels above. We then used a basic filter + threshold + connected components approach to create a 3D mask of the bulk injection site. Max projections of this mask in both views are shown in the middle panels above. The right panel shows the masks overlaid on top of a medial slice of the Princeton Mouse Brain Atlas for reference. We then identified which brain regions contained the injection and the volume of injection in each by determining the number of voxels of overlap between the 3D segmentation mask and the 3D atlas: </p>
+			<div class='mb-2'>
+				<table border="1" class="dataframe" align="center" style="width: 50%;">  <thead>    <tr style="text-align: center;">      <th>Allen region</th>      <th>acronym</th>      <th>cubic mm</th>    </tr>  </thead>  <tbody>    <tr>      <td>Crus 1</td>      <td>ANcr1</td>      <td>4.42e-06</td>    </tr>    <tr>      <td>Crus 2</td>      <td>ANcr2</td>      <td>1.54e-03</td>    </tr>    <tr>      <td>Paramedian lobule</td>      <td>PRM</td>      <td>4.51e-04</td>    </tr>    <tr>      <td>Copula pyramidis</td>      <td>COPY</td>      <td>5.25e-07</td>    </tr>    <tr>      <td>Interposed nucleus</td>      <td>IP</td>      <td>6.90e-05</td>    </tr>    <tr>      <td>arbor vitae</td>      <td>arb</td>      <td>6.78e-05</td>    </tr>  </tbody></table>
+			</div>
+			<p>
+			   The code for creating the mask, making the figure and making the dataframe of injection volumes can be found in <a href="https://nbviewer.jupyter.org/github/PrincetonUniversity/lightsheet_helper_scripts/blob/master/projects/jv/injection_site_analysis/injection_detection_092220_vectorandcrusIbil_openfieldonly.ipynb">this Jupyter notebook</a>. 
+			</p>
+
+
+		<h5 class='border-bottom'> Technical specs: </h5>
+		<b>Species:</b> Mouse </br>
+		<b>Clearing protocol:</b> iDISCO+ (with immunostaining)</br>
+		<b>Primary antibody:</b> Rabbit antiRFP </br>
+		<b>Secondary antibody:</b> Donkey antiRabbit 647 </br>
+		<b>Microscope:</b> LaVision</br>
+		<b>Imaging resolution/pixel size:</b> 1.1x (5.91 microns)</br>
+		<b>Imaging channels:</b> Registration (488 nm; not shown), injection site recovery (647 nm; shown above)</br>
+		<b>Visualization:</b> Python/matplotlib
+	</div>
+
+	<hr class='class-2'>
+
 	<div id="paxinos_boundaires" class='mb-4'>
 			<h3 align="center"> Automatic registration to the Franklin-Paxinos Mouse Brain Atlas </h3>
 			<figure class="mb-4">
@@ -22,10 +54,11 @@
 		<h5 class='border-bottom'> Technical specs: </h5>
 		<b>Species:</b> Mouse </br>
 		<b>Clearing protocol:</b> iDISCO abbreviated clearing</br>
-		<b>Imaging resolution:</b> 1.1x</br>
-		<b>Imaging modes:</b> Registration (488 nm; shown above), injection site detection (555 nm; not shown)</br>
+		<b>Microscope:</b> LaVision</br>
+		<b>Imaging resolution/pixel size:</b> 1.1x (5.91 microns)</br>
+		<b>Imaging channels:</b> Registration (488 nm; shown above), injection site detection (555 nm; not shown)</br>
 		<b>Visualization:</b> <a target="_blank" href="http://github.com/BrainCOGS/neuroglancer">neuroglancer</a>
-		</div>
+	</div>
 
 <hr class='class-2'>
 
@@ -36,7 +69,7 @@
 			<div align="center" >
 				<img src="{{ url_for('static',filename='gallery/viral_tracing.gif') }}">
 			</div>
-			<figcaption align="center"> Data courtesy of Tom Pisano (alumnus of Wang Lab)</figcaption>
+			<figcaption align="center"> Data courtesy of Tom Pisano (alum of Wang Lab)</figcaption>
 		</figure>
 
 		<p align="left"> The original use case of the Core Facility. Pisano et al. (in prep.) used light sheet imaging to map anatomical pathways between the cerebellum and sensorimotor, associative, and modulatory regions of the forebrain. Shown above is a three dimensional visualization of cell centers (light green) that were traced using the anterograde transsynaptic tracer herpes simplex virus type 1 (H129) and the retrograde tracer pseudorabies virus (Bartha). Also shown are cerebellar subregions from the Princeton Mouse Brain Atlas (PMA), a modified version of the Allen Mouse Brain Atlas (AMBA). The PMA extends the AMBA to include the posterior cerebellum, and it improves registration accuracy for light sheet images.  
@@ -45,8 +78,9 @@
 		<h5 class='border-bottom'> Technical specs: </h5>
 		<b>Species:</b> Mouse </br>
 		<b>Clearing protocol:</b> iDISCO+ (with immunostaining)</br>
-		<b>Imaging resolution:</b> 4x</br>
-		<b>Imaging modes:</b> Registration (488 nm), Cell detection (647 nm)</br>
+		<b>Microscope:</b> LaVision</br>
+		<b>Imaging resolution/pixel size:</b> 4x (1.63 microns)</br>
+		<b>Imaging channels:</b> Registration (488 nm), Cell detection (647 nm)</br>
 		<b>Cell detection method:</b> <a href="https://github.com/PrincetonUniversity/3dunet">https://github.com/PrincetonUniversity/3dunet</a></br>
 		<b>Visualization:</b> <a target="_blank" href="http://github.com/BrainCOGS/neuroglancer">neuroglancer</a>
 
@@ -61,7 +95,7 @@
 				{# <img width="1200" src="{{ url_for('static',filename='gallery/clearmap_jess_201904_ymaze_cfos_an4.png') }}"> #}
 				<img width="1100" src="{{ url_for('static',filename='gallery/cfos_an21.gif') }}">
 			</div>
-			<figcaption align="center"> Data courtesy of Jess Verpeut (Wang Lab)</figcaption>
+			<figcaption align="center"> Data courtesy of Jess Verpeut (alum of Wang Lab)</figcaption>
 		</figure>
 		<p align="left"> Verpeut et al. (in prep.) used light sheet imaging to 
 		trace brain-wide c-Fos expression after a Y-maze reversal task. 
@@ -78,8 +112,9 @@
 		<h5 class='border-bottom'> Technical specs: </h5>
 		<b>Species:</b> Mouse </br>
 		<b>Clearing protocol:</b> iDISCO+ (with immunostaining)</br>
-		<b>Imaging resolution:</b> 1.3x</br>
-		<b>Imaging modes:</b> Registration (488 nm; not shown), Cell detection (647 nm; shown above)</br>
+		<b>Microscope:</b> LaVision</br>
+		<b>Imaging resolution/pixel size:</b> 1.3x (5 microns)</br>
+		<b>Imaging channels:</b> Registration (488 nm; not shown), Cell detection (647 nm; shown above)</br>
 		<b>Cell detection method:</b> <a href="https://github.com/PrincetonUniversity/ClearMapCluster">https://github.com/PrincetonUniversity/ClearMapCluster</a></br>
 
 		<b>Visualization:</b> <a target="_blank" href="http://github.com/BrainCOGS/neuroglancer">neuroglancer</a>
@@ -121,8 +156,9 @@
 		<h5 class='border-bottom'> Technical specs: </h5>
 		<b>Species:</b> Mouse </br>
 		<b>Clearing protocol:</b> iDISCO abbreviated clearing </br>
-		<b>Imaging resolution:</b> 1.3x</br>
-		<b>Imaging modes:</b> Registration (488 nm; not shown), Probe detection (555 nm; shown above)</br>
+		<b>Microscope:</b> LaVision</br>
+		<b>Imaging resolution/pixel size:</b> 1.3x (5 microns)</br>
+		<b>Imaging channels:</b> Registration (488 nm; not shown), Probe detection (555 nm; shown above)</br>
 
 		<b>Visualization:</b> <a target="_blank" href="http://github.com/BrainCOGS/neuroglancer">neuroglancer</a>
 
