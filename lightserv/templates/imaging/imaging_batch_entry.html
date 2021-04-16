@@ -11,7 +11,13 @@
 		<ul> 
 			{% for ii in range(sample_dict_list|length) %}
 				{% set sample_dict = sample_dict_list[ii] %}
-				<li> {{ sample_dict['sample_name']}} </li>
+				{% set sample_name = sample_dict['sample_name'] %}
+				{% set imaging_progress_this_sample = samples_imaging_progress_dict[sample_name] %}
+				{% if imaging_progress_this_sample == "complete" %}
+					<li> <s> {{sample_name}} </s> (imaged) </li>
+				{% else %}
+					<li> {{sample_name}} </li>
+				{% endif %}
 			{% endfor %}
 		</ul>
 	</div>
