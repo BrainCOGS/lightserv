@@ -1810,6 +1810,8 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 					available_imaging_modes = [x for x in available_imaging_modes if x != 'registration']
 				this_resolution_form.new_channel_purpose.choices = [(x,x) for x in available_imaging_modes]	
 	n_active_samples = len([x for x in samples_imaging_progress_dict if samples_imaging_progress_dict[x] != 'complete'])
+	logger.debug("samples_imaging_progress_dict:")
+	logger.debug(samples_imaging_progress_dict)
 	return render_template('imaging/imaging_batch_entry.html',form=form,
 		rawdata_rootpath=rawdata_rootpath,imaging_table=imaging_table,
 		sample_dict_list=sample_dict_list,
