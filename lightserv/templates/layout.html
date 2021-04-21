@@ -72,15 +72,18 @@
 							        
 								</li>
 								{# Admin dropdown #}
-								{% if session['user'] == 'ahoag' %}
-										
+								{% if session['user'] in ['ahoag','sg3271','ll3','sg3271'] %}
+									
 									<li class="nav-item dropdown">
 								        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 								          Admin
 								        </a>
 								        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-											<a class="dropdown-item" href="{{ url_for('main.admin')}}">Activity Log</a>
-											<a class="dropdown-item" href="{{ url_for('neuroglancer.confproxy_table')}}">Confproxy Table</a>
+								        	{% if session['user'] in ['ahoag'] %}
+												<a class="dropdown-item" href="{{ url_for('main.admin')}}">Activity Log</a>
+												<a class="dropdown-item" href="{{ url_for('neuroglancer.confproxy_table')}}">Confproxy Table</a>
+											{% endif %}
+												<a class="dropdown-item" href="{{ url_for('main.dash')}}">Core dashboard</a>
 								        </div>
 								        
 									</li>
