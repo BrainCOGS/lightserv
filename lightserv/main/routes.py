@@ -239,7 +239,11 @@ def dash():
 	    'Cleared': len(contents_already_cleared),
 	}
 	data_clearing = pd.Series(x_clearing).reset_index(name='value').rename(columns={'index':'status'})
+	empty_mask = data_clearing.value == 0
+	data_clearing.loc[empty_mask,'value'] = 0.001 # a hack to get tooltip to show up even for non-zero entries
 	data_clearing['angle'] = data_clearing['value']/data_clearing['value'].sum() * 2*np.pi
+	logger.debug(data_clearing['angle'])
+	logger.debug(data_clearing)
 	data_clearing['color'] = Category10[len(x_clearing)]
 
 	plot_clearing = figure(plot_height=350,plot_width=500, title="Clearing batches", toolbar_location=None,
@@ -300,6 +304,8 @@ def dash():
 	    'Imaged': len(contents_already_imaged),
 	}
 	data_imaging = pd.Series(x_imaging).reset_index(name='value').rename(columns={'index':'status'})
+	empty_mask = data_imaging.value == 0
+	data_imaging.loc[empty_mask,'value'] = 0.001 # a hack to get tooltip to show up even for non-zero entries
 	data_imaging['angle'] = data_imaging['value']/data_imaging['value'].sum() * 2*np.pi
 	data_imaging['color'] = Category10[len(x_imaging)]
 
