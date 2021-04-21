@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+	{% block headcontent %}
+		{{ js_resources|indent(4)|safe }}
+	    {{ css_resources|indent(4)|safe }}
+	    {{ script_clearing|indent(4)|safe }}
+	    {{ script_imaging|indent(4)|safe }}
+	    {{ script_microscope|indent(4)|safe }}
+	{% endblock headcontent %}
+    {% block content %}
+	<h1 style="text-align: center; margin-bottom: 40px;">Core Facility Dashboard</h1>
+	<hr class='class-1'>
+
+		<div class="row">
+			<div class="col" align="center">
+	            {{ div_clearing | safe }}
+	        </div>
+	        <div class="col" align="center">
+	            {{ div_imaging | safe }}
+	        </div>
+	    </div>
+	    <div class="row mt-2">
+			<div class="col" align="center">
+	            {{ div_microscope | safe }}
+	        </div>
+		</div>
+        
+
+
+{% endblock content %}

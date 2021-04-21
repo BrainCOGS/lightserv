@@ -6,22 +6,33 @@ from lightserv.main.utils import (logged_in, table_sorter,
 	 log_http_requests, logged_in_as_admin)
 from lightserv.main.forms import SpockConnectionTesterForm, FeedbackForm
 from lightserv.main.tables import RequestTable, AdminTable
-from functools import partial, wraps
 
 import datajoint as dj
-import socket
-import requests
+import pandas as pd
 import numpy as np
 
+import os
+import socket
 import logging
-from time import sleep
 import paramiko
+from datetime import datetime, timedelta
+import calendar
 
-# for testing ng viewer links
-import os, time, json
-import secrets
-import redis
-import progproxy as pp
+# bokeh plotting
+from bokeh.models import ColumnDataSource, Select, Slider
+
+from bokeh.plotting import figure, output_file, show
+from bokeh.embed import components
+from bokeh.resources import INLINE
+from bokeh.layouts import column, row, layout
+
+from bokeh.models import ColumnDataSource, DatetimeTickFormatter, FactorRange
+from bokeh.models.callbacks import CustomJS
+from bokeh.models.tickers import MonthsTicker
+from bokeh.transform import dodge
+from bokeh.palettes import Category20c,Category10
+from bokeh.transform import cumsum
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -199,10 +210,209 @@ def admin():
 	logger.info(f"{current_user} accessed admin page")
 	return render_template('main/admin.html',admin_table=admin_table)
 
+@main.route("/admin/dash") 
+@logged_in_as_admin
+@log_http_requests
+def dash(): 
+	""" Show Core Facility Dashboard """
+	current_user = session['user']
+	logger.debug(f"{current_user} accessed dash route")
+	
+	### CLEARING
+	clearing_batch_contents = db_lightsheet.Request.ClearingBatch()
+	request_contents = db_lightsheet.Request()
+	sample_contents = db_lightsheet.Request.Sample()
+	requests_samples_joined = request_contents * sample_contents    
+	combined_contents = (clearing_batch_contents * request_contents).proj(
+		'number_in_batch','expected_handoff_date',
+		'clearing_protocol','species',
+		'clearer','clearing_progress','clearing_protocol','antibody1','antibody2',
+		datetime_submitted='TIMESTAMP(date_submitted,time_submitted)')
+	''' First get all entities that are currently being cleared '''
+	contents_being_cleared = combined_contents & 'clearing_progress="in progress"'
+	contents_ready_to_clear = combined_contents & 'clearing_progress="incomplete"' 
+	contents_already_cleared = (combined_contents & 'clearing_progress="complete"')
+	x_clearing = {
+	    'Ready': len(contents_ready_to_clear),
+	    'In progress': len(contents_being_cleared),
+	    'Cleared': len(contents_already_cleared),
+	}
+	data_clearing = pd.Series(x_clearing).reset_index(name='value').rename(columns={'index':'status'})
+	data_clearing['angle'] = data_clearing['value']/data_clearing['value'].sum() * 2*np.pi
+	data_clearing['color'] = Category10[len(x_clearing)]
+
+	plot_clearing = figure(plot_height=350,plot_width=500, title="Clearing batches", toolbar_location=None,
+	           tools="hover", tooltips="@status: @value", x_range=(-0.5, 1.0))
+
+	plot_clearing.wedge(x=0, y=1, radius=0.4,
+	        start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
+	        line_color="white", fill_color='color', legend_field='status', source=data_clearing)
+
+	plot_clearing.axis.axis_label=None
+	plot_clearing.axis.visible=False
+	plot_clearing.grid.grid_line_color = None
+	plot_clearing.title.align = 'center'
+	plot_clearing.title.text_font_size = "24px"
+	script_clearing, div_clearing = components(plot_clearing)
+
+	### IMAGING
+
+	imaging_batch_contents = db_lightsheet.Request.ImagingBatch()
+	imaging_resolution_contents = db_lightsheet.Request.ImagingResolutionRequest()
+
+	imaging_request_contents = (clearing_batch_contents * sample_contents * \
+		request_contents * imaging_batch_contents * imaging_resolution_contents).\
+		proj('clearer','clearing_progress',
+		'imaging_request_date_submitted','imaging_request_time_submitted',
+		'imaging_progress','imager','species','number_in_imaging_batch',
+		'microscope',
+		datetime_submitted='TIMESTAMP(imaging_request_date_submitted,imaging_request_time_submitted)')
+
+	''' First get all entities that are currently being imaged '''
+	imaging_request_contents = dj.U('username','request_name',
+		'clearing_batch_number',
+		'imaging_batch_number','imaging_request_number').aggr(
+		imaging_request_contents,clearer='clearer',
+		clearing_progress='clearing_progress',
+		datetime_submitted='datetime_submitted',
+		imaging_progress='imaging_progress',imager='imager',
+		species='species',number_in_imaging_batch='number_in_imaging_batch',
+		all_samples_cleared='SUM(IF(clearing_progress="complete",1,0))=count(*)',
+		all_samples_lavision='SUM(IF(microscope="lavision",1,0))=count(*)',
+	    all_samples_smartspim='SUM(IF(microscope="smartspim",1,0))=count(*)'
+	    )
+	
+	contents_being_imaged = imaging_request_contents & 'all_samples_cleared=1' & \
+		'imaging_progress="in progress"'
+
+	''' Next get all entities that are ready to be imaged '''
+	contents_ready_to_image = imaging_request_contents & 'all_samples_cleared=1' & \
+	 'imaging_progress="incomplete"'
+	''' Now get all entities on deck (currently being cleared) '''
+	contents_on_deck = imaging_request_contents & 'clearing_progress!="complete"' & 'imaging_progress!="complete"'
+	''' Finally get all entities that have already been imaged '''
+	contents_already_imaged = (imaging_request_contents & 'imaging_progress="complete"')
+
+	x_imaging = {
+	    'Ready': len(contents_ready_to_image),
+	    'In progress': len(contents_being_imaged),
+	    'Imaged': len(contents_already_imaged),
+	}
+	data_imaging = pd.Series(x_imaging).reset_index(name='value').rename(columns={'index':'status'})
+	data_imaging['angle'] = data_imaging['value']/data_imaging['value'].sum() * 2*np.pi
+	data_imaging['color'] = Category10[len(x_imaging)]
+
+	plot_imaging = figure(plot_height=350,plot_width=500, title="Imaging batches", toolbar_location=None,
+	           tools="hover", tooltips="@status: @value", x_range=(-0.5, 1.0))
+
+	plot_imaging.wedge(x=0, y=1, radius=0.4,
+	        start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
+	        line_color="white", fill_color='color', legend_field='status', source=data_imaging)
+
+	plot_imaging.axis.axis_label=None
+	plot_imaging.axis.visible=False
+	plot_imaging.grid.grid_line_color = None
+	plot_imaging.title.align = 'center'
+	plot_imaging.title.text_font_size = "24px"
+	script_imaging, div_imaging = components(plot_imaging)
+
+	### Microscope usage
+
+	# Look up number of requests in each of the last 6 months 
+	imaging_requests = db_lightsheet.Request.ImagingRequest()
+	imaging_resolution_requests_joined = request_contents * imaging_resolution_contents * imaging_requests
+	now = datetime.now()
+	firstday_month = (now - timedelta(days=now.day-1)).date()
+	thisyear = firstday_month.year
+	thismonth = firstday_month.month
+	samples_this_month = requests_samples_joined & f'YEAR(date_submitted)={thisyear}' & \
+		f'MONTH(date_submitted)={thismonth}'
+	imaging_resolution_requests_this_month = imaging_resolution_requests_joined & f'YEAR(imaging_performed_date)={thisyear}' & \
+		f'MONTH(imaging_performed_date)={thismonth}'
+	imaging_resolution_requests_this_month_lavision = imaging_resolution_requests_this_month & \
+		'image_resolution in ("1.1x","1.3x","4x","2x")'
+	imaging_resolution_requests_this_month_smartspim = imaging_resolution_requests_this_month & \
+		'image_resolution in ("3.6x","15x")'
+	n_samples_this_month = len(samples_this_month)
+	n_uses_lavision = len(imaging_resolution_requests_this_month_lavision)
+	n_uses_smartspim = len(imaging_resolution_requests_this_month_smartspim)
+	last_day_of_the_month = calendar.monthrange(year=thisyear,month=thismonth)[-1]
+	lastday_month = datetime.strptime(f"{thisyear}-{str(thismonth).zfill(2)}-{last_day_of_the_month}","%Y-%m-%d").date()
+	
+	month_list = [firstday_month]
+	samples_count_list = [n_samples_this_month]
+	uses_count_list_lavision = [n_uses_lavision]
+	uses_count_list_smartspim = [n_uses_smartspim]
+	for month_count in range(6):
+		lastday_month = firstday_month-timedelta(days=1)
+		firstday_month = lastday_month-timedelta(days=(lastday_month.day-1))
+		samples_month = requests_samples_joined & f'date_submitted >= "{firstday_month}"' & f'date_submitted <= "{lastday_month}"' 
+		imaging_resolution_requests_month = imaging_resolution_requests_joined & f'imaging_performed_date >= "{firstday_month}"' & f'imaging_performed_date <= "{lastday_month}"' 
+		imaging_resolution_requests_month_lavision = imaging_resolution_requests_month & \
+		'image_resolution in ("1.1x","1.3x","4x","2x")'
+		imaging_resolution_requests_month_smartspim = imaging_resolution_requests_month & \
+			'image_resolution in ("3.6x","15x")'
+		month_list.append(firstday_month)
+		samples_count_list.append(len(samples_month))
+		uses_count_list_lavision.append(len(imaging_resolution_requests_month_lavision ))
+		uses_count_list_smartspim.append(len(imaging_resolution_requests_month_smartspim ))
+	# Reverse lists so they are in chronological order
+	month_list = month_list[::-1]
+	samples_count_list = samples_count_list[::-1]
+	uses_count_list_lavision = uses_count_list_lavision[::-1]
+	uses_count_list_smartspim = uses_count_list_smartspim[::-1]
+
+	data_microscopes=[{
+		'date':month_list[ii].strftime('%b %Y'),
+		'n_uses_lavision':uses_count_list_lavision[ii],
+		'n_uses_smartspim':uses_count_list_smartspim[ii],
+		} for ii in range(len(month_list))]
+	df_microscopes=pd.DataFrame(data_microscopes)
+
+	data = {'date' : df_microscopes['date'],
+	        'lavision'   : df_microscopes['n_uses_lavision'],
+	        'smartspim'   : df_microscopes['n_uses_smartspim']}
+	source_microscopes = ColumnDataSource(data=data)
+	microscope_usage_plot = figure(x_range=df_microscopes['date'],plot_height=400, title="Microscope usage in recent months",
+           toolbar_location=None, tools="",)
+
+	microscope_usage_plot.title.align = 'center'
+	microscope_usage_plot.title.text_font_size = "24px"
+	microscope_usage_plot.xaxis.group_text_font_size = "18px"
+	microscope_usage_plot.xaxis.major_label_text_font_size = "12pt"
+	microscope_usage_plot.xaxis.major_label_orientation = np.pi/4
+	microscope_usage_plot.legend.location = "top_right"
+	# microscope_usage_plot.xaxis.subgroup_tick_font_size = "24px"
+	microscope_usage_plot.vbar(x=dodge('date', -0.1, range=microscope_usage_plot.x_range), top='lavision', width=0.2, source=source_microscopes,
+	       color="#c9d9d3", legend_label="lavision")
+
+	microscope_usage_plot.vbar(x=dodge('date',  0.1, range=microscope_usage_plot.x_range), top='smartspim', width=0.2, source=source_microscopes,
+	       color="#e84d60", legend_label="smartspim")
+	microscope_usage_plot.title.text_font_size = "24px"
+	microscope_usage_plot.xaxis.axis_label_text_font_size = "18px"
+	microscope_usage_plot.yaxis.axis_label_text_font_size = "18px"
+	microscope_usage_plot.xaxis.axis_label = "Date"
+	microscope_usage_plot.yaxis.axis_label = "Number of brains"
+
+
+	script_microscope, div_microscope = components(microscope_usage_plot)
+	return render_template(
+		'main/dash.html',
+		script_clearing=script_clearing,
+		div_clearing=div_clearing,
+		script_imaging=script_imaging,
+		div_imaging=div_imaging,
+		script_microscope=script_microscope,
+		div_microscope=div_microscope,
+		js_resources=INLINE.render_js(),
+		css_resources=INLINE.render_css(),
+	).encode(encoding='UTF-8')
+
+
 @main.route("/test_cel")
 def test_cel(): 
 	from . import tasks as maintasks
-	from datetime import datetime, timedelta
+	
 	future_time = datetime.utcnow() + timedelta(seconds=1)
 	print("sending hello task")
 	maintasks.hello.apply_async(eta=future_time) 
