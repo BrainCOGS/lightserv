@@ -1,4 +1,4 @@
-from flask import url_for
+from flask import url_for,current_app
 from lightserv.main import tasks
 
 def test_welcome_login_redirects(test_client):
@@ -126,4 +126,20 @@ def test_nonadmin_cannot_access_admin_page(test_client,test_login_nonadmin):
 	response = test_client.get(url_for('main.admin'),
 		follow_redirects=True)
 	assert b'Admin' not in response.data
+	assert b'That page is restricted' in response.data 
+
+def test_admin_can_access_dash(test_client):
+	dash_admins = current_app.config['DASHBOARD_ADMINS']
+	dash_admin = dash_admins[-1]
+	with test_client.session_transaction() as sess:
+		sess['user'] = dash_admin
+	response = test_client.get(url_for('main.dash'),
+		follow_redirects=True)
+	assert b'Core Facility Dashboard' in response.data
+
+def test_nonadmin_cannot_access_dash(test_client,test_login_nonadmin):
+
+	response = test_client.get(url_for('main.dash'),
+		follow_redirects=True)
+	assert b'Core Facility Dashboard' not in response.data
 	assert b'That page is restricted' in response.data 

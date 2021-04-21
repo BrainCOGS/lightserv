@@ -10,7 +10,7 @@ from celery.schedules import crontab
 # Base class which I will inherit for use with DEV and TEST configs
 class BaseConfig(object):
 	MASTER_ADMINS = ['ahoag']
-	DASH_ADMINS = ['ahoag','ll3','sswang','sg3271']
+	DASHBOARD_ADMINS = ['ahoag','ll3','sswang','sg3271']
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	CLEARING_ADMINS = ['ahoag','ll3','sg3271']
 	IMAGING_ADMINS = ['ahoag','ll3','lightserv','sg3271','aichen']

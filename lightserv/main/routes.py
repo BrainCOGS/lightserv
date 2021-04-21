@@ -3,7 +3,8 @@ from flask import (render_template, request, redirect,
 				   Markup, Request, Response,abort)
 from lightserv import db_lightsheet, db_admin
 from lightserv.main.utils import (logged_in, table_sorter,
-	 log_http_requests, logged_in_as_admin)
+	 log_http_requests, logged_in_as_admin,
+	 logged_in_as_dash_admin)
 from lightserv.main.forms import SpockConnectionTesterForm, FeedbackForm
 from lightserv.main.tables import RequestTable, AdminTable
 
@@ -211,7 +212,7 @@ def admin():
 	return render_template('main/admin.html',admin_table=admin_table)
 
 @main.route("/admin/dash") 
-@logged_in_as_admin
+@logged_in_as_dash_admin
 @log_http_requests
 def dash(): 
 	""" Show Core Facility Dashboard """

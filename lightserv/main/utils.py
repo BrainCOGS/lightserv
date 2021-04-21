@@ -79,6 +79,26 @@ def logged_in_as_admin(f):
 			return redirect(login_url)
 	return decorated_function
 
+def logged_in_as_dash_admin(f):
+	@wraps(f)
+	def decorated_function(*args, **kwargs):
+		if 'user' in session: # user is logged in 
+			current_user = session['user']
+			if current_user in current_app.config['DASHBOARD_ADMINS']:
+				logger.info(f"{current_user} is a dash admin and can access the admin page")
+				return f(*args, **kwargs)
+			else:
+				logger.info(f"Current user: {current_user} is not an admin and tried to access the admin page. "
+				             "Denying them access")
+				flash(f'''That page is restricted''','danger')
+				return redirect(url_for('main.welcome'))
+		else:
+			next_url = request.url
+			login_url = '%s?next=%s' % (url_for('main.login'), next_url)
+			return redirect(login_url)
+	return decorated_function
+
+
 def request_exists(f):
 	@wraps(f)
 	def decorated_function(*args, **kwargs):
