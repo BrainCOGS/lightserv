@@ -25,8 +25,9 @@ def test_access_processing_manager(test_client,
 	""" Test that an admin can 
 	and can see the nonadmin's processing request 
 	"""
+	imager = current_app.config['IMAGING_ADMINS'][-1] 
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'aichen'
+		sess['user'] = imager
 	response = test_client.get(url_for('processing.processing_manager')
 		, follow_redirects=True)
 	assert b'Processing management GUI' in response.data
@@ -47,8 +48,9 @@ def test_processing_entry_form(test_client,test_imaged_request_nonadmin):
 	""" Test that an admin cannot access the processing entry form
 	for lightserv-test request. This is to avoid a conflict between user and admin 
 	submission for the same processing request"""
+	imager = current_app.config['IMAGING_ADMINS'][-1] 
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'aichen'
+		sess['user'] = imager
 	response = test_client.get(url_for('processing.processing_entry',
 		username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
 		imaging_request_number=1,processing_request_number=1)

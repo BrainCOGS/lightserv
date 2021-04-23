@@ -13,8 +13,8 @@ class BaseConfig(object):
 	DASHBOARD_ADMINS = ['ahoag','ll3','sswang','sg3271']
 	SECRET_KEY = os.environ.get('SECRET_KEY')
 	CLEARING_ADMINS = ['ahoag','ll3','sg3271']
-	IMAGING_ADMINS = ['ahoag','ll3','lightserv','sg3271','aichen']
-	PROCESSING_ADMINS = ['ahoag','sg3271','ll3','aichen']
+	IMAGING_ADMINS = ['ahoag','ll3','lightserv','sg3271']
+	PROCESSING_ADMINS = ['ahoag','sg3271','ll3']
 	LAVISION_RESOLUTIONS = ["1.1x","1.3x","2x","4x"]
 	SMARTSPIM_RESOLUTIONS = ["3.6x"]
 	RESOLUTIONS_NO_PROCESSING = ["2x","3.6x","15x"] # resolutions we are not able to process

@@ -7,7 +7,7 @@
 			{{ form.hidden_tag() }}
 			<fieldset class="form-group">
 				<legend class="border-bottom mb-2 mt-4">Background Info</legend>
-				{% if session['user'] == 'ahoag' or session['user'] == 'zmd' or session['user'] == 'aichen' or session['user'] == 'll3' %}
+				{% if session['user'] == 'ahoag' or session['user'] == 'zmd' or session['user'] == 'll3' %}
 					<div class="checkbox mb-2">
 						{% if form.clearing_samples|length > 0 %}
 							{{ form.enter_for_otheruser(disabled=true, class="form-check-input", onclick="return false;") }}

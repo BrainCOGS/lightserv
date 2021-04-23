@@ -9,7 +9,7 @@ This file must have the name conftest.py
 import os, sys
 if os.environ.get('FLASK_MODE') != 'TEST':
 	raise KeyError("Must set environmental variable FLASK_MODE=TEST")
-from flask import url_for,request
+from flask import url_for,request, current_app
 from lightserv import (create_app, config, db_admin,
 	db_lightsheet,db_microscope,db_subject, db_spockadmin)
 import secrets
@@ -128,10 +128,11 @@ def test_login_ll3(test_client):
 	pass
 
 @pytest.fixture(scope='function')
-def test_login_aichen(test_client):
+def test_login_imager(test_client):
 	""" Log Zahra in. Requires a test_client fixture to do this. """
-	print('----------Setup login_aichen response----------')
-	username = 'aichen'
+	print('----------Setup login_imager response----------')
+	imager = current_app.config['IMAGING_ADMINS'][-1] 
+	username = imager 
 	with test_client.session_transaction() as sess:
 		sess['user'] = username
 	all_usernames = db_lightsheet.User().fetch('username') 
@@ -140,23 +141,7 @@ def test_login_aichen(test_client):
 		user_dict = {'username':username,'princeton_email':email}
 		db_lightsheet.User().insert1(user_dict)
 	yield sess
-	print('----------Teardown login_aichen response----------')
-	pass
-
-@pytest.fixture(scope='function')
-def test_login_aichen(test_client):
-	""" Log Annie in. Requires a test_client fixture to do this. """
-	print('----------Setup login_aichen response----------')
-	username = 'aichen'
-	with test_client.session_transaction() as sess:
-		sess['user'] = username
-	all_usernames = db_lightsheet.User().fetch('username') 
-	if username not in all_usernames:
-		email = username + '@princeton.edu'
-		user_dict = {'username':username,'princeton_email':email}
-		db_lightsheet.User().insert1(user_dict)
-	yield sess
-	print('----------Teardown login_aichen response----------')
+	print('----------Teardown login_imager response----------')
 	pass
 
 @pytest.fixture(scope='function')
@@ -1901,9 +1886,8 @@ def test_cleared_request_both_microscopes_nonadmin(test_client,
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
-	test_login_aichen,test_delete_request_db_contents):
-	""" Images the cleared request by 'ahoag' (clearer='ahoag')
-	with imager='aichen' """
+	test_login_imager,test_delete_request_db_contents):
+	""" Images the cleared request  """
 	print('----------Setup test_imaged_request_ahoag fixture ----------')
 	data1 = {
 		'sample_forms-0-sample_name':'sample-001',
@@ -1945,13 +1929,14 @@ def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
-	test_delete_request_db_contents,test_login_aichen):
+	test_delete_request_db_contents,test_login_imager):
 	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
-	with imager='aichen' """
+	with imager=imaging admin """
 
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
+	imager = current_app.config['IMAGING_ADMINS'][-1] 
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'aichen'
+		sess['user'] = imager
 	""" First submit sample 1 """
 	data1 = {
 		'sample_forms-0-sample_name':'sample-001',
@@ -1996,13 +1981,14 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 @pytest.fixture(scope='function') 
 def test_imaged_smartspim_request_nonadmin(test_client,
 	test_cleared_request_3p6x_smartspim_nonadmin,
-	test_delete_request_db_contents,test_login_aichen):
+	test_delete_request_db_contents,test_login_imager):
 	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
-	with imager='aichen' """
+	with imager=imaging admin """
 
 	print('----------Setup test_imaged_smartspim_request_nonadmin fixture ----------')
+	imager = current_app.config['IMAGING_ADMINS'][-1] 
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'aichen'
+		sess['user'] = imager
 	""" First submit sample 1 """
 	data1 = {
 		'sample_forms-0-sample_name':'sample-001',
@@ -2048,13 +2034,14 @@ def test_imaged_smartspim_request_nonadmin(test_client,
 
 @pytest.fixture(scope='function') 
 def test_request_resolution_switched_nonadmin(test_client,test_cleared_request_nonadmin,
-	test_delete_request_db_contents,test_login_aichen):
+	test_delete_request_db_contents,test_login_imager):
 	""" In the imaging entry form, Zahra switches the image resolution to 1.1x
 	but does not submit the form """
 
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
+	imager = current_app.config['IMAGING_ADMINS'][-1] 
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'aichen'
+		sess['user'] = imager
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
 		'image_resolution_forms-0-change_resolution':True,
@@ -2073,13 +2060,14 @@ def test_request_resolution_switched_nonadmin(test_client,test_cleared_request_n
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_cleared_request_nonadmin,
-	test_delete_request_db_contents,test_login_aichen):
+	test_delete_request_db_contents,test_login_imager):
 	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
-	with imager='aichen' and adds a ventral up 488 channel in addition to dorsal up 488 channel """
+	with imager=imaging admin and adds a ventral up 488 channel in addition to dorsal up 488 channel """
 
 	print('----------Setup test_imaged_request_dorsal_up_and_ventral_up_nonadmin fixture ----------')
+	imager = current_app.config['IMAGING_ADMINS'][-1] 
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'aichen'
+		sess['user'] = imager
 
 	""" First add flipped channel in sample section since we only have 1 sample """
 	data1 = {
@@ -2156,14 +2144,14 @@ def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_clear
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_request_generic_imaging_nonadmin,
-	test_delete_request_db_contents,test_login_aichen):
+	test_delete_request_db_contents,test_login_imager):
 	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
-	with imager='aichen' """
+	with imager=imaging admin """
 
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
+	imager = current_app.config['IMAGING_ADMINS'][-1] 
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'aichen'
-	
+		sess['user'] = imager
 	
 	data = {
 		'sample_forms-0-sample_name':'sample-001',
@@ -2207,13 +2195,14 @@ def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_reques
 
 @pytest.fixture(scope='function') 
 def imaged_request_lightserv_test(test_client,test_cleared_request_nonadmin,
-	test_delete_request_db_contents,test_login_aichen):
+	test_delete_request_db_contents,test_login_imager):
 	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
-	with imager='aichen' """
+	with imager=imaging admin """
 
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
+	imager = current_app.config['IMAGING_ADMINS'][-1] 
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'aichen'
+		sess['user'] = imager
 	# print(db_lightsheet.Request.Sample())
 	data = {
 		'image_resolution_forms-0-image_resolution':'1.3x',
@@ -2240,9 +2229,9 @@ def imaged_request_lightserv_test(test_client,test_cleared_request_nonadmin,
 
 @pytest.fixture(scope='function') 
 def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel_request_ahoag,
-	test_login_aichen,test_delete_request_db_contents):
+	test_login_imager,test_delete_request_db_contents):
 	""" Images the multi-channel cleared request by 'ahoag' (clearer='ahoag')
-	with imager='aichen' """
+	with imager=imaging_admin """
 
 	print('----------Setup test_imaged_multichannel_request_ahoag fixture ----------')
 
@@ -2293,13 +2282,14 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 
 @pytest.fixture(scope='function') 
 def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadmin,
-	test_delete_request_db_contents,test_login_aichen):
+	test_delete_request_db_contents,test_login_imager):
 	""" Images the cleared viz request by 'lightserv-test' (clearer='ll3')
-	with imager='aichen' """
+	with imager=imaging_admin """
 
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
+	imager = current_app.config['IMAGING_ADMINS'][-1] 
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'aichen'
+		sess['user'] = imager
 	""" First submit sample 1 """
 	data1 = {
 		'sample_forms-0-sample_name':'viz_processed-001',
@@ -2453,7 +2443,7 @@ def smartspim_stitched_request(test_client,
 def processing_request_ahoag(test_client,test_imaged_request_ahoag,
 	test_delete_request_db_contents):
 	""" A fixture for having a request by ahoag that has been cleared 
-	(by aichen), imaged (by aichen) and then the processing is started (by ahoag) for reuse. """
+	, imaged and then the processing is started (by ahoag) for reuse. """
 
 	print('----------Setup processing_request_ahoag fixture ----------')
 
@@ -2505,8 +2495,8 @@ def completed_processing_request_ahoag(test_client,processing_request_ahoag,
 @pytest.fixture(scope='function')
 def processing_request_nonadmin(test_client,test_imaged_request_nonadmin,
 	test_delete_request_db_contents):
-	""" A fixture for having a request by lightserv-test that has been cleared 
-	(by aichen), imaged (by aichen) and processed (by lightserv-test) for reuse. """
+	""" A fixture for having a request by lightserv-test that has been cleared,
+	imaged and processed (by lightserv-test) for reuse. """
 
 	print('----------Setup processing_request_nonadmin fixture ----------')
 
@@ -2535,8 +2525,8 @@ def processing_request_nonadmin(test_client,test_imaged_request_nonadmin,
 @pytest.fixture(scope='function')
 def processing_request_viz_nonadmin(test_client,test_imaged_request_viz_nonadmin,
 	test_delete_request_db_contents):
-	""" A fixture for having the viz request by lightserv-test that has been cleared 
-	(by aichen), imaged (by aichen) and processed (by lightserv-test) for reuse. """
+	""" A fixture for having the viz request by lightserv-test that has been cleared,
+	imaged and processed (by lightserv-test) for reuse. """
 
 	print('----------Setup processing_request_nonadmin fixture ----------')
 
