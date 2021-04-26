@@ -2223,6 +2223,93 @@ def test_new_imaging_request(test_client,
 	with test_client.session_transaction() as sess:
 		username = sess['user']
 	request_name = "nonadmin_manysamp_request"
+	
+	# First make sure that the setup image resolution button works 
+	response = test_client.post(
+		url_for('imaging.new_imaging_request',username=username,
+			request_name=request_name,),data={
+			'species':'mouse',
+			'number_of_samples':3,
+			'imaging_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-reimaging_this_sample':True,
+			'imaging_samples-0-new_image_resolution_form_submit':True,
+			'imaging_samples-0-image_resolution_forsetup':'3.6x',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			'imaging_samples-1-sample_name':'sample-002',
+			'imaging_samples-1-reimaging_this_sample':True,
+			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-1-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-1-image_resolution_forsetup':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			'imaging_samples-2-sample_name':'sample-003',
+			'imaging_samples-2-reimaging_this_sample':True,
+			'imaging_samples-2-image_resolution_forms-0-image_resolution':'3.6x',
+			'imaging_samples-2-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-2-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-2-image_resolution_forsetup':'1.3x',
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"New Imaging Request" in response.data
+	assert b"Setup for image resolution: 3.6x" in response.data
+
+	# Now make sure the apply to all samples button works """
+	response = test_client.post(
+		url_for('imaging.new_imaging_request',username=username,
+			request_name=request_name,),data={
+			'species':'mouse',
+			'number_of_samples':3,
+			'imaging_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-0-uniform_imaging_submit_button':True,
+			'imaging_samples-0-image_resolution_forsetup':'3.6x',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			'imaging_samples-1-sample_name':'sample-002',
+			'imaging_samples-1-reimaging_this_sample':True,
+			'imaging_samples-1-image_resolution_forms-0-image_resolution':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-1-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-1-image_resolution_forsetup':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			'imaging_samples-2-sample_name':'sample-003',
+			'imaging_samples-2-reimaging_this_sample':True,
+			'imaging_samples-2-image_resolution_forms-0-image_resolution':'3.6x',
+			'imaging_samples-2-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-2-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-2-image_resolution_forsetup':'1.3x',
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-2-image_resolution_forms-0-channel_forms-1-channel_name':'647',
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"New Imaging Request" in response.data
+	assert b"Setup for image resolution: 3.6x" in response.data
+
+	# Next make sure the whole form submits
 	response = test_client.post(
 		url_for('imaging.new_imaging_request',username=username,
 			request_name=request_name,),data={
