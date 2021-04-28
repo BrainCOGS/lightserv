@@ -650,7 +650,7 @@
 					{{ sample_form.notes_from_imaging(class="form-control form-control-lg") }}
 				{% endif %}
 			</div>
-			{% set rawdata_filepath = rawdata_rootpath + '/' + sample_name + '/imaging_request_1/rawdata/' %}
+			{% set rawdata_filepath = rawdata_rootpath + '/' + sample_name + '/imaging_request_' + imaging_request_number + '/rawdata/' %}
 			<div>
 			<h3 class="infolink" tabindex="0" role="button" data-trigger="focus" data-toggle='popover' data-content='Make sure not to overwrite folders and do not put data from two different imaging channels into the same subfolder unless they were read-out from the microscope that way'>
 			Move or copy all raw data folders from the microscope computer to the correct folder on bucket: </h3>

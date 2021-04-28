@@ -1816,7 +1816,8 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 		rawdata_rootpath=rawdata_rootpath,imaging_table=imaging_table,
 		sample_dict_list=sample_dict_list,
 		samples_imaging_progress_dict=samples_imaging_progress_dict,
-		n_active_samples=n_active_samples)
+		n_active_samples=n_active_samples,
+		imaging_request_number=imaging_request_number)
 
 @imaging.route("/imaging/imaging_table/<username>/<request_name>/<sample_name>/<imaging_request_number>",methods=['GET','POST'])
 @check_clearing_completed
@@ -1910,9 +1911,6 @@ def new_imaging_request(username,request_name):
 						else:
 							all_imaging_channels = current_app.config['SMARTSPIM_IMAGING_CHANNELS']
 						for x in range(4):
-							
-							# image_resolution_form.channels.append_entry()
-
 							channel_name = all_imaging_channels[x]
 							logger.debug("Setting up channel form for channel:")
 							logger.debug(channel_name)
