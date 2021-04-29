@@ -27,11 +27,9 @@
 			<nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
 				<div class="container">
 				<!-- Navbar Left Side -->
-
-					<a class="navbar-brand mr-2">
-						<img src="{{url_for('static',filename='gallery/icon_gs_resized.png')}}" alt="">
-					</a>
-					
+						<a data-toggle='tooltip' data-placement="bottom" title="Click to view the Princeton Mouse Brain Atlas" href="https://brainmaps.princeton.edu/pma_neuroglancer" class="navbar-brand mr-2">
+							<img src="{{url_for('static',filename='gallery/icon_gs_resized.png')}}" alt="">
+						</a>
 					<a class="navbar-brand" >Lightserv </a>
 				
 					<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
