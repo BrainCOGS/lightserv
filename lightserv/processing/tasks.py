@@ -1862,19 +1862,28 @@ def smartspim_pystripe_job_status_checker():
 			continue
 		logger.debug("this pystripe content:")
 		logger.debug(this_pystripe_content)
-		dj.Table._update(this_pystripe_content,
-			'smartspim_pystripe_spock_job_progress',status_step0)
+		pystripe_dict = this_pystripe_content.fetch1()
+		pystripe_dict['smartspim_pystripe_spock_job_progress'] = status_step0
+		this_pystripe_content.delete_quick()
+		db_lightsheet.Request.SmartspimPystripeChannel().insert1(pystripe_dict)
+		### Datajoint bug in _update -- FIXME by upgrading to dj v0.13.1
+		# dj.Table._update(this_pystripe_content,
+		# 	'smartspim_pystripe_spock_job_progress',status_step0)
 		logger.debug("Updated SmartspimPystripeChannel() entry with current job status")
 		
 		if status_step0 == 'COMPLETED':
 			# Update SmartspimPystripeChannel() entry to indicate that pystripe is complete
 			this_pystripe_content = all_pystripe_entries & \
 			f'smartspim_pystripe_spock_jobid={jobid}'
-			dj.Table._update(this_pystripe_content,
-			'pystripe_performed',1)
-			logger.debug("Pystripe complete, marking pystripe_performed=1 in SmartspimPystripeChannel() channel")
-			# Launch precomputed pipeline for corrected blended images
 			this_pystripe_dict = this_pystripe_content.fetch1()
+			this_pystripe_dict['pystripe_performed'] = 1
+			this_pystripe_content.delete_quick()
+			db_lightsheet.Request.SmartspimPystripeChannel().insert1(pystripe_dict)
+			# dj.Table._update(this_pystripe_content,
+			# 'pystripe_performed',1)
+			logger.debug("Pystripe complete, marked pystripe_performed=1 in SmartspimPystripeChannel() channel")
+			# Launch precomputed pipeline for corrected blended images
+			# this_pystripe_dict = this_pystripe_content.fetch1()
 			username = this_pystripe_dict['username']
 			request_name = this_pystripe_dict['request_name']
 			sample_name = this_pystripe_dict['sample_name']
