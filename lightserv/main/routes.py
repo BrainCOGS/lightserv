@@ -27,7 +27,7 @@ from bokeh.embed import components
 from bokeh.resources import INLINE
 from bokeh.layouts import column, row, layout
 
-from bokeh.models import ColumnDataSource, DatetimeTickFormatter, FactorRange
+from bokeh.models import ColumnDataSource, DatetimeTickFormatter, FactorRange, Legend
 from bokeh.models.callbacks import CustomJS
 from bokeh.models.tickers import MonthsTicker
 from bokeh.transform import dodge
@@ -388,13 +388,23 @@ def dash():
 	microscope_usage_plot.xaxis.group_text_font_size = "18px"
 	microscope_usage_plot.xaxis.major_label_text_font_size = "12pt"
 	microscope_usage_plot.xaxis.major_label_orientation = np.pi/4
-	microscope_usage_plot.legend.location = "top_right"
 	# microscope_usage_plot.xaxis.subgroup_tick_font_size = "24px"
-	microscope_usage_plot.vbar(x=dodge('date', -0.1, range=microscope_usage_plot.x_range), top='lavision', width=0.2, source=source_microscopes,
-	       color="#c9d9d3", legend_label="lavision")
+	lavision_usage = microscope_usage_plot.vbar(
+		x=dodge('date', -0.1, range=microscope_usage_plot.x_range),
+		 top='lavision', width=0.2, source=source_microscopes,
+	       color="#c9d9d3")
 
-	microscope_usage_plot.vbar(x=dodge('date',  0.1, range=microscope_usage_plot.x_range), top='smartspim', width=0.2, source=source_microscopes,
-	       color="#e84d60", legend_label="smartspim")
+	smartspim_usage = microscope_usage_plot.vbar(
+		x=dodge('date',  0.1, range=microscope_usage_plot.x_range),
+		 top='smartspim', width=0.2, source=source_microscopes,
+	       color="#e84d60",)
+	# microscope_usage_plot.legend.location = "top_left"
+	legend = Legend(items=[
+    ("Lavision"   , [lavision_usage]),
+    ("SmartSPIM" , [smartspim_usage]),
+	], location="center")
+
+	microscope_usage_plot.add_layout(legend, 'right')
 	microscope_usage_plot.title.text_font_size = "24px"
 	microscope_usage_plot.xaxis.axis_label_text_font_size = "18px"
 	microscope_usage_plot.yaxis.axis_label_text_font_size = "18px"
