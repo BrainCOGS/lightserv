@@ -24,10 +24,12 @@ checkroutes.sh
 screenshots
 **/start_celery_dev.sh
 **/start_celery_prod.sh
-**/start_flower_dev.sh
-**/start_flower_prod.sh
 **/stop_celery_dev.sh
 **/stop_celery_prod.sh
+**/restart_celery_dev.sh
+**/restart_celery_prod.sh
+**/start_flower_dev.sh
+**/start_flower_prod.sh
 **/stop_flower_dev.sh
 **/stop_flower_prod.sh
 **/add_smartspim_to_db.py
