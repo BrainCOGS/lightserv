@@ -39,6 +39,7 @@ class ProcessingPipelineSpockJob(dj.Manual):
     status_step2                  : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT") # 
     status_step3 = NULL           : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT") # nullable because we dont always run step 3, e.g. if no registration is needed
     """
+
 @schema 
 class SmartspimStitchingSpockJob(dj.Manual):
     definition = """    # Spock job management table for the entire light sheet pipeline
@@ -151,3 +152,36 @@ class SmartspimCorrectedPrecomputedSpockJob(dj.Manual):
     status_step2 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT")
     status_step3 : enum("SUBMITTED","COMPLETED","FAILED","RUNNING","PENDING","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REQUEUED"," RESIZING","REVOKED","SUSPENDED","TIMEOUT")
     """
+
+@schema 
+class BucketStorage(dj.Lookup):
+    definition = """    # Keep track of storage space on LightSheetData bucket
+    timestamp = CURRENT_TIMESTAMP : timestamp
+    ---    
+    size_tb                       : float
+    avail_tb                      : float
+    """
+    contents = [
+        ['2021-05-03 08:30:00',150,5.783],
+        ['2021-05-02 08:30:00',150,6.666],
+        ['2021-05-01 08:30:00',150,8.056],
+        ['2021-04-30 08:30:00',150,10.650],
+        ['2021-04-29 08:30:00',150,11.767],
+        ['2021-04-28 08:30:00',150,12.914],
+        ['2021-04-27 08:30:00',150,14.961],
+        ['2021-04-26 08:30:00',150,15.187],
+        ['2021-04-25 08:30:00',150,18.544],
+        ['2021-04-24 08:30:00',150,20.842],
+        ['2021-04-23 08:30:00',150,22.806],
+        ['2021-04-22 08:30:00',150,26.779],
+        ['2021-04-21 08:30:00',150,26.771],
+        ['2021-04-20 08:30:00',150,24.807],
+        ['2021-04-19 08:30:00',125,0.012],
+        ['2021-04-18 08:30:00',125,1.147],
+        ['2021-04-17 08:30:00',125,2.360],
+        ['2021-04-16 08:30:00',125,1.001],
+        ['2021-04-15 08:30:00',125,3.049],
+        ['2021-04-14 08:30:00',125,3.367],
+        ['2021-04-13 08:30:00',125,4.983],
+
+    ]

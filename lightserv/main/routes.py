@@ -1,7 +1,7 @@
 from flask import (render_template, request, redirect,
 				   Blueprint, session, url_for, flash,
 				   Markup, Request, Response,abort)
-from lightserv import db_lightsheet, db_admin
+from lightserv import db_lightsheet, db_admin, db_spockadmin
 from lightserv.main.utils import (logged_in, table_sorter,
 	 log_http_requests, logged_in_as_admin,
 	 logged_in_as_dash_admin, get_lightsheet_storage)
@@ -380,8 +380,8 @@ def dash():
 	        'smartspim'   : df_microscopes['n_uses_smartspim']}
 	source_microscopes = ColumnDataSource(data=data)
 	microscope_usage_plot = figure(x_range=df_microscopes['date'],
-		plot_height=350,plot_width=500, title="Microscope usage in recent months",
-           toolbar_location=None, tools="",)
+		plot_height=450,plot_width=600, title="Microscope usage in recent months",
+           toolbar_location=None, tools="hover",tooltips="$ name @date: @$name")
 
 	microscope_usage_plot.title.align = 'center'
 	microscope_usage_plot.title.text_font_size = "24px"
@@ -413,39 +413,83 @@ def dash():
 
 	script_microscope, div_microscope = components(microscope_usage_plot)
 
-	### LightSheetData Usage
-	size_GB, used_GB, avail_GB = get_lightsheet_storage()
-	size_TB, used_TB, avail_TB =  round(size_GB/1000.,2), round(used_GB/1000.,2), round(avail_GB/1000.,2)
-	x_storage = {
-	    'Free: ': avail_TB,
-	    'Used: ': used_TB,
-	}
-	data_storage = pd.Series(x_storage).reset_index(name='value').rename(columns={'index':'space'})
-	empty_mask = data_storage.value == 0
-	data_storage.loc[empty_mask,'value'] = 0.001 # a hack to get tooltip to show up even for zero entries
-	data_storage['angle'] = data_storage['value']/data_storage['value'].sum() * 2*np.pi
-	data_storage['color'] = Category10[len(x_storage)+1][0:len(x_storage)]
-	# data_storage["value_padded"] = data_storage['value'].astype(str) + ' TB'
-	# data_storage["value_padded"] = data_storage["value_padded"].str.pad(40, side = "left")
-	data_storage['legendtext'] = data_storage['space'] + round(data_storage['value'],1).astype(str) + " TB"
-	source_storage = ColumnDataSource(data_storage)
-	plot_storage = figure(plot_height=350,plot_width=500, title="LightSheetData Storage",
-				toolbar_location=None,tools="hover",
-				tooltips="@space: @value{1.1} TB", x_range=(-0.5, 1.0))
+	# ### LightSheetData Usage - CURRENT
+	# size_GB, used_GB, avail_GB = get_lightsheet_storage()
+	# size_TB, used_TB, avail_TB =  round(size_GB/1000.,2), round(used_GB/1000.,2), round(avail_GB/1000.,2)
+	# x_storage = {
+	#     'Free: ': avail_TB,
+	#     'Used: ': used_TB,
+	# }
+	# data_storage = pd.Series(x_storage).reset_index(name='value').rename(columns={'index':'space'})
+	# empty_mask = data_storage.value == 0
+	# data_storage.loc[empty_mask,'value'] = 0.001 # a hack to get tooltip to show up even for zero entries
+	# data_storage['angle'] = data_storage['value']/data_storage['value'].sum() * 2*np.pi
+	# data_storage['color'] = Category10[len(x_storage)+1][0:len(x_storage)]
+	# # data_storage["value_padded"] = data_storage['value'].astype(str) + ' TB'
+	# # data_storage["value_padded"] = data_storage["value_padded"].str.pad(40, side = "left")
+	# data_storage['legendtext'] = data_storage['space'] + round(data_storage['value'],1).astype(str) + " TB"
+	# source_storage = ColumnDataSource(data_storage)
+	# plot_storage = figure(plot_height=350,plot_width=500, title="LightSheetData Storage",
+	# 			toolbar_location=None,tools="hover",
+	# 			tooltips="@space: @value{1.1} TB", x_range=(-0.5, 1.0))
 
-	plot_storage.wedge(x=0, y=1, radius=0.4,
-	        start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
-	        line_color="white", fill_color='color', legend_field='legendtext', source=source_storage)
-	# storage_labels = LabelSet(x=0, y=1, text='value_padded',
- #        angle=cumsum('angle_label', include_zero=True), source=source_storage, render_mode='canvas')
+	# plot_storage.wedge(x=0, y=1, radius=0.4,
+	#         start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
+	#         line_color="white", fill_color='color', legend_field='legendtext', source=source_storage)
 
-	# plot_storage.add_layout(storage_labels)
-	plot_storage.axis.axis_label=None
-	plot_storage.axis.visible=False
-	plot_storage.grid.grid_line_color = None
-	plot_storage.title.align = 'center'
-	plot_storage.title.text_font_size = "24px"
-	script_storage, div_storage = components(plot_storage)
+	# plot_storage.axis.axis_label=None
+	# plot_storage.axis.visible=False
+	# plot_storage.grid.grid_line_color = None
+	# plot_storage.title.align = 'center'
+	# plot_storage.title.text_font_size = "24px"
+	# script_storage, div_storage = components(plot_storage)
+
+	### LightSheetData Usage - Time evolution
+	storage_time_dict = db_spockadmin.BucketStorage().fetch(as_dict=True)
+
+	# data_storage_time = pd.Series(storage_time_dict).reset_index(name='value').rename(columns={'index':'space'})
+	df_storage_time = pd.DataFrame(storage_time_dict)
+	df_storage_time['date'] = df_storage_time['timestamp'].dt.strftime('%Y-%m-%d')
+	df_storage_time['used_tb'] = df_storage_time['size_tb'] - df_storage_time['avail_tb']
+	storage_time_categories = ['Used','Available']
+	colors = ["#718dbf", "#e84d60"]
+	data_storage_time = {
+	'date':df_storage_time['date'],
+	'Used':df_storage_time['used_tb'],
+	'Available':df_storage_time['avail_tb']}
+	logger.debug(data_storage_time)
+	source_storage_time = ColumnDataSource(data=data_storage_time)
+	storage_time_plot = figure(x_range=data_storage_time['date'],
+		plot_height=450,plot_width=600, title="LightSheetData Usage History",
+           toolbar_location=None, tools="hover",tooltips="$name @date: @$name{1.1} TB")
+
+	storage_time_plot.title.align = 'center'
+	storage_time_plot.title.text_font_size = "24px"
+	storage_time_plot.xaxis.group_text_font_size = "18px"
+	storage_time_plot.xaxis.major_label_text_font_size = "12pt"
+	storage_time_plot.xaxis.major_label_orientation = np.pi/3
+	
+	vbar_stack = storage_time_plot.vbar_stack(storage_time_categories, x='date',
+		width=0.9, color=colors, source=data_storage_time)
+	
+	legend = Legend(items=[
+	    ("Used"   , [vbar_stack[0]]),
+	    ("Available" , [vbar_stack[1]]),
+		], location="center")
+
+	storage_time_plot.add_layout(legend, 'right')
+	storage_time_plot.y_range.start = 0
+	storage_time_plot.x_range.range_padding = 0.1
+	storage_time_plot.xgrid.grid_line_color = None
+	storage_time_plot.axis.minor_tick_line_color = None
+	storage_time_plot.outline_line_color = None
+	storage_time_plot.title.text_font_size = "24px"
+	storage_time_plot.xaxis.axis_label_text_font_size = "18px"
+	storage_time_plot.yaxis.axis_label_text_font_size = "18px"
+	storage_time_plot.xaxis.axis_label = "Date"
+	storage_time_plot.yaxis.axis_label = "Storage Space (TB)"
+
+	script_storage_time, div_storage_time = components(storage_time_plot)
 
 	return render_template(
 		'main/dash.html',
@@ -457,6 +501,8 @@ def dash():
 		div_microscope=div_microscope,
 		script_storage=script_storage,
 		div_storage=div_storage,
+		script_storage_time=script_storage_time,
+		div_storage_time=div_storage_time,
 		js_resources=INLINE.render_js(),
 		css_resources=INLINE.render_css(),
 	).encode(encoding='UTF-8')

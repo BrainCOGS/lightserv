@@ -6,6 +6,7 @@
 	    {{ script_imaging|indent(4)|safe }}
 	    {{ script_microscope|indent(4)|safe }}
 	    {{ script_storage|indent(4)|safe }}
+	    {{ script_storage_time|indent(4)|safe }}
 	{% endblock headcontent %}
     {% block content %}
 	<h1 style="text-align: center; margin-bottom: 40px;">Core Facility Dashboard</h1>
@@ -19,12 +20,15 @@
 	            {{ div_imaging | safe }}
 	        </div>
 	    </div>
-	    <div class="row mt-2">
-			<div class="col" align="center">
+	    <div class="row mt-4">
+			<div class="col" align="left">
 	            {{ div_microscope | safe }}
 	        </div>
-	        <div class="col" align="center">
-	            {{ div_storage | safe }}
+	    </div>
+	    <div class="row mt-4">
+	 	
+	        <div class="col" align="left">
+	            {{ div_storage_time | safe }}
 	        </div>
 		</div>
         
