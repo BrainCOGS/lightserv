@@ -4,6 +4,8 @@ import os,time
 from lightserv import db_lightsheet, db_admin
 import datajoint as dj
 import paramiko
+import subprocess
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -97,7 +99,6 @@ def logged_in_as_dash_admin(f):
 			login_url = '%s?next=%s' % (url_for('main.login'), next_url)
 			return redirect(login_url)
 	return decorated_function
-
 
 def request_exists(f):
 	@wraps(f)
@@ -609,3 +610,18 @@ def check_user_in_g_lightsheet_data(username):
 	# error_response = str(stderr.read().decode("utf-8").strip('\n')) # strips off the final newline
 	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
 	return response
+
+def get_lightsheet_storage():
+	# Get the available storage using the "df -BG" command which reports the space always in GB so it is easy to parse
+	result = subprocess.run('df -BG | grep LightSheetData',shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
+	error = False
+	## Size = how much disk space allocated for this bucket
+	size_str = result.split()[1]
+	size_GB = int(size_str[:-1])
+	## Used = how much of Size is used
+	used_str = result.split()[2]
+	used_GB = int(used_str[:-1])
+	## Avail = Size - Used
+	avail_str = result.split()[3]
+	avail_GB = int(avail_str[:-1])
+	return size_GB, used_GB, avail_GB

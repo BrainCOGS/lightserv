@@ -4,7 +4,7 @@ from flask import (render_template, request, redirect,
 from lightserv import db_lightsheet, db_admin
 from lightserv.main.utils import (logged_in, table_sorter,
 	 log_http_requests, logged_in_as_admin,
-	 logged_in_as_dash_admin)
+	 logged_in_as_dash_admin, get_lightsheet_storage)
 from lightserv.main.forms import SpockConnectionTesterForm, FeedbackForm
 from lightserv.main.tables import RequestTable, AdminTable
 
@@ -234,13 +234,13 @@ def dash():
 	contents_ready_to_clear = combined_contents & 'clearing_progress="incomplete"' 
 	contents_already_cleared = (combined_contents & 'clearing_progress="complete"')
 	x_clearing = {
-	    'Ready': len(contents_ready_to_clear),
-	    'In progress': len(contents_being_cleared),
 	    'Cleared': len(contents_already_cleared),
+	    'In progress': len(contents_being_cleared),
+	    'Ready': len(contents_ready_to_clear),
 	}
 	data_clearing = pd.Series(x_clearing).reset_index(name='value').rename(columns={'index':'status'})
 	empty_mask = data_clearing.value == 0
-	data_clearing.loc[empty_mask,'value'] = 0.001 # a hack to get tooltip to show up even for non-zero entries
+	data_clearing.loc[empty_mask,'value'] = 0.001 # a hack to get tooltip to show up even for zero entries
 	data_clearing['angle'] = data_clearing['value']/data_clearing['value'].sum() * 2*np.pi
 	logger.debug(data_clearing['angle'])
 	logger.debug(data_clearing)
@@ -299,13 +299,13 @@ def dash():
 	contents_already_imaged = (imaging_request_contents & 'imaging_progress="complete"')
 
 	x_imaging = {
-	    'Ready': len(contents_ready_to_image),
-	    'In progress': len(contents_being_imaged),
 	    'Imaged': len(contents_already_imaged),
+	    'In progress': len(contents_being_imaged),
+	    'Ready': len(contents_ready_to_image),
 	}
 	data_imaging = pd.Series(x_imaging).reset_index(name='value').rename(columns={'index':'status'})
 	empty_mask = data_imaging.value == 0
-	data_imaging.loc[empty_mask,'value'] = 0.001 # a hack to get tooltip to show up even for non-zero entries
+	data_imaging.loc[empty_mask,'value'] = 0.001 # a hack to get tooltip to show up even for zero entries
 	data_imaging['angle'] = data_imaging['value']/data_imaging['value'].sum() * 2*np.pi
 	data_imaging['color'] = Category10[len(x_imaging)]
 
@@ -380,7 +380,8 @@ def dash():
 	        'lavision'   : df_microscopes['n_uses_lavision'],
 	        'smartspim'   : df_microscopes['n_uses_smartspim']}
 	source_microscopes = ColumnDataSource(data=data)
-	microscope_usage_plot = figure(x_range=df_microscopes['date'],plot_height=400, title="Microscope usage in recent months",
+	microscope_usage_plot = figure(x_range=df_microscopes['date'],
+		plot_height=350,plot_width=500, title="Microscope usage in recent months",
            toolbar_location=None, tools="",)
 
 	microscope_usage_plot.title.align = 'center'
@@ -411,8 +412,36 @@ def dash():
 	microscope_usage_plot.xaxis.axis_label = "Date"
 	microscope_usage_plot.yaxis.axis_label = "Number of brains"
 
-
 	script_microscope, div_microscope = components(microscope_usage_plot)
+
+	### LightSheetData Usage
+	size_GB, used_GB, avail_GB = get_lightsheet_storage()
+	size_TB, used_TB, avail_TB =  round(size_GB/1000.), round(used_GB/1000.), round(avail_GB/1000.)
+	x_storage = {
+	    'Used (TB)': used_TB,
+	    'Free (TB)': avail_TB,
+	}
+	data_storage = pd.Series(x_storage).reset_index(name='value').rename(columns={'index':'space'})
+	empty_mask = data_storage.value == 0
+	data_storage.loc[empty_mask,'value'] = 0.001 # a hack to get tooltip to show up even for zero entries
+	data_storage['angle'] = data_storage['value']/data_storage['value'].sum() * 2*np.pi
+	data_storage['color'] = Category10[len(x_storage)+1][0:len(x_storage)]
+
+	plot_storage = figure(plot_height=350,plot_width=500, title="LightSheetData Storage",
+				toolbar_location=None,tools="hover",
+				tooltips="@space: @value", x_range=(-0.5, 1.0))
+
+	plot_storage.wedge(x=0, y=1, radius=0.4,
+	        start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
+	        line_color="white", fill_color='color', legend_field='space', source=data_storage)
+
+	plot_storage.axis.axis_label=None
+	plot_storage.axis.visible=False
+	plot_storage.grid.grid_line_color = None
+	plot_storage.title.align = 'center'
+	plot_storage.title.text_font_size = "24px"
+	script_storage, div_storage = components(plot_storage)
+
 	return render_template(
 		'main/dash.html',
 		script_clearing=script_clearing,
@@ -421,6 +450,8 @@ def dash():
 		div_imaging=div_imaging,
 		script_microscope=script_microscope,
 		div_microscope=div_microscope,
+		script_storage=script_storage,
+		div_storage=div_storage,
 		js_resources=INLINE.render_js(),
 		css_resources=INLINE.render_css(),
 	).encode(encoding='UTF-8')
