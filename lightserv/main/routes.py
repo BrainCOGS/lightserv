@@ -245,7 +245,7 @@ def dash():
 	data_clearing['angle'] = data_clearing['value']/data_clearing['value'].sum() * 2*np.pi
 	data_clearing['color'] = Category10[len(x_clearing)]
 
-	plot_clearing = figure(plot_height=350,plot_width=500, title="Clearing batches", toolbar_location=None,
+	plot_clearing = figure(plot_height=350,plot_width=400, title="Clearing batches", toolbar_location=None,
 	           tools="hover", tooltips="@status: @value", x_range=(-0.5, 1.0))
 
 	plot_clearing.wedge(x=0, y=1, radius=0.4,
@@ -308,7 +308,7 @@ def dash():
 	data_imaging['angle'] = data_imaging['value']/data_imaging['value'].sum() * 2*np.pi
 	data_imaging['color'] = Category10[len(x_imaging)]
 
-	plot_imaging = figure(plot_height=350,plot_width=500, title="Imaging batches", toolbar_location=None,
+	plot_imaging = figure(plot_height=350,plot_width=400, title="Imaging batches", toolbar_location=None,
 	           tools="hover", tooltips="@status: @value", x_range=(-0.5, 1.0))
 
 	plot_imaging.wedge(x=0, y=1, radius=0.4,
@@ -499,8 +499,6 @@ def dash():
 		div_imaging=div_imaging,
 		script_microscope=script_microscope,
 		div_microscope=div_microscope,
-		script_storage=script_storage,
-		div_storage=div_storage,
 		script_storage_time=script_storage_time,
 		div_storage_time=div_storage_time,
 		js_resources=INLINE.render_js(),
