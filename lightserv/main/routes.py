@@ -235,9 +235,9 @@ def dash():
 	contents_ready_to_clear = combined_contents & 'clearing_progress="incomplete"' 
 	contents_already_cleared = (combined_contents & 'clearing_progress="complete"')
 	x_clearing = {
-	    'Cleared': len(contents_already_cleared),
-	    'In progress': len(contents_being_cleared),
 	    'Ready': len(contents_ready_to_clear),
+	    'In progress': len(contents_being_cleared),
+	    'Cleared': len(contents_already_cleared),
 	}
 	data_clearing = pd.Series(x_clearing).reset_index(name='value').rename(columns={'index':'status'})
 	empty_mask = data_clearing.value == 0
@@ -298,9 +298,9 @@ def dash():
 	contents_already_imaged = (imaging_request_contents & 'imaging_progress="complete"')
 
 	x_imaging = {
-	    'Imaged': len(contents_already_imaged),
-	    'In progress': len(contents_being_imaged),
 	    'Ready': len(contents_ready_to_image),
+	    'In progress': len(contents_being_imaged),
+	    'Imaged': len(contents_already_imaged),
 	}
 	data_imaging = pd.Series(x_imaging).reset_index(name='value').rename(columns={'index':'status'})
 	empty_mask = data_imaging.value == 0
