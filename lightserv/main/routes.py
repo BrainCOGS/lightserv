@@ -27,7 +27,8 @@ from bokeh.embed import components
 from bokeh.resources import INLINE
 from bokeh.layouts import column, row, layout
 
-from bokeh.models import ColumnDataSource, DatetimeTickFormatter, FactorRange, Legend
+from bokeh.models import (ColumnDataSource, DatetimeTickFormatter, 
+	FactorRange, Legend, LabelSet)
 from bokeh.models.callbacks import CustomJS
 from bokeh.models.tickers import MonthsTicker
 from bokeh.transform import dodge
@@ -242,8 +243,6 @@ def dash():
 	empty_mask = data_clearing.value == 0
 	data_clearing.loc[empty_mask,'value'] = 0.001 # a hack to get tooltip to show up even for zero entries
 	data_clearing['angle'] = data_clearing['value']/data_clearing['value'].sum() * 2*np.pi
-	logger.debug(data_clearing['angle'])
-	logger.debug(data_clearing)
 	data_clearing['color'] = Category10[len(x_clearing)]
 
 	plot_clearing = figure(plot_height=350,plot_width=500, title="Clearing batches", toolbar_location=None,
@@ -416,25 +415,31 @@ def dash():
 
 	### LightSheetData Usage
 	size_GB, used_GB, avail_GB = get_lightsheet_storage()
-	size_TB, used_TB, avail_TB =  round(size_GB/1000.), round(used_GB/1000.), round(avail_GB/1000.)
+	size_TB, used_TB, avail_TB =  round(size_GB/1000.,2), round(used_GB/1000.,2), round(avail_GB/1000.,2)
 	x_storage = {
-	    'Used (TB)': used_TB,
-	    'Free (TB)': avail_TB,
+	    'Free: ': avail_TB,
+	    'Used: ': used_TB,
 	}
 	data_storage = pd.Series(x_storage).reset_index(name='value').rename(columns={'index':'space'})
 	empty_mask = data_storage.value == 0
 	data_storage.loc[empty_mask,'value'] = 0.001 # a hack to get tooltip to show up even for zero entries
 	data_storage['angle'] = data_storage['value']/data_storage['value'].sum() * 2*np.pi
 	data_storage['color'] = Category10[len(x_storage)+1][0:len(x_storage)]
-
+	# data_storage["value_padded"] = data_storage['value'].astype(str) + ' TB'
+	# data_storage["value_padded"] = data_storage["value_padded"].str.pad(40, side = "left")
+	data_storage['legendtext'] = data_storage['space'] + round(data_storage['value'],1).astype(str) + " TB"
+	source_storage = ColumnDataSource(data_storage)
 	plot_storage = figure(plot_height=350,plot_width=500, title="LightSheetData Storage",
 				toolbar_location=None,tools="hover",
-				tooltips="@space: @value", x_range=(-0.5, 1.0))
+				tooltips="@space: @value{1.1} TB", x_range=(-0.5, 1.0))
 
 	plot_storage.wedge(x=0, y=1, radius=0.4,
 	        start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
-	        line_color="white", fill_color='color', legend_field='space', source=data_storage)
+	        line_color="white", fill_color='color', legend_field='legendtext', source=source_storage)
+	# storage_labels = LabelSet(x=0, y=1, text='value_padded',
+ #        angle=cumsum('angle_label', include_zero=True), source=source_storage, render_mode='canvas')
 
+	# plot_storage.add_layout(storage_labels)
 	plot_storage.axis.axis_label=None
 	plot_storage.axis.visible=False
 	plot_storage.grid.grid_line_color = None
