@@ -254,6 +254,7 @@ def dash():
 
 	plot_clearing.axis.axis_label=None
 	plot_clearing.axis.visible=False
+	plot_clearing.legend.label_text_font_size='16pt'
 	plot_clearing.grid.grid_line_color = None
 	plot_clearing.title.align = 'center'
 	plot_clearing.title.text_font_size = "24px"
@@ -515,3 +516,9 @@ def test_cel():
 	maintasks.hello.apply_async(eta=future_time) 
 	print("sent hello task")
 	return "sent task"
+
+@main.route("/test_bucket_storage")
+def test_bucket_storage(): 
+	from . import tasks as maintasks
+	output = maintasks.check_lightsheetdata_storage.run() 
+	return output

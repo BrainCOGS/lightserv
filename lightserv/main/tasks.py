@@ -2,7 +2,7 @@ from flask import (render_template, request, redirect,
 				   Blueprint, session, url_for, flash,
 				   Markup, Request, Response,jsonify,
                    current_app)
-from lightserv import db_lightsheet, db_admin, cel, smtp_connect
+from lightserv import db_lightsheet, db_admin, db_spockadmin, cel, smtp_connect
 from lightserv.main.utils import logged_in, table_sorter, log_http_requests
 from functools import partial, wraps
 
@@ -90,22 +90,28 @@ def send_admin_email(subject,body,sender_email='lightservhelper@gmail.com'):
 
 @cel.task()
 def hello():
-	print("in celery task")
+	logger.info("in celery task")
 	return "hello world"
 
 @cel.task()
 def check_lightsheetdata_storage():
-	print("Checking LightSheetData available storage capacity")
+	logger.info("Checking LightSheetData available storage capacity")
 	import subprocess
-	# Get the available storage using the "df -hG" command which reports the space always in GB so it is easy to parse
+	# Get the available storage using the "df -BG" command which reports the space always in GB so it is easy to parse
 	result = subprocess.run('df -BG | grep LightSheetData',shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
 	error = False
 	try:
+		size_str = result.split()[1]
+		size_GB = float(size_str[:-1])
+		size_TB = round(size_GB/1000.,3)
 		avail_str = result.split()[3]
 		avail_GB = int(avail_str[:-1])
+		avail_TB = round(avail_GB/1000.,3)
+		error=False
 	except:
-		error = True
+		error = True 
 	if error == True:
+		logger.debug("There was an error")
 		subject = "Lightserv: (ERROR) daily LightSheetData health check"
 		body = "There was an error checking the storage capacity of LightSheetData on bucket. "
 	else:
@@ -117,6 +123,15 @@ def check_lightsheetdata_storage():
 			subject = "Lightserv: (ALL CLEAR) LightSheetData has plenty of free space"
 			body = (f"LightSheetData has {avail_GB} GB remaining. This is above the 2 TB threshold that you set."
 					 " No action is needed at this time. ")
+		# Store row in datajoint table
+		now = datetime.now()
+		timestamp = now.strftime('%Y-%m-%d') + ' 08:30:00'
+		insert_dict = dict(timestamp=timestamp,
+			size_tb=size_TB,
+			avail_tb=avail_TB)
+		logger.debug("Inserting into BucketStorage() table:")
+		logger.debug(insert_dict)
+		db_spockadmin.BucketStorage().insert1(insert_dict,skip_duplicates=True)
 	master_admin_netids = current_app.config['MASTER_ADMINS']
 	recipients = [x + "@princeton.edu" for x in master_admin_netids]
 	send_email.delay(subject=subject,
