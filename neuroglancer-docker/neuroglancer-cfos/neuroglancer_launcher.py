@@ -105,7 +105,7 @@ with viewer.txn() as s:
 		atlas_layer.selectedAlpha = 0.2
 	if has_image:
 		image_layer = s.layers[image_layer_index]
-		image_layer.shader = """void main() {emitGrayscale(1.0-toNormalized(getDataValue())*575.0);}"""
+		image_layer.shader = """void main() {emitGrayscale(toNormalized(getDataValue())*20.0);}"""
   	
 logging.debug("neuroglancer viewer is now available")
 logging.debug("made it here!")

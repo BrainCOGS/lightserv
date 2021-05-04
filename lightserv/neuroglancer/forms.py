@@ -250,3 +250,25 @@ class TracingSetupForm(FlaskForm):
 		elif n_checked >1:
 			raise ValidationError("Only one box can be checked when you hit submit.")
 		
+
+""" Brain selection form for Chris Zimmerman's c-Fos and tracing experiments """
+
+class LightservAnimalForm(FlaskForm):
+	""" A sub-form for each image resolution in RawDataSetupForm """
+	sample_name = HiddenField('sample_name')
+	viz = BooleanField("Visualize?")
+
+class LightservCfosSetupForm(FlaskForm):
+	""" A form for setting up how user wants to visualize
+	their raw data for a given imaging request in Neuroglancer
+	"""
+	sample_forms = FieldList(FormField(LightservAnimalForm),min_entries=0,max_entries=40)
+	submit = SubmitField('Submit')
+	
+	def validate_animal_forms(self,animal_forms):
+		""" Check to make sure at 1 checkbox was checked. No more no less."""
+		n_checked = [animal_form.data['viz']==True for animal_form in self.animal_forms].count(True)
+		if n_checked == 0:
+			raise ValidationError("No animals were checked when you hit submit. One needs to be checked")
+		elif n_checked >1:
+			raise ValidationError("Only one box can be checked when you hit submit.")
