@@ -401,7 +401,7 @@ def dash():
 	smartspim_usage = microscope_usage_plot.vbar(
 		x=dodge('date',  0.1, range=microscope_usage_plot.x_range),
 		 top='smartspim', width=0.2, source=source_microscopes,
-	       color="#e84d60",)
+	       color="#e84d60",name='smartspim')
 	
 	hover_lavision = HoverTool(tooltips=[("LaVision","@lavision")],names=['lavision'])
 	hover_smartspim = HoverTool(tooltips=[("SmartSPIM","@smartspim")],names=['smartspim'])
