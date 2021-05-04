@@ -182,6 +182,10 @@ class ProdConfig(BaseConfig):
 		'task': 'lightserv.processing.tasks.smartspim_pystripe_job_status_checker',
 		'schedule': timedelta(minutes=20)
 		},
+		'smartspim_corrected_precomputed_job_status_checker': {
+		'task': 'lightserv.processing.tasks.smartspim_corrected_precomputed_job_status_checker',
+		'schedule': timedelta(minutes=10)
+		},
 		'LightSheetData_storage_capacity_checker': {
 		'task': 'lightserv.main.tasks.check_lightsheetdata_storage',
 		'schedule': crontab(hour=8, minute=30) # 8:30 AM every day
