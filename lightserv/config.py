@@ -109,6 +109,11 @@ class DevConfig(BaseConfig):
 		# 'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
 		# 'schedule': timedelta(seconds=25)
 		# },
+		'smartspim_corrected_precomputed_job_status_checker': {
+		'task': 'lightserv.processing.tasks.smartspim_corrected_precomputed_job_status_checker',
+		'schedule': timedelta(seconds=10)
+		},
+		
 		# 'LightSheetData_storage_capacity_checker': {
 		# 'task': 'lightserv.main.tasks.check_lightsheetdata_storage',
 		# 'schedule': crontab(hour=17, minute=41)
