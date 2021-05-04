@@ -3526,11 +3526,10 @@ def smartspim_corrected_precomputed_job_status_checker():
 		logger.debug(f"Status code for this job is: {status_step3}")
 		job_insert_dict['status_step3'] = status_step3
 		""" Find the username, other jobids associated with this jobid """
-		(username_thisjob,lightsheet_thisjob,
-			jobid_step0,jobid_step1,jobid_step2) = (
+		(username_thisjob,jobid_step0,jobid_step1,jobid_step2) = (
 				unique_contents & f'jobid_step2={jobid}').fetch1(
-				'username','lightsheet',
-				'jobid_step0','jobid_step1','jobid_step2')
+				'username','jobid_step0',
+				'jobid_step1','jobid_step2')
 		job_insert_dict['username']=username_thisjob
 		job_insert_dict['jobid_step0']=jobid_step0
 		job_insert_dict['jobid_step1']=jobid_step1
