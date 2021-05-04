@@ -28,7 +28,7 @@ from bokeh.resources import INLINE
 from bokeh.layouts import column, row, layout
 
 from bokeh.models import (ColumnDataSource, DatetimeTickFormatter, 
-	FactorRange, Legend, LabelSet)
+	FactorRange, Legend, LabelSet, HoverTool)
 from bokeh.models.callbacks import CustomJS
 from bokeh.models.tickers import MonthsTicker
 from bokeh.transform import dodge
@@ -334,7 +334,8 @@ def dash():
 	thismonth = firstday_month.month
 	samples_this_month = requests_samples_joined & f'YEAR(date_submitted)={thisyear}' & \
 		f'MONTH(date_submitted)={thismonth}'
-	imaging_resolution_requests_this_month = imaging_resolution_requests_joined & f'YEAR(imaging_performed_date)={thisyear}' & \
+	imaging_resolution_requests_this_month = imaging_resolution_requests_joined & \
+		f'YEAR(imaging_performed_date)={thisyear}' & \
 		f'MONTH(imaging_performed_date)={thismonth}'
 	imaging_resolution_requests_this_month_lavision = imaging_resolution_requests_this_month & \
 		'image_resolution in ("1.1x","1.3x","4x","2x")'
@@ -344,7 +345,8 @@ def dash():
 	n_uses_lavision = len(imaging_resolution_requests_this_month_lavision)
 	n_uses_smartspim = len(imaging_resolution_requests_this_month_smartspim)
 	last_day_of_the_month = calendar.monthrange(year=thisyear,month=thismonth)[-1]
-	lastday_month = datetime.strptime(f"{thisyear}-{str(thismonth).zfill(2)}-{last_day_of_the_month}","%Y-%m-%d").date()
+	lastday_month = datetime.strptime(
+		f"{thisyear}-{str(thismonth).zfill(2)}-{last_day_of_the_month}","%Y-%m-%d").date()
 	
 	month_list = [firstday_month]
 	samples_count_list = [n_samples_this_month]
@@ -356,13 +358,14 @@ def dash():
 		samples_month = requests_samples_joined & f'date_submitted >= "{firstday_month}"' & f'date_submitted <= "{lastday_month}"' 
 		imaging_resolution_requests_month = imaging_resolution_requests_joined & f'imaging_performed_date >= "{firstday_month}"' & f'imaging_performed_date <= "{lastday_month}"' 
 		imaging_resolution_requests_month_lavision = imaging_resolution_requests_month & \
-		'image_resolution in ("1.1x","1.3x","4x","2x")'
+			'image_resolution in ("1.1x","1.3x","4x","2x")'
 		imaging_resolution_requests_month_smartspim = imaging_resolution_requests_month & \
 			'image_resolution in ("3.6x","15x")'
 		month_list.append(firstday_month)
 		samples_count_list.append(len(samples_month))
 		uses_count_list_lavision.append(len(imaging_resolution_requests_month_lavision ))
 		uses_count_list_smartspim.append(len(imaging_resolution_requests_month_smartspim ))
+	
 	# Reverse lists so they are in chronological order
 	month_list = month_list[::-1]
 	samples_count_list = samples_count_list[::-1]
@@ -382,24 +385,28 @@ def dash():
 	source_microscopes = ColumnDataSource(data=data)
 	microscope_usage_plot = figure(x_range=df_microscopes['date'],
 		plot_height=450,plot_width=600, title="Microscope usage in recent months",
-           toolbar_location=None, tools="hover",tooltips="$ name @date: @$name")
+           toolbar_location=None)
 
 	microscope_usage_plot.title.align = 'center'
 	microscope_usage_plot.title.text_font_size = "24px"
 	microscope_usage_plot.xaxis.group_text_font_size = "18px"
 	microscope_usage_plot.xaxis.major_label_text_font_size = "12pt"
 	microscope_usage_plot.xaxis.major_label_orientation = np.pi/4
-	# microscope_usage_plot.xaxis.subgroup_tick_font_size = "24px"
+
 	lavision_usage = microscope_usage_plot.vbar(
 		x=dodge('date', -0.1, range=microscope_usage_plot.x_range),
 		 top='lavision', width=0.2, source=source_microscopes,
-	       color="#c9d9d3")
+	       color="#c9d9d3",name='lavision')
 
 	smartspim_usage = microscope_usage_plot.vbar(
 		x=dodge('date',  0.1, range=microscope_usage_plot.x_range),
 		 top='smartspim', width=0.2, source=source_microscopes,
 	       color="#e84d60",)
-	# microscope_usage_plot.legend.location = "top_left"
+	
+	hover_lavision = HoverTool(tooltips=[("LaVision","@lavision")],names=['lavision'])
+	hover_smartspim = HoverTool(tooltips=[("SmartSPIM","@smartspim")],names=['smartspim'])
+	microscope_usage_plot.add_tools(hover_lavision)
+	microscope_usage_plot.add_tools(hover_smartspim)
 	legend = Legend(items=[
     ("Lavision"   , [lavision_usage]),
     ("SmartSPIM" , [smartspim_usage]),
@@ -414,38 +421,8 @@ def dash():
 
 	script_microscope, div_microscope = components(microscope_usage_plot)
 
-	# ### LightSheetData Usage - CURRENT
-	# size_GB, used_GB, avail_GB = get_lightsheet_storage()
-	# size_TB, used_TB, avail_TB =  round(size_GB/1000.,2), round(used_GB/1000.,2), round(avail_GB/1000.,2)
-	# x_storage = {
-	#     'Free: ': avail_TB,
-	#     'Used: ': used_TB,
-	# }
-	# data_storage = pd.Series(x_storage).reset_index(name='value').rename(columns={'index':'space'})
-	# empty_mask = data_storage.value == 0
-	# data_storage.loc[empty_mask,'value'] = 0.001 # a hack to get tooltip to show up even for zero entries
-	# data_storage['angle'] = data_storage['value']/data_storage['value'].sum() * 2*np.pi
-	# data_storage['color'] = Category10[len(x_storage)+1][0:len(x_storage)]
-	# # data_storage["value_padded"] = data_storage['value'].astype(str) + ' TB'
-	# # data_storage["value_padded"] = data_storage["value_padded"].str.pad(40, side = "left")
-	# data_storage['legendtext'] = data_storage['space'] + round(data_storage['value'],1).astype(str) + " TB"
-	# source_storage = ColumnDataSource(data_storage)
-	# plot_storage = figure(plot_height=350,plot_width=500, title="LightSheetData Storage",
-	# 			toolbar_location=None,tools="hover",
-	# 			tooltips="@space: @value{1.1} TB", x_range=(-0.5, 1.0))
 
-	# plot_storage.wedge(x=0, y=1, radius=0.4,
-	#         start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
-	#         line_color="white", fill_color='color', legend_field='legendtext', source=source_storage)
-
-	# plot_storage.axis.axis_label=None
-	# plot_storage.axis.visible=False
-	# plot_storage.grid.grid_line_color = None
-	# plot_storage.title.align = 'center'
-	# plot_storage.title.text_font_size = "24px"
-	# script_storage, div_storage = components(plot_storage)
-
-	### LightSheetData Usage - Time evolution
+	### LightSheetData Usage Plot over time
 	storage_time_dict = db_spockadmin.BucketStorage().fetch(as_dict=True)
 
 	# data_storage_time = pd.Series(storage_time_dict).reset_index(name='value').rename(columns={'index':'space'})
