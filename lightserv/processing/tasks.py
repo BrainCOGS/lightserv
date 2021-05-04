@@ -3527,7 +3527,7 @@ def smartspim_corrected_precomputed_job_status_checker():
 		job_insert_dict['status_step3'] = status_step3
 		""" Find the username, other jobids associated with this jobid """
 		(username_thisjob,jobid_step0,jobid_step1,jobid_step2) = (
-				unique_contents & f'jobid_step2={jobid}').fetch1(
+				unique_contents & f'jobid_step3={jobid}').fetch1(
 				'username','jobid_step0',
 				'jobid_step1','jobid_step2')
 		job_insert_dict['username']=username_thisjob
