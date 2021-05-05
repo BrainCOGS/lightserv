@@ -1132,6 +1132,7 @@ def make_precomputed_smartspim_corrected_data(**kwargs):
 		username,request_name,sample_name,
 		f"imaging_request_{imaging_request_number}",
 		"viz","rawdata")
+	mymkdir(viz_dir)
 	
 	pickle_kwargs = dict(blended_data_path=blended_data_path,
 		layer_name=layer_name,
@@ -1141,6 +1142,7 @@ def make_precomputed_smartspim_corrected_data(**kwargs):
 	pickle_fullpath = viz_dir + f'/precomputed_params_{image_resolution}_ch{channel_name}.p'
 	with open(pickle_fullpath,'wb') as pkl_file:
 		pickle.dump(pickle_kwargs,pkl_file)
+	
 	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
 
 	# """ Now set up the connection to spock """
