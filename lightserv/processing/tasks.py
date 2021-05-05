@@ -1138,7 +1138,7 @@ def make_precomputed_smartspim_corrected_data(**kwargs):
 		image_resolution=image_resolution,
 		z_step=z_step)
 	
-	pickle_fullpath = viz_dir + '/precomputed_params.p'
+	pickle_fullpath = viz_dir + f'/precomputed_params_{image_resolution}_ch{channel_name}.p'
 	with open(pickle_fullpath,'wb') as pkl_file:
 		pickle.dump(pickle_kwargs,pkl_file)
 	logger.debug(f'Saved precomputed pickle file: {pickle_fullpath} ')
@@ -1148,7 +1148,8 @@ def make_precomputed_smartspim_corrected_data(**kwargs):
 		command = "cd /jukebox/wang/ahoag/precomputed/smartspim/testing; ./test_precomputed_corrected_script.sh "
 	else:
 		command = ("cd /jukebox/wang/ahoag/precomputed/smartspim/corrected_pipeline; "
-				   f"/jukebox/wang/ahoag/precomputed/smartspim/corrected_pipeline/precomputed_pipeline_corrected.sh {viz_dir}")
+				   f"/jukebox/wang/ahoag/precomputed/smartspim/corrected_pipeline/precomputed_pipeline_corrected.sh "
+				   f"{viz_dir} {image_resolution} {channel_name}")
 	
 	client = connect_to_spock()
 
