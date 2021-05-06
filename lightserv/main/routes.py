@@ -318,6 +318,8 @@ def dash():
 
 	plot_imaging.axis.axis_label=None
 	plot_imaging.axis.visible=False
+	plot_imaging.legend.label_text_font_size='16pt'
+
 	plot_imaging.grid.grid_line_color = None
 	plot_imaging.title.align = 'center'
 	plot_imaging.title.text_font_size = "24px"
@@ -482,7 +484,6 @@ def dash():
 		js_resources=INLINE.render_js(),
 		css_resources=INLINE.render_css(),
 	).encode(encoding='UTF-8')
-
 
 @main.route("/test_cel")
 def test_cel(): 
