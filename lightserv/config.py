@@ -12,8 +12,8 @@ class BaseConfig(object):
 	MASTER_ADMINS = ['ahoag']
 	DASHBOARD_ADMINS = ['ahoag','ll3','sswang','sg3271','pnilsadmin']
 	SECRET_KEY = os.environ.get('SECRET_KEY')
-	CLEARING_ADMINS = ['ahoag','ll3','sg3271']
-	IMAGING_ADMINS = ['ahoag','ll3','lightserv','sg3271']
+	CLEARING_ADMINS = ['ahoag','ll3','sg3271','pnilsadmin']
+	IMAGING_ADMINS = ['ahoag','ll3','lightserv','sg3271','pnilsadmin']
 	PROCESSING_ADMINS = ['ahoag','sg3271','ll3']
 	LAVISION_RESOLUTIONS = ["1.1x","1.3x","2x","4x"]
 	SMARTSPIM_RESOLUTIONS = ["3.6x"]
