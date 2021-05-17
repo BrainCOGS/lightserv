@@ -10,11 +10,11 @@ from celery.schedules import crontab
 # Base class which I will inherit for use with DEV and TEST configs
 class BaseConfig(object):
 	MASTER_ADMINS = ['ahoag']
-	DASHBOARD_ADMINS = ['ahoag','ll3','sswang','sg3271','pnilsadmin']
+	DASHBOARD_ADMINS = ['ahoag','ll3','sswang','sg3271','pnilsadmin','sj0470']
 	SECRET_KEY = os.environ.get('SECRET_KEY')
-	CLEARING_ADMINS = ['ahoag','ll3','sg3271','pnilsadmin']
-	IMAGING_ADMINS = ['ahoag','ll3','lightserv','sg3271','pnilsadmin']
-	PROCESSING_ADMINS = ['ahoag','sg3271','ll3']
+	CLEARING_ADMINS = ['ahoag','ll3','sg3271','pnilsadmin','sj0470']
+	IMAGING_ADMINS = ['ahoag','ll3','lightserv','sg3271','pnilsadmin','sj0470']
+	PROCESSING_ADMINS = ['ahoag','sg3271','ll3','sj0470']
 	LAVISION_RESOLUTIONS = ["1.1x","1.3x","2x","4x"]
 	SMARTSPIM_RESOLUTIONS = ["3.6x"]
 	RESOLUTIONS_NO_PROCESSING = ["2x","3.6x","15x"] # resolutions we are not able to process
