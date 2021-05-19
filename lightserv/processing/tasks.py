@@ -467,12 +467,31 @@ def smartspim_stitch(**kwargs):
 				'rawdata',
 				f"resolution_{image_resolution}",
 				rawdata_subfolder + '_stitched')
+	# Check to see if this directory already exists and has data in it. 
+	# If it already does, then we don't want to re-do the stitching
+	if os.path.exists(stitched_output_dir):
+		if os.listdir(stitched_output_dir) != []:
+			logger.info("Stitching was already started for this channel")
+			# See if there is an entry in the db for this stitched channel
+			stitching_contents_this_channel = db_lightsheet.Request.SmartspimStitchedChannel() & \
+				stitching_channel_insert_dict
+			# If there are contents already then leave them alone. 
+			# If not, create an entry with COMPLETED status 
+			if len(stitching_contents_this_channel) == 0:
+				now = datetime.now()
+				stitching_channel_insert_dict['datetime_stitching_started'] = now
+				stitching_channel_insert_dict['datetime_stitching_completed'] = now
+				stitching_channel_insert_dict['smartspim_stitching_spock_job_progress'] = 'COMPLETED'
+				db_lightsheet.Request.SmartspimStitchedChannel().insert1(stitching_channel_insert_dict)
+				logger.debug("Made a new entry into SmartspimStitchedChannel()")
+			else:
+				logger.debug("Entry already exists for this channel in SmartspimStitchedChannel()")
+			return "Stitching was already started for this channel"
 	# Make stitched output dir 
 	mymkdir(stitched_output_dir)
 	
 	""" Now run spim_stitch via paramiko """
 
-	
 	processing_code_dir = os.path.join(
 		current_app.config['PROCESSING_CODE_DIR'],
 		'smartspim')
