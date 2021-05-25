@@ -133,9 +133,9 @@ def login():
 	insert_dict = {'browser_name':browser_name,'browser_version':browser_version,
 				   'event':logstr,'platform':platform}
 	db_admin.UserActionLog().insert1(insert_dict)
-	flash(f"The Core Facility is short-staffed at the moment. "
-		   "It may take longer than expected for us to clear and image your samples. "
-		   "Thanks for bearing with us. If you have any questions feel free to contact us at lightservhelper@gmail.com",'warning')
+	# flash(f"The Core Facility is short-staffed at the moment. "
+	# 	   "It may take longer than expected for us to clear and image your samples. "
+	# 	   "Thanks for bearing with us. If you have any questions feel free to contact us at lightservhelper@gmail.com",'warning')
 	return redirect(next_url)
 
 @main.route("/pre_handoff_instructions")
