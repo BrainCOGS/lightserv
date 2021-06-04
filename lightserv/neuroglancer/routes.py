@@ -1040,24 +1040,24 @@ def general_data_setup(username,request_name,sample_name,
                         logger.debug("Cloudvolume name is:")
                         logger.debug(cv_name)
                         if 'allen' in atlas_name.lower():
-                            cv_path = os.path.join('/jukebox','LightSheetData',
+                            cv_path = os.path.join('/jukebox','LightSheetTransfer',
                                 'atlas','neuroglancer','atlas','allenatlas_2017')
-                            data_path = os.path.join('/jukebox','LightSheetData',
+                            data_path = os.path.join('/jukebox','LightSheetTransfer',
                                 'atlas','allen_atlas','average_template_25_sagittal.tif')
                         elif 'princeton' in atlas_name.lower():
-                            cv_path = os.path.join('/jukebox','LightSheetData',
+                            cv_path = os.path.join('/jukebox','LightSheetTransfer',
                                 'atlas','neuroglancer','atlas','princetonmouse')
-                            data_path = os.path.join('/jukebox','LightSheetData',
+                            data_path = os.path.join('/jukebox','LightSheetTransfer',
                                 'atlas','sagittal_atlas_20um_iso.tif')
                         elif atlas_name == 'paxinos':
-                            cv_path = os.path.join('/jukebox','LightSheetData',
+                            cv_path = os.path.join('/jukebox','LightSheetTransfer',
                                 'atlas','neuroglancer','atlas','kimatlas')
-                            data_path = os.path.join('/jukebox','LightSheetData',
+                            data_path = os.path.join('/jukebox','LightSheetTransfer',
                                 'atlas','sagittal_atlas_20um_iso.tif')
                         layer_type = "segmentation"
                         cv_contents_dict_this_channel['image_resolution'] = image_resolution
                         cv_contents_dict_this_channel['cv_name'] = cv_name
-                        cv_contents_dict_this_channel['cv_path'] = cv_path
+                        cv_contents_dict_this_cha nnel['cv_path'] = cv_path
                         cv_contents_dict_this_channel['data_path'] = data_path
                         """ send the data to the viewer-launcher
                         to launch the cloudvolume """    
@@ -1258,7 +1258,7 @@ def allen_atlas():
     cv_number = 1 # to keep track of how many cloudvolumes in this viewer
     cv_container_name = f'{session_name}_allenatlas_2017'
     cv_name = f"allen_mouse_brain_atlas_2017"
-    cv_path = '/jukebox/LightSheetData/atlas/neuroglancer/atlas/allenatlas_2017'  
+    cv_path = '/jukebox/LightSheetTransfer/atlas/neuroglancer/atlas/allenatlas_2017'  
     cv_dict = dict(cv_number=cv_number,cv_path=cv_path,cv_name=cv_name,
         cv_container_name=cv_container_name,
         layer_type=layer_type,session_name=session_name)
@@ -1287,7 +1287,7 @@ def princeton_mouse_atlas():
     cv_number = 1 # to keep track of how many cloudvolumes in this viewer
     cv_container_name = f'{session_name}_princeton_mouse_atlas'
     cv_name = f"princeton_mouse_brain_atlas_v1.0"
-    cv_path = '/jukebox/LightSheetData/atlas/neuroglancer/atlas/princetonmouse'  
+    cv_path = '/jukebox/LightSheetTransfer/atlas/neuroglancer/atlas/princetonmouse'  
     cv_dict = dict(cv_number=cv_number,cv_path=cv_path,cv_name=cv_name,
         cv_container_name=cv_container_name,
         layer_type=layer_type,session_name=session_name)
@@ -2745,7 +2745,7 @@ def willmore_fiber_placement_demo():
                
     cv_container_name = f'{session_name}_paxinos_atlas'
     cv_name = f"Paxinos_mouse_brain_atlas"
-    cv_path = '/jukebox/LightSheetData/atlas/neuroglancer/atlas/kimatlas'  
+    cv_path = '/jukebox/LightSheetTransfer/atlas/neuroglancer/atlas/kimatlas'  
     cv_dict = dict(cv_number=cv_number,cv_path=cv_path,cv_name=cv_name,
         cv_container_name=cv_container_name,
         layer_type=layer_type,session_name=session_name)
@@ -2770,7 +2770,7 @@ def willmore_fiber_placement_demo():
                
     cv_container_name = f'{session_name}_paxinos_atlas_boundaries'
     cv_name = f"Paxinos_mouse_brain_atlas_boundaries"
-    cv_path = '/jukebox/LightSheetData/atlas/neuroglancer/atlas/kimatlas_segment_boundaries_indiv'  
+    cv_path = '/jukebox/LightSheetTransfer/atlas/neuroglancer/atlas/kimatlas_segment_boundaries_indiv'  
     cv_dict = dict(cv_number=cv_number,cv_path=cv_path,cv_name=cv_name,
         cv_container_name=cv_container_name,
         layer_type=layer_type,session_name=session_name)
