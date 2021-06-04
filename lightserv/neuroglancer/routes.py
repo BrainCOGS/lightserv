@@ -1057,7 +1057,7 @@ def general_data_setup(username,request_name,sample_name,
                         layer_type = "segmentation"
                         cv_contents_dict_this_channel['image_resolution'] = image_resolution
                         cv_contents_dict_this_channel['cv_name'] = cv_name
-                        cv_contents_dict_this_cha nnel['cv_path'] = cv_path
+                        cv_contents_dict_this_channel['cv_path'] = cv_path
                         cv_contents_dict_this_channel['data_path'] = data_path
                         """ send the data to the viewer-launcher
                         to launch the cloudvolume """    
