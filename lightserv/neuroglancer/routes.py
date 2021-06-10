@@ -4283,7 +4283,7 @@ def MO_May2021_Tsc1_viz_setup():
             cv_name = f'blended_data_{selected_sample_name}_channel_555'
             cv_path = os.path.join(layer_rootdir,
                 f'processing_request_{processing_request_number}',
-                'blended','channel_555','channel_555_blended')      
+                'blended','channel_555','channel555_blended')      
             cv_number += 1              
             """ send the data to the viewer-launcher
             to launch the cloudvolume """                       
