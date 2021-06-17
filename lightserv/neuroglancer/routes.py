@@ -4237,12 +4237,13 @@ def MO_May2021_Tsc1_viz_setup():
     she wants to make links for in Neuroglancer """
     form = LightservCfosSetupForm(request.form)
     username = 'oostland'
-    request_name = 'MO_May2021_Tsc1_part1'
+    request_names = ['MO_May2021_Tsc1_part1','MO_May2021_Tsc1_part2']
     imaging_request_number = 1
     processing_request_number = 1
     image_resolution = '1.3x'
-    restrict_dict = dict(username=username,request_name=request_name)
-    sample_contents = db_lightsheet.Request.Sample() & restrict_dict
+    # restrict_dict = dict(username=username,request_name=request_name)
+    restrict_list = [f'request_name = "{x}"' for x in request_names]
+    sample_contents = db_lightsheet.Request.Sample() & restrict_list
     sample_names = sample_contents.fetch('sample_name')
 
     if request.method == 'POST':
@@ -4384,6 +4385,7 @@ def MO_May2021_Tsc1_viz_setup():
             for key in form.errors:
                 for error in form.errors[key]:
                     flash(error,'danger')
+    
     """ First clear out any existing subforms from previous http requests """
     while len(form.sample_forms) > 0:
         form.sample_forms.pop_entry()
