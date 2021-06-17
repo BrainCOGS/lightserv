@@ -4397,8 +4397,7 @@ def MO_May2021_Tsc1_viz_setup():
         this_sample_form = sample_forms[-1]
         this_sample_form.sample_name.data = sample_name
 
-    return render_template('neuroglancer/lightserv_cfos_setup.html',
-        request_name=request_name,form=form)
+    return render_template('neuroglancer/lightserv_oostland_setup.html',form=form)
 
 
 @neuroglancer.route("/admin/confproxy_table",methods=['GET'])
