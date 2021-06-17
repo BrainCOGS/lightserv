@@ -795,8 +795,8 @@ def make_precomputed_stitched_data(**kwargs):
 	if os.environ['FLASK_MODE'] == 'TEST':
 		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_precomputed_stitching_script.sh "
 	else:
-		command = ("cd /jukebox/wang/ahoag/precomputed/stitched_pipeline; "
-				   f"/jukebox/wang/ahoag/precomputed/stitched_pipeline/precomputed_pipeline_stitched.sh {viz_dir}")
+		command = ("cd /jukebox/wang/ahoag/precomputed/lavision/stitched_pipeline; "
+				   f"/jukebox/wang/ahoag/precomputed/lavision/stitched_pipeline/precomputed_pipeline_stitched.sh {viz_dir}")
 		# command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	
 	client = connect_to_spock()
@@ -899,8 +899,8 @@ def make_precomputed_blended_data(**kwargs):
 	if os.environ['FLASK_MODE'] == 'TEST':
 		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_precomputed_blended_script.sh "
 	else:
-		command = ("cd /jukebox/wang/ahoag/precomputed/blended_pipeline; "
-				   f"/jukebox/wang/ahoag/precomputed/blended_pipeline/precomputed_pipeline_blended.sh {viz_dir}")   # command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
+		command = ("cd /jukebox/wang/ahoag/precomputed/lavision/blended_pipeline; "
+				   f"/jukebox/wang/ahoag/precomputed/lavision/blended_pipeline/precomputed_pipeline_blended.sh {viz_dir}")   # command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_pipeline.sh "
 	client = connect_to_spock()
 	stdin, stdout, stderr = client.exec_command(command)
 	# jobid_final_step = str(stdout.read().decode("utf-8").strip('\n'))
@@ -982,8 +982,8 @@ def make_precomputed_downsized_data(**kwargs):
 	if os.environ['FLASK_MODE'] == 'TEST':
 		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_precomputed_downsized_script.sh "
 	else:
-		command = ("cd /jukebox/wang/ahoag/precomputed/downsized_pipeline; "
-				   "/jukebox/wang/ahoag/precomputed/downsized_pipeline/precomputed_pipeline_downsized.sh {}").format(
+		command = ("cd /jukebox/wang/ahoag/precomputed/lavision/downsized_pipeline; "
+				   "/jukebox/wang/ahoag/precomputed/lavision/downsized_pipeline/precomputed_pipeline_downsized.sh {}").format(
 			viz_dir)
 
 		# command = "cd /jukebox/wang/ahoag/precomputed/downsized_pipeline/testing; ./test_pipeline.sh "
@@ -1066,8 +1066,8 @@ def make_precomputed_registered_data(**kwargs):
 	if os.environ['FLASK_MODE'] == 'TEST':
 		command = "cd /jukebox/wang/ahoag/precomputed/testing; ./test_precomputed_registered_script.sh "
 	else:
-		command = ("cd /jukebox/wang/ahoag/precomputed/registered_pipeline; "
-				   "/jukebox/wang/ahoag/precomputed/registered_pipeline/precomputed_pipeline_registered.sh {}").format(
+		command = ("cd /jukebox/wang/ahoag/precomputed/lavision/registered_pipeline; "
+				   "/jukebox/wang/ahoag/precomputed/lavision/registered_pipeline/precomputed_pipeline_registered.sh {}").format(
 			viz_dir)
 		# command = "cd /jukebox/wang/ahoag/precomputed/registered_pipeline/testing; ./test_pipeline.sh "
 	logger.debug("command:")
