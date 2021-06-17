@@ -957,7 +957,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 											logger.info("Found raw files with no tiling string, e.g. [00 x 00]. Renaming them")
 										for f in all_raw_files_no_tiling:
 											renamed_f = f.replace('RawDataStack_','RawDataStack[00 x 00]_')
-											print(f,renamed_f)
+											# print(f,renamed_f)
 											os.rename(f,renamed_f)
 										if left_lightsheet_used and right_lightsheet_used:
 											number_of_rawfiles_found_left_lightsheet = \

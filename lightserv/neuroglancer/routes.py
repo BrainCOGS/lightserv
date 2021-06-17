@@ -4257,6 +4257,7 @@ def MO_May2021_Tsc1_viz_setup():
                 if viz:
                     selected_sample_name = sample_name
                     break
+            request_name = selected_sample_name.split("-")[0]
             layer_rootdir = os.path.join('/jukebox/LightSheetData/lightserv',
                 username,request_name,selected_sample_name,
                 f'imaging_request_{imaging_request_number}',
