@@ -115,13 +115,13 @@ def check_lightsheetdata_storage():
 		subject = "Lightserv: (ERROR) daily LightSheetData health check"
 		body = "There was an error checking the storage capacity of LightSheetData on bucket. "
 	else:
-		if avail_GB < 2000:
+		if avail_GB < 5000:
 			subject = "Lightserv: WARNING! LightSheetData almost full"
-			body = (f"LightSheetData has {avail_GB} GB remaining. This is less than the 2 TB threshold that you set."
+			body = (f"LightSheetData has {avail_GB} GB remaining. This is less than the 5 TB threshold that you set."
 					 " LightSheetData could get full very soon. Free up space before disaster strikes. ")
 		else:
 			subject = "Lightserv: (ALL CLEAR) LightSheetData has plenty of free space"
-			body = (f"LightSheetData has {avail_GB} GB remaining. This is above the 2 TB threshold that you set."
+			body = (f"LightSheetData has {avail_GB} GB remaining. This is above the 5 TB threshold that you set."
 					 " No action is needed at this time. ")
 		# Store row in datajoint table
 		now = datetime.now()
