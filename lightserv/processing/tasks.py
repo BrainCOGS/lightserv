@@ -2257,6 +2257,9 @@ def stitched_precomputed_job_status_checker():
 			restrict_dict = dict(right_lightsheet_stitched_precomputed_spock_jobid=jobid)
 			replace_key = 'right_lightsheet_stitched_precomputed_spock_job_progress'
 		this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict
+		if len(this_processing_channel_content) == 0:
+			logger.debug("No ProcessingChannel() entry associated with this precomputed stitched jobid. Skipping")
+			continue
 		logger.debug("this processing channel content:")
 		logger.debug(this_processing_channel_content)
 		dj.Table._update(this_processing_channel_content,replace_key,status_step2)
@@ -2630,6 +2633,9 @@ def blended_precomputed_job_status_checker():
 		restrict_dict = dict(blended_precomputed_spock_jobid=jobid)
 		replace_key = 'blended_precomputed_spock_job_progress'
 		this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict
+		if len(this_processing_channel_content) == 0:
+			logger.debug("No ProcessingChannel() entry associated with this precomputed blended jobid. Skipping")
+			continue
 		logger.debug("this processing channel content:")
 		logger.debug(this_processing_channel_content)
 		dj.Table._update(this_processing_channel_content,replace_key,status_step2)
@@ -2991,6 +2997,9 @@ def downsized_precomputed_job_status_checker():
 		restrict_dict = dict(downsized_precomputed_spock_jobid=jobid)
 		replace_key = 'downsized_precomputed_spock_job_progress'
 		this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict
+		if len(this_processing_channel_content) == 0:
+			logger.debug("No ProcessingChannel() entry associated with this downsized registered jobid. Skipping")
+			continue
 		logger.debug("this processing channel content:")
 		logger.debug(this_processing_channel_content)
 		dj.Table._update(this_processing_channel_content,replace_key,status_step1)
@@ -3371,6 +3380,9 @@ def registered_precomputed_job_status_checker():
 		restrict_dict = dict(registered_precomputed_spock_jobid=jobid)
 		replace_key = 'registered_precomputed_spock_job_progress'
 		this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict
+		if len(this_processing_channel_content) == 0:
+			logger.debug("No ProcessingChannel() entry associated with this precomputed registered jobid. Skipping")
+			continue
 		logger.debug("this processing channel content:")
 		logger.debug(this_processing_channel_content)
 		dj.Table._update(this_processing_channel_content,replace_key,status_step1)
