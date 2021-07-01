@@ -2206,18 +2206,21 @@ def new_imaging_request(username,request_name):
 							imaging_batch_insert_dict['imaging_progress'] = 'incomplete'
 							n_samples_this_clearing_and_imaging_batch = 0
 							for sample_name in samples_this_clearing_batch:
-								this_sample_imaging_dict = sample_imaging_dict[sample_name]
-								if this_sample_imaging_dict == imaging_dict:
-									imaging_batch_sample_insert_dict = {
-									'username':username,
-									'request_name':request_name,
-									'clearing_batch_number':clearing_batch_number,
-									'imaging_request_number':new_imaging_request_number,
-									'imaging_batch_number':imaging_batch_number,
-									'sample_name':sample_name
-									}
-									imaging_batch_sample_insert_list.append(imaging_batch_sample_insert_dict)
-									n_samples_this_clearing_and_imaging_batch += 1
+								try:
+									this_sample_imaging_dict = sample_imaging_dict[sample_name]
+									if this_sample_imaging_dict == imaging_dict:
+										imaging_batch_sample_insert_dict = {
+										'username':username,
+										'request_name':request_name,
+										'clearing_batch_number':clearing_batch_number,
+										'imaging_request_number':new_imaging_request_number,
+										'imaging_batch_number':imaging_batch_number,
+										'sample_name':sample_name
+										}
+										imaging_batch_sample_insert_list.append(imaging_batch_sample_insert_dict)
+										n_samples_this_clearing_and_imaging_batch += 1
+								except:
+									logger.debug(f"Sample {sample_name} not in imaging dict")
 							imaging_batch_insert_dict['number_in_imaging_batch'] = n_samples_this_clearing_and_imaging_batch
 							imaging_batch_number += 1
 							imaging_batch_insert_list.append(imaging_batch_insert_dict)
