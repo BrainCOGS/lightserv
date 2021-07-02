@@ -1733,8 +1733,10 @@ def smartspim_stitching_job_status_checker():
 			continue
 		logger.debug("this stitching content:")
 		logger.debug(this_stitching_content)
-		dj.Table._update(this_stitching_content,
-			'smartspim_stitching_spock_job_progress',status_step3)
+		this_stitching_dict = this_stitching_content.fetch1()
+		replace_stitching_dict =  this_stitching_dict.copy()
+		replace_stitching_dict['smartspim_stitching_spock_job_progress'] = status_step3
+		db_lightsheet.Request.SmartspimStitchedChannel.insert1(replace_stitching_dict,replace=True)
 		logger.debug("Updated smartspim_stitching_spock_job_progress in SmartspimStitchedChannel() table ")
 		
 		""" Now figure out the status codes for the earlier dependency jobs """

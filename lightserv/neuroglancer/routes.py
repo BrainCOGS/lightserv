@@ -4244,7 +4244,7 @@ def zimmerman_02_cfos_setup_imaging_request_2():
     restrict_dict = dict(username=username,request_name=request_name)
     sample_contents = db_lightsheet.Request.Sample() & restrict_dict
     sample_names = sample_contents.fetch('sample_name')
-    sample_names = [sample_name for sample_name in sample_names if sample_name not in ['zimmerman_02-m11','zimmerman_02-m12']]
+    sample_names = [sample_name for sample_name in sample_names if sample_name not in ['zimmerman_02-m11','zimmerman_02-m12','zimmerman_02-m21']]
 
     if request.method == 'POST':
         logger.debug("POST request")
@@ -4421,7 +4421,7 @@ def zimmerman_02_cfos_setup_imaging_request_2():
         this_sample_form = sample_forms[-1]
         this_sample_form.sample_name.data = sample_name
 
-    return render_template('neuroglancer/lightserv_cfos_setup.html',
+    return render_template('neuroglancer/lightserv_cfos_setup_reimaging.html',
         request_name=request_name,form=form)
 
 
