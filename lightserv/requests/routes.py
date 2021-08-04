@@ -199,7 +199,6 @@ def request_overview(username,request_name):
             total_imaging_requests='total_imaging_requests',
             total_processing_requests='IF(n_processed is NULL,0,total_processing_requests)', 
             )
-
     all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
 
     keep_keys = ['username','request_name','sample_name','species',
@@ -212,7 +211,6 @@ def request_overview(username,request_name):
     the table maker """
 
     final_dict_list = []
-
     for d in all_contents_dict_list:
         username = d.get('username')
         request_name = d.get('request_name')
@@ -268,7 +266,6 @@ def request_overview(username,request_name):
     samples_table = create_dynamic_samples_table(final_dict_list,
         sort_by=sort,sort_reverse=reverse,table_id=samples_table_id,ignore_columns=['notes_for_clearer'])
     request_table = RequestOverviewTable(request_contents)
-
     samples_table.table_id = samples_table_id
     return render_template('requests/request_overview.html',request_contents=request_contents,
         request_table=request_table,samples_table=samples_table)

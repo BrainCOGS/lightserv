@@ -1841,18 +1841,23 @@ def test_clearing_table_link_works(test_client,test_cleared_request_nonadmin):
 	assert href == "/clearing/clearing_table/lightserv-test/nonadmin_request/1"
 
 def test_archival_nonadmin_request_overview(test_client,test_archival_request_nonadmin):
-	""" Check that lightserv-test, a nonadmin cannot see their
+	""" Check that lightserv-test, a nonadmin can see their
 	archival request that was ingested outside of the usual new request form
 	in the samples table in request overview route
 	"""
-
+	# print("Request() contents:")
+	# request_contents = db_lightsheet.Request()
+	# print(request_contents)
+	# print("Sample() contents:")
+	# sample_contents = db_lightsheet.Request().Sample()
+	# print(sample_contents)
 	response = test_client.get(url_for('requests.request_overview',
 		username='lightserv-test',request_name='test_archival_request'),
 		follow_redirects=True)
 	parsed_html = BeautifulSoup(response.data,features="html.parser")
 	table_tag = parsed_html.find('table',
 		attrs={'id':'horizontal_samples_table'})
-	print(parsed_html)
+	# print(parsed_html)
 	table_row_tags = table_tag.find_all('tr')
 	header_row = table_row_tags[0].find_all('th')
 	data_row = table_row_tags[1].find_all('td')
