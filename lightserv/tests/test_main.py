@@ -80,7 +80,7 @@ def test_pre_handoff(test_client):
 	response = test_client.get(url_for('main.pre_handoff'),
 		follow_redirects=True)
 
-	assert b'There are some steps you would want to take before handing us your samples for clearing:' in response.data 
+	assert b'We ask that you contact Laura Lynch' in response.data 
 
 def test_feedback_form_loads(test_client,test_login,test_single_sample_request_ahoag):
 	""" Check that the feedback form for a request that has been submitted loads """
