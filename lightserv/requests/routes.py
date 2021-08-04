@@ -160,8 +160,6 @@ def request_overview(username,request_name):
     processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
         f'request_name="{request_name}"' & f'username="{username}"' 
 
-    # combined_contents = (samples_contents * clearing_batch_contents * \
-    #     imaging_request_contents * processing_request_contents)
     replicated_args = dict(number_of_samples='number_of_samples',description='description',
         species='species',clearing_progress='clearing_progress',
         clearer='clearer',
@@ -1149,9 +1147,10 @@ def new_request():
     if 'column_name' not in locals():
         column_name = ''
     
-
+    clearing_admins = current_app.config['CLEARING_ADMINS']
     return render_template('requests/new_request.html', title='new_request',
-        form=form,legend='New Request',column_name=column_name) 
+        form=form,legend='New Request',column_name=column_name,
+        clearing_admins=clearing_admins) 
 
 @requests.route("/delete_request/<username>/<request_name>",)
 @logged_in
