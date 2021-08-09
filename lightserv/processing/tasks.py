@@ -1736,8 +1736,11 @@ def smartspim_stitching_job_status_checker():
 		this_stitching_dict = this_stitching_content.fetch1()
 		replace_stitching_dict =  this_stitching_dict.copy()
 		replace_stitching_dict['smartspim_stitching_spock_job_progress'] = status_step3
-		db_lightsheet.Request.SmartspimStitchedChannel.insert1(replace_stitching_dict,replace=True)
-		logger.debug("Updated smartspim_stitching_spock_job_progress in SmartspimStitchedChannel() table ")
+		try:
+			db_lightsheet.Request.SmartspimStitchedChannel.insert1(replace_stitching_dict,replace=True)
+			logger.debug("Updated smartspim_stitching_spock_job_progress in SmartspimStitchedChannel() table ")
+		except Exception:
+			logger.debug("Unable to update spock job progress possibly due to an Integrity Error. If a pystripe child entry exists then you cannot replace the parent. ")
 		
 		""" Now figure out the status codes for the earlier dependency jobs """
 		this_run_earlier_jobids_str = ','.join([jobid_step0,jobid_step1,jobid_step2])
@@ -1789,8 +1792,11 @@ def smartspim_stitching_job_status_checker():
 			this_stitching_dict = this_stitching_content.fetch1()
 			replace_stitching_dict =  this_stitching_dict.copy()
 			replace_stitching_dict['datetime_stitching_completed'] = now
-			db_lightsheet.Request.SmartspimStitchedChannel.insert1(replace_stitching_dict,replace=True)
-			logger.debug("Updated datetime_stitching_completed in SmartspimStitchedChannel() table ")
+			try:
+				db_lightsheet.Request.SmartspimStitchedChannel.insert1(replace_stitching_dict,replace=True)
+				logger.debug("Updated datetime_stitching_completed in SmartspimStitchedChannel() table ")
+			except:
+				logger.debug("Unable to update datetime_stitching_completed possibly due to an Integrity Error. If a pystripe child entry exists then you cannot replace the parent. ")
 
 		job_insert_list.append(job_insert_dict)
 
