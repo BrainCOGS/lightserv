@@ -1785,9 +1785,11 @@ def smartspim_stitching_job_status_checker():
 			# update datetime stitching completed
 			this_stitching_content = all_stitching_entries & \
 				f'smartspim_stitching_spock_jobid={jobid}'
-			now = datetime.now()			
-			dj.Table._update(this_stitching_content,
-				'datetime_stitching_completed',now)
+			now = datetime.now()
+			this_stitching_dict = this_stitching_content.fetch1()
+			replace_stitching_dict =  this_stitching_dict.copy()
+			replace_stitching_dict['datetime_stitching_completed'] = now
+			db_lightsheet.Request.SmartspimStitchedChannel.insert1(replace_stitching_dict,replace=True)
 			logger.debug("Updated datetime_stitching_completed in SmartspimStitchedChannel() table ")
 
 		job_insert_list.append(job_insert_dict)
