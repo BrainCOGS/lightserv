@@ -43,7 +43,7 @@
 
 								<li class="nav-item dropdown">
 							        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							          Your Requests/Samples
+							          Your Data
 							        </a>
 							        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
 										<a class="dropdown-item" href="{{ url_for('requests.all_requests') }}">Your Requests</a>
@@ -110,8 +110,18 @@
 						<!-- Navbar Right Side -->
 						<div class="navbar-nav">
 							<a class="nav-item nav-link" href="{{ url_for('requests.new_request') }}">New Request</a>
-							<a class="nav-item nav-link" href="{{ url_for('main.FAQ') }}">FAQ</a>
-							<a class="nav-item nav-link" href="{{ url_for('main.gallery') }}">Gallery</a>
+							
+							<li class="nav-item dropdown">
+								<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								          More
+								        </a>
+								<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+							       <a class="dropdown-item" href="{{ url_for('main.FAQ') }}">FAQ</a>
+							       <a class="dropdown-item" href="{{ url_for('main.gallery') }}">Gallery</a>
+									<a class="dropdown-item" href="{{ url_for('main.publications') }}">Publications</a>
+								</div>
+								</li>
+							
 						</div>
 					</div>
 				</div>

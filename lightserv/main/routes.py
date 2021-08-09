@@ -79,6 +79,14 @@ def FAQ():
 	logger.info(f"{current_user} accessed FAQ")
 	return render_template('main/FAQ.html')
 
+@main.route("/publications")
+@logged_in
+@log_http_requests
+def publications(): 
+	current_user = session['user']
+	logger.info(f"{current_user} accessed publications page")
+	return render_template('main/publications.html',)
+	
 @main.route("/spock_connection_test",methods=['GET','POST'])
 @logged_in
 @log_http_requests
