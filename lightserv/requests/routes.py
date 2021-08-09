@@ -160,8 +160,6 @@ def request_overview(username,request_name):
     processing_request_contents = db_lightsheet.Request.ProcessingRequest() & \
         f'request_name="{request_name}"' & f'username="{username}"' 
 
-    # combined_contents = (samples_contents * clearing_batch_contents * \
-    #     imaging_request_contents * processing_request_contents)
     replicated_args = dict(number_of_samples='number_of_samples',description='description',
         species='species',clearing_progress='clearing_progress',
         clearer='clearer',
@@ -201,7 +199,6 @@ def request_overview(username,request_name):
             total_imaging_requests='total_imaging_requests',
             total_processing_requests='IF(n_processed is NULL,0,total_processing_requests)', 
             )
-
     all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
 
     keep_keys = ['username','request_name','sample_name','species',
@@ -214,7 +211,6 @@ def request_overview(username,request_name):
     the table maker """
 
     final_dict_list = []
-
     for d in all_contents_dict_list:
         username = d.get('username')
         request_name = d.get('request_name')
@@ -270,7 +266,6 @@ def request_overview(username,request_name):
     samples_table = create_dynamic_samples_table(final_dict_list,
         sort_by=sort,sort_reverse=reverse,table_id=samples_table_id,ignore_columns=['notes_for_clearer'])
     request_table = RequestOverviewTable(request_contents)
-
     samples_table.table_id = samples_table_id
     return render_template('requests/request_overview.html',request_contents=request_contents,
         request_table=request_table,samples_table=samples_table)
@@ -1149,9 +1144,10 @@ def new_request():
     if 'column_name' not in locals():
         column_name = ''
     
-
+    clearing_admins = current_app.config['CLEARING_ADMINS']
     return render_template('requests/new_request.html', title='new_request',
-        form=form,legend='New Request',column_name=column_name) 
+        form=form,legend='New Request',column_name=column_name,
+        clearing_admins=clearing_admins) 
 
 @requests.route("/delete_request/<username>/<request_name>",)
 @logged_in

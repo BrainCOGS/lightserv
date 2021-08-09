@@ -885,6 +885,11 @@ def test_archival_request_nonadmin(test_client,test_login_nonadmin,test_delete_r
 	sample_insert_dict = {
 	'username': 'lightserv-test', 'request_name': 'test_archival_request',
 	 'sample_name': 'sample-001'}
+	clearing_batch_sample_insert_dict = {
+	'username': 'lightserv-test', 'request_name': 'test_archival_request',
+	'clearing_batch_number':1,
+	'sample_name': 'sample-001','clearing_protocol': 'iDISCO abbreviated clearing',
+	'antibody1': '', 'antibody2': ''}
 	imaging_request_insert_dict = {
 	'username': 'lightserv-test', 'request_name': 'test_archival_request', 'imaging_request_number': 1,
 	 'imaging_progress': 'complete', 'imaging_request_date_submitted': '2019-02-26',
@@ -901,6 +906,7 @@ def test_archival_request_nonadmin(test_client,test_login_nonadmin,test_delete_r
 	db_lightsheet.Request.ClearingBatch.insert1(clearing_batch_insert_dict)
 	db_lightsheet.Request.ImagingBatch.insert1(imaging_batch_insert_dict)
 	db_lightsheet.Request.Sample.insert1(sample_insert_dict)
+	db_lightsheet.Request.ClearingBatchSample.insert1(clearing_batch_sample_insert_dict)
 	db_lightsheet.Request.ImagingRequest.insert1(imaging_request_insert_dict)
 	db_lightsheet.Request.ImagingResolutionRequest.insert1(imaging_resolution_request_insert_dict)
 	db_lightsheet.Request.ProcessingRequest.insert1(processing_request_insert_dict)

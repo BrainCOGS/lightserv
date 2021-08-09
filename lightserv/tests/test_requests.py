@@ -1161,7 +1161,7 @@ def test_submit_mouse_self_clearing_self_imaging_request(test_client,test_login_
 	assert b"New Request Form" not in response.data
 
 def test_submit_good_mouse_request_for_someone_else(test_client,
-	test_login_aichen,test_delete_request_db_contents):
+	test_login_imager,test_delete_request_db_contents):
 	""" Ensure that entire new request form submits when good
 	data are used, entering for someone else.
 
@@ -1171,7 +1171,7 @@ def test_submit_good_mouse_request_for_someone_else(test_client,
 	so that other tests see blank contents 
 	""" 
 
-	""" Ensure that a Annie (aichen, an admin) 
+	""" Ensure that an admin 
 	can see the checkbox to submit the request
 	as another user
 	""" 
@@ -1224,7 +1224,7 @@ def test_submit_good_mouse_request_with_auditor(test_client,
 	so that other tests see blank contents 
 	""" 
 
-	""" Ensure that a Annie (aichen, an admin) 
+	""" Ensure that an admin
 	can see the checkbox to submit the request
 	as another user
 	""" 
@@ -1635,8 +1635,8 @@ def test_all_requests(test_client):
 			'Status code is {0}, but should be 302 (redirect)'.\
 			 format(response.status_code)
 
-def test_admin_sees_nonadmin_request(test_client,test_single_sample_request_nonadmin,test_login_aichen):
-	""" Check that Annie can see requests from all users """
+def test_admin_sees_nonadmin_request(test_client,test_single_sample_request_nonadmin,test_login_imager):
+	""" Check that an admin can see requests from all users """
 	response = test_client.get(url_for('requests.all_requests'),
 		follow_redirects=True)
 
@@ -1748,14 +1748,14 @@ def test_all_requests_reflects_cleared_request(test_client,test_cleared_request_
 
 """ Testing all_samples() """
 
-def test_admin_sees_all_samples(test_client,test_single_sample_request_nonadmin,test_login_aichen):
-	""" Check that Annie (aichen, an admin) can see the samples from the request made by a nonadmin
+def test_admin_sees_all_samples(test_client,test_single_sample_request_nonadmin,test_login_imager):
+	""" Check that an admin can see the samples from the request made by a nonadmin
 	on the all samples page. 
 
 	Uses the test_single_sample_request_nonadmin fixture
-	to insert a request into the database as nonadmin. Note that the test_login_aichen
+	to insert a request into the database as nonadmin. Note that the test_login_imager
 	fixture must be after the test_single_sample_request_nonadmin fixture in the parameter list 
-	in order for Annie to be logged in after the post request is issued in test_single_sample_request_nonadmin
+	in order for imager to be logged in after the post request is issued in test_single_sample_request_nonadmin
 	"""
 	
 	response = test_client.get(url_for('requests.all_samples'),
@@ -1841,17 +1841,23 @@ def test_clearing_table_link_works(test_client,test_cleared_request_nonadmin):
 	assert href == "/clearing/clearing_table/lightserv-test/nonadmin_request/1"
 
 def test_archival_nonadmin_request_overview(test_client,test_archival_request_nonadmin):
-	""" Check that lightserv-test, a nonadmin cannot see their
+	""" Check that lightserv-test, a nonadmin can see their
 	archival request that was ingested outside of the usual new request form
 	in the samples table in request overview route
 	"""
-
+	# print("Request() contents:")
+	# request_contents = db_lightsheet.Request()
+	# print(request_contents)
+	# print("Sample() contents:")
+	# sample_contents = db_lightsheet.Request().Sample()
+	# print(sample_contents)
 	response = test_client.get(url_for('requests.request_overview',
 		username='lightserv-test',request_name='test_archival_request'),
 		follow_redirects=True)
 	parsed_html = BeautifulSoup(response.data,features="html.parser")
 	table_tag = parsed_html.find('table',
 		attrs={'id':'horizontal_samples_table'})
+	# print(parsed_html)
 	table_row_tags = table_tag.find_all('tr')
 	header_row = table_row_tags[0].find_all('th')
 	data_row = table_row_tags[1].find_all('td')
@@ -1878,8 +1884,8 @@ def test_delete_request_works(test_client,test_single_sample_request_nonadmin):
 	assert b'core facility requests:' in response.data
 	assert b'nonadmin_request' not in response.data 	
 
-def test_delete_request_validation(test_client,test_single_sample_request_nonadmin,test_login_aichen):
-	""" Test that aichen, an admin cannot delete a request for lightserv-test since only the one who submitted 
+def test_delete_request_validation(test_client,test_single_sample_request_nonadmin,test_login_imager):
+	""" Test that an admin cannot delete a request for lightserv-test since only the one who submitted 
 	the request can delete it.
 
 	Uses the test_single_sample_request_nonadmin fixture
