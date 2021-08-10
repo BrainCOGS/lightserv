@@ -156,20 +156,14 @@ def pystripe_manager():
 		table_id=ready_to_pystripe_table_id,
 		sort_by=sort,sort_reverse=reverse)
 
-	combined_contents = imaged_and_stitched_contents * pystripe_channel_contents
-	''' Figure out which imaging requests are currently being pystriped, ready to be pystriped
-	and already completed being pystriped '''
-	pystripe_imaging_requests = dj.U('username','request_name','sample_name',
-    'imaging_request_number').aggr(combined_contents,
-                                   username='username',
-                                   n_channels_imaged='n_channels_imaged',
-                                   n_channels_pystriped='sum(pystripe_performed)',
-                                   n_channels_started='count(*)',
-                                  )
+	pystripe_channel_aggr_contents = dj.U('username','request_name','sample_name','imaging_request_number').aggr(
+    pystripe_channel_contents,n_channels_pystriped='SUM(pystripe_performed)',
+    n_channels_started='COUNT(*)',)
 
+	final_combined_contents = imaged_and_stitched_contents*pystripe_channel_aggr_contents
 	''' Get all entities that are currently being pystriped.'''
 
-	imaging_requests_currently_being_pystriped = pystripe_imaging_requests &\
+	imaging_requests_currently_being_pystriped = final_combined_contents &\
 		'n_channels_pystriped!=n_channels_imaged' & 'n_channels_started>0' 
 
 	currently_being_pystriped_table_id = 'horizontal_currently_being_pystriped_table'
@@ -178,7 +172,7 @@ def pystripe_manager():
 		sort_by=sort,sort_reverse=reverse)
 
 
-	imaging_requests_already_pystriped = pystripe_imaging_requests &\
+	imaging_requests_already_pystriped = final_combined_contents &\
 		'n_channels_pystriped=n_channels_imaged'
 
 	already_pystriped_table_id = 'horizontal_already_pystriped_table'
