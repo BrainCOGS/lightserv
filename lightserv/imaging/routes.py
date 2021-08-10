@@ -60,35 +60,37 @@ def imaging_manager():
 	imaging_batch_contents = db_lightsheet.Request.ImagingBatch()
 	imaging_resolution_contents = db_lightsheet.Request.ImagingResolutionRequest()
 
-	imaging_request_contents = (clearing_batch_contents * sample_contents * \
-		request_contents * imaging_batch_contents * imaging_resolution_contents).\
-		proj('clearer','clearing_progress',
-		'imaging_request_date_submitted','imaging_request_time_submitted',
-		'imaging_progress','imager','species','number_in_imaging_batch',
-		'microscope',
-		datetime_submitted='TIMESTAMP(imaging_request_date_submitted,imaging_request_time_submitted)')
+	sample_joined_contents = clearing_batch_contents * sample_contents * \
+    request_contents
+	clearing_aggr_contents = dj.U('username','request_name',
+	    'clearing_batch_number').aggr(
+	    sample_joined_contents,
+	    clearing_progress='MAX(clearing_progress)',
+	    species='MIN(species)',
+	    all_samples_cleared='SUM(IF(clearing_progress="complete",1,0))=count(*)',
+	    )
+
+	imaging_aggr_contents = dj.U('username','request_name',
+	                             'imaging_request_number','imaging_batch_number').aggr(
+	    imaging_batch_contents * imaging_resolution_contents,
+	    imaging_request_date_submitted='MIN(imaging_request_date_submitted)',
+	    imaging_request_time_submitted='MIN(imaging_request_time_submitted)',
+	    all_samples_lavision='SUM(IF(microscope="lavision",1,0))=count(*)',
+	    all_samples_smartspim='SUM(IF(microscope="smartspim",1,0))=count(*)').proj(
+	    datetime_submitted='TIMESTAMP(imaging_request_date_submitted,imaging_request_time_submitted)',
+	    all_samples_lavision='all_samples_lavision',
+	    all_samples_smartspim='all_samples_smartspim'
+	)
+	imaging_joined_contents = (imaging_batch_contents * imaging_aggr_contents)
+	all_joined_contents = clearing_aggr_contents * imaging_joined_contents
 
 	if current_user not in imaging_admins:
 		logger.info(f"{current_user} is not an imaging admin."
 					 " They can see only entries where they designated themselves as the imager")
-		imaging_request_contents = imaging_request_contents & f'imager="{current_user}"'
+		all_joined_contents = all_joined_contents & f'imager="{current_user}"'
 	
-	# ''' First get all entities that are currently being imaged '''
-	""" Get all entries currently being imaged """
-	imaging_request_contents = dj.U('username','request_name',
-		'clearing_batch_number',
-		'imaging_batch_number','imaging_request_number').aggr(
-		imaging_request_contents,clearer='clearer',
-		clearing_progress='clearing_progress',
-		datetime_submitted='datetime_submitted',
-		imaging_progress='imaging_progress',imager='imager',
-		species='species',number_in_imaging_batch='number_in_imaging_batch',
-		all_samples_cleared='SUM(IF(clearing_progress="complete",1,0))=count(*)',
-		all_samples_lavision='SUM(IF(microscope="lavision",1,0))=count(*)',
-	    all_samples_smartspim='SUM(IF(microscope="smartspim",1,0))=count(*)'
-	    )
 	
-	contents_being_imaged = imaging_request_contents & 'all_samples_cleared=1' & \
+	contents_being_imaged = all_joined_contents & 'all_samples_cleared=1' & \
 		'imaging_progress="in progress"'
 	being_imaged_table_id = 'horizontal_being_imaged_table'
 	
@@ -97,19 +99,19 @@ def imaging_manager():
 		sort_by=sort,sort_reverse=reverse)
 
 	''' Next get all entities that are ready to be imaged '''
-	contents_ready_to_image = imaging_request_contents & 'all_samples_cleared=1' & \
+	contents_ready_to_image = all_joined_contents & 'all_samples_cleared=1' & \
 	 'imaging_progress="incomplete"'
 	ready_to_image_table_id = 'horizontal_ready_to_image_table'
 	table_ready_to_image = dynamic_imaging_management_table(contents_ready_to_image,
 		table_id=ready_to_image_table_id,
 		sort_by=sort,sort_reverse=reverse)
 	''' Now get all entities on deck (currently being cleared) '''
-	contents_on_deck = imaging_request_contents & 'clearing_progress!="complete"' & 'imaging_progress!="complete"'
+	contents_on_deck = all_joined_contents & 'clearing_progress!="complete"' & 'imaging_progress!="complete"'
 	on_deck_table_id = 'horizontal_on_deck_table'
 	table_on_deck = dynamic_imaging_management_table(contents_on_deck,table_id=on_deck_table_id,
 		sort_by=sort,sort_reverse=reverse)
 	''' Finally get all entities that have already been imaged '''
-	contents_already_imaged = (imaging_request_contents & 'imaging_progress="complete"').fetch(
+	contents_already_imaged = (all_joined_contents & 'imaging_progress="complete"').fetch(
 		as_dict=True,order_by='datetime_submitted DESC',limit=10,)
 	already_imaged_table_id = 'horizontal_already_imaged_table'
 	table_already_imaged = dynamic_imaging_management_table(contents_already_imaged,
@@ -1029,9 +1031,10 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 									imaging_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest & \
 										imaging_request_restrict_dict
 									""" Update notes_from_imaging field """ 
-									
-									dj.Table._update(imaging_resolution_request_contents,
-										'notes_from_imaging',notes_from_imaging)
+									imaging_resolution_update_dict = imaging_resolution_request_contents.fetch1()
+									imaging_resolution_update_dict['notes_from_imaging'] = notes_from_imaging
+									db_lightsheet.Request.ImagingResolutionRequest().update1(
+										imaging_resolution_update_dict)
 									subfolder_dict = sample_subfolder_dicts[image_resolution]
 									""" Make rawdata/ subdirectories for this resolution """
 									imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
@@ -1074,14 +1077,21 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 										channel_insert_dict['imspector_channel_index'] = channel_index
 										
 										db_lightsheet.Request.ImagingChannel().insert1(channel_insert_dict,replace=True)
-										""" Set imaging progress complete for this sample """
-										imaging_request_contents_this_sample = imaging_request_contents & \
-											f'sample_name="{this_sample_name}"'
-										dj.Table._update(imaging_request_contents_this_sample,'imaging_progress','complete')
+										""" Set imaging progress complete for this sample and 
+										update imaging performed date """
+										restrict_dict_this_sample = {'imaging_request_number':imaging_request_number,
+											'sample_name':this_sample_name}
+										imaging_request_contents_this_sample = db_lightsheet.Request.ImagingRequest() & \
+											restrict_dict_this_sample
+										imaging_request_update_dict = imaging_request_contents_this_sample.fetch1()
+										imaging_request_update_dict['imaging_progress'] = 'complete'
 										today = datetime.now()
 										today_proper_format = today.date().strftime('%Y-%m-%d')
-										dj.Table._update(imaging_request_contents_this_sample,'imaging_performed_date',
-											today_proper_format)
+										imaging_request_update_dict['imaging_performed_date'] = today_proper_format
+										logger.debug("About to update ImagingRequest() table with:")
+										logger.debug(imaging_request_update_dict)
+										db_lightsheet.Request.ImagingRequest().update1(imaging_request_update_dict)
+
 										samples_imaging_progress_dict[this_sample_name] = 'complete'
 										""" Kick off celery task for creating precomputed data from this
 										raw data image dataset if there is stitching is not necessary.
@@ -1642,11 +1652,12 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 			flash(f"""Imaging for this batch is complete. An email has been sent to {correspondence_email} 
 				informing them that their raw data is now available on bucket.
 				The processing pipeline is now ready to run. ""","success")
-			dj.Table._update(imaging_batch_contents,'imaging_progress','complete')
+			imaging_batch_update_dict = imaging_batch_contents.fetch1()
+			imaging_batch_update_dict['imaging_progress'] = 'complete'
 			now = datetime.now()
 			date = now.strftime('%Y-%m-%d')
-			dj.Table._update(imaging_batch_contents,'imaging_performed_date',date)
-			
+			imaging_batch_update_dict['imaging_performed_date'] = date
+			db_lightsheet.Request.ImagingBatch().update1(imaging_batch_update_dict)			
 			return redirect(url_for('imaging.imaging_manager'))
 
 	elif request.method == 'GET': # get request
@@ -1656,8 +1667,10 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 			flash("Imaging is already complete for this sample. "
 				"This page is read only and hitting submit will do nothing",'warning')
 		else:
-			dj.Table._update(imaging_batch_contents,'imaging_progress','in progress')
-		
+			imaging_batch_update_dict = imaging_batch_contents.fetch1()
+			imaging_batch_update_dict['imaging_progress'] = 'in progress'
+			db_lightsheet.Request.ImagingBatch().update1(imaging_batch_update_dict)			
+
 		""" INITIALIZE BATCH FORM """
 		""" Clear out any previously existing image resolution forms """
 		while len(form.image_resolution_batch_forms) > 0:
