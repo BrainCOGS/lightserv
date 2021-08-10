@@ -159,39 +159,38 @@ def request_overview(username,request_name):
 		link_to_clearing_spreadsheet='link_to_clearing_spreadsheet')
 	sample_joined_contents = request_contents * clearing_batch_sample_contents * clearing_batch_contents.proj(
 	'clearing_progress','clearer','link_to_clearing_spreadsheet')
-	imaging_joined_contents = sample_joined_contents.aggr(
+	imaging_aggr_contents = dj.U('username','request_name','sample_name').aggr(
 		imaging_request_contents,
-		**replicated_args,
-		imaging_request_number='imaging_request_number',
-		n_imaged='CONVERT(SUM(imaging_progress="complete"),char)',
+		imaging_progress='MIN(imaging_progress)',
+		imager='MIN(imager)',
+		imaging_request_number='MIN(imaging_request_number)',
 		total_imaging_requests='COUNT(*)',
-		keep_all_rows=True
-		).proj(**replicated_args,
+		n_imaged='CONVERT(SUM(imaging_progress="complete"),char)',).proj(**replicated_args,
 			   total_imaging_requests='IF(n_imaged is NULL, "0",total_imaging_requests)',
-			   imaging_request_number='IF(imaging_request_number is NULL, "N/A",imaging_request_number)'
-			# fraction_imaged='CONCAT(n_imaged,"/",total_imaging_requests)'
-			)
-	processing_joined_contents = (dj.U('username','request_name') * imaging_joined_contents).aggr(   
+			   imaging_request_number='IF(imaging_request_number is NULL, "N/A",imaging_request_number)')
+
+	imaging_joined_contents = sample_joined_contents * imaging_aggr_contents
+
+	processing_aggr_contents = dj.U('username','request_name').aggr(   
 		processing_request_contents,
+		processing_request_number='MIN(processing_request_number)',
+		processor='MIN(processor)',
+		processing_progress='MIN(processing_progress)',
+		n_processed='CONVERT(SUM(processing_progress="complete"),char)',
+		total_processing_requests='CONVERT(COUNT(processing_progress),char)')
+	
+	processing_joined_contents = (imaging_joined_contents * processing_aggr_contents).proj(
 		**replicated_args,
 		imaging_request_number='imaging_request_number',
-		processing_request_number='processing_request_number',
+		processing_request_number='IF(processing_request_number is NULL, "N/A",processing_request_number)',
 		processor='processor',
 		processing_progress='processing_progress',
 		total_imaging_requests='total_imaging_requests',
-		n_processed='CONVERT(SUM(processing_progress="complete"),char)',
-		total_processing_requests='CONVERT(COUNT(processing_progress),char)',
-		keep_all_rows=True
-		).proj(
-			**replicated_args,
-			processing_request_number='IF(processing_request_number is NULL, "N/A",processing_request_number)',
-			processor='processor',
-			processing_progress='processing_progress',
-			total_imaging_requests='total_imaging_requests',
-			total_processing_requests='IF(n_processed is NULL,0,total_processing_requests)', 
-			)
+		total_processing_requests='IF(n_processed is NULL,0,total_processing_requests)', 
+	)
+	
 	all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
-
+	logger.debug(all_contents_dict_list)
 	keep_keys = ['username','request_name','sample_name','species',
 				 'clearing_protocol','antibody1','antibody2','clearing_progress',
 				 'clearer','clearing_batch_number','datetime_submitted','is_archival',
@@ -298,37 +297,11 @@ def all_samples():
 		link_to_clearing_spreadsheet='link_to_clearing_spreadsheet')
 	
 	sample_joined_contents = request_contents * sample_contents * clearing_batch_contents
-	imaging_joined_contents = sample_joined_contents.aggr(
-		imaging_request_contents,
-		**replicated_args,
-		imaging_request_number='imaging_request_number',
-		n_imaged='CONVERT(SUM(imaging_progress="complete"),char)',
-		total_imaging_requests='COUNT(*)',
-		keep_all_rows=True
-		).proj(**replicated_args,
-			   total_imaging_requests='IF(n_imaged is NULL, "0",total_imaging_requests)',
-			   imaging_request_number='IF(imaging_request_number is NULL, "N/A",imaging_request_number)'
-			# fraction_imaged='CONCAT(n_imaged,"/",total_imaging_requests)'
-			)
-	processing_joined_contents = (dj.U('username','request_name') * imaging_joined_contents).aggr(   
-		processing_request_contents,
-		**replicated_args,
-		imaging_request_number='imaging_request_number',
-		processing_request_number='processing_request_number',
-		processor='processor',
-		processing_progress='processing_progress',
-		total_imaging_requests='total_imaging_requests',
-		n_processed='CONVERT(SUM(processing_progress="complete"),char)',
-		total_processing_requests='CONVERT(COUNT(processing_progress),char)',
-		keep_all_rows=True
-		).proj(
-			**replicated_args,
-			processing_request_number='IF(processing_request_number is NULL, "N/A",processing_request_number)',
-			processor='processor',
-			processing_progress='processing_progress',
-			total_imaging_requests='total_imaging_requests',
-			total_processing_requests='IF(n_processed is NULL,0,total_processing_requests)', 
-			)
+	
+	imaging_joined_contents = sample_joined_contents * imaging_request_contents 
+	
+	processing_joined_contents = imaging_joined_contents * processing_request_contents 
+	
 	all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
 	keep_keys = ['username','request_name','sample_name','species',
 				 'clearing_protocol','clearer','clearing_progress',
