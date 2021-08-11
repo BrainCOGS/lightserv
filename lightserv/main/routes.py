@@ -20,7 +20,6 @@ from datetime import datetime, timedelta
 import calendar
 
 # bokeh plotting
-from bokeh.models import ColumnDataSource, Select, Slider
 
 from bokeh.plotting import figure, output_file, show
 from bokeh.embed import components
@@ -28,7 +27,7 @@ from bokeh.resources import INLINE
 from bokeh.layouts import column, row, layout
 
 from bokeh.models import (ColumnDataSource, DatetimeTickFormatter, 
-	FactorRange, Legend, LabelSet, HoverTool)
+	FactorRange, Legend, LabelSet, HoverTool,Select, Slider,CategoricalTicker)
 from bokeh.models.callbacks import CustomJS
 from bokeh.models.tickers import MonthsTicker
 from bokeh.transform import dodge
@@ -437,9 +436,10 @@ def dash():
 	### LightSheetData Usage Plot over time
 	storage_time_dict = db_spockadmin.BucketStorage().fetch(as_dict=True)
 
-	# data_storage_time = pd.Series(storage_time_dict).reset_index(name='value').rename(columns={'index':'space'})
 	df_storage_time = pd.DataFrame(storage_time_dict)
-	df_storage_time['date'] = df_storage_time['timestamp'].dt.strftime('%Y-%m-%d')
+	logger.debug(df_storage_time)
+	# df_storage_time['date'] = df_storage_time['timestamp'].dt.strftime('%Y-%m-%d')
+	df_storage_time['date'] = df_storage_time['timestamp']
 	df_storage_time['used_tb'] = df_storage_time['size_tb'] - df_storage_time['avail_tb']
 	storage_time_categories = ['Used','Available']
 	colors = ["#718dbf", "#e84d60"]
@@ -447,26 +447,31 @@ def dash():
 	'date':df_storage_time['date'],
 	'Used':df_storage_time['used_tb'],
 	'Available':df_storage_time['avail_tb']}
-	# logger.debug(data_storage_time)
 	source_storage_time = ColumnDataSource(data=data_storage_time)
-	storage_time_plot = figure(x_range=data_storage_time['date'],
+	# storage_time_plot = figure(x_range=data_storage_time['date'],
+	# 	plot_height=450,plot_width=600, title="LightSheetData Usage History",
+	# 	   toolbar_location=None, tools="hover",tooltips="$name @date: @$name{1.1} TB")
+	# storage_time_plot = figure(
+	# 	plot_height=450,plot_width=600, title="LightSheetData Usage History",
+	# 	   toolbar_location=None, tools="",x_axis_type="datetime")
+	storage_time_plot = figure(
 		plot_height=450,plot_width=600, title="LightSheetData Usage History",
-		   toolbar_location=None, tools="hover",tooltips="$name @date: @$name{1.1} TB")
-
+		   toolbar_location=None, tools="",
+		   x_axis_type="datetime")
 	storage_time_plot.title.align = 'center'
 	storage_time_plot.title.text_font_size = "24px"
-	storage_time_plot.xaxis.group_text_font_size = "18px"
+	# storage_time_plot.xaxis.group_text_font_size = "18px"
 	storage_time_plot.xaxis.major_label_text_font_size = "12pt"
 	storage_time_plot.xaxis.major_label_orientation = np.pi/3
 	
 	vbar_stack = storage_time_plot.vbar_stack(storage_time_categories, x='date',
-		width=0.9, color=colors, source=data_storage_time)
+		width=timedelta(days=1), color=colors, source=data_storage_time)
 	
 	legend = Legend(items=[
 		("Used"   , [vbar_stack[0]]),
 		("Available" , [vbar_stack[1]]),
 		], location="center")
-
+	
 	storage_time_plot.add_layout(legend, 'right')
 	storage_time_plot.y_range.start = 0
 	storage_time_plot.x_range.range_padding = 0.1
@@ -478,6 +483,33 @@ def dash():
 	storage_time_plot.yaxis.axis_label_text_font_size = "18px"
 	storage_time_plot.xaxis.axis_label = "Date"
 	storage_time_plot.yaxis.axis_label = "Storage Space (TB)"
+	
+	for vbar in vbar_stack[0:1]:
+		name = vbar.name
+		hover = HoverTool(
+		    tooltips=[
+		        ( 'Date',   '@date{%F}'            ),
+		        ( 'Used',  '@Used{%0.2f} TB' ),
+		        ( 'Available',  '@Available{%0.2f} TB' ),
+		    ],
+
+		    formatters={'@date': 'datetime',
+		    			'@Used' : 'printf',
+		    			'@Available' : 'printf',},
+
+		    # display a tooltip whenever the cursor is vertically in line with a glyph
+		    mode='vline',
+		    renderers=[vbar],
+			)
+		storage_time_plot.add_tools(hover)
+
+
+	storage_time_plot.xaxis.formatter=DatetimeTickFormatter(
+        hours=["%d %B %Y"],
+        days=["%d %B %Y"],
+        months=["%d %B %Y"],
+        years=["%d %B %Y"],
+    )
 
 	script_storage_time, div_storage_time = components(storage_time_plot)
 
