@@ -761,15 +761,18 @@ def test_job_status_checker_sends_email(test_client,
 		'request_name':request_name
 	}
 	assert len(processing_resolution_content) == 1
-	dj.Table._update(processing_resolution_content,'lightsheet_pipeline_spock_job_progress','SUBMITTED')   
-	dj.Table._update(processing_resolution_content,'lightsheet_pipeline_spock_jobid',20915095)   
+	processing_resolution_update_dict = processing_resolution_content.fetch1()
 
+	processing_resolution_update_dict['lightsheet_pipeline_spock_job_progress'] = 'SUBMITTED'
+	processing_resolution_update_dict['lightsheet_pipeline_spock_jobid'] = 20915095   
+	db_lightsheet.Request.ProcessingResolutionRequest().update1(processing_resolution_update_dict)
 	""" Now do job status checker and make sure it gets updated to COMPLETED """
 	tasks.processing_job_status_checker.run()
 	spock_table_contents = db_spockadmin.ProcessingPipelineSpockJob() & \
 		{'username':'lightserv-test'}
 	most_recent_contents = dj.U('jobid_step0','username',).aggr(
 		spock_table_contents,timestamp='max(timestamp)')*spock_table_contents
+	print(most_recent_contents)
 	status_step3 = most_recent_contents.fetch1('status_step3')
 	assert status_step3 == 'COMPLETED'
 	""" Make sure processing email was sent """

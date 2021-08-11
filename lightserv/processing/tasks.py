@@ -935,8 +935,11 @@ def make_precomputed_blended_data(**kwargs):
 		ventral_up=ventral_up)
 	this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict 
 	try:
-		dj.Table._update(this_processing_channel_content,'blended_precomputed_spock_jobid',str(jobid_step2))
-		dj.Table._update(this_processing_channel_content,'blended_precomputed_spock_job_progress','SUBMITTED')
+		processing_channel_update_dict = this_processing_channel_content.fetch1()
+		processing_channel_update_dict['blended_precomputed_spock_jobid'] = str(jobid_step2)
+		processing_channel_update_dict['blended_precomputed_spock_job_progress'] = 'SUBMITTED'
+		db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
+		logger.info("Updated ProcessingChannel() table")
 	except:
 		logger.info("Unable to update ProcessingChannel() table")
 	return "Finished task submitting precomputed pipeline for blended data"
@@ -1020,8 +1023,11 @@ def make_precomputed_downsized_data(**kwargs):
 		ventral_up=ventral_up)
 	this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict 
 	try:
-		dj.Table._update(this_processing_channel_content,'downsized_precomputed_spock_jobid',str(jobid_step1))
-		dj.Table._update(this_processing_channel_content,'downsized_precomputed_spock_job_progress','SUBMITTED')
+		processing_channel_update_dict = this_processing_channel_content.fetch1()
+		processing_channel_update_dict['downsized_precomputed_spock_jobid'] = str(jobid_step1)
+		processing_channel_update_dict['downsized_precomputed_spock_job_progress'] = 'SUBMITTED'
+		db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
+		logger.info("Updated ProcessingChannel() table")
 	except:
 		logger.info("Unable to update ProcessingChannel() table")
 	return "Finished task submitting precomputed pipeline for downsized data"
@@ -1104,8 +1110,11 @@ def make_precomputed_registered_data(**kwargs):
 		ventral_up=ventral_up)
 	this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict 
 	try:
-		dj.Table._update(this_processing_channel_content,'registered_precomputed_spock_jobid',str(jobid_step1))
-		dj.Table._update(this_processing_channel_content,'registered_precomputed_spock_job_progress','SUBMITTED')
+		processing_channel_update_dict = this_processing_channel_content.fetch1()
+		processing_channel_update_dict['registered_precomputed_spock_jobid'] = str(jobid_step1)
+		processing_channel_update_dict['registered_precomputed_spock_job_progress'] = 'SUBMITTED'
+		db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
+		logger.info("Updated ProcessingChannel() table")
 	except:
 		logger.info("Unable to update ProcessingChannel() table")
 	return "Finished task submitting precomputed pipeline for registered data"
@@ -1209,10 +1218,13 @@ def make_precomputed_smartspim_corrected_data(**kwargs):
 		ventral_up=ventral_up)
 	this_pystripe_channel_content = db_lightsheet.Request.SmartspimPystripeChannel() &\
 		restrict_dict_pystripe_table 
-	dj.Table._update(this_pystripe_channel_content,'smartspim_corrected_precomputed_spock_jobid',
-		str(jobid_step3))
-	dj.Table._update(this_pystripe_channel_content,'smartspim_corrected_precomputed_spock_job_progress',
-		"SUBMITTED")
+
+	pystripe_channel_update_dict = this_pystripe_channel_content.fetch1()
+	pystripe_channel_update_dict['smartspim_corrected_precomputed_spock_jobid'] = str(jobid_step3)
+	pystripe_channel_update_dict['smartspim_corrected_precomputed_spock_job_progress'] = 'SUBMITTED'
+	db_lightsheet.Request.SmartspimPystripeChannel().update1(pystripe_channel_update_dict)
+	logger.info("Updated SmartspimPystripeChannel() table")
+
 	return "Finished task submitting precomputed pipeline for SmartSPIM corrected data"
 
 
@@ -1313,9 +1325,11 @@ def processing_job_status_checker():
 			continue
 		logger.debug("this processing resolution content:")
 		logger.debug(this_processing_resolution_content)
-		dj.Table._update(this_processing_resolution_content,
-			'lightsheet_pipeline_spock_job_progress',status_step3)
-		logger.debug("Updated lightsheet_pipeline_spock_job_progress in ProcessingResolutionRequest() table ")
+
+		processing_resolution_update_dict = this_processing_resolution_content.fetch1()
+		processing_resolution_update_dict['lightsheet_pipeline_spock_job_progress'] = status_step3
+		db_lightsheet.Request.ProcessingResolutionRequest().update1(processing_resolution_update_dict)
+		logger.info("Updated lightsheet_pipeline_spock_job_progress in ProcessingResolutionRequest() table ")
 		
 		""" Now figure out the status codes for the earlier dependency jobs """
 		this_run_earlier_jobids_str = ','.join([jobid_step0,jobid_step1,jobid_step2])
@@ -1396,9 +1410,13 @@ def processing_job_status_checker():
 							 " in this processing request are complete!")
 				
 				restrict_dict_request = {'username':username,'request_name':request_name}
-				request_contents = db_lightsheet.Request() & restrict_dict_request
 				
-				dj.Table._update(processing_request_contents,'processing_progress','complete')
+				request_contents = db_lightsheet.Request() & restrict_dict_request
+				processing_request_update_dict = processing_request_contents.fetch1()
+				processing_request_update_dict['processing_progress'] = 'complete'
+				db_lightsheet.Request.ProcessingRequest().update1(processing_request_update_dict)
+				logger.info("Updated processing_progress in ProcessingRequest() table ")
+
 				""" Now figure out if all other processing requests for this request have been
 				fulfilled. If so, email the user """
 				processing_requests = db_lightsheet.Request.ProcessingRequest() & restrict_dict_request
@@ -1421,7 +1439,12 @@ def processing_job_status_checker():
 					recipients = [correspondence_email]
 					if not os.environ['FLASK_MODE'] == 'TEST':
 						send_email.delay(subject=subject,body=body,recipients=recipients)
-					dj.Table._update(request_contents,'sent_processing_email',True)
+
+					request_contents = db_lightsheet.Request() & restrict_dict_request
+					request_update_dict = request_contents.fetch1()
+					request_update_dict['sent_processing_email'] = True
+					db_lightsheet.Request().update1(request_update_dict)
+					logger.info("Updated Request() Table")
 			else:
 				logger.debug("Not all processing resolution requests in this "
 							 "processing request are completely converted to "
@@ -1532,9 +1555,11 @@ def processing_job_status_checker_noreg():
 		f'lightsheet_pipeline_spock_jobid={jobid}'
 		logger.debug("this processing resolution content:")
 		logger.debug(this_processing_resolution_content)
-		dj.Table._update(this_processing_resolution_content,
-			'lightsheet_pipeline_spock_job_progress',status_step2)
-		logger.debug("Updated lightsheet_pipeline_spock_job_progress in ProcessingResolutionRequest() table ")
+
+		processing_resolution_update_dict = this_processing_resolution_content.fetch1()
+		processing_resolution_update_dict['lightsheet_pipeline_spock_job_progress'] = status_step2
+		db_lightsheet.Request.ProcessingResolutionRequest().update1(processing_resolution_update_dict)
+		logger.info("Updated ProcessingResolutionRequest() Table")
 		
 		""" Now figure out the status codes for the earlier dependency jobs """
 		this_run_earlier_jobids_str = ','.join([jobid_step0,jobid_step1])
@@ -1624,8 +1649,11 @@ def processing_job_status_checker_noreg():
 				recipients = [correspondence_email]
 				if not os.environ['FLASK_MODE'] == 'TEST':
 					send_email.delay(subject=subject,body=body,recipients=recipients)
-				dj.Table._update(processing_request_contents,'processing_progress','complete')
 
+				processing_request_update_dict = processing_request_contents.fetch1()
+				processing_request_update_dict['processing_progress'] = 'complete'
+				db_lightsheet.Request.ProcessingRequest().update1(processing_request_update_dict)
+				logger.info("Updated ProcessingRequest() Table")
 			else:
 				logger.debug("Not all processing resolution requests in this "
 							 "processing request are completely converted to "
@@ -1895,26 +1923,20 @@ def smartspim_pystripe_job_status_checker():
 			continue
 		logger.debug("this pystripe content:")
 		logger.debug(this_pystripe_content)
-		pystripe_dict = this_pystripe_content.fetch1()
-		pystripe_dict['smartspim_pystripe_spock_job_progress'] = status_step0
-		this_pystripe_content.delete_quick()
-		db_lightsheet.Request.SmartspimPystripeChannel().insert1(pystripe_dict)
-		### Datajoint bug in _update -- FIXME by upgrading to dj v0.13.1
-		# dj.Table._update(this_pystripe_content,
-		# 	'smartspim_pystripe_spock_job_progress',status_step0)
-		logger.debug("Updated SmartspimPystripeChannel() entry with current job status")
+		pystripe_update_dict = this_pystripe_content.fetch1()
+		pystripe_update_dict['smartspim_pystripe_spock_job_progress'] = status_step0
+		db_lightsheet.Request.SmartspimPystripeChannel().update1(pystripe_dict)
+		logger.info("Updated SmartspimPystripeChannel() entry with current job status")
 		
 		if status_step0 == 'COMPLETED':
 			# Update SmartspimPystripeChannel() entry to indicate that pystripe is complete
 			this_pystripe_content = all_pystripe_entries & \
 			f'smartspim_pystripe_spock_jobid={jobid}'
-			this_pystripe_dict = this_pystripe_content.fetch1()
-			this_pystripe_dict['pystripe_performed'] = 1
-			this_pystripe_content.delete_quick()
-			db_lightsheet.Request.SmartspimPystripeChannel().insert1(pystripe_dict)
-			# dj.Table._update(this_pystripe_content,
-			# 'pystripe_performed',1)
-			logger.debug("Pystripe complete, marked pystripe_performed=1 in SmartspimPystripeChannel() channel")
+			pystripe_update_dict = this_pystripe_content.fetch1()
+			pystripe_update_dict['pystripe_performed'] = 1
+			db_lightsheet.Request.SmartspimPystripeChannel().update1(pystripe_update_dict)
+
+			logger.info("Pystripe complete, marked pystripe_performed=1 in SmartspimPystripeChannel() channel")
 			# Launch precomputed pipeline for corrected blended images
 			# this_pystripe_dict = this_pystripe_content.fetch1()
 			username = this_pystripe_dict['username']
@@ -2273,8 +2295,12 @@ def stitched_precomputed_job_status_checker():
 			continue
 		logger.debug("this processing channel content:")
 		logger.debug(this_processing_channel_content)
-		dj.Table._update(this_processing_channel_content,replace_key,status_step2)
-		logger.debug(f"Updated {replace_key} in ProcessingChannel() table ")
+
+		processing_channel_update_dict = this_processing_channel_content.fetch1()
+		processing_channel_update_dict[replace_key] = status_step2
+		db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
+
+		logger.info(f"Updated {replace_key} in ProcessingChannel() table ")
 
 		""" If this pipeline run is now 100 percent complete,
 		figure out if all of the other stitched precomputed
@@ -2649,8 +2675,13 @@ def blended_precomputed_job_status_checker():
 			continue
 		logger.debug("this processing channel content:")
 		logger.debug(this_processing_channel_content)
-		dj.Table._update(this_processing_channel_content,replace_key,status_step2)
-		logger.debug(f"Updated {replace_key} in ProcessingChannel() table ")
+
+
+		processing_channel_update_dict = this_processing_channel_content.fetch1()
+		processing_channel_update_dict[replace_key] = status_step2
+		db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
+
+		logger.info(f"Updated {replace_key} in ProcessingChannel() table ")
 
 		""" If this pipeline run is now 100 percent complete,
 		figure out if all of the other blended precomputed
@@ -3013,8 +3044,12 @@ def downsized_precomputed_job_status_checker():
 			continue
 		logger.debug("this processing channel content:")
 		logger.debug(this_processing_channel_content)
-		dj.Table._update(this_processing_channel_content,replace_key,status_step1)
-		logger.debug(f"Updated {replace_key} in ProcessingChannel() table ")
+
+		processing_channel_update_dict = this_processing_channel_content.fetch1()
+		processing_channel_update_dict[replace_key] = status_step1
+		db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
+
+		logger.info(f"Updated {replace_key} in ProcessingChannel() table ")
 
 		""" If this pipeline run is now 100 percent complete,
 		figure out if all of the other downsized precomputed
@@ -3396,8 +3431,12 @@ def registered_precomputed_job_status_checker():
 			continue
 		logger.debug("this processing channel content:")
 		logger.debug(this_processing_channel_content)
-		dj.Table._update(this_processing_channel_content,replace_key,status_step1)
-		logger.debug(f"Updated {replace_key} in ProcessingChannel() table ")
+
+		processing_channel_update_dict = this_processing_channel_content.fetch1()
+		processing_channel_update_dict[replace_key] = status_step1
+		db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
+
+		logger.info(f"Updated {replace_key} in ProcessingChannel() table ")
 
 		""" If this pipeline run is now 100 percent complete,
 		figure out if all of the other registered precomputed
@@ -3627,8 +3666,12 @@ def smartspim_corrected_precomputed_job_status_checker():
 		this_pystripe_channel_content = db_lightsheet.Request.SmartspimPystripeChannel() & restrict_dict
 		logger.debug("this pystripe channel content:")
 		logger.debug(this_pystripe_channel_content)
-		dj.Table._update(this_pystripe_channel_content,replace_key,status_step3)
-		logger.debug(f"Updated {replace_key} in SmartspimPystripeChannel() table ")
+
+		pystripe_channel_update_dict = this_pystripe_channel_content.fetch1()
+		pystripe_channel_update_dict[replace_key] = status_step3
+		db_lightsheet.Request.SmartspimPystripeChannel().update1(pystripe_channel_update_dict)
+
+		logger.info(f"Updated {replace_key} in SmartspimPystripeChannel() table ")
 
 		""" If this pipeline run is now 100 percent complete,
 		figure out if all of the other stitched precomputed

@@ -53,7 +53,7 @@ def test_spock_connection_page_loads(test_client,test_login):
 
 	assert b'Test your connection to spock.pni.princeton.edu' in response.data 
 
-def test_sucessful_spock_connection(test_client,test_login_nonadmin):
+def test_successful_spock_connection(test_client,test_login_nonadmin):
 	""" Check that the spock connection test results in a successful flash message
 	for a user for which it should work """
 	response = test_client.post(

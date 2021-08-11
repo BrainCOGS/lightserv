@@ -98,7 +98,7 @@ def spock_connection_test():
 		port = 22
 		client = paramiko.SSHClient()
 		client.load_system_host_keys()
-		client.set_missing_host_key_policy(paramiko.WarningPolicy)
+		client.set_missing_host_key_policy(paramiko.AutoAddPolicy)
 		try:
 			client.connect(hostname, port=port, username=current_user, allow_agent=False,look_for_keys=True)
 			flash("Successfully connected to spock.","success")

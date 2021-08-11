@@ -2436,7 +2436,11 @@ def smartspim_stitched_request(test_client,
 	tasks.smartspim_stitch.run(**stitching_kwargs)
 	# Now update the stitching status
 	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel() & stitching_kwargs
-	dj.Table._update(stitching_contents,'smartspim_stitching_spock_job_progress',"COMPLETED")
+
+	stitching_update_dict = stitching_contents.fetch1()
+	stitching_update_dict['smartspim_stitching_spock_job_progress'] = "COMPLETED"
+	db_lightsheet.Request.SmartspimStitchedChannel().update1(stitching_update_dict)
+
 	yield test_client
 
 	print('----------Teardown smartspim_stitched_request fixture ----------')
@@ -2493,7 +2497,11 @@ def completed_processing_request_ahoag(test_client,processing_request_ahoag,
 		imaging_request_number=imaging_request_number,
 		processing_request_number=processing_request_number)
 	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & restrict_dict
-	dj.Table._update(processing_request_contents,'processing_progress','complete')
+
+	processing_update_dict = processing_request_contents.fetch1()
+	processing_update_dict['processing_progress'] = "complete"
+	db_lightsheet.Request.ProcessingRequest().update1(processing_update_dict)
+
 	yield test_client
 
 	print('----------Teardown complete_processing_request_ahoag fixture ----------')
@@ -2575,7 +2583,12 @@ def completed_processing_request_viz_nonadmin(test_client,processing_request_viz
 		imaging_request_number=imaging_request_number,
 		processing_request_number=processing_request_number)
 	processing_request_contents = db_lightsheet.Request.ProcessingRequest() & restrict_dict
-	dj.Table._update(processing_request_contents,'processing_progress','complete')
+
+
+	processing_update_dict = processing_request_contents.fetch1()
+	processing_update_dict['processing_progress'] = "complete"
+	db_lightsheet.Request.ProcessingRequest().update1(processing_update_dict)
+
 	""" Need to make a ProcessingChannel() entry manually as that is something that is done asynchronously
 	in the run_lightsheet_pipeline() task """
 	image_resolution = "1.3x"
@@ -2702,8 +2715,10 @@ def precomputed_raw_complete_viz_nonadmin(test_client,test_imaged_request_viz_no
 
 	ch488_imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
 		ch488_restrict_dict
-	dj.Table._update(ch488_imaging_channel_contents,
-		'left_lightsheet_precomputed_spock_job_progress','COMPLETED')
+
+	imaging_channel_update_dict = ch488_imaging_channel_contents.fetch1()
+	imaging_channel_update_dict['left_lightsheet_precomputed_spock_job_progress'] = 'COMPLETED'
+	db_lightsheet.Request.ImagingChannel().update1(imaging_channel_update_dict)
 	
 	ch647_restrict_dict = dict(username=username,
 		request_name=request_name,sample_name=sample_name,
@@ -2711,8 +2726,11 @@ def precomputed_raw_complete_viz_nonadmin(test_client,test_imaged_request_viz_no
 		channel_name='647')
 	ch647_imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
 		ch647_restrict_dict
-	dj.Table._update(ch647_imaging_channel_contents,
-		'left_lightsheet_precomputed_spock_job_progress','COMPLETED')
+
+	imaging_channel_update_dict = ch647_imaging_channel_contents.fetch1()
+	imaging_channel_update_dict['left_lightsheet_precomputed_spock_job_progress'] = 'COMPLETED'
+	db_lightsheet.Request.ImagingChannel().update1(imaging_channel_update_dict)
+
 	yield test_client
 
 	print('----------Teardown completed_processing_request_viz_nonadmin fixture ----------')
@@ -2741,9 +2759,11 @@ def precomputed_single_tile_pipeline_raw_and_blended_viz_nonadmin(test_client,co
 
 	ch488_imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
 		ch488_imaging_restrict_dict
-	dj.Table._update(ch488_imaging_channel_contents,
-		'left_lightsheet_precomputed_spock_job_progress','COMPLETED')
-	
+
+	imaging_channel_update_dict = ch488_imaging_channel_contents.fetch1()
+	imaging_channel_update_dict['left_lightsheet_precomputed_spock_job_progress'] = 'COMPLETED'
+	db_lightsheet.Request.ImagingChannel().update1(imaging_channel_update_dict)
+
 	ch647_imaging_restrict_dict = dict(username=username,
 		request_name=request_name,sample_name=sample_name,
 		imaging_request_number=imaging_request_number,
@@ -2751,8 +2771,10 @@ def precomputed_single_tile_pipeline_raw_and_blended_viz_nonadmin(test_client,co
 		channel_name='647')
 	ch647_imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
 		ch647_imaging_restrict_dict
-	dj.Table._update(ch647_imaging_channel_contents,
-		'left_lightsheet_precomputed_spock_job_progress','COMPLETED')
+
+	imaging_channel_update_dict = ch647_imaging_channel_contents.fetch1()
+	imaging_channel_update_dict['left_lightsheet_precomputed_spock_job_progress'] = 'COMPLETED'
+	db_lightsheet.Request.ImagingChannel().update1(imaging_channel_update_dict)
 
 	""" Now blended precomputed pipeline status """
 
@@ -2765,9 +2787,10 @@ def precomputed_single_tile_pipeline_raw_and_blended_viz_nonadmin(test_client,co
 
 	ch488_processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
 		ch488_processing_restrict_dict
-	
-	dj.Table._update(ch488_processing_channel_contents,
-		'blended_precomputed_spock_job_progress','COMPLETED')
+
+	processing_channel_update_dict = ch488_processing_channel_contents.fetch1()
+	processing_channel_update_dict['blended_precomputed_spock_job_progress'] = 'COMPLETED'
+	db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
 	
 	ch647_processing_restrict_dict = dict(username=username,
 		request_name=request_name,sample_name=sample_name,
@@ -2777,8 +2800,11 @@ def precomputed_single_tile_pipeline_raw_and_blended_viz_nonadmin(test_client,co
 		channel_name='647')
 	ch647_processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
 		ch647_processing_restrict_dict
-	dj.Table._update(ch647_processing_channel_contents,
-		'blended_precomputed_spock_job_progress','COMPLETED')
+
+	processing_channel_update_dict = ch647_processing_channel_contents.fetch1()
+	processing_channel_update_dict['blended_precomputed_spock_job_progress'] = 'COMPLETED'
+	db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
+
 	yield test_client
 
 
@@ -2808,8 +2834,10 @@ def precomputed_single_tile_pipeline_complete_viz_nonadmin(test_client,completed
 
 	ch488_imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
 		ch488_imaging_restrict_dict
-	dj.Table._update(ch488_imaging_channel_contents,
-		'left_lightsheet_precomputed_spock_job_progress','COMPLETED')
+
+	imaging_channel_update_dict = ch488_imaging_channel_contents.fetch1()
+	imaging_channel_update_dict['left_lightsheet_precomputed_spock_job_progress'] = 'COMPLETED'
+	db_lightsheet.Request.ImagingChannel().update1(imaging_channel_update_dict)
 	
 	ch647_imaging_restrict_dict = dict(username=username,
 		request_name=request_name,sample_name=sample_name,
@@ -2818,10 +2846,12 @@ def precomputed_single_tile_pipeline_complete_viz_nonadmin(test_client,completed
 		channel_name='647')
 	ch647_imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
 		ch647_imaging_restrict_dict
-	dj.Table._update(ch647_imaging_channel_contents,
-		'left_lightsheet_precomputed_spock_job_progress','COMPLETED')
 
-	""" Now blended precomputed pipeline status """
+	imaging_channel_update_dict = ch647_imaging_channel_contents.fetch1()
+	imaging_channel_update_dict['left_lightsheet_precomputed_spock_job_progress'] = 'COMPLETED'
+	db_lightsheet.Request.ImagingChannel().update1(imaging_channel_update_dict)
+		
+	""" Now update downsized and registered precomputed pipeline status for both channels """
 
 	ch488_processing_restrict_dict = dict(username=username,
 		request_name=request_name,sample_name=sample_name,
@@ -2833,8 +2863,11 @@ def precomputed_single_tile_pipeline_complete_viz_nonadmin(test_client,completed
 	ch488_processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
 		ch488_processing_restrict_dict
 	
-	dj.Table._update(ch488_processing_channel_contents,
-		'blended_precomputed_spock_job_progress','COMPLETED')
+	processing_channel_update_dict = ch488_processing_channel_contents.fetch1()
+	processing_channel_update_dict['blended_precomputed_spock_job_progress'] = 'COMPLETED'
+	processing_channel_update_dict['downsized_precomputed_spock_job_progress'] = 'COMPLETED'
+	processing_channel_update_dict['registered_precomputed_spock_job_progress'] = 'COMPLETED'
+	db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
 	
 	ch647_processing_restrict_dict = dict(username=username,
 		request_name=request_name,sample_name=sample_name,
@@ -2844,22 +2877,13 @@ def precomputed_single_tile_pipeline_complete_viz_nonadmin(test_client,completed
 		channel_name='647')
 	ch647_processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
 		ch647_processing_restrict_dict
-	dj.Table._update(ch647_processing_channel_contents,
-		'blended_precomputed_spock_job_progress','COMPLETED')
-
-	""" Now downsized precomputed pipeline status """
-
-	dj.Table._update(ch488_processing_channel_contents,
-		'downsized_precomputed_spock_job_progress','COMPLETED')
-	dj.Table._update(ch647_processing_channel_contents,
-		'downsized_precomputed_spock_job_progress','COMPLETED')
 	
-	""" Now registered precomputed pipeline status """
+	processing_channel_update_dict = ch647_processing_channel_contents.fetch1()
+	processing_channel_update_dict['blended_precomputed_spock_job_progress'] = 'COMPLETED'
+	processing_channel_update_dict['downsized_precomputed_spock_job_progress'] = 'COMPLETED'
+	processing_channel_update_dict['registered_precomputed_spock_job_progress'] = 'COMPLETED'
+	db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
 
-	dj.Table._update(ch488_processing_channel_contents,
-		'registered_precomputed_spock_job_progress','COMPLETED')
-	dj.Table._update(ch647_processing_channel_contents,
-		'registered_precomputed_spock_job_progress','COMPLETED')
 	yield test_client
 
 	print('----------Teardown precomputed_single_tile_pipeline_complete_viz_nonadmin fixture ----------')
