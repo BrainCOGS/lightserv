@@ -398,20 +398,17 @@ def run_lightsheet_pipeline(username,request_name,
 				jobid_final_step = jobid_step2
 			else:
 				jobid_final_step = jobid_step3 
-
-			dj.Table._update(this_processing_resolution_content,'lightsheet_pipeline_spock_jobid',jobid_final_step)
-			logger.debug("Updated spock jobid in ProcessingResolutionRequest() table")
-			dj.Table._update(this_processing_resolution_content,'lightsheet_pipeline_spock_job_progress','SUBMITTED')
-			logger.debug("Updated spock job progress in ProcessingResolutionRequest() table")
+			processing_resolution_update_dict = this_processing_resolution_content.fetch1()
+			processing_resolution_update_dict['lightsheet_pipeline_spock_jobid'] = jobid_final_step
+			processing_resolution_update_dict['lightsheet_pipeline_spock_job_progress'] = 'SUBMITTED'
 
 			""" Get the brainpipe commit and add it to processing request contents table """
 			
 			stdin_commit, stdout_commit, stderr_commit = client.exec_command(command_get_commit)
 			brainpipe_commit = str(stdout_commit.read().decode("utf-8").strip('\n'))
-			logger.debug("BRAINPIPE COMMIT")
-			logger.debug(brainpipe_commit)
-			dj.Table._update(this_processing_resolution_content,'brainpipe_commit',brainpipe_commit)
-			logger.debug("Updated brainpipe_commit in ProcessingResolutionRequest() table")
+			processing_resolution_update_dict['brainpipe_commit'] = brainpipe_commit						
+			db_lightsheet.Request.ProcessingResolutionRequest().update1(processing_resolution_update_dict)
+			logger.debug("Updated ProcessingResolutionRequest() table")
 
 			client.close()
 	return "SUBMITTED spock job"
@@ -833,11 +830,15 @@ def make_precomputed_stitched_data(**kwargs):
 	this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict 
 	try:
 		if lightsheet == 'left':
-			dj.Table._update(this_processing_channel_content,'left_lightsheet_stitched_precomputed_spock_jobid',str(jobid_step2))
-			dj.Table._update(this_processing_channel_content,'left_lightsheet_stitched_precomputed_spock_job_progress','SUBMITTED')
+			processing_channel_update_dict = this_processing_channel_content.fetch1()
+			processing_channel_update_dict['left_lightsheet_stitched_precomputed_spock_jobid'] = str(jobid_step2)
+			processing_channel_update_dict['left_lightsheet_stitched_precomputed_spock_job_progress'] = 'SUBMITTED'
+			db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
 		else:
-			dj.Table._update(this_processing_channel_content,'right_lightsheet_stitched_precomputed_spock_jobid',str(jobid_step2))
-			dj.Table._update(this_processing_channel_content,'right_lightsheet_stitched_precomputed_spock_job_progress','SUBMITTED')
+			processing_channel_update_dict = this_processing_channel_content.fetch1()
+			processing_channel_update_dict['right_lightsheet_stitched_precomputed_spock_jobid'] = str(jobid_step2)
+			processing_channel_update_dict['right_lightsheet_stitched_precomputed_spock_job_progress'] = 'SUBMITTED'
+			db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
 	except:
 		logger.info("Unable to update ProcessingChannel() table")
 	return "Finished task submitting precomputed pipeline for stitched data"

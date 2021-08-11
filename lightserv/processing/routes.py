@@ -450,7 +450,9 @@ def processing_entry(username,request_name,sample_name,imaging_request_number,pr
 				run_lightsheet_pipeline.delay(username=username,request_name=request_name,sample_name=sample_name,
 					imaging_request_number=imaging_request_number,
 					processing_request_number=processing_request_number)
-			dj.Table._update(processing_request_contents,'processing_progress','running')
+			processing_request_update_dict = processing_request_contents.fetch1()
+			processing_request_update_dict['processing_progress'] = 'running'
+			db_lightsheet.Request.ProcessingRequest().update1(processing_request_update_dict)
 			logger.debug("Updated processing_progress in ProcessingRequest() table")
 			flash("Your data processing has begun. You will receive an email "
 				  "when it is completed.","success")
@@ -639,7 +641,6 @@ def new_processing_request(username,request_name,sample_name,imaging_request_num
 				db_lightsheet.Request.ProcessingRequest().insert1(processing_request_insert_dict)
 
 				# logger.info("updating sample contents from form data")
-				# dj.Table._update(sample_contents,'notes_from_processing',form.notes_from_processing.data)
 				processing_resolution_insert_list = []
 				""" loop through image resolution forms and make a new entry for each resolution """
 				for form_resolution_dict in form.image_resolution_forms.data:

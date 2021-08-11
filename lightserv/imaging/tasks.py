@@ -103,11 +103,14 @@ def make_precomputed_rawdata(**kwargs):
 		jobid_step0, jobid_step1, jobid_step2 = response.split('\n')
 	except:
 		if lightsheet == 'left':
-			dj.Table._update(this_imaging_channel_content,'left_lightsheet_precomputed_spock_job_progress','FAILED')
+			imaging_channel_update_dict = this_imaging_channel_content.fetch1()
+			imaging_channel_update_dict['left_lightsheet_precomputed_spock_job_progress'] = 'FAILED'
+			db_lightsheet.Request.ImagingChannel().update1(imaging_channel_update_dict)
 		else:
-			dj.Table._update(this_imaging_channel_content,'right_lightsheet_precomputed_spock_job_progress','FAILED')
-		# logger.debug("Error getting response from spock. ")
-
+			imaging_channel_update_dict = this_imaging_channel_content.fetch1()
+			imaging_channel_update_dict['right_lightsheet_precomputed_spock_job_progress'] = 'FAILED'
+			db_lightsheet.Request.ImagingChannel().update1(imaging_channel_update_dict)
+		logger.debug("Error getting response from spock. ")
 		return "Error getting response from spock."
 	status_step0 = 'SUBMITTED'
 	status_step1 = 'SUBMITTED'
@@ -126,11 +129,15 @@ def make_precomputed_rawdata(**kwargs):
 	logger.info(f"Precomputed (Raw data) job successfully submitted to spock, jobid_step2: {jobid_step2}")
 	try:
 		if lightsheet == 'left':
-			dj.Table._update(this_imaging_channel_content,'left_lightsheet_precomputed_spock_jobid',str(jobid_step2))
-			dj.Table._update(this_imaging_channel_content,'left_lightsheet_precomputed_spock_job_progress','SUBMITTED')
+			imaging_channel_update_dict = this_imaging_channel_content.fetch1()
+			imaging_channel_update_dict['left_lightsheet_precomputed_spock_job_progress'] = 'SUBMITTED'
+			imaging_channel_update_dict['left_lightsheet_precomputed_spock_jobid'] = str(jobid_step2)
+			db_lightsheet.Request.ImagingChannel().update1(imaging_channel_update_dict)
 		else:
-			dj.Table._update(this_imaging_channel_content,'right_lightsheet_precomputed_spock_jobid',str(jobid_step2))
-			dj.Table._update(this_imaging_channel_content,'right_lightsheet_precomputed_spock_job_progress','SUBMITTED')
+			imaging_channel_update_dict = this_imaging_channel_content.fetch1()
+			imaging_channel_update_dict['right_lightsheet_precomputed_spock_job_progress'] = 'SUBMITTED'
+			imaging_channel_update_dict['right_lightsheet_precomputed_spock_jobid'] = str(jobid_step2)
+			db_lightsheet.Request.ImagingChannel().update1(imaging_channel_update_dict)
 	except:
 		logger.info("Unable to update ImagingChannel() table")
 	return f"Submitted jobid: {jobid_step2}"
@@ -251,8 +258,9 @@ def check_raw_precomputed_statuses():
 		f'{lightsheet_thisjob}_lightsheet_precomputed_spock_jobid={jobid}'
 		
 		try:
-			dj.Table._update(this_imaging_channel_content,
-				f'{lightsheet_thisjob}_lightsheet_precomputed_spock_job_progress',status_step2)
+			imaging_channel_update_dict = this_imaging_channel_content.fetch1()
+			imaging_channel_update_dict[f'{lightsheet_thisjob}_lightsheet_precomputed_spock_job_progress'] = status_step2
+			db_lightsheet.Request.ImagingChannel().update1(imaging_channel_update_dict)
 			logger.debug("Updated ImagingChannel() entry")
 		except:
 			logger.info("Could not update ImagingChannel() entry")
