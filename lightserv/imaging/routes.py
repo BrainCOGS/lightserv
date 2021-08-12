@@ -882,6 +882,14 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 									channel_form.rawdata_subfolder.errors = ['This field is required']
 									flash(flash_str,"danger")
 									validated=False
+								# removes any trailing slash and any whitespace before and after
+								rawdata_subfolder = rawdata_subfolder.rstrip("/").strip() 
+								# Check to make sure no spaces contained in rawdata_subfolder
+								if " " in rawdata_subfolder:
+									flash_str = flash_str_prefix + "rawdata_subfolder must not contain spaces"
+									channel_form.rawdata_subfolder.errors = ['rawdata_subfolder must not contain spaces']
+									flash(flash_str,"danger")
+									validated=False
 								ventral_up = channel_form.ventral_up.data
 								if ventral_up:
 									rawdata_fullpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
