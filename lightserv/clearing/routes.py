@@ -174,10 +174,16 @@ def clearing_entry(username,request_name,clearing_batch_number):
 
 							if clearing_protocol == 'iDISCO+_immuno':
 								''' update the antibody1_lot and antibody2_lot fields based on the form data '''
-								dj.Table._update(clearing_batch_contents,'antibody1_lot',form_data_dict['antibody1_lot'])
-								dj.Table._update(clearing_batch_contents,'antibody2_lot',form_data_dict['antibody2_lot'])
+								logger.debug("Updating antibody lot info")
+								clearing_batch_update_dict = clearing_batch_contents.fetch1()
+								clearing_batch_update_dict['antibody1_lot'] = form_data_dict['antibody1_lot']
+								clearing_batch_update_dict['antibody2_lot'] = form_data_dict['antibody2_lot']
+								db_lightsheet.Request.ClearingBatch().update1(clearing_batch_update_dict)
+								logger.debug("Updated antibody lot info")
 							''' update the clearing progress to "complete" for this sample entry '''
-							dj.Table._update(clearing_batch_contents,'clearing_progress','complete')
+							clearing_batch_update_dict = clearing_batch_contents.fetch1()
+							clearing_batch_update_dict['clearing_progress'] = 'complete'
+							db_lightsheet.Request.ClearingBatch().update1(clearing_batch_update_dict)
 
 							''' Update the entries by inserting with replace=True'''
 							clearing_dbTable().insert1(clearing_insert_dict,replace=True)	
@@ -287,7 +293,9 @@ def clearing_entry(username,request_name,clearing_batch_number):
 		flash("Clearing is already complete for this sample. "
 			"This page is read only and hitting any of the buttons will not update the clearing log",'warning')
 	else:
-		dj.Table._update(clearing_batch_contents,'clearing_progress','in progress')
+		clearing_batch_update_dict = clearing_batch_contents.fetch1()
+		clearing_batch_update_dict['clearing_progress'] = 'in progress'
+		db_lightsheet.Request.ClearingBatch().update1(clearing_batch_update_dict)
 	# form.time_pbs_wash1.data = "2019-16-19T16:54:17"
 	form_id = '_'.join([username,request_name,'clearing_batch',str(clearing_batch_number)]) 
 	return render_template('clearing/clearing_entry.html',clearing_protocol=clearing_protocol,

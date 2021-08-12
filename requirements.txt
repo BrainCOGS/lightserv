@@ -2,7 +2,7 @@ bokeh==2.3.1
 bs4==0.0.1
 celery==4.3.0
 datetime
-datajoint==0.12.2 
+datajoint==0.13.2
 docker==4.2.0
 email_validator
 Flask==1.1.1

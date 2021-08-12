@@ -139,7 +139,9 @@ def logged_in_as_clearer(f):
 				''' now check to see if user is a designated clearer ''' 
 				if current_user in current_app.config['CLEARING_ADMINS']: # 
 					# logger.info(f"Current user: {current_user} is a designated clearer and is now assigned as the clearer")
-					dj.Table._update(clearing_batch_contents,'clearer',current_user)
+					clearing_batch_update_dict = clearing_batch_contents.fetch1()
+					clearing_batch_update_dict['clearer'] = current_user
+					db_lightsheet.Request.ClearingBatch().update1(clearing_batch_update_dict)
 					logger.info(f"Current user: {current_user} is a designated clearer and is now assigned as the clearer")
 					return f(*args, **kwargs)
 				else: # user is not a designated clearer and did not self assign
@@ -243,7 +245,9 @@ def logged_in_as_imager(f):
 				logger.info("Imaging entry form accessed with imager not yet assigned. ")
 				''' now check to see if user is a designated imager ''' 
 				if current_user in current_app.config['IMAGING_ADMINS']: 
-					dj.Table._update(imaging_batch_contents,'imager',current_user)
+					imaging_batch_update_dict = imaging_batch_contents.fetch1()
+					imaging_batch_update_dict['imager'] = current_user
+					db_lightsheet.Request.ImagingBatch().update1(imaging_batch_update_dict)
 					logger.info(f"{current_user} is a designated imager and is now assigned as the imager")
 					return f(*args, **kwargs)
 				else: # user is not a designated imager and did not self assign
@@ -329,7 +333,9 @@ def logged_in_as_processor(f):
 				logger.info("processing entry form accessed with processor not yet assigned. ")
 				''' now check to see if user is a designated processor ''' 
 				if current_user in  current_app.config['PROCESSING_ADMINS']: # 
-					dj.Table._update(processing_request_contents,'processor',current_user)
+					processing_request_update_dict = processing_request_contents.fetch1()
+					processing_request_update_dict['processor'] = current_user
+					db_lightsheet.Request.ProcessingRequest().update1(processing_request_update_dict)
 					logger.info(f"{current_user} is a designated processor and is now assigned as the processor")
 					return f(*args, **kwargs)
 				elif current_user == username:
