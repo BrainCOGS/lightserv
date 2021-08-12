@@ -66,6 +66,7 @@ def imaging_manager():
 	    'clearing_batch_number').aggr(
 	    sample_joined_contents,
 	    clearing_progress='MAX(clearing_progress)',
+	    clearer='MIN(clearer)',
 	    species='MIN(species)',
 	    all_samples_cleared='SUM(IF(clearing_progress="complete",1,0))=count(*)',
 	    )
