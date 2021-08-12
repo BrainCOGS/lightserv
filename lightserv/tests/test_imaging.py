@@ -144,7 +144,7 @@ def test_imaging_batch_entry_form_single_sample(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x5',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':'ab',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':680,
-		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test 488',
 		'sample_forms-0-submit':True
 		}
 	response_validation = test_client.post(url_for('imaging.imaging_batch_entry',
@@ -158,6 +158,7 @@ def test_imaging_batch_entry_form_single_sample(test_client,
 	assert b'Tiling scheme must not exceed 2x2 for this resolution' in response_validation.data
 	assert b'z_step must be a number between 2 and 1000 microns' in response_validation.data
 	assert b'Tiling overlap must be a number between 0 and 1' in response_validation.data
+	assert b'rawdata_subfolder must not contain spaces' in response_validation.data
 
 	""" Test that adding a new channel in an
 	individual sample section of the imaging batch form 
