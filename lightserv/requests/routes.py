@@ -90,7 +90,7 @@ def all_requests():
 		n_imaged='CONVERT(SUM(imaging_progress="complete"),char)',
 		total_imaging_requests='CONVERT(COUNT(*),char)',
 		)
-	imaging_joined_contents = (request_joined_contents*imaging_aggr_contents).proj(**replicated_args,
+	imaging_joined_contents = (request_joined_contents+imaging_aggr_contents).proj(**replicated_args,
 		fraction_cleared='fraction_cleared',
 		fraction_imaged='IF(n_imaged is NULL,"0/0",CONCAT(n_imaged,"/",total_imaging_requests))' 
 		)
@@ -99,7 +99,7 @@ def all_requests():
 		n_processed='CONVERT(SUM(processing_progress="complete"),char)',
 		total_processing_requests='CONVERT(COUNT(processing_progress),char)',
 		)
-	processing_joined_contents = (imaging_joined_contents*processing_aggr_contents).proj(
+	processing_joined_contents = (imaging_joined_contents+processing_aggr_contents).proj(
 		**replicated_args,
 		fraction_cleared='fraction_cleared',
 		fraction_imaged='fraction_imaged',
