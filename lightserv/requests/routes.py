@@ -74,7 +74,7 @@ def all_requests():
 		species='species',datetime_submitted='datetime_submitted')
 
 	request_joined_contents = dj.U('username','request_name').aggr(
-		request_contents * clearing_batch_contents,
+		request_contents.join(clearing_batch_contents,left=True),
 		is_archival='MIN(is_archival)',
 		number_of_samples='MIN(number_of_samples)',
 		number_in_batch='MIN(number_in_batch)',
@@ -90,7 +90,7 @@ def all_requests():
 		n_imaged='CONVERT(SUM(imaging_progress="complete"),char)',
 		total_imaging_requests='CONVERT(COUNT(*),char)',
 		)
-	imaging_joined_contents = (request_joined_contents+imaging_aggr_contents).proj(**replicated_args,
+	imaging_joined_contents = (request_joined_contents.join(imaging_aggr_contents,left=True)).proj(**replicated_args,
 		fraction_cleared='fraction_cleared',
 		fraction_imaged='IF(n_imaged is NULL,"0/0",CONCAT(n_imaged,"/",total_imaging_requests))' 
 		)
@@ -99,12 +99,13 @@ def all_requests():
 		n_processed='CONVERT(SUM(processing_progress="complete"),char)',
 		total_processing_requests='CONVERT(COUNT(processing_progress),char)',
 		)
-	processing_joined_contents = (imaging_joined_contents+processing_aggr_contents).proj(
+	processing_joined_contents = (imaging_joined_contents.join(processing_aggr_contents,left=True)).proj(
 		**replicated_args,
 		fraction_cleared='fraction_cleared',
 		fraction_imaged='fraction_imaged',
 		fraction_processed='IF(n_processed is NULL,"0/0",CONCAT(n_processed,"/",total_processing_requests))' 
-		) 
+		)  
+	
 	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'desc') == 'desc')
 	sorted_results = sorted(processing_joined_contents.fetch(as_dict=True),
@@ -123,7 +124,7 @@ def all_requests():
 			for key in form.errors:
 				error = form.errors[key]
 				flash(error,'danger')
-
+	logger.debug((processing_joined_contents & {'username':'cz15'}).fetch('request_name','datetime_submitted'))
 	return render_template('requests/all_requests.html',
 		request_contents=processing_joined_contents,request_table=table,
 		legend=legend,form=form)
@@ -169,7 +170,7 @@ def request_overview(username,request_name):
 			   total_imaging_requests='IF(n_imaged is NULL, "0",total_imaging_requests)',
 			   imaging_request_number='IF(imaging_request_number is NULL, "N/A",imaging_request_number)')
 
-	imaging_joined_contents = sample_joined_contents * imaging_aggr_contents
+	imaging_joined_contents = sample_joined_contents.join(imaging_aggr_contents,left=True)
 
 	processing_aggr_contents = dj.U('username','request_name').aggr(   
 		processing_request_contents,
@@ -178,27 +179,17 @@ def request_overview(username,request_name):
 		processing_progress='MIN(processing_progress)',
 		n_processed='CONVERT(SUM(processing_progress="complete"),char)',
 		total_processing_requests='CONVERT(COUNT(processing_progress),char)')
-	
-	if len(processing_aggr_contents) == 0:
-	    processing_joined_contents = imaging_joined_contents.proj(
-	        **replicated_args,
-	        imaging_request_number='imaging_request_number',
-	        processing_request_number='IF(imaging_request_number*0,"N/A","N/A")',
-	        processor='IF(imaging_request_number*0,"N/A","N/A")',
-	        processing_progress='IF(imaging_request_number*0,"N/A","N/A")',
-	        total_imaging_requests='total_imaging_requests',
-	        total_processing_requests='IF(imaging_request_number*0,0,0)',
-	    )
-	else:
-		processing_joined_contents = (imaging_joined_contents * processing_aggr_contents).proj(
-			**replicated_args,
-			imaging_request_number='imaging_request_number',
-			processing_request_number='IF(processing_request_number is NULL, "N/A",processing_request_number)',
-			processor='processor',
-			processing_progress='processing_progress',
-			total_imaging_requests='total_imaging_requests',
-			total_processing_requests='IF(n_processed is NULL,0,total_processing_requests)', 
-		)
+
+
+	processing_joined_contents = (imaging_joined_contents.join(processing_aggr_contents,left=True)).proj(
+		**replicated_args,
+		imaging_request_number='imaging_request_number',
+		total_imaging_requests='total_imaging_requests',
+		processing_request_number='IF(processing_request_number is NULL, "N/A",processing_request_number)',
+		processor='IF(processor is NULL,"N/A",processor)',
+		processing_progress='IF(processing_progress is NULL,"N/A",processing_progress)',
+		total_processing_requests='IF(n_processed is NULL,0,total_processing_requests)', 
+	)
 	
 	all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
 	logger.debug(all_contents_dict_list)
