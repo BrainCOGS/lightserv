@@ -343,7 +343,8 @@ def all_samples():
 									  'processor':processor,'processing_progress':processing_progress,
 									  'is_archival':is_archival}
 
-		existing_sample_names = [x.get('sample_name') for x in final_dict_list if x['username']==username and x['request_name']==request_name]
+		existing_sample_names = [x.get('sample_name') for x in final_dict_list \
+								 if x['username']==username and x['request_name']==request_name]
 		if current_sample_name not in existing_sample_names: # Then new sample, new imaging request, new processing request
 			new_dict_values = list(map(d.get,keep_keys))
 			new_dict = {keep_keys[ii]:new_dict_values[ii] for ii in range(len(keep_keys))}
@@ -354,8 +355,9 @@ def all_samples():
 		else:
 			# A repeated sample name could either be
 			# a new imaging request or a new processing request at the same imaging request
-			existing_index = existing_sample_names.index(current_sample_name)
-			existing_dict = final_dict_list[existing_index]
+			# First pull out imaging request dict list  for this request
+			existing_dict = [d for d in final_dict_list if d.get('username') == username and \
+							d.get('request_name') == request_name][0]
 			existing_imaging_request_dicts = existing_dict['imaging_requests']
 			existing_imaging_request_numbers = [x.get('imaging_request_number') for x in existing_imaging_request_dicts]
 			if imaging_request_number not in existing_imaging_request_numbers: # Then its a new imaging request and processing request
@@ -365,7 +367,6 @@ def all_samples():
 				existing_imaging_request_index = existing_imaging_request_numbers.index(imaging_request_number)
 				existing_imaging_request_dict = existing_imaging_request_dicts[existing_imaging_request_index]
 				existing_imaging_request_dict['processing_requests'].append(processing_request_dict)
-
 	sort = request.args.get('sort', 'request_name') # first is the variable name, second is default value
 	reverse = (request.args.get('direction', 'asc') == 'desc')
 	sorted_results = sorted(final_dict_list,
