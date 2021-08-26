@@ -1925,7 +1925,7 @@ def smartspim_pystripe_job_status_checker():
 		logger.debug(this_pystripe_content)
 		pystripe_update_dict = this_pystripe_content.fetch1()
 		pystripe_update_dict['smartspim_pystripe_spock_job_progress'] = status_step0
-		db_lightsheet.Request.SmartspimPystripeChannel().update1(pystripe_dict)
+		db_lightsheet.Request.SmartspimPystripeChannel().update1(pystripe_update_dict)
 		logger.info("Updated SmartspimPystripeChannel() entry with current job status")
 		
 		if status_step0 == 'COMPLETED':
