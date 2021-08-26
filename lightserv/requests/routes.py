@@ -334,6 +334,8 @@ def all_samples():
 								'imager':imager,'imaging_progress':imaging_progress,
 								'is_archival':is_archival}
 		processing_request_number = d.get('processing_request_number')
+		if not np.isnan(processing_request_number):
+			processing_request_number = int(processing_request_number)
 		processor = d.get('processor')
 		processing_progress = d.get('processing_progress')
 		processing_request_dict = {'username':username,'request_name':request_name,
@@ -357,7 +359,8 @@ def all_samples():
 			# a new imaging request or a new processing request at the same imaging request
 			# First pull out imaging request dict list  for this request
 			existing_dict = [d for d in final_dict_list if d.get('username') == username and \
-							d.get('request_name') == request_name][0]
+							d.get('request_name') == request_name and \
+							d.get('sample_name') == current_sample_name][0]
 			existing_imaging_request_dicts = existing_dict['imaging_requests']
 			existing_imaging_request_numbers = [x.get('imaging_request_number') for x in existing_imaging_request_dicts]
 			if imaging_request_number not in existing_imaging_request_numbers: # Then its a new imaging request and processing request
