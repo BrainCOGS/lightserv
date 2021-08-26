@@ -1939,13 +1939,13 @@ def smartspim_pystripe_job_status_checker():
 			logger.info("Pystripe complete, marked pystripe_performed=1 in SmartspimPystripeChannel() channel")
 			# Launch precomputed pipeline for corrected blended images
 			# this_pystripe_dict = this_pystripe_content.fetch1()
-			username = this_pystripe_dict['username']
-			request_name = this_pystripe_dict['request_name']
-			sample_name = this_pystripe_dict['sample_name']
-			imaging_request_number = this_pystripe_dict['imaging_request_number']
-			image_resolution = this_pystripe_dict['image_resolution']
-			channel_name = this_pystripe_dict['channel_name']
-			ventral_up = this_pystripe_dict['ventral_up']
+			username = pystripe_update_dict['username']
+			request_name = pystripe_update_dict['request_name']
+			sample_name = pystripe_update_dict['sample_name']
+			imaging_request_number = pystripe_update_dict['imaging_request_number']
+			image_resolution = pystripe_update_dict['image_resolution']
+			channel_name = pystripe_update_dict['channel_name']
+			ventral_up = pystripe_update_dict['ventral_up']
 			
 			precomputed_kwargs = dict(
 				username = username,
