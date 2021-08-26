@@ -26,7 +26,7 @@ import numpy as np
 import pymysql
 import logging
 from datetime import datetime, timedelta
-
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -300,11 +300,16 @@ def all_samples():
 	
 	sample_joined_contents = request_contents * sample_contents * clearing_batch_contents
 	
-	imaging_joined_contents = sample_joined_contents * imaging_request_contents 
+	imaging_joined_contents = sample_joined_contents.join(imaging_request_contents,left=True) 
+	df1 = pd.DataFrame(imaging_joined_contents.fetch(as_dict=True))
+	df2 = pd.DataFrame(processing_request_contents.fetch(as_dict=True))
+
+	# processing_joined_contents = imaging_joined_contents * processing_request_contents 
+	processing_joined_contents = pd.merge(df1,df2,
+		how='left',on=["username","request_name","sample_name","imaging_request_number"])
 	
-	processing_joined_contents = imaging_joined_contents * processing_request_contents 
-	
-	all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
+	# all_contents_dict_list = processing_joined_contents.fetch(as_dict=True)
+	all_contents_dict_list = processing_joined_contents.to_dict('records')
 	keep_keys = ['username','request_name','sample_name','species',
 				 'clearing_protocol','clearer','clearing_progress',
 				 'antibody1','antibody2',
