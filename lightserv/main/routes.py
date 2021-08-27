@@ -285,7 +285,7 @@ def dash():
 		all_samples_lavision='SUM(IF(microscope="lavision",1,0))=count(*)',
 		all_samples_smartspim='SUM(IF(microscope="smartspim",1,0))=count(*)')
 	joined_table = imaging_request_contents*aggr_imaging_resolution_table
-	combined_imaging_contents = dj.U('username','request_name','sample_name',
+	combined_imaging_contents = dj.U('username','request_name',
 		'clearing_batch_number',
 		'imaging_batch_number','imaging_request_number').aggr(
 		joined_table,
