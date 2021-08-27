@@ -252,7 +252,7 @@ def dash():
 	data_clearing['angle'] = data_clearing['value']/data_clearing['value'].sum() * 2*np.pi
 	data_clearing['color'] = Category10[len(x_clearing)]
 
-	plot_clearing = figure(plot_height=350,plot_width=400, title="Clearing batches", toolbar_location=None,
+	plot_clearing = figure(sizing_mode='scale_width',title="Clearing batches", toolbar_location=None,
 			   tools="hover", tooltips="@status: @value", x_range=(-0.5, 1.0))
 
 	plot_clearing.wedge(x=0, y=1, radius=0.4,
@@ -318,7 +318,7 @@ def dash():
 	data_imaging['angle'] = data_imaging['value']/data_imaging['value'].sum() * 2*np.pi
 	data_imaging['color'] = Category10[len(x_imaging)]
 
-	plot_imaging = figure(plot_height=350,plot_width=400, title="Imaging batches", toolbar_location=None,
+	plot_imaging = figure(sizing_mode='scale_width',title="Imaging batches", toolbar_location=None,
 			   tools="hover", tooltips="@status: @value", x_range=(-0.5, 1.0))
 
 	plot_imaging.wedge(x=0, y=1, radius=0.4,
@@ -394,8 +394,8 @@ def dash():
 			'lavision'   : df_microscopes['n_uses_lavision'],
 			'smartspim'   : df_microscopes['n_uses_smartspim']}
 	source_microscopes = ColumnDataSource(data=data)
-	microscope_usage_plot = figure(x_range=df_microscopes['date'],
-		plot_height=450,plot_width=600, title="Microscope usage in recent months",
+	microscope_usage_plot = figure(sizing_mode='scale_width',x_range=df_microscopes['date'],
+	 title="Microscope usage in recent months",
 		   toolbar_location=None)
 
 	microscope_usage_plot.title.align = 'center'
@@ -454,10 +454,15 @@ def dash():
 	# storage_time_plot = figure(
 	# 	plot_height=450,plot_width=600, title="LightSheetData Usage History",
 	# 	   toolbar_location=None, tools="",x_axis_type="datetime")
-	storage_time_plot = figure(
-		plot_height=450,plot_width=600, title="LightSheetData Usage History",
+	# storage_time_plot = figure(
+	# 	plot_height=450,plot_width=600, title="LightSheetData Usage History",
+	# 	   toolbar_location=None, tools="",
+	# 	   x_axis_type="datetime")
+	storage_time_plot = figure(sizing_mode="scale_width",
+		title="LightSheetData Usage History",
 		   toolbar_location=None, tools="",
 		   x_axis_type="datetime")
+	
 	storage_time_plot.title.align = 'center'
 	storage_time_plot.title.text_font_size = "24px"
 	# storage_time_plot.xaxis.group_text_font_size = "18px"
@@ -512,7 +517,7 @@ def dash():
     )
 
 	script_storage_time, div_storage_time = components(storage_time_plot)
-
+	# my_layout = layout([plot_clearing])
 	return render_template(
 		'main/dash.html',
 		script_clearing=script_clearing,

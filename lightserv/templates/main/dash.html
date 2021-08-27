@@ -10,25 +10,28 @@
     {% block content %}
 	<h1 style="text-align: center; margin-bottom: 40px;">Core Facility Dashboard</h1>
 	<hr class='class-1'>
-
-		<div class="row">
-			<div class="col" align="center">
-	            {{ div_clearing | safe }}
-	        </div>
-				<div class="col" align="center">
-		            {{ div_microscope | safe }}
+	<!-- 	<div class='bokeh'>
+			{{div_storage_time | safe }}
+		</div> -->
+		<div class="container" style="justify-items: center;">
+			<div class="row" >
+				<div class="col" align="center" style="max-width: 50%">
+		            {{ div_clearing | safe }}
+		        </div>
+				<div class="col" align="center" style="max-width: 50%">
+		            {{ div_imaging | safe }}
 		        </div>
 		    </div>
-	    </div>
-	    
-	    <div class="row mt-4">
-		 	<div class="col" align="center">
-	            {{ div_imaging | safe }}
-	        </div>
-	        <div class="col" align="center">
-	            {{ div_storage_time | safe }}
-	        </div>
-		</div>
-        
+		    
+		    <div class="row mt-4 mb-4">
+			 	<div class="col" align="center" style="max-width: 50%">
+		            {{ div_microscope | safe }}
+		        </div>
+		        <div class="col" align="center" style="max-width: 50%">
+		            {{ div_storage_time | safe }}
+		        </div>
+			</div>
+        </div>
+
 
 {% endblock content %}
