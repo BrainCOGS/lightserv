@@ -6,6 +6,7 @@ import webbrowser
 from lightserv import db_lightsheet, db_spockadmin
 from bs4 import BeautifulSoup 
 from datetime import datetime
+import datajoint as dj
 
 """ Tests for Imaging Manager """
 
@@ -2053,138 +2054,6 @@ def test_imaging_batch_entry_form_new_imaging_request(test_client,
 	assert imaging_progress == 'complete'
 	assert imaging_performed_date == datetime.now().date()
 
-
-""" Test for imaging tasks """
-
-def test_raw_precomputed_pipeline_starts(test_client,test_delete_spockadmin_db_contents):
-	""" Test that the raw precomputed pipeline task runs through,
-	given the correct input. Uses a test script on spock which just returns
-	job ids. Runs a celery task """
-	from lightserv.imaging import tasks
-	import time
-	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
-	username='ahoag'
-	request_name='admin_request'
-	sample_name='sample-001'
-	imaging_request_number=1
-	image_resolution='1.3x'
-	channel_name='488'
-	ventral_up=0
-	channel_index=0
-	number_of_z_planes=657
-	left_lightsheet_used=True
-	right_lightsheet_used=False
-	z_step=10
-	rawdata_subfolder='test488'
-	precomputed_kwargs = dict(username=username,request_name=request_name,
-							sample_name=sample_name,imaging_request_number=imaging_request_number,
-							image_resolution=image_resolution,channel_name=channel_name,
-							channel_index=channel_index,number_of_z_planes=number_of_z_planes,
-							ventral_up=ventral_up,
-							left_lightsheet_used=left_lightsheet_used,
-							right_lightsheet_used=right_lightsheet_used,
-							z_step=z_step,rawdata_subfolder=rawdata_subfolder)
-	raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
-			 f"{request_name}/{sample_name}/"
-			 f"imaging_request_{imaging_request_number}/viz/raw")
-
-	channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
-	raw_data_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-						request_name,sample_name,
-						f"imaging_request_{imaging_request_number}","rawdata",
-						f"resolution_{image_resolution}",f"{rawdata_subfolder}")
-	this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
-	precomputed_kwargs['lightsheet'] = 'left'
-	precomputed_kwargs['viz_dir'] = this_viz_dir
-	layer_name = f'channel{channel_name}_raw_left_lightsheet'
-	precomputed_kwargs['layer_name'] = layer_name
-	layer_dir = os.path.join(this_viz_dir,layer_name)
-	# Figure out what x and y dimensions are
-	lightsheet_index_code = 'C00' # always for left lightsheet
-	precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
-	all_slices = glob.glob(
-		f"{raw_data_dir}/*RawDataStack[00 x 00*{lightsheet_index_code}*Filter000{channel_index}*tif")
-	first_slice = all_slices[0]
-	first_im = Image.open(first_slice)
-	x_dim,y_dim = first_im.size
-	first_im.close() 
-	precomputed_kwargs['x_dim'] = x_dim
-	precomputed_kwargs['y_dim'] = y_dim
-	tasks.make_precomputed_rawdata.run(**precomputed_kwargs) 
-	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
-	assert len(table_contents) > 0
-
-def test_raw_precomputed_pipeline_starts_ventral_up_imaging(test_client,
-	test_imaged_request_dorsal_up_and_ventral_up_nonadmin,
-	test_delete_spockadmin_db_contents):
-	""" Test that the raw precomputed pipeline task runs through
-	for a request with ventral up and dorsal up imaging,
-	
-	Uses a test script on spock which just returns
-	job ids. Runs a celery task """
-	from lightserv.imaging import tasks
-	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
-	username='lightserv-test'
-	request_name='nonadmin_request'
-	sample_name='sample-001'
-	imaging_request_number=1
-	image_resolution='1.3x'
-	channel_name='488'
-	ventral_up=1
-	channel_index=0
-	number_of_z_planes=657
-	left_lightsheet_used=True
-	right_lightsheet_used=False
-	z_step=10
-	rawdata_subfolder='test488'
-	precomputed_kwargs = dict(username=username,request_name=request_name,
-							sample_name=sample_name,imaging_request_number=imaging_request_number,
-							image_resolution=image_resolution,channel_name=channel_name,
-							ventral_up=ventral_up,
-							channel_index=channel_index,number_of_z_planes=number_of_z_planes,
-							left_lightsheet_used=left_lightsheet_used,
-							right_lightsheet_used=right_lightsheet_used,
-							z_step=z_step,rawdata_subfolder=rawdata_subfolder)
-	raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
-			 f"{request_name}/{sample_name}/"
-			 f"imaging_request_{imaging_request_number}/viz/raw")
-
-	if ventral_up:
-		channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}_ventral_up')
-		raw_data_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-						request_name,sample_name,
-						f"imaging_request_{imaging_request_number}","rawdata",
-						f"resolution_{image_resolution}_ventral_up",f"{rawdata_subfolder}")
-		layer_name = f'channel{channel_name}_raw_left_lightsheet_ventral_up'
-	else:
-		channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
-		raw_data_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-						request_name,sample_name,
-						f"imaging_request_{imaging_request_number}","rawdata",
-						f"resolution_{image_resolution}",f"{rawdata_subfolder}")	
-		layer_name = f'channel{channel_name}_raw_left_lightsheet'
-	
-	this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
-	precomputed_kwargs['lightsheet'] = 'left'
-	precomputed_kwargs['viz_dir'] = this_viz_dir
-	
-	precomputed_kwargs['layer_name'] = layer_name
-	layer_dir = os.path.join(this_viz_dir,layer_name)
-	# Figure out what x and y dimensions are
-	lightsheet_index_code = 'C00' # always for left lightsheet
-	precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
-	all_slices = glob.glob(
-		f"{raw_data_dir}/*RawDataStack[00 x 00*{lightsheet_index_code}*Filter000{channel_index}*tif")
-	first_slice = all_slices[0]
-	first_im = Image.open(first_slice)
-	x_dim,y_dim = first_im.size
-	first_im.close() 
-	precomputed_kwargs['x_dim'] = x_dim
-	precomputed_kwargs['y_dim'] = y_dim
-	tasks.make_precomputed_rawdata.run(**precomputed_kwargs) 
-	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
-	assert len(table_contents) > 0
-
 """ Tests for Imaging table """	
 
 def test_imaging_table_loads_nonadmin(test_client,test_imaged_request_nonadmin,
@@ -2456,3 +2325,195 @@ def test_new_imaging_request(test_client,
 	assert len(processing_resolution_3p6x_request_contents) == 1
 	sample_3p6x_resolution = processing_resolution_3p6x_request_contents.fetch('sample_name') 
 	assert sample_3p6x_resolution == 'sample-003'
+
+
+""" Test for imaging tasks """
+
+def test_raw_precomputed_pipeline(test_imaged_request_ahoag,test_delete_spockadmin_db_contents):
+	""" Test that the raw precomputed pipeline task runs through,
+	given the correct input (runs a test job).
+	Then tests the raw precomputed job status checker.
+	Runs celery tasks synchronously. """
+	from lightserv.imaging import tasks
+	import time
+	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
+	username='ahoag'
+	request_name='admin_request'
+	sample_name='sample-001'
+	imaging_request_number=1
+	image_resolution='1.3x'
+	channel_name='488'
+	ventral_up=0
+	channel_index=0
+	number_of_z_planes=657
+	left_lightsheet_used=True
+	right_lightsheet_used=False
+	z_step=10
+	rawdata_subfolder='test488'
+	precomputed_kwargs = dict(username=username,request_name=request_name,
+							sample_name=sample_name,imaging_request_number=imaging_request_number,
+							image_resolution=image_resolution,channel_name=channel_name,
+							channel_index=channel_index,number_of_z_planes=number_of_z_planes,
+							ventral_up=ventral_up,
+							left_lightsheet_used=left_lightsheet_used,
+							right_lightsheet_used=right_lightsheet_used,
+							z_step=z_step,rawdata_subfolder=rawdata_subfolder)
+	raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
+			 f"{request_name}/{sample_name}/"
+			 f"imaging_request_{imaging_request_number}/viz/raw")
+
+	channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
+	raw_data_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+						request_name,sample_name,
+						f"imaging_request_{imaging_request_number}","rawdata",
+						f"resolution_{image_resolution}",f"{rawdata_subfolder}")
+	this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
+	precomputed_kwargs['lightsheet'] = 'left'
+	precomputed_kwargs['viz_dir'] = this_viz_dir
+	layer_name = f'channel{channel_name}_raw_left_lightsheet'
+	precomputed_kwargs['layer_name'] = layer_name
+	layer_dir = os.path.join(this_viz_dir,layer_name)
+	# Figure out what x and y dimensions are
+	lightsheet_index_code = 'C00' # always for left lightsheet
+	precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
+	all_slices = glob.glob(
+		f"{raw_data_dir}/*RawDataStack[00 x 00*{lightsheet_index_code}*Filter000{channel_index}*tif")
+	first_slice = all_slices[0]
+	first_im = Image.open(first_slice)
+	x_dim,y_dim = first_im.size
+	first_im.close() 
+	precomputed_kwargs['x_dim'] = x_dim
+	precomputed_kwargs['y_dim'] = y_dim
+	tasks.make_precomputed_rawdata.run(**precomputed_kwargs) 
+	raw_precomputed_table_contents = db_spockadmin.RawPrecomputedSpockJob() 
+	assert len(raw_precomputed_table_contents) > 0
+	
+	# Make sure left lightsheet spock jobid and progress are populated
+	# and that right lightsheet fields are still None
+	imaging_channel_restrict_dict = dict(
+		username='ahoag',
+		request_name='admin_request',
+		sample_name='sample-001',
+		imaging_request_number=1,
+		image_resolution='1.3x',
+		channel_name='488',
+		ventral_up=0
+		)
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
+		imaging_channel_restrict_dict
+	(left_ls_jobid, left_ls_job_progress,
+		right_ls_jobid, right_ls_job_progress) = imaging_channel_contents.fetch1(
+		'left_lightsheet_precomputed_spock_jobid',
+		'left_lightsheet_precomputed_spock_job_progress',
+		'right_lightsheet_precomputed_spock_jobid',
+		'right_lightsheet_precomputed_spock_job_progress'
+	)
+	assert left_ls_jobid != None
+	assert left_ls_job_progress == "SUBMITTED"
+	assert right_ls_jobid == None
+	assert right_ls_job_progress == None
+	""" Now test the job status checker 
+	Delete the entry in the spockadmin table 
+	and replace with one that has jobids
+	that I know are completed, 
+	but set the job progress to SUBMITTED. That way I can know that 
+	the job status checker is doing its job """
+	raw_precomputed_insert_dict = raw_precomputed_table_contents.fetch1()
+	raw_precomputed_table_contents.delete_quick()
+	new_jobid_step0 = 20915092
+	new_jobid_step1 = 20915093
+	new_jobid_step2 = 20915094
+	raw_precomputed_insert_dict['jobid_step0'] = new_jobid_step0
+	raw_precomputed_insert_dict['jobid_step1'] = new_jobid_step1
+	raw_precomputed_insert_dict['jobid_step2'] = new_jobid_step2
+	db_spockadmin.RawPrecomputedSpockJob().insert1(
+		raw_precomputed_insert_dict)
+	# Update the ImagingChannel() table to point to this new, fake entry
+	imaging_channel_update_dict = imaging_channel_contents.fetch1()
+	imaging_channel_update_dict['left_lightsheet_precomputed_spock_jobid'] = new_jobid_step2
+	db_lightsheet.Request.ImagingChannel().update1(
+		imaging_channel_update_dict)
+
+	""" Now run the job status checker and make sure 
+	a new entry gets made in spockadmin table and the
+	status in the ImagingChannel() table gets updated to COMPLETED """
+	tasks.check_raw_precomputed_statuses.run()
+	spock_table_contents = db_spockadmin.RawPrecomputedSpockJob() & \
+		{'jobid_step2':new_jobid_step2}
+	assert len(spock_table_contents) == 2
+	most_recent_contents = dj.U('jobid_step2','username',).aggr(
+		spock_table_contents,timestamp='max(timestamp)')*spock_table_contents
+	status_step2 = most_recent_contents.fetch1('status_step2')
+	assert status_step2 == 'COMPLETED'
+
+
+def test_raw_precomputed_pipeline_starts_ventral_up_imaging(test_client,
+	test_imaged_request_dorsal_up_and_ventral_up_nonadmin,
+	test_delete_spockadmin_db_contents):
+	""" Test that the raw precomputed pipeline task runs through
+	for a request with ventral up and dorsal up imaging,
+	
+	Uses a test script on spock which just returns
+	job ids. Runs a celery task """
+	from lightserv.imaging import tasks
+	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
+	username='lightserv-test'
+	request_name='nonadmin_request'
+	sample_name='sample-001'
+	imaging_request_number=1
+	image_resolution='1.3x'
+	channel_name='488'
+	ventral_up=1
+	channel_index=0
+	number_of_z_planes=657
+	left_lightsheet_used=True
+	right_lightsheet_used=False
+	z_step=10
+	rawdata_subfolder='test488'
+	precomputed_kwargs = dict(username=username,request_name=request_name,
+							sample_name=sample_name,imaging_request_number=imaging_request_number,
+							image_resolution=image_resolution,channel_name=channel_name,
+							ventral_up=ventral_up,
+							channel_index=channel_index,number_of_z_planes=number_of_z_planes,
+							left_lightsheet_used=left_lightsheet_used,
+							right_lightsheet_used=right_lightsheet_used,
+							z_step=z_step,rawdata_subfolder=rawdata_subfolder)
+	raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
+			 f"{request_name}/{sample_name}/"
+			 f"imaging_request_{imaging_request_number}/viz/raw")
+
+	if ventral_up:
+		channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}_ventral_up')
+		raw_data_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+						request_name,sample_name,
+						f"imaging_request_{imaging_request_number}","rawdata",
+						f"resolution_{image_resolution}_ventral_up",f"{rawdata_subfolder}")
+		layer_name = f'channel{channel_name}_raw_left_lightsheet_ventral_up'
+	else:
+		channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
+		raw_data_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+						request_name,sample_name,
+						f"imaging_request_{imaging_request_number}","rawdata",
+						f"resolution_{image_resolution}",f"{rawdata_subfolder}")	
+		layer_name = f'channel{channel_name}_raw_left_lightsheet'
+	
+	this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
+	precomputed_kwargs['lightsheet'] = 'left'
+	precomputed_kwargs['viz_dir'] = this_viz_dir
+	
+	precomputed_kwargs['layer_name'] = layer_name
+	layer_dir = os.path.join(this_viz_dir,layer_name)
+	# Figure out what x and y dimensions are
+	lightsheet_index_code = 'C00' # always for left lightsheet
+	precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
+	all_slices = glob.glob(
+		f"{raw_data_dir}/*RawDataStack[00 x 00*{lightsheet_index_code}*Filter000{channel_index}*tif")
+	first_slice = all_slices[0]
+	first_im = Image.open(first_slice)
+	x_dim,y_dim = first_im.size
+	first_im.close() 
+	precomputed_kwargs['x_dim'] = x_dim
+	precomputed_kwargs['y_dim'] = y_dim
+	tasks.make_precomputed_rawdata.run(**precomputed_kwargs) 
+	table_contents = db_spockadmin.RawPrecomputedSpockJob() 
+	assert len(table_contents) > 0
