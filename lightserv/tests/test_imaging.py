@@ -74,7 +74,6 @@ def test_microscope_column_correct(test_client,test_cleared_request_both_microsc
 	assert b'nonadmin_bothmicroscopes_request' in response.data
 	assert b'lavision & smartspim' in response.data 
 
-
 """ Tests for imaging entry form """
 
 def test_imaging_batch_entry_form_GET(test_client,
@@ -1486,7 +1485,7 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		attrs={'id':'sample_forms-0-image_resolution_forms-0-channel_forms-0-add_flipped_channel_button'})
 	assert add_flipped_button != None
 
-
+	""" Add a ventral up row for channel 488 """
 	data2 = {
 		'image_resolution_batch_forms-0-image_resolution':'1.3x',
 		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
@@ -1537,7 +1536,8 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 	print(ch488_flipped_row_sample1)
 	dorsal_or_ventral = ch488_flipped_row_sample1[3].find_all('div')[0].find_all('p')[0].text
 	assert dorsal_or_ventral == 'Ventral'
-	""" Now make sure I can delete the flipped channel """
+
+	""" Now attempt to change the imaging resolution """
 	data3 = {
 		'image_resolution_batch_forms-0-image_resolution':'1.3x',
 		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
@@ -1547,19 +1547,16 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'488',
-		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',		
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-ventral_up':1,		
-		'sample_forms-0-image_resolution_forms-0-channel_forms-1-delete_channel_button':True,
-		'sample_forms-0-image_resolution_forms-0-channel_forms-2-channel_name':'555',
-		'sample_forms-0-image_resolution_forms-0-channel_forms-2-image_resolution':'1.3x',	
+		'sample_forms-0-image_resolution_forms-0-new_image_resolution':'1.1x',
+		'sample_forms-0-image_resolution_forms-0-update_resolution_button':True,
 		'sample_forms-1-sample_name':'sample-002',
 		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
-		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
-		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
 		}
-	response3 = test_client.post(url_for('imaging.imaging_batch_entry',
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='nonadmin_manysamp_request',
 			clearing_batch_number=1,
@@ -1567,7 +1564,67 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 			imaging_batch_number=1),
 		data=data3,
 		follow_redirects=True)
-	imaging_channel_contents_sample1 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample1
+	assert b'Imaging Entry Form' in response.data
+	""" Check that the sample-001 image resolution was updated in the db 
+	and that sample-002 image resolution was NOT updated in the db"""
+	restrict_dict_sample1_dorsal_up = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			channel_name='488',
+			ventral_up=0)
+	restrict_dict_sample1_ventral_up = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			channel_name='488',
+			ventral_up=1)
+	restrict_dict_sample2 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-002',
+			channel_name='488')
+	imaging_channel_contents_sample1_dorsal_up = db_lightsheet.Request.ImagingChannel() & \
+		restrict_dict_sample1_dorsal_up
+	imaging_channel_contents_sample1_ventral_up = db_lightsheet.Request.ImagingChannel() & \
+		restrict_dict_sample1_ventral_up
+	assert imaging_channel_contents_sample1_dorsal_up.fetch1('image_resolution') == '1.1x'
+	assert imaging_channel_contents_sample1_ventral_up.fetch1('image_resolution') == '1.1x'
+
+	imaging_channel_contents_sample2 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample2
+	assert imaging_channel_contents_sample2.fetch1('image_resolution') == '1.3x'
+	""" Now make sure I can delete the flipped channel """
+	data4 = {
+		'image_resolution_batch_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.1x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.1x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.1x',		
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-ventral_up':1,		
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-delete_channel_button':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-2-channel_name':'555',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-2-image_resolution':'1.1x',	
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
+		}
+	response4 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			clearing_batch_number=1,
+			imaging_request_number=1,
+			imaging_batch_number=1),
+		data=data4,
+		follow_redirects=True)
+	restrict_dict_sample1_ch488 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-001',
+			channel_name='488')
+	imaging_channel_contents_sample1 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample1_ch488 
 	assert len(imaging_channel_contents_sample1) == 1
 	ventral_up_val = imaging_channel_contents_sample1.fetch1('ventral_up')
 	assert ventral_up_val == 0
@@ -1575,7 +1632,7 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 	""" Test that if the image orientation is not horizontal for a channel
 	then clicking the add flipped channel button does not create 
 	a flipped channel and results in a validation error """
-	data4 = {
+	data5 = {
 		'image_resolution_batch_forms-0-image_resolution':'1.3x',
 		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
 		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
@@ -1594,13 +1651,13 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_orientation':'sagittal',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-add_flipped_channel_button':True,
 		}
-	response4 = test_client.post(url_for('imaging.imaging_batch_entry',
+	response5 = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='nonadmin_manysamp_request',
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1),
-		data=data4,
+		data=data5,
 		follow_redirects=True)
 	this_sample_name = 'sample-002'
 	this_image_resolution = '1.3x'
@@ -1610,7 +1667,7 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 				 f"sample_name: {this_sample_name}, "
 				 f"image resolution: {this_image_resolution}, "
 				 f"channel: {channel_name_to_flip}")
-	assert error_str.encode('utf-8') in response4.data
+	assert error_str.encode('utf-8') in response5.data
 	""" Make sure no db entry was made for this flipped 555 channel """
 	restrict_dict_sample2 = dict(username='lightserv-test',
 			request_name='nonadmin_manysamp_request',
@@ -1624,17 +1681,17 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 
 	""" Finally re-add the flipped 488 channel and
 	test that the sample submits with a flipped channel """
-	data5 = {
+	data6 = {
 		'image_resolution_batch_forms-0-image_resolution':'1.3x',
 		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
-		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.1x',
 		'sample_forms-0-sample_name':'sample-001',
-		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.1x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
-		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.1x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-add_flipped_channel_button':True,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
-		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',		
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.1x',		
 		'sample_forms-1-sample_name':'sample-002',
 		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
@@ -1643,20 +1700,20 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
 		}
 
-	response5 = test_client.post(url_for('imaging.imaging_batch_entry',
+	response6 = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='nonadmin_manysamp_request',
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1),
-		data=data5,
+		data=data6,
 		follow_redirects=True)
 
-	data6 = {
+	data7 = {
 		'sample_forms-0-sample_name':'sample-001',
-		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.1x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
-		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.1x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
@@ -1665,7 +1722,7 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'488',
-		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.1x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-ventral_up':1,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
@@ -1689,15 +1746,15 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-submit':True
 	}
-	response6 = test_client.post(url_for('imaging.imaging_batch_entry',
+	response7 = test_client.post(url_for('imaging.imaging_batch_entry',
 			username='lightserv-test',
 			request_name='nonadmin_manysamp_request',
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1),
-		data=data6,
+		data=data7,
 		follow_redirects=True)	
-	assert b"Imaging entry for sample sample-001 was successful" in response6.data
+	assert b"Imaging entry for sample sample-001 was successful" in response7.data
 
 def test_imaging_batch_entry_form_new_imaging_request(test_client,
 	test_new_imaging_request_nonadmin,
@@ -2053,6 +2110,7 @@ def test_imaging_batch_entry_form_new_imaging_request(test_client,
 		'imaging_progress','imaging_performed_date')
 	assert imaging_progress == 'complete'
 	assert imaging_performed_date == datetime.now().date()
+
 
 """ Tests for Imaging table """	
 

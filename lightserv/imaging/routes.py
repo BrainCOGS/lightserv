@@ -1329,7 +1329,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 									
 									if len(processing_resolution_request_contents) > 0: 
 										logger.debug("ProcessingResolutionRequest() entry already existed")
-										processing_resolution_request_insert_dict = processing_resolution_request_contents.fetch1()
+										processing_resolution_request_insert_dict_list = processing_resolution_request_contents.fetch()
 										processing_resolution_request_contents.delete(force=True)
 									else:
 										logger.debug("Making an entirely new ProcessingResolutionRequest() entry")
@@ -1431,11 +1431,14 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 											entries for it """
 
 											""" Now ProcessingResolutionRequest() """
-											processing_resolution_request_insert_dict['image_resolution'] = new_image_resolution
-											logger.debug("Inserting ProcessingResolutionRequest() contents:")
-											logger.debug(processing_resolution_request_insert_dict)
-											db_lightsheet.Request.ProcessingResolutionRequest().insert1(
-												processing_resolution_request_insert_dict)
+
+											if len(processing_resolution_request_contents) > 0:
+												for processing_resolution_request_insert_dict in processing_resolution_request_insert_dict_list: 
+													processing_resolution_request_insert_dict['image_resolution'] = new_image_resolution
+													logger.debug("Inserting ProcessingResolutionRequest() contents:")
+													logger.debug(processing_resolution_request_insert_dict)
+													db_lightsheet.Request.ProcessingResolutionRequest().insert1(
+														processing_resolution_request_insert_dict)
 											""" Finally ProcessingChannel() """
 											[d.update({'image_resolution':new_image_resolution}) for d in processing_channel_dicts_to_insert]
 											""" channel names need to be updated if microscope was switched """
