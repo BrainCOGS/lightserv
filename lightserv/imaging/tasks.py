@@ -341,10 +341,11 @@ def check_raw_precomputed_statuses():
 			if not os.environ['FLASK_MODE'] == 'TEST':
 				# send_email.delay(subject=subject,body=body,recipients=recipients)
 				send_admin_email.delay(subject=subject,body=admin_body)
+		db_spockadmin.RawPrecomputedSpockJob.insert1(job_insert_dict)
 
 	# logger.debug("Insert list:")
 	# logger.debug(job_insert_list)
-	db_spockadmin.RawPrecomputedSpockJob.insert(job_insert_list)
+	# db_spockadmin.RawPrecomputedSpockJob.insert(job_insert_list)
 	client.close()
 
 	return "checked statuses"
