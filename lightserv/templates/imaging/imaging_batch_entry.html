@@ -433,6 +433,10 @@
 					<!-- Render the hidden fields so they propagate through submission -->
 					{{ channel_form.channel_name() }}
 					{% set channel_name = channel_form.channel_name.data %}
+					{{ channel_form.username() }}
+					{{ channel_form.request_name() }}
+					{{ channel_form.sample_name() }}
+					{{ channel_form.imaging_request_number() }}
 					{{ channel_form.image_resolution() }}
 					{{ channel_form.ventral_up(hidden=true) }}
 					{% set ventral_up = channel_form.ventral_up.data %}
@@ -527,17 +531,17 @@
 								<td>
 							{% endif %}
 						    	
-							    	<div class="checkbox mb-2" align="left">
-										{{ channel_form.left_lightsheet_used }}
-										{{ channel_form.left_lightsheet_used.label(class="form-check-label") }}
-									</div>
-									<div class="checkbox mb-2" align="left">
-										{{ channel_form.right_lightsheet_used }}
-										{{ channel_form.right_lightsheet_used.label(class="form-check-label") }}
-									</div>
-								{% if channel_form.left_lightsheet_used.errors or channel_form.right_lightsheet_used.errors %}
-									<span class="text-danger"> At least one must be selected </span>
-								{% endif %}
+					    	<div class="checkbox mb-2" align="left">
+								{{ channel_form.left_lightsheet_used }}
+								{{ channel_form.left_lightsheet_used.label(class="form-check-label") }}
+							</div>
+							<div class="checkbox mb-2" align="left">
+								{{ channel_form.right_lightsheet_used }}
+								{{ channel_form.right_lightsheet_used.label(class="form-check-label") }}
+							</div>
+							{% if channel_form.left_lightsheet_used.errors or channel_form.right_lightsheet_used.errors %}
+								<span class="text-danger"> At least one must be selected </span>
+							{% endif %}
 
 						    </td>
 						    <td>
