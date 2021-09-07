@@ -22,6 +22,7 @@ import os,re
 from datetime import datetime, timedelta
 import logging
 import glob
+import copy
 from PIL import Image
 import concurrent.futures
 
@@ -139,8 +140,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 	logger.info(f"{current_user} accessed imaging_batch_entry")
 
 	form = ImagingBatchForm(request.form)
-	logger.debug("Form errors:")
-	logger.debug(form.errors)
+	# logger.debug()
 	rawdata_rootpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 		username,request_name)
 	imaging_batch_restrict_dict = dict(username=username,request_name=request_name,
@@ -398,7 +398,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 						and make an insert in the db for a new channel """
 						for sample_dict in sample_dict_list:
 							this_sample_name = sample_dict['sample_name']
-							imaging_channel_entry_dict = batch_channel_entry_dict.deepcopy()
+							imaging_channel_entry_dict = copy.deepcopy(batch_channel_entry_dict)
 							imaging_channel_entry_dict['sample_name'] = this_sample_name
 							logger.debug("Attempting to insert:")
 							logger.debug(imaging_channel_entry_dict)
@@ -743,7 +743,9 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 											db_lightsheet.Request.ProcessingResolutionRequest & \
 												restrict_processing_resolution_dict
 										if len(processing_resolution_request_contents) == 0:
-											restrict_processing_resolution_insert_dict = restrict_processing_resolution_dict.deepcopy()
+											# restrict_processing_resolution_insert_dict = restrict_processing_resolution_dict.deepcopy()
+											restrict_processing_resolution_insert_dict = copy.deepcopy(
+												restrict_processing_resolution_dict)
 											restrict_processing_resolution_insert_dict['atlas_name'] = 'allen_2017' # default
 											restrict_processing_resolution_insert_dict['final_orientation'] = 'sagittal' # default
 											logger.debug("Creating ProcessingResolutionRequest() insert:")
@@ -791,10 +793,8 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 									logger.debug("Channel form validated")
 								else:
 									logger.debug("Channel form NOT validated")
-									
+									logger.debug(channel_form.errors)
 									column_name = f"sample_{sample_ii}_resolution_{image_resolution}_channel_{channel_name}_row"
-									logger.debug("scrolling to field:")
-									logger.debug(column_name)
 
 									return render_template('imaging/imaging_batch_entry.html',form=form,
 										rawdata_rootpath=rawdata_rootpath,imaging_table=imaging_table,
@@ -810,8 +810,12 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 							else:
 								logger.debug("Image resolution form NOT validated!")
 								logger.debug(image_resolution_form.errors)
-								logger.debug(image_resolution_form.data)
-								flash_str = ""
+								flash_str = (f"Issues with parameters for Sample: {this_sample_name},"
+											 f" image resolution: {image_resolution}, ")
+								errors = image_resolution_form.errors['channel_forms']
+								for error in errors:
+									flash_str += error
+								flash(flash_str,"danger")
 								return render_template('imaging/imaging_batch_entry.html',form=form,
 									rawdata_rootpath=rawdata_rootpath,imaging_table=imaging_table,
 									sample_dict_list=sample_dict_list,
@@ -846,11 +850,8 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 								imaging_resolution_update_dict['notes_from_imaging'] = notes_from_imaging
 								db_lightsheet.Request.ImagingResolutionRequest().update1(
 									imaging_resolution_update_dict)
-								
-								for channel_index,form_channel_dict in \
-									enumerate(form_resolution_dict['channel_forms']):
-									logger.info(f" channel {channel_name} with image_resolution = "
-										        f"{image_resolution} has channel_index = {channel_index}")
+								subfolder_dict = {}
+								for form_channel_dict in form_resolution_dict['channel_forms']:
 									channel_name = form_channel_dict['channel_name']
 									ventral_up = form_channel_dict['ventral_up']
 									channel_content = channel_contents_all_samples & \
@@ -866,9 +867,14 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 									z_step = form_channel_dict['z_step']
 									left_lightsheet_used = form_channel_dict['left_lightsheet_used']
 									right_lightsheet_used = form_channel_dict['right_lightsheet_used']
-									
+									if rawdata_subfolder in subfolder_dict.keys():
+										subfolder_dict[rawdata_subfolder].append(channel_dict)
+									else:
+										subfolder_dict[rawdata_subfolder] = [channel_dict]
+									channel_index = len(subfolder_dict[rawdata_subfolder]) - 1
 									''' Make a copy of the current row in a new dictionary which we will insert '''
-									channel_insert_dict = channel_content_dict.deepcopy()
+
+									channel_insert_dict = copy.deepcopy(channel_content_dict)
 								
 									''' Now replace (some of) the values in the dict from what we 
 									got from the form '''
@@ -879,8 +885,6 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 									channel_insert_dict['imspector_channel_index'] = channel_index
 									
 									db_lightsheet.Request.ImagingChannel().update1(channel_insert_dict)
-									
-									
 									
 									""" Kick off celery task for creating precomputed data from this
 									raw data image dataset if there is stitching is not necessary.
@@ -1346,7 +1350,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 											restrict_channel_dict['ventral_up'] = False
 											existing_channel_dict = (db_lightsheet.Request.ImagingChannel() & \
 												restrict_channel_dict).fetch1()
-											flipped_channel_dict = existing_channel_dict.deepcopy()
+											flipped_channel_dict = copy.deepcopy(existing_channel_dict)
 											flipped_channel_dict['ventral_up'] = 1
 											logger.debug("inserting: ")
 											logger.debug(flipped_channel_dict)
@@ -1367,7 +1371,8 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 												db_lightsheet.Request.ProcessingResolutionRequest & \
 													restrict_processing_resolution_dict
 											if len(processing_resolution_request_contents) == 0:
-												restrict_processing_resolution_insert_dict = restrict_processing_resolution_dict.deepcopy()
+												restrict_processing_resolution_insert_dict = copy.deepcopy(
+													restrict_processing_resolution_dict)
 												restrict_processing_resolution_insert_dict['atlas_name'] = 'allen_2017' # default
 												restrict_processing_resolution_insert_dict['final_orientation'] = 'sagittal' # default
 												logger.debug("Creating ProcessingResolutionRequest() insert:")
@@ -1517,6 +1522,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 				this_resolution_form.channel_forms.append_entry()
 				this_channel_form = this_resolution_form.channel_forms[-1]
 				this_channel_form.channel_name.data = channel_name
+				this_channel_form.imaging_request_number.data = imaging_request_number
 				this_channel_form.image_resolution.data = channel_content['image_resolution']
 				used_channels.append(channel_name)
 				""" Autofill based on current db contents """
@@ -1612,7 +1618,11 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 						registration_channel_used = True
 					this_resolution_form.channel_forms.append_entry()
 					this_channel_form = this_resolution_form.channel_forms[-1]
+					this_channel_form.username.data = username
+					this_channel_form.request_name.data = request_name
+					this_channel_form.sample_name.data = this_sample_name
 					this_channel_form.channel_name.data = channel_name
+					this_channel_form.imaging_request_number.data = imaging_request_number
 					this_channel_form.image_resolution.data = this_image_resolution
 					used_channels.append(channel_name)
 					""" Autofill based on current db contents """

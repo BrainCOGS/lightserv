@@ -102,6 +102,7 @@
 				{% set channel_form = image_resolution_form.channel_forms[jj] %}
 				<!-- Render the hidden fields so they propagate through submission -->
 				{{ channel_form.channel_name() }}
+				{{ channel_form.imaging_request_number() }}
 				{% set channel_name = channel_form.channel_name.data  %}
 				{{ channel_form.image_resolution() }}
 				{{ channel_form.ventral_up(hidden=true) }}

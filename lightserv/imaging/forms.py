@@ -9,6 +9,24 @@ from wtforms.widgets import html5
 import os, glob
 import concurrent
 from . import utils
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s:%(name)s:%(message)s')
+
+''' Make the file handler to deal with logging to file '''
+file_handler = logging.FileHandler('logs/imaging_forms.log')
+file_handler.setFormatter(formatter)
+
+stream_handler = logging.StreamHandler() # level already set at debug from logger.setLevel() above
+
+stream_handler.setFormatter(formatter)
+
+logger.addHandler(stream_handler)
+logger.addHandler(file_handler)
+
 
 """ For the individual imaging sample entry form """
 class ChannelForm(FlaskForm):
@@ -19,7 +37,6 @@ class ChannelForm(FlaskForm):
 	request_name = HiddenField('Request name')
 	sample_name = HiddenField('Sample name')
 	imaging_request_number = HiddenField('imaging request number')
-	channel_name = HiddenField('Channel name')
 	channel_name = HiddenField('Channel name')
 	image_resolution = HiddenField('Image resolution')
 	zoom_body_magnification = DecimalField('Zoom body magnification',default=1.0,validators=[Optional()])
@@ -49,13 +66,11 @@ class ChannelForm(FlaskForm):
 			fl_val = float(tiling_overlap.data)
 		except:
 			raise ValidationError("Tiling overlap must be a number between 0.0 and 1.0")
+
 		if fl_val < 0.0 or fl_val >= 1.0:
 			raise ValidationError("Tiling overlap must be a number between 0.0 and 1.0")
 
 	def validate_tiling_scheme(self,tiling_scheme):
-		if len(tiling_scheme.data) != 3:
-			raise ValidationError("Tiling scheme is not in correct format."
-								  " Make sure it is like: 1x1 with no spaces.")
 		try:
 			n_rows = int(tiling_scheme.data.lower().split('x')[0])
 			n_columns = int(tiling_scheme.data.lower().split('x')[1])
@@ -101,7 +116,7 @@ class ChannelForm(FlaskForm):
 		rawdata_subfolder = rawdata_subfolder.data.rstrip("/").strip() 
 		# Check to make sure no spaces contained in rawdata_subfolder
 		if " " in rawdata_subfolder:
-			raise ValidationError("rawdata_subfolder must not contain spaces")
+			raise ValidationError("Rawdata subfolder must not contain spaces")
 		
 class ImageResolutionForm(FlaskForm):
 	""" A form for each image resolution that a user picks """
@@ -111,8 +126,8 @@ class ImageResolutionForm(FlaskForm):
 	notes_for_imager = TextAreaField('Notes left for imager:')
 
 	change_resolution = BooleanField("Change image resolution?",default=False)
-	new_image_resolution = SelectField('Select the new image resolution you want to use:', 
-		choices=[],validators=[Optional()])
+	new_image_resolution = SelectField('Select the new image resolution you want to use:',
+		choices=[("1.3x","1.3x"),("1.1x","1.1x"),("2x","2x"),("4x","4x"),("3.6x","3.6x")],validators=[Optional()])
 	update_resolution_button = SubmitField('Update')
 	new_channel_dropdown = SelectField("Add additional channel?",choices=[('488','488'),
 	('555','555'),('647','647'),('790','790')],validators=[Optional()])
@@ -121,27 +136,26 @@ class ImageResolutionForm(FlaskForm):
 	('cell_detection','cell_detection'),
 	('generic_imaging','generic_imaging')],validators=[Optional()])
 	new_channel_button = SubmitField("Add channel")
-	channel_forms = FieldList(FormField(ChannelForm),min_entries=0,max_entries=max_number_of_channels)
-
-	def validate_new_image_resolution(self,new_image_resolution):
-		print(new_image_resolution.data)		
-		print(new_image_resolution.choices)		
-
+	channel_forms = FieldList(FormField(ChannelForm),min_entries=0,max_entries=max_number_of_channels)	
 
 	def validate_channel_forms(self,channel_forms):
 		subfolder_dict = {}
+		logger.debug("Looping over channel forms to validate each")
 		for channel_form in channel_forms:
 			channel_dict = channel_form.data
-			username = channel_form.username.data
-			request_name = channel_form.request_name.data
-			sample_name = channel_form.sample_name.data
-			imaging_request_number = channel_form.imaging_request_number.data
-			number_of_z_planes = channel_form.number_of_z_planes.data
-			left_lightsheet_used = channel_form.left_lightsheet_used.data
-			right_lightsheet_used = channel_form.right_lightsheet_used.data
-			tiling_scheme = channel_form.tiling_scheme.data
-			rawdata_subfolder = channel_form.rawdata_subfolder.data.rstrip("/").strip()
-			ventral_up = channel_form.ventral_up.data
+			username = channel_dict['username']
+			request_name = channel_dict['request_name']
+			sample_name = channel_dict['sample_name']
+			imaging_request_number = channel_dict['imaging_request_number']
+			channel_name = channel_dict['channel_name']
+			logger.debug(f"Validating channel: {channel_name}")
+			logger.debug(f"Imaging request number: {imaging_request_number}")
+			number_of_z_planes = channel_dict['number_of_z_planes']
+			left_lightsheet_used = channel_dict['left_lightsheet_used']
+			right_lightsheet_used = channel_dict['right_lightsheet_used']
+			tiling_scheme = channel_dict['tiling_scheme']
+			rawdata_subfolder = channel_dict['rawdata_subfolder'].rstrip("/").strip()
+			ventral_up = channel_dict['ventral_up']
 			if ventral_up == True:
 				rawdata_fullpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 					username,request_name,sample_name,
@@ -152,22 +166,26 @@ class ImageResolutionForm(FlaskForm):
 					username,request_name,sample_name,
 					f'imaging_request_{imaging_request_number}',
 					'rawdata',f'resolution_{self.image_resolution.data}',rawdata_subfolder)
+			logger.debug(f"Searching in full rawdata path: {rawdata_fullpath}")
 			if rawdata_subfolder in subfolder_dict.keys():
 				subfolder_dict[rawdata_subfolder].append(channel_dict)
 			else:
 				subfolder_dict[rawdata_subfolder] = [channel_dict]
 			
 			channel_index = len(subfolder_dict[rawdata_subfolder]) - 1
+			logger.debug(f"Channel index: {channel_index}")
 			n_rows = int(tiling_scheme.lower().split('x')[0])
 			n_columns = int(tiling_scheme.lower().split('x')[1])
-			
+			logger.debug("tiling scheme:")
+			logger.debug(tiling_scheme)
 			if self.image_resolution.data in ['3.6x','15x']:
 				number_of_rawfiles_expected = number_of_z_planes*n_rows*n_columns
 				""" For SmartSPIM, make sure the number of folders 
 				represents the tiling scheme, should be row/col.
 				Also count files in the deepest directories to get total file count"""
 				row_dirs = glob.glob(rawdata_fullpath + '/??????/')
-				logger.debug(row_dirs)
+				logger.debug(f"found {len(row_dirs)} row directories")
+				logger.debug(f"expected {n_rows} row directories")
 				if len(row_dirs) != n_rows:
 					raise ValidationError(
 						f"You entered that there should be {n_rows} tiling row folders in rawdata folder, "
@@ -203,13 +221,16 @@ class ImageResolutionForm(FlaskForm):
 				# Brainpipe does not handle these files well so we need to rename them
 				all_raw_files_no_tiling = glob.glob(rawdata_fullpath + f'/*RawDataStack_*Filter*.tif')
 				if len(all_raw_files_no_tiling) > 0:
-					logger.info("Found raw files with no tiling string, e.g. [00 x 00]. Renaming them")
+					logger.debug("Found raw files with no tiling string, e.g. [00 x 00]. Renaming them")
 				for f in all_raw_files_no_tiling:
 					renamed_f = f.replace('RawDataStack_','RawDataStack[00 x 00]_')
 					os.rename(f,renamed_f)
 				if left_lightsheet_used and right_lightsheet_used:
+					logger.debug("Left and right lightsheets used")
+
 					number_of_rawfiles_found_left_lightsheet = \
-						len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
+						len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))
+
 					number_of_rawfiles_found += number_of_rawfiles_found_left_lightsheet
 					number_of_rawfiles_found_right_lightsheet = \
 						len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C01_*Filter000{channel_index}*'))	
@@ -218,10 +239,9 @@ class ImageResolutionForm(FlaskForm):
 					# doesn't matter if its left or right lightsheet. Since there is only one, their glob patterns will be identical
 					number_of_rawfiles_found = \
 						len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
-			print("#number_of_rawfiles_found,number_of_rawfiles_expected")
-			print(number_of_rawfiles_found,number_of_rawfiles_expected)
+			
 			if number_of_rawfiles_found != number_of_rawfiles_expected:
-				raise ValidationError(f"You entered that there should be {number_of_rawfiles_expected} raw files in rawdata folder, "
+				raise ValidationError(f"Channel: {channel_name} - you entered that there should be {number_of_rawfiles_expected} raw files in rawdata folder, "
 					  f"but found {number_of_rawfiles_found}")
 			""" Now make sure imaging parameters are the same for all channels within the same subfolder """
 			common_key_list = ['image_orientation','left_lightsheet_used',
@@ -274,7 +294,7 @@ class ImagingSampleForm(FlaskForm):
 		Number of z planes can differ because the code does not actually
 		use this information and we store it correctly in the db.
 		"""
-		print("In validate_image_resolution_forms!")
+		logger.debug("In validate_image_resolution_forms!")
 		for image_resolution_dict in self.image_resolution_forms.data:
 			subfolder_dict = {}
 			this_image_resolution = image_resolution_dict['image_resolution']
@@ -360,6 +380,7 @@ class ChannelBatchForm(FlaskForm):
 	so I dont have to write the imaging parameters out for each channel
 	"""
 	channel_name = HiddenField('Channel name')
+	imaging_request_number = HiddenField('imaging request number')
 	image_resolution = HiddenField('Image resolution')
 	zoom_body_magnification = DecimalField('Zoom body magnification',
 		default=1.0,validators=[Optional()])
