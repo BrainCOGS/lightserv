@@ -452,7 +452,7 @@
 						{% endfor %}
 
 					{% endif %}
-						<tr>   
+						<tr id="sample_{{kk}}_resolution_{{image_resolution}}_channel_{{channel_name}}_row" tabindex="-1">   
 						    <td>{{channel_name}}
 						    	<!-- Add flipped channel button only if one doesn't already exist in the form for this channel already -->
 						    	{% if (not ventral_up) and (not flipped_dict.flipped) %}

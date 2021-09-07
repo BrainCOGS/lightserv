@@ -10,7 +10,7 @@ import os, glob
 import concurrent
 from . import utils
 
-""" For the imaging batch entry form """
+""" For the individual imaging sample entry form """
 class ChannelForm(FlaskForm):
 	""" A form that is used in ImagingForm() via a FormField Fieldlist
 	so I dont have to write the imaging parameters out for each channel
@@ -33,10 +33,10 @@ class ChannelForm(FlaskForm):
 	tiling_scheme = StringField('Tiling scheme (e.g. 3x3) -- n_rows x n_columns --',validators=[DataRequired()])
 	tiling_overlap = StringField('Tiling overlap (number between 0.0 and 1.0; leave as default if unsure or not using tiling)',
 		validators=[DataRequired()]) 
-	z_step = StringField('Z resolution (microns)',validators=[DataRequired()])
+	z_step = StringField('Z resolution (microns)')
 	number_of_z_planes = IntegerField('Number of z planes',
-		widget=html5.NumberInput(),validators=[DataRequired()])
-	rawdata_subfolder = TextAreaField('channel subfolder',validators=[DataRequired()])
+		widget=html5.NumberInput())
+	rawdata_subfolder = TextAreaField('channel subfolder')
 	delete_channel_button = SubmitField("Delete channel")
 	add_flipped_channel_button = SubmitField("Add ventral up channel")
 
@@ -49,7 +49,7 @@ class ChannelForm(FlaskForm):
 			fl_val = float(tiling_overlap.data)
 		except:
 			raise ValidationError("Tiling overlap must be a number between 0.0 and 1.0")
-		if tiling_overlap.data < 0.0 or tiling_overlap.data >= 1.0:
+		if fl_val < 0.0 or fl_val >= 1.0:
 			raise ValidationError("Tiling overlap must be a number between 0.0 and 1.0")
 
 	def validate_tiling_scheme(self,tiling_scheme):
@@ -72,26 +72,37 @@ class ChannelForm(FlaskForm):
 				raise ValidationError("Tiling scheme must not exceed 10x10 for this resolution")
 
 	def validate_z_step(self,z_step):
-		if z_step.data < 2:
+		if not z_step.data:
+			raise ValidationError("z_step required")
+		try:
+			z_step = float(z_step.data)
+		except:
+			raise ValidationError("z_step must be a number")
+		if z_step < 2:
 			raise ValidationError("z_step must be a positive number larger than 2 microns")
-		elif z_step.data > 1000:
+		elif z_step > 1000:
 			raise ValidationError("z_step greater than 1000 microns is not supported by the microscope.")
+		
+	def validate_number_of_z_planes(self,number_of_z_planes):
+		if not number_of_z_planes.data:
+			raise ValidationError("number_of_z_planes required")
+		try:
+			number_of_z_planes = float(number_of_z_planes.data)
+		except:
+			raise ValidationError("number of z_planes must be a number")
+		if number_of_z_planes <= 0:
+			raise ValidationError("The number of z planes must be a positive number")
+		elif number_of_z_planes > 5500:
+			raise ValidationError("More than 5500 z planes is not supported by the microscope.")
 
 	def validate_rawdata_subfolder(self,rawdata_subfolder):
-		rawdata_subfolder = rawdata_subfolder.rstrip("/").strip() 
+		if not rawdata_subfolder.data:
+			raise ValidationError("Rawdata subfolder required")
+		rawdata_subfolder = rawdata_subfolder.data.rstrip("/").strip() 
 		# Check to make sure no spaces contained in rawdata_subfolder
 		if " " in rawdata_subfolder:
 			raise ValidationError("rawdata_subfolder must not contain spaces")
 		
-	def validate_number_of_z_planes(self,number_of_z_planes):
-
-		rawdata_subfolder = self.rawdata_subfolder.rstrip("/").strip()
-		if number_of_z_planes.data <= 0:
-			raise ValidationError("The number of z planes must be a positive number")
-		elif number_of_z_planes.data > 5500:
-			raise ValidationError("More than 5500 z planes is not supported by the microscope.")
-		
-
 class ImageResolutionForm(FlaskForm):
 	""" A form for each image resolution that a user picks """
 	max_number_of_channels = 8 # 4 channels and each of them can have a "flipped" copy
@@ -112,6 +123,11 @@ class ImageResolutionForm(FlaskForm):
 	new_channel_button = SubmitField("Add channel")
 	channel_forms = FieldList(FormField(ChannelForm),min_entries=0,max_entries=max_number_of_channels)
 
+	def validate_new_image_resolution(self,new_image_resolution):
+		print(new_image_resolution.data)		
+		print(new_image_resolution.choices)		
+
+
 	def validate_channel_forms(self,channel_forms):
 		subfolder_dict = {}
 		for channel_form in channel_forms:
@@ -124,10 +140,9 @@ class ImageResolutionForm(FlaskForm):
 			left_lightsheet_used = channel_form.left_lightsheet_used.data
 			right_lightsheet_used = channel_form.right_lightsheet_used.data
 			tiling_scheme = channel_form.tiling_scheme.data
-			rawdata_subfolder = channel_form.rawdata_subfolder.data
-			rawdata_subfolder = self.rawdata_subfolder.rstrip("/").strip()
-			print("In channel form validation!")
-			if self.ventral_up.data == True:
+			rawdata_subfolder = channel_form.rawdata_subfolder.data.rstrip("/").strip()
+			ventral_up = channel_form.ventral_up.data
+			if ventral_up == True:
 				rawdata_fullpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 					username,request_name,sample_name,
 					f'imaging_request_{imaging_request_number}',
@@ -143,8 +158,8 @@ class ImageResolutionForm(FlaskForm):
 				subfolder_dict[rawdata_subfolder] = [channel_dict]
 			
 			channel_index = len(subfolder_dict[rawdata_subfolder]) - 1
-			n_rows = int(tiling_scheme.data.lower().split('x')[0])
-			n_columns = int(tiling_scheme.data.lower().split('x')[1])
+			n_rows = int(tiling_scheme.lower().split('x')[0])
+			n_columns = int(tiling_scheme.lower().split('x')[1])
 			
 			if self.image_resolution.data in ['3.6x','15x']:
 				number_of_rawfiles_expected = number_of_z_planes*n_rows*n_columns
@@ -182,6 +197,7 @@ class ImageResolutionForm(FlaskForm):
 				then the left lightsheet files always have C00 in filenames
 				and right lightsheet files always have C01 in filenames.
 				"""
+				number_of_rawfiles_found = 0 # initialize, will add to it below
 				number_of_rawfiles_expected = number_of_z_planes*(left_lightsheet_used+right_lightsheet_used)*n_rows*n_columns
 				# First identify if any files in the folder do not have the tiling info, e.g. [00 x 00] in them
 				# Brainpipe does not handle these files well so we need to rename them
@@ -202,10 +218,10 @@ class ImageResolutionForm(FlaskForm):
 					# doesn't matter if its left or right lightsheet. Since there is only one, their glob patterns will be identical
 					number_of_rawfiles_found = \
 						len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
-
+			print("#number_of_rawfiles_found,number_of_rawfiles_expected")
+			print(number_of_rawfiles_found,number_of_rawfiles_expected)
 			if number_of_rawfiles_found != number_of_rawfiles_expected:
-				raise ValidationError(
-					f"You entered that there should be {number_of_rawfiles_expected} raw files in rawdata folder, "
+				raise ValidationError(f"You entered that there should be {number_of_rawfiles_expected} raw files in rawdata folder, "
 					  f"but found {number_of_rawfiles_found}")
 			""" Now make sure imaging parameters are the same for all channels within the same subfolder """
 			common_key_list = ['image_orientation','left_lightsheet_used',

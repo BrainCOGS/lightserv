@@ -139,6 +139,8 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 	logger.info(f"{current_user} accessed imaging_batch_entry")
 
 	form = ImagingBatchForm(request.form)
+	logger.debug("Form errors:")
+	logger.debug(form.errors)
 	rawdata_rootpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 		username,request_name)
 	imaging_batch_restrict_dict = dict(username=username,request_name=request_name,
@@ -161,7 +163,8 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 
 	samples_imaging_progress_dict = {x['sample_name']:x['imaging_progress'] for x in imaging_request_contents.fetch(
 		as_dict=True)}
-	
+	n_active_samples = len([x for x in samples_imaging_progress_dict if samples_imaging_progress_dict[x] != 'complete'])
+
 	""" Assemble the list of resolution/channel dicts for filling out the 
 	batch forms """
 	first_sample_dict = sample_contents.fetch(as_dict=True,limit=1)[0]
@@ -366,7 +369,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 				in any of the resolution subforms """
 				for image_resolution_form in form.image_resolution_batch_forms:
 					form_resolution_dict = image_resolution_form.data
-					logger.debug(form_resolution_dict)
+					# logger.debug(form_resolution_dict)
 					this_image_resolution =  form_resolution_dict['image_resolution']
 					logger.debug("Image resolution:")
 					logger.debug(this_image_resolution)
@@ -395,7 +398,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 						and make an insert in the db for a new channel """
 						for sample_dict in sample_dict_list:
 							this_sample_name = sample_dict['sample_name']
-							imaging_channel_entry_dict = batch_channel_entry_dict.copy()
+							imaging_channel_entry_dict = batch_channel_entry_dict.deepcopy()
 							imaging_channel_entry_dict['sample_name'] = this_sample_name
 							logger.debug("Attempting to insert:")
 							logger.debug(imaging_channel_entry_dict)
@@ -740,7 +743,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 											db_lightsheet.Request.ProcessingResolutionRequest & \
 												restrict_processing_resolution_dict
 										if len(processing_resolution_request_contents) == 0:
-											restrict_processing_resolution_insert_dict = restrict_processing_resolution_dict.copy()
+											restrict_processing_resolution_insert_dict = restrict_processing_resolution_dict.deepcopy()
 											restrict_processing_resolution_insert_dict['atlas_name'] = 'allen_2017' # default
 											restrict_processing_resolution_insert_dict['final_orientation'] = 'sagittal' # default
 											logger.debug("Creating ProcessingResolutionRequest() insert:")
@@ -760,465 +763,261 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 								""" Create a new ImagingChannel() entry for this channel """
 
 				""" Figure out if button press came from sample subforms """
-				for sample_form in form.sample_forms:
+				for sample_ii,sample_form in enumerate(form.sample_forms):
 					this_sample_name = sample_form.sample_name.data
 					logger.debug("checking sample forms for sample:")
 					logger.debug(this_sample_name)
 					""" Check if sample submit button pressed """
-					if sample_form.submit.data == True:
+					if sample_form.submit.data:
 						""" ############################ """
 						""" SAMPLE SUBMIT BUTTON PRESSED """
 						""" ############################ """
 
 						logger.debug("Sample form submit button pressed:")
-						logger.debug(sample_form.sample_name.data)
-						all_channels_validated = True
-						sample_subfolder_dicts = {}
-						for image_resolution_form in sample_form.image_resolution_forms:
-							subfolder_dict = {}
+						logger.debug(this_sample_name)
+						""" Loop over image resolution subforms 
+						to find the channel subforms within -- those
+						need to be validated first """
+						for resolution_ii,image_resolution_form in enumerate(sample_form.image_resolution_forms):
 							image_resolution = image_resolution_form.image_resolution.data
-							sample_subfolder_dicts[image_resolution] = subfolder_dict
-							for channel_form in image_resolution_form.channel_forms:
-
+							logger.debug(f"Image resolution: {image_resolution}")
+							""" Loop through all channels subforms in this 
+							image resolution form and validate each one """
+							for channel_ii,channel_form in enumerate(image_resolution_form.channel_forms):
 								channel_dict = channel_form.data
-								""" VALIDATION """
-								validated=True # switch to false if any not validated
-								""" Left and right light sheets """
-								channel_name = channel_form.channel_name.data
-								logger.debug("validating channel:")
-								logger.debug(channel_name)
-								flash_str_prefix = (f"Sample: {this_sample_name}, image resolution: {image_resolution},"
-													f" channel: {channel_name} ")
-								left_lightsheet_used = channel_form.left_lightsheet_used.data
-								right_lightsheet_used = channel_form.right_lightsheet_used.data
-								if not (left_lightsheet_used or right_lightsheet_used):
-									flash_str = flash_str_prefix + " At least one light sheet required."
-									channel_form.left_lightsheet_used.errors = ['This field is required']
-									flash(flash_str,"danger")
-									validated=False
-								""" tiling scheme """
-								tiling_scheme = channel_form.tiling_scheme.data
-								if not tiling_scheme:
-									flash_str = flash_str_prefix + "Tiling scheme required"
-									channel_form.tiling_scheme.errors = ['This field is required']
-									flash(flash_str,"danger")
-									validated=False
+								channel_name = channel_dict['channel_name']
+								logger.debug(f"Channel: {channel_name}")
+								if channel_form.validate_on_submit():
+									logger.debug("Channel form validated")
 								else:
-									try:
-										n_rows = int(tiling_scheme.lower().split('x')[0])
-										n_columns = int(tiling_scheme.lower().split('x')[1])
-										if image_resolution in ['1.1x','1.3x'] and (n_rows > 2 or n_columns > 2):
-											flash_str = flash_str_prefix + ("Tiling scheme must not exceed 2x2 for this resolution")
-											channel_form.tiling_scheme.errors = ['Tiling scheme must not exceed 2x2 for this resolution']
-											flash(flash_str,"danger")
-											validated=False
-											
-										elif image_resolution in ['2x','4x'] and (n_rows > 4 or n_columns > 4):
-											flash_str = flash_str_prefix + ("Tiling scheme must not exceed 4x4 for this resolution")
-											channel_form.tiling_scheme.errors = ['Tiling scheme must not exceed 4x4 for this resolution']
-											flash(flash_str,"danger")
-											validated=False
-										elif image_resolution == '3.6x' and (n_rows > 10 or n_columns > 10):
-											flash_str = flash_str_prefix + ("Tiling scheme must not exceed 10x10 for this resolution")
-											channel_form.tiling_scheme.errors = ['Tiling scheme must not exceed 10x10 for this resolution']
-											flash(flash_str,"danger")
-											validated=False
-									except:
-										channel_form.tiling_scheme.errors = ['Incorrect format']
-										flash_str = flash_str_prefix + ("Tiling scheme is not in correct format."
-														  " Make sure it is like: 1x1 with no spaces.")	
-										flash(flash_str,"danger")
-										validated=False
-								""" tiling overlap """
-								tiling_overlap = channel_form.tiling_overlap.data
-								try:
-									fl_val = float(tiling_overlap)
-									if fl_val < 0.0 or fl_val >= 1.0:
-										flash_str = flash_str_prefix + "Tiling overlap must be a number between 0 and 1"
-										channel_form.tiling_overlap.errors = ['Tiling overlap must be a number between 0 and 1']
-										flash(flash_str,"danger")
-										validated=False
-								except:
-									flash_str = flash_str_prefix + "Tiling overlap must be a number between 0 and 1"
-									channel_form.tiling_overlap.errors = ['Tiling overlap must be a number between 0 and 1']
-									flash(flash_str,"danger")
-									validated=False
-								""" z step """
-								z_step = channel_form.z_step.data
-								if not z_step:
-									flash_str = flash_str_prefix + "z_step required"
-									channel_form.z_step.errors = ['This field is required']
-									flash(flash_str,"danger")
-									validated=False
-								else:
-									try:
-										fl_val = float(z_step)
-										if fl_val < 2 or fl_val > 1000:
-											flash_str = flash_str_prefix + "z_step must be a number between 2 and 1000 microns"
-											channel_form.z_step.errors = ["z_step must be a number between 2 and 1000 microns"]
-											flash(flash_str,"danger")
-											validated=False
-									except:
-										flash_str = flash_str_prefix + "z_step must be a number between 2 and 1000 microns"
-										channel_form.z_step.errors = ["z_step must be a number between 2 and 1000 microns"]
-										flash(flash_str,"danger")
-										validated=False
-								""" number of z planes """
-								number_of_z_planes = channel_form.number_of_z_planes.data
-								if not number_of_z_planes:
-									flash_str = flash_str_prefix + "number_of_z_planes required"
-									channel_form.number_of_z_planes.errors = ['This field is required']
-									flash(flash_str,"danger")
-									validated=False
-								elif number_of_z_planes <= 0 or number_of_z_planes > 5500:
-									flash_str = flash_str_prefix + "number_of_z_planes must be a number between 1 and 5500"
-									channel_form.number_of_z_planes.errors = ["number_of_z_planes must be a number between 1 and 5500"]
-									flash(flash_str,"danger")
-									validated=False
-								""" Rawdata subfolder """
-								rawdata_subfolder = channel_form.rawdata_subfolder.data
-								if not rawdata_subfolder:
-									flash_str = flash_str_prefix + "rawdata_subfolder required"
-									channel_form.rawdata_subfolder.errors = ['This field is required']
-									flash(flash_str,"danger")
-									validated=False
-								# removes any trailing slash and any whitespace before and after
-								rawdata_subfolder = rawdata_subfolder.rstrip("/").strip() 
-								# Check to make sure no spaces contained in rawdata_subfolder
-								if " " in rawdata_subfolder:
-									flash_str = flash_str_prefix + "rawdata_subfolder must not contain spaces"
-									channel_form.rawdata_subfolder.errors = ['rawdata_subfolder must not contain spaces']
-									flash(flash_str,"danger")
-									validated=False
-								ventral_up = channel_form.ventral_up.data
-								if ventral_up:
-									rawdata_fullpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
-										username,request_name,this_sample_name,f'imaging_request_{imaging_request_number}',
-										'rawdata',f'resolution_{image_resolution}_ventral_up',rawdata_subfolder)
-								else:
-									rawdata_fullpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
-										username,request_name,this_sample_name,f'imaging_request_{imaging_request_number}',
-										'rawdata',f'resolution_{image_resolution}',rawdata_subfolder)
-								if rawdata_subfolder in subfolder_dict.keys():
-									subfolder_dict[rawdata_subfolder].append(channel_dict)
-								else:
-									subfolder_dict[rawdata_subfolder] = [channel_dict]
-								
-								channel_index = len(subfolder_dict[rawdata_subfolder]) - 1
-								""" Check that number of files is correct """
-								if validated:
-									logger.debug("Checking validation on rawdata subfolder")
-									logger.debug(rawdata_fullpath)
-									""" Count the number of files we actually find. """
-									number_of_rawfiles_found = 0
-									if image_resolution in ['3.6x','15x']:
-										number_of_rawfiles_expected = number_of_z_planes*n_rows*n_columns
-										""" For SmartSPIM, make sure the number of folders 
-										represents the tiling scheme, should be row/col.
-										Also count files in the deepest directories to get total file count"""
-										row_dirs = glob.glob(rawdata_fullpath + '/??????/')
-										logger.debug(row_dirs)
-										if len(row_dirs) != n_rows:
-											error_str = (f"You entered that there should be {n_rows} tiling row folders in rawdata folder, "
-											  f"but found {len(row_dirs)}")
-											logger.debug(error_str)
-											number_of_rawfiles_found = 0
-											validated=False
-											flash_str = flash_str_prefix + error_str
-											flash(flash_str,'danger')
-										else:
-											logger.debug("have correct number of row tile folders")
-											first_row_dir = row_dirs[0]
-											col_dirs = glob.glob(first_row_dir + '/??????_??????/')
-
-											if len(col_dirs) != n_columns:
-												error_str = (f"You entered that there should be {n_columns} tiling column folders in each tiling row folder, "
-												  f"but found {len(col_dirs)}")
-												logger.debug(error_str)
-												validated=False
-												number_of_rawfiles_found = 0
-												flash_str = flash_str_prefix + error_str
-												flash(flash_str,'danger')
-											else:
-												all_subdirs = glob.glob(rawdata_fullpath + '/??????/??????_??????/')
-												logger.debug("Checking folders:")
-												logger.debug(all_subdirs)
-												total_counts = []
-												with concurrent.futures.ProcessPoolExecutor(max_workers=None) as executor:
-													for count in executor.map(utils.count_files, all_subdirs):
-														total_counts.append(count)
-												logger.debug(total_counts)
-												number_of_rawfiles_found = sum(total_counts)
-										
-										
-									else:
-										""" For LaVision
-										We have to be careful here
-										because the raw data filenames will include C00 if there
-										is only one light sheet used, regardless of whether it is
-										left or right. If both are used,
-										then the left lightsheet files always have C00 in filenames
-										and right lightsheet files always have C01 in filenames.
-										"""
-										number_of_rawfiles_expected = number_of_z_planes*(left_lightsheet_used+right_lightsheet_used)*n_rows*n_columns
-										# First identify if any files in the folder do not have the tiling info, e.g. [00 x 00] in them
-										# Brainpipe does not handle these files well so we need to rename them
-										all_raw_files_no_tiling = glob.glob(rawdata_fullpath + f'/*RawDataStack_*Filter*.tif')
-										if len(all_raw_files_no_tiling) > 0:
-											logger.info("Found raw files with no tiling string, e.g. [00 x 00]. Renaming them")
-										for f in all_raw_files_no_tiling:
-											renamed_f = f.replace('RawDataStack_','RawDataStack[00 x 00]_')
-											# print(f,renamed_f)
-											os.rename(f,renamed_f)
-										if left_lightsheet_used and right_lightsheet_used:
-											number_of_rawfiles_found_left_lightsheet = \
-												len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
-											number_of_rawfiles_found += number_of_rawfiles_found_left_lightsheet
-											number_of_rawfiles_found_right_lightsheet = \
-												len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C01_*Filter000{channel_index}*'))	
-											number_of_rawfiles_found += number_of_rawfiles_found_right_lightsheet
-										else:
-											# doesn't matter if its left or right lightsheet. Since there is only one, their glob patterns will be identical
-											number_of_rawfiles_found = \
-												len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
-
-									if number_of_rawfiles_found != number_of_rawfiles_expected:
-										error_str = (f"You entered that there should be {number_of_rawfiles_expected} raw files in rawdata folder, "
-											  f"but found {number_of_rawfiles_found}")
-										logger.debug(error_str)
-										flash_str = flash_str_prefix + error_str
-										channel_form.rawdata_subfolder.errors = [error_str]
-										validated=False
-										flash(flash_str,'danger')
-									""" Now make sure imaging parameters are the same for all channels within the same subfolder """
-									common_key_list = ['image_orientation','left_lightsheet_used',
-										'right_lightsheet_used','tiling_scheme','tiling_overlap',
-										'z_step','number_of_z_planes']
-									all_tiling_schemes = [] # also keep track of tiling parameters for all subfolders at this resolution
-									all_tiling_overlaps = [] # also keep track of tiling parameters for all subfolders at this resolution
-									for subfolder in subfolder_dict.keys():
-										channel_dict_list = subfolder_dict[subfolder]
-										for d in channel_dict_list:
-											all_tiling_schemes.append(d['tiling_scheme'])
-											all_tiling_overlaps.append(d['tiling_overlap'])
-										if not all([list(map(d.get,common_key_list)) == \
-											list(map(channel_dict_list[0].get,common_key_list)) \
-												for d in channel_dict_list]):
-											
-											error_str = (f"For raw data subfolder: {subfolder}. "
-														  "Tiling and imaging parameters must be identical"
-														  " for all channels in the same subfolder. Check your entries.")
-											flash_str = flash_str_prefix + error_str
-											validated=False
-											flash(flash_str,'danger')
-									""" Now make sure tiling parameters are same for all channels at each resolution """
-									if (not all([x==all_tiling_overlaps[0] for x in all_tiling_overlaps]) 
-									or (not all([x==all_tiling_schemes[0] for x in all_tiling_schemes]))):
-										error_str = "All tiling parameters must be the same for each channel of a given resolution"
-										flash_str = flash_str_prefix + error_str
-										validated=False
-										flash(flash_str,'danger')
-								if not validated:
-									all_channels_validated = False
-
-						if all_channels_validated:
-							logger.debug("Sample form validated")
-
-							""" Loop through the image resolution forms and find all channels in the form  
-							and update the existing table entries with the new imaging information """
-							notes_from_imaging = sample_form.notes_from_imaging.data
-
-							connection =  db_lightsheet.Request.ImagingResolutionRequest.connection 
-							with connection.transaction:
-								for form_resolution_dict in sample_form.image_resolution_forms.data:
-									image_resolution = form_resolution_dict['image_resolution']
-									imaging_request_restrict_dict = {'username':username,
-										'request_name':request_name,
-										'sample_name':this_sample_name,
-										'imaging_request_number':imaging_request_number,
-										'image_resolution':image_resolution}
-									imaging_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest & \
-										imaging_request_restrict_dict
-									""" Update notes_from_imaging field """ 
-									imaging_resolution_update_dict = imaging_resolution_request_contents.fetch1()
-									imaging_resolution_update_dict['notes_from_imaging'] = notes_from_imaging
-									db_lightsheet.Request.ImagingResolutionRequest().update1(
-										imaging_resolution_update_dict)
-									subfolder_dict = sample_subfolder_dicts[image_resolution]
-									""" Make rawdata/ subdirectories for this resolution """
-									imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-													 request_name,this_sample_name,f"imaging_request_{imaging_request_number}",
-													 "rawdata",f"resolution_{image_resolution}")
-									mymkdir(imaging_dir)
-									for form_channel_dict in form_resolution_dict['channel_forms']:
-										channel_name = form_channel_dict['channel_name']
-										ventral_up = form_channel_dict['ventral_up']
-										channel_content = channel_contents_all_samples & \
-											f'sample_name="{this_sample_name}"' & \
-											f'image_resolution="{image_resolution}"' & \
-											f'imaging_request_number={imaging_request_number}' & \
-											f'channel_name="{channel_name}"' & \
-											f'ventral_up="{ventral_up}"' 
-										channel_content_dict = channel_content.fetch1()
-										rawdata_subfolder = form_channel_dict['rawdata_subfolder']
-										number_of_z_planes = form_channel_dict['number_of_z_planes']
-										tiling_scheme = form_channel_dict['tiling_scheme']
-										z_step = form_channel_dict['z_step']
-										left_lightsheet_used = form_channel_dict['left_lightsheet_used']
-										right_lightsheet_used = form_channel_dict['right_lightsheet_used']
-										channel_names_this_subfolder = [x['channel_name'] for x in subfolder_dict[rawdata_subfolder]]
-
-										channel_index = channel_names_this_subfolder.index(channel_name)
-										logger.info(f" channel {channel_name} with image_resolution \
-											 {image_resolution} has channel_index = {channel_index}")
-										
-										''' Make a copy of the current row in a new dictionary which we will insert '''
-										channel_insert_dict = {}
+									logger.debug("Channel form NOT validated")
 									
-										for key,val in channel_content_dict.items():
+									column_name = f"sample_{sample_ii}_resolution_{image_resolution}_channel_{channel_name}_row"
+									logger.debug("scrolling to field:")
+									logger.debug(column_name)
+
+									return render_template('imaging/imaging_batch_entry.html',form=form,
+										rawdata_rootpath=rawdata_rootpath,imaging_table=imaging_table,
+										sample_dict_list=sample_dict_list,
+										samples_imaging_progress_dict=samples_imaging_progress_dict,
+										n_active_samples=n_active_samples,
+										imaging_request_number=imaging_request_number,
+										column_name=column_name)
+							""" Now that all channel subforms are validated,
+							validate the image resolution form """
+							if image_resolution_form.validate_on_submit():
+								logger.debug("Image resolution form validated")
+							else:
+								logger.debug("Image resolution form NOT validated!")
+								logger.debug(image_resolution_form.errors)
+								logger.debug(image_resolution_form.data)
+								flash_str = ""
+								return render_template('imaging/imaging_batch_entry.html',form=form,
+									rawdata_rootpath=rawdata_rootpath,imaging_table=imaging_table,
+									sample_dict_list=sample_dict_list,
+									samples_imaging_progress_dict=samples_imaging_progress_dict,
+									n_active_samples=n_active_samples,
+									imaging_request_number=imaging_request_number)
+
+								
+						""" If we have made it this far then all image resolution forms
+						and their channel subforms have been validated for this sample """
+						logger.debug("Sample form validated")
+
+						""" Loop through the image resolution forms and find all channels in the form  
+						and update the existing table entries with the new imaging information """
+						notes_from_imaging = sample_form.notes_from_imaging.data
+
+						connection =  db_lightsheet.Request.ImagingResolutionRequest.connection 
+						with connection.transaction:
+							sample_subfolder_dicts = {}
+							for form_resolution_dict in sample_form.image_resolution_forms.data:
+								image_resolution = form_resolution_dict['image_resolution']
+								imaging_request_restrict_dict = {'username':username,
+									'request_name':request_name,
+									'sample_name':this_sample_name,
+									'imaging_request_number':imaging_request_number,
+									'image_resolution':image_resolution}
+								imaging_resolution_request_contents = \
+									db_lightsheet.Request.ImagingResolutionRequest & \
+									imaging_request_restrict_dict
+								""" Update notes_from_imaging field """ 
+								imaging_resolution_update_dict = imaging_resolution_request_contents.fetch1()
+								imaging_resolution_update_dict['notes_from_imaging'] = notes_from_imaging
+								db_lightsheet.Request.ImagingResolutionRequest().update1(
+									imaging_resolution_update_dict)
+								
+								for channel_index,form_channel_dict in \
+									enumerate(form_resolution_dict['channel_forms']):
+									logger.info(f" channel {channel_name} with image_resolution = "
+										        f"{image_resolution} has channel_index = {channel_index}")
+									channel_name = form_channel_dict['channel_name']
+									ventral_up = form_channel_dict['ventral_up']
+									channel_content = channel_contents_all_samples & \
+										f'sample_name="{this_sample_name}"' & \
+										f'image_resolution="{image_resolution}"' & \
+										f'imaging_request_number={imaging_request_number}' & \
+										f'channel_name="{channel_name}"' & \
+										f'ventral_up="{ventral_up}"' 
+									channel_content_dict = channel_content.fetch1()
+									rawdata_subfolder = form_channel_dict['rawdata_subfolder']
+									number_of_z_planes = form_channel_dict['number_of_z_planes']
+									tiling_scheme = form_channel_dict['tiling_scheme']
+									z_step = form_channel_dict['z_step']
+									left_lightsheet_used = form_channel_dict['left_lightsheet_used']
+									right_lightsheet_used = form_channel_dict['right_lightsheet_used']
+									
+									''' Make a copy of the current row in a new dictionary which we will insert '''
+									channel_insert_dict = channel_content_dict.deepcopy()
+								
+									''' Now replace (some of) the values in the dict from what we 
+									got from the form '''
+									keys_to_ignore = ['channel_name','image_resolution','imaging_request_number']
+									for key,val in form_channel_dict.items():
+										if key in channel_content_dict.keys() and key not in keys_to_ignore:
 											channel_insert_dict[key] = val
+									channel_insert_dict['imspector_channel_index'] = channel_index
+									
+									db_lightsheet.Request.ImagingChannel().update1(channel_insert_dict)
+									
+									
+									
+									""" Kick off celery task for creating precomputed data from this
+									raw data image dataset if there is stitching is not necessary.
 
-										''' Now replace (some of) the values in the dict from whatever we 
-										get from the form '''
-										for key,val in form_channel_dict.items():
-											if key in channel_content_dict.keys() and key not in ['channel_name','image_resolution','imaging_request_number']:
-												channel_insert_dict[key] = val
-										channel_insert_dict['imspector_channel_index'] = channel_index
+									Otherwise, initiate the stitching job
+									"""
+
+									if tiling_scheme == '1x1':
+										logger.info("Only one tile. "
+											"Creating precomputed data for neuroglancer visualization. ")
+										precomputed_kwargs = dict(username=username,request_name=request_name,
+																sample_name=this_sample_name,imaging_request_number=imaging_request_number,
+																image_resolution=image_resolution,channel_name=channel_name,
+																channel_index=channel_index,number_of_z_planes=number_of_z_planes,
+																left_lightsheet_used=left_lightsheet_used,
+																right_lightsheet_used=right_lightsheet_used,
+																ventral_up=ventral_up,
+																z_step=z_step,rawdata_subfolder=rawdata_subfolder)
+
 										
-										db_lightsheet.Request.ImagingChannel().insert1(channel_insert_dict,replace=True)
-										""" Set imaging progress complete for this sample and 
-										update imaging performed date """
-										restrict_dict_this_sample = {'imaging_request_number':imaging_request_number,
-											'sample_name':this_sample_name}
-										imaging_request_contents_this_sample = db_lightsheet.Request.ImagingRequest() & \
-											restrict_dict_this_sample
-										imaging_request_update_dict = imaging_request_contents_this_sample.fetch1()
-										imaging_request_update_dict['imaging_progress'] = 'complete'
-										today = datetime.now()
-										today_proper_format = today.date().strftime('%Y-%m-%d')
-										imaging_request_update_dict['imaging_performed_date'] = today_proper_format
-										logger.debug("About to update ImagingRequest() table with:")
-										logger.debug(imaging_request_update_dict)
-										db_lightsheet.Request.ImagingRequest().update1(imaging_request_update_dict)
+										raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
+												 f"{request_name}/{this_sample_name}/"
+												 f"imaging_request_{imaging_request_number}/viz/raw")
 
-										samples_imaging_progress_dict[this_sample_name] = 'complete'
-										""" Kick off celery task for creating precomputed data from this
-										raw data image dataset if there is stitching is not necessary.
-
-										Otherwise, initiate the stitching job
-										"""
-
-										if tiling_scheme == '1x1':
-											logger.info("Only one tile. Creating precomputed data for neuroglancer visualization. ")
-											precomputed_kwargs = dict(username=username,request_name=request_name,
-																	sample_name=this_sample_name,imaging_request_number=imaging_request_number,
-																	image_resolution=image_resolution,channel_name=channel_name,
-																	channel_index=channel_index,number_of_z_planes=number_of_z_planes,
-																	left_lightsheet_used=left_lightsheet_used,
-																	right_lightsheet_used=right_lightsheet_used,
-																	ventral_up=ventral_up,
-																	z_step=z_step,rawdata_subfolder=rawdata_subfolder)
-
-											
-											raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
-													 f"{request_name}/{this_sample_name}/"
-													 f"imaging_request_{imaging_request_number}/viz/raw")
-
-											mymkdir(raw_viz_dir)
-											if ventral_up:
-												imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-															 request_name,this_sample_name,f"imaging_request_{imaging_request_number}",
-															 "rawdata",f"resolution_{image_resolution}_ventral_up")
-												channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}_ventral_up')
-											else:
-												imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-															 request_name,this_sample_name,f"imaging_request_{imaging_request_number}",
-															 "rawdata",f"resolution_{image_resolution}")
-												channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
-											mymkdir(channel_viz_dir)
-											raw_data_dir = os.path.join(imaging_dir,rawdata_subfolder)
-											logger.debug("raw data dir:")
-											logger.debug(raw_data_dir)
-											if left_lightsheet_used:
-												this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
-												mymkdir(this_viz_dir)
-												precomputed_kwargs['lightsheet'] = 'left'
-												precomputed_kwargs['viz_dir'] = this_viz_dir
-												layer_name = f'channel{channel_name}_raw_left_lightsheet'
-												precomputed_kwargs['layer_name'] = layer_name
-												layer_dir = os.path.join(this_viz_dir,layer_name)
-												mymkdir(layer_dir)
-												# Figure out what x and y dimensions are
-												lightsheet_index_code = 'C00' # always for left lightsheet
-												precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
-												all_slices = glob.glob(
-													f"{raw_data_dir}/*RawDataStack*{lightsheet_index_code}*Filter000{channel_index}*tif")
-												first_slice = all_slices[0]
-												first_im = Image.open(first_slice)
-												x_dim,y_dim = first_im.size
-												precomputed_kwargs['x_dim'] = x_dim
-												precomputed_kwargs['y_dim'] = y_dim
-												first_im.close() 
-												if not os.environ['FLASK_MODE'] == 'TEST': 
-													logger.debug("submitting left lightsheet raw precomputed pipeline for kwargs:")
-													logger.debug(precomputed_kwargs)
-													tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
-											if right_lightsheet_used:
-												this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
-												mymkdir(this_viz_dir)
-												precomputed_kwargs['lightsheet'] = 'right'
-												precomputed_kwargs['viz_dir'] = this_viz_dir
-												layer_name = f'channel{channel_name}_raw_right_lightsheet'
-												precomputed_kwargs['layer_name'] = layer_name
-												layer_dir = os.path.join(this_viz_dir,layer_name)
-												mymkdir(layer_dir)
-												
-												# figure out whether to look for C00 or C01 files
-												if left_lightsheet_used:
-													lightsheet_index_code = 'C01'
-												else: 
-													# right light sheet was the only one used so looking for C00 files
-													lightsheet_index_code = 'C00'
-												precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
-												# Figure out what x and y dimensions are
-												all_slices = glob.glob(f"{raw_data_dir}/*RawDataStack*{lightsheet_index_code}*Filter000{channel_index}*tif")
-												first_slice = all_slices[0]
-												first_im = Image.open(first_slice)
-												x_dim,y_dim = first_im.size
-												precomputed_kwargs['x_dim'] = x_dim
-												precomputed_kwargs['y_dim'] = y_dim
-												first_im.close()
-												if not os.environ['FLASK_MODE'] == 'TEST': 
-													logger.debug("submitting right lightsheet raw precomputed pipeline for kwargs:")
-													logger.debug(precomputed_kwargs)
-													tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
+										mymkdir(raw_viz_dir)
+										if ventral_up:
+											imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+														 request_name,this_sample_name,f"imaging_request_{imaging_request_number}",
+														 "rawdata",f"resolution_{image_resolution}_ventral_up")
+											channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}_ventral_up')
 										else:
-											# Not 1x1 tiling - stitching needs to be done
-											logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
-														 "Not creating precomputed data for neuroglancer visualization.")
-							
-											""" Start the stitching pipeline if SmartSPIM images """
-											if image_resolution in ["3.6x","15x"]:
-												logger.debug("This channel was imaged with the SmartSPIM")
-												logger.debug(image_resolution)
-												logger.debug(channel_name)
-												logger.debug("Starting the stitching for this channel")
-												
-												stitching_kwargs = dict(username=username,request_name=request_name,
-														sample_name=this_sample_name,imaging_request_number=imaging_request_number,
-														image_resolution=image_resolution,
-														channel_name=channel_name,
-														ventral_up=ventral_up,
-														rawdata_subfolder=rawdata_subfolder)
-												if not os.environ['FLASK_MODE'] == 'TEST': 
-													smartspim_stitch.delay(**stitching_kwargs)
-													logger.debug("Smartspim stitching task sent with these kwargs:")
-													logger.debug(stitching_kwargs)
-												else:
-													logger.debug("Not running stitching pipeline because we are in TEST mode")
-								flash(f"Imaging entry for sample {this_sample_name} was successful","success")
-						else:
-							logger.debug("Sample form not validated")
+											imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+														 request_name,this_sample_name,f"imaging_request_{imaging_request_number}",
+														 "rawdata",f"resolution_{image_resolution}")
+											channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
+										mymkdir(channel_viz_dir)
+										raw_data_dir = os.path.join(imaging_dir,rawdata_subfolder)
+										logger.debug("raw data dir:")
+										logger.debug(raw_data_dir)
+										if left_lightsheet_used:
+											this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
+											mymkdir(this_viz_dir)
+											precomputed_kwargs['lightsheet'] = 'left'
+											precomputed_kwargs['viz_dir'] = this_viz_dir
+											layer_name = f'channel{channel_name}_raw_left_lightsheet'
+											precomputed_kwargs['layer_name'] = layer_name
+											layer_dir = os.path.join(this_viz_dir,layer_name)
+											mymkdir(layer_dir)
+											# Figure out what x and y dimensions are
+											lightsheet_index_code = 'C00' # always for left lightsheet
+											precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
+											all_slices = glob.glob(
+												f"{raw_data_dir}/*RawDataStack*{lightsheet_index_code}*Filter000{channel_index}*tif")
+											first_slice = all_slices[0]
+											first_im = Image.open(first_slice)
+											x_dim,y_dim = first_im.size
+											precomputed_kwargs['x_dim'] = x_dim
+											precomputed_kwargs['y_dim'] = y_dim
+											first_im.close() 
+											if not os.environ['FLASK_MODE'] == 'TEST': 
+												logger.debug("submitting left lightsheet raw precomputed pipeline for kwargs:")
+												logger.debug(precomputed_kwargs)
+												tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
+										if right_lightsheet_used:
+											this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
+											mymkdir(this_viz_dir)
+											precomputed_kwargs['lightsheet'] = 'right'
+											precomputed_kwargs['viz_dir'] = this_viz_dir
+											layer_name = f'channel{channel_name}_raw_right_lightsheet'
+											precomputed_kwargs['layer_name'] = layer_name
+											layer_dir = os.path.join(this_viz_dir,layer_name)
+											mymkdir(layer_dir)
+											
+											# figure out whether to look for C00 or C01 files
+											if left_lightsheet_used:
+												lightsheet_index_code = 'C01'
+											else: 
+												# right light sheet was the only one used so looking for C00 files
+												lightsheet_index_code = 'C00'
+											precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
+											# Figure out what x and y dimensions are
+											all_slices = glob.glob(f"{raw_data_dir}/*RawDataStack*{lightsheet_index_code}*Filter000{channel_index}*tif")
+											first_slice = all_slices[0]
+											first_im = Image.open(first_slice)
+											x_dim,y_dim = first_im.size
+											precomputed_kwargs['x_dim'] = x_dim
+											precomputed_kwargs['y_dim'] = y_dim
+											first_im.close()
+											if not os.environ['FLASK_MODE'] == 'TEST': 
+												logger.debug("submitting right lightsheet raw precomputed pipeline for kwargs:")
+												logger.debug(precomputed_kwargs)
+												tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
+									else:
+										# Not 1x1 tiling - stitching needs to be done
+										logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
+													 "Not creating precomputed data for neuroglancer visualization.")
+						
+										""" Start the stitching pipeline if SmartSPIM images """
+										if image_resolution in ["3.6x","15x"]:
+											logger.debug("This channel was imaged with the SmartSPIM")
+											logger.debug(image_resolution)
+											logger.debug(channel_name)
+											logger.debug("Starting the stitching for this channel")
+											
+											stitching_kwargs = dict(username=username,request_name=request_name,
+													sample_name=this_sample_name,imaging_request_number=imaging_request_number,
+													image_resolution=image_resolution,
+													channel_name=channel_name,
+													ventral_up=ventral_up,
+													rawdata_subfolder=rawdata_subfolder)
+											if not os.environ['FLASK_MODE'] == 'TEST': 
+												smartspim_stitch.delay(**stitching_kwargs)
+												logger.debug("Smartspim stitching task sent with these kwargs:")
+												logger.debug(stitching_kwargs)
+											else:
+												logger.debug("Not running stitching pipeline because we are in TEST mode")
+						""" Set imaging progress complete for this sample and 
+									update imaging performed date """
+						restrict_dict_imaging_request = {
+							'username':username,
+							'request_name':request_name,
+							'sample_name':this_sample_name,
+							'imaging_request_number':imaging_request_number}
+						imaging_request_contents_this_sample = db_lightsheet.Request.ImagingRequest() & \
+							restrict_dict_imaging_request
+						imaging_request_update_dict = imaging_request_contents_this_sample.fetch1()
+						imaging_request_update_dict['imaging_progress'] = 'complete'
+						today = datetime.now()
+						today_proper_format = today.date().strftime('%Y-%m-%d')
+						imaging_request_update_dict['imaging_performed_date'] = today_proper_format
+						logger.debug("Updating ImagingRequest() table with:")
+						logger.debug(imaging_request_update_dict)
+						db_lightsheet.Request.ImagingRequest().update1(imaging_request_update_dict)
+						logger.debug("Updated ImagingRequest()!")
+
+						flash(f"Imaging entry for sample {this_sample_name} was successful","success")
+					
 						return redirect(url_for('imaging.imaging_batch_entry',
 									username=username,request_name=request_name,
 									clearing_batch_number=clearing_batch_number,
@@ -1547,7 +1346,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 											restrict_channel_dict['ventral_up'] = False
 											existing_channel_dict = (db_lightsheet.Request.ImagingChannel() & \
 												restrict_channel_dict).fetch1()
-											flipped_channel_dict = existing_channel_dict.copy()
+											flipped_channel_dict = existing_channel_dict.deepcopy()
 											flipped_channel_dict['ventral_up'] = 1
 											logger.debug("inserting: ")
 											logger.debug(flipped_channel_dict)
@@ -1568,7 +1367,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 												db_lightsheet.Request.ProcessingResolutionRequest & \
 													restrict_processing_resolution_dict
 											if len(processing_resolution_request_contents) == 0:
-												restrict_processing_resolution_insert_dict = restrict_processing_resolution_dict.copy()
+												restrict_processing_resolution_insert_dict = restrict_processing_resolution_dict.deepcopy()
 												restrict_processing_resolution_insert_dict['atlas_name'] = 'allen_2017' # default
 												restrict_processing_resolution_insert_dict['final_orientation'] = 'sagittal' # default
 												logger.debug("Creating ProcessingResolutionRequest() insert:")
@@ -1790,7 +1589,8 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 				""" Set up options for new image resolution dropdown """
 				all_image_resolutions = current_app.config['LAVISION_RESOLUTIONS'] + current_app.config['SMARTSPIM_RESOLUTIONS']
 				this_resolution_form.new_image_resolution.choices = [(x,x) for x in all_image_resolutions if x!=this_image_resolution]
-
+				logger.debug("resolution form choices are now:")
+				logger.debug(this_resolution_form.new_image_resolution.choices)
 				if notes_for_imager:
 					this_resolution_form.notes_for_imager.data = notes_for_imager 
 				else:
