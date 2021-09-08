@@ -1895,9 +1895,17 @@ def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
 	test_login_imager,test_delete_request_db_contents):
 	""" Images the cleared request  """
 	print('----------Setup test_imaged_request_ahoag fixture ----------')
+	username='ahoag'
+	request_name='admin_request'
+	imaging_request_number=1
+
 	data1 = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -1910,10 +1918,10 @@ def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
 		'sample_forms-0-submit':True
 		}
 	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='ahoag',
-			request_name='admin_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=data1,
 		follow_redirects=True)
@@ -1923,10 +1931,10 @@ def test_imaged_request_ahoag(test_client,test_cleared_request_ahoag,
 		}
 
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='ahoag',
-			request_name='admin_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=data2,
 		follow_redirects=True)
@@ -1940,6 +1948,9 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 	with imager=imaging admin """
 
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
+	username='lightserv-test'
+	request_name = 'nonadmin_request'
+	imaging_request_number=1
 	imager = current_app.config['IMAGING_ADMINS'][-1] 
 	with test_client.session_transaction() as sess:
 		sess['user'] = imager
@@ -1947,6 +1958,10 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 	data1 = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -1959,10 +1974,10 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 		'sample_forms-0-submit':True
 		}
 	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=data1,
 		follow_redirects=True)
@@ -1972,15 +1987,15 @@ def test_imaged_request_nonadmin(test_client,test_cleared_request_nonadmin,
 		}
 
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=data2,
 		follow_redirects=True)
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'lightserv-test'
+		sess['user'] = username
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 
@@ -1992,13 +2007,22 @@ def test_imaged_smartspim_request_nonadmin(test_client,
 	with imager=imaging admin """
 
 	print('----------Setup test_imaged_smartspim_request_nonadmin fixture ----------')
+	username='lightserv-test'
+	request_name = 'nonadmin_3p6x_smartspim_request'
+	imaging_request_number=1
+
 	imager = current_app.config['IMAGING_ADMINS'][-1] 
 	with test_client.session_transaction() as sess:
 		sess['user'] = imager
+
 	""" First submit sample 1 """
 	data1 = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -2012,10 +2036,10 @@ def test_imaged_smartspim_request_nonadmin(test_client,
 		'sample_forms-0-submit':True
 		}
 	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_3p6x_smartspim_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=data1,
 		follow_redirects=True)
@@ -2025,10 +2049,10 @@ def test_imaged_smartspim_request_nonadmin(test_client,
 		}
 
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_3p6x_smartspim_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=data2,
 		follow_redirects=True)
@@ -2036,7 +2060,6 @@ def test_imaged_smartspim_request_nonadmin(test_client,
 		sess['user'] = 'lightserv-test'
 	yield test_client
 	print('----------Teardown test_imaged_smartspim_request_nonadmin fixture ----------')
-
 
 @pytest.fixture(scope='function') 
 def test_request_resolution_switched_nonadmin(test_client,test_cleared_request_nonadmin,
@@ -2071,6 +2094,9 @@ def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_clear
 	with imager=imaging admin and adds a ventral up 488 channel in addition to dorsal up 488 channel """
 
 	print('----------Setup test_imaged_request_dorsal_up_and_ventral_up_nonadmin fixture ----------')
+	username = 'lightserv-test'
+	request_name = 'nonadmin_request'
+	imaging_request_number = 1
 	imager = current_app.config['IMAGING_ADMINS'][-1] 
 	with test_client.session_transaction() as sess:
 		sess['user'] = imager
@@ -2082,13 +2108,17 @@ def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_clear
 		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-add_flipped_channel_button':True,
 		}
 	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1),
@@ -2099,6 +2129,10 @@ def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_clear
 	data2 = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -2108,6 +2142,10 @@ def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_clear
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':10,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
@@ -2122,8 +2160,8 @@ def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_clear
 		'sample_forms-0-submit':True
 	}
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1),
@@ -2136,15 +2174,15 @@ def test_imaged_request_dorsal_up_and_ventral_up_nonadmin(test_client,test_clear
 		}
 
 	response3 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data3,
 		follow_redirects=True)
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'lightserv-test'
+		sess['user'] = username
 	yield test_client
 	print('----------Teardown test_imaged_request_dorsal_up_and_ventral_up_nonadmin fixture ----------')
 
@@ -2155,6 +2193,9 @@ def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_reques
 	with imager=imaging admin """
 
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
+	username = 'lightserv-test'
+	request_name = 'nonadmin_request'
+	imaging_request_number = 1
 	imager = current_app.config['IMAGING_ADMINS'][-1] 
 	with test_client.session_transaction() as sess:
 		sess['user'] = imager
@@ -2162,6 +2203,10 @@ def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_reques
 	data = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'555',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'sagittal',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
@@ -2174,8 +2219,8 @@ def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_reques
 		'sample_forms-0-submit':True
 		}
 	response = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1),
@@ -2187,49 +2232,15 @@ def test_imaged_request_generic_imaging_nonadmin(test_client,test_cleared_reques
 		}
 
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data2,
 		follow_redirects=True)
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'lightserv-test'
-	yield test_client
-	print('----------Teardown test_imaged_request_ahoag fixture ----------')
-
-@pytest.fixture(scope='function') 
-def imaged_request_lightserv_test(test_client,test_cleared_request_nonadmin,
-	test_delete_request_db_contents,test_login_imager):
-	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
-	with imager=imaging admin """
-
-	print('----------Setup test_imaged_request_nonadmin fixture ----------')
-	imager = current_app.config['IMAGING_ADMINS'][-1] 
-	with test_client.session_transaction() as sess:
-		sess['user'] = imager
-	# print(db_lightsheet.Request.Sample())
-	data = {
-		'image_resolution_forms-0-image_resolution':'1.3x',
-		'image_resolution_forms-0-channel_forms-0-channel_name':'488',
-		'image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
-		'image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
-		'image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
-		'image_resolution_forms-0-channel_forms-0-z_step':10,
-		'image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
-		'image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
-		'submit':True
-		}
-	response = test_client.post(url_for('imaging.imaging_entry',
-			username='lightserv-test',request_name='nonadmin_request',sample_name='sample-001',
-			imaging_request_number=1),
-		data=data,
-		follow_redirects=True)
-	with test_client.session_transaction() as sess:
-		sess['user'] = 'lightserv-test'
+		sess['user'] = username
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 
@@ -2240,10 +2251,16 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 	with imager=imaging_admin """
 
 	print('----------Setup test_imaged_multichannel_request_ahoag fixture ----------')
-
+	username='ahoag'
+	request_name = 'admin_multichannel_request'
+	imaging_request_number = 1
 	data = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
@@ -2252,6 +2269,11 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':5,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
@@ -2263,7 +2285,7 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 		'sample_forms-0-submit':True
 		}
 	response = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='ahoag',request_name='admin_multichannel_request',
+			username=username,request_name=request_name,
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1),
@@ -2275,8 +2297,8 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 		}
 
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='ahoag',
-			request_name='admin_multichannel_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1),
@@ -2293,6 +2315,9 @@ def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadm
 	with imager=imaging_admin """
 
 	print('----------Setup test_imaged_request_nonadmin fixture ----------')
+	username='lightserv-test'
+	request_name='viz_processed'
+	imaging_request_number=1
 	imager = current_app.config['IMAGING_ADMINS'][-1] 
 	with test_client.session_transaction() as sess:
 		sess['user'] = imager
@@ -2300,6 +2325,10 @@ def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadm
 	data1 = {
 		'sample_forms-0-sample_name':'viz_processed-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'viz_processed-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
@@ -2309,6 +2338,10 @@ def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadm
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':5,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':1258,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'viz_processed-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'647',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
@@ -2322,10 +2355,10 @@ def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadm
 		}
 	
 	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='viz_processed',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=data1,
 		follow_redirects=True)
@@ -2335,16 +2368,16 @@ def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadm
 		}
 
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='viz_processed',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=data2,
 		follow_redirects=True)
 	
 	with test_client.session_transaction() as sess:
-		sess['user'] = 'lightserv-test'
+		sess['user'] = username
 	yield test_client
 	print('----------Teardown test_imaged_request_ahoag fixture ----------')
 

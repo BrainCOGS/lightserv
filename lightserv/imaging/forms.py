@@ -139,7 +139,7 @@ class ImageResolutionForm(FlaskForm):
 	channel_forms = FieldList(FormField(ChannelForm),min_entries=0,max_entries=max_number_of_channels)	
 
 	def validate_channel_forms(self,channel_forms):
-		subfolder_dict = {}
+		subfolder_dict = {'dorsal':{},'ventral':{}} 
 		logger.debug("Looping over channel forms to validate each")
 		for channel_form in channel_forms:
 			channel_dict = channel_form.data
@@ -167,12 +167,16 @@ class ImageResolutionForm(FlaskForm):
 					f'imaging_request_{imaging_request_number}',
 					'rawdata',f'resolution_{self.image_resolution.data}',rawdata_subfolder)
 			logger.debug(f"Searching in full rawdata path: {rawdata_fullpath}")
-			if rawdata_subfolder in subfolder_dict.keys():
-				subfolder_dict[rawdata_subfolder].append(channel_dict)
+
+			if ventral_up:
+				topkey = 'ventral'
 			else:
-				subfolder_dict[rawdata_subfolder] = [channel_dict]
-			
-			channel_index = len(subfolder_dict[rawdata_subfolder]) - 1
+				topkey = 'dorsal'
+			if rawdata_subfolder in subfolder_dict[topkey].keys():
+				subfolder_dict[topkey][rawdata_subfolder].append(channel_dict)
+			else:
+				subfolder_dict[topkey][rawdata_subfolder] = [channel_dict]
+			channel_index = len(subfolder_dict[topkey][rawdata_subfolder]) - 1
 			logger.debug(f"Channel index: {channel_index}")
 			n_rows = int(tiling_scheme.lower().split('x')[0])
 			n_columns = int(tiling_scheme.lower().split('x')[1])
@@ -249,8 +253,9 @@ class ImageResolutionForm(FlaskForm):
 				'z_step','number_of_z_planes']
 			all_tiling_schemes = [] # also keep track of tiling parameters for all subfolders at this resolution
 			all_tiling_overlaps = [] # also keep track of tiling parameters for all subfolders at this resolution
-			for subfolder in subfolder_dict.keys():
-				channel_dict_list = subfolder_dict[subfolder]
+
+			for subfolder in subfolder_dict[topkey].keys(): # topkey is 'dorsal' or 'ventral'
+				channel_dict_list = subfolder_dict[topkey][subfolder]
 				for d in channel_dict_list:
 					all_tiling_schemes.append(d['tiling_scheme'])
 					all_tiling_overlaps.append(d['tiling_overlap'])
@@ -279,101 +284,6 @@ class ImagingSampleForm(FlaskForm):
 									   " of this sample that you would like recorded:")
 	image_resolution_forms = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=max_number_of_image_resolutions)
 	submit = SubmitField('Click when imaging for this sample is complete and data are on bucket')
-
-	def validate_image_resolution_forms(self,image_resolution_forms):
-		""" Make sure that for each channel within 
-		an image resolution form, there is at least 
-		one light sheet selected. 
-
-		Also make sure that each rawdata folder has the correct number 
-		of files given the number of z planes, tiling scheme and number of 
-		lightsheets reported by the user.
-
-		Also make sure that every channel at the same resolution
-		has the same tiling parameters, i.e. tiling scheme, tiling overlap
-		Number of z planes can differ because the code does not actually
-		use this information and we store it correctly in the db.
-		"""
-		logger.debug("In validate_image_resolution_forms!")
-		for image_resolution_dict in self.image_resolution_forms.data:
-			subfolder_dict = {}
-			this_image_resolution = image_resolution_dict['image_resolution']
-			for channel_dict in image_resolution_dict['channel_forms']:
-				channel_name = channel_dict['channel_name']
-				left_lightsheet_used = channel_dict['left_lightsheet_used']
-				right_lightsheet_used = channel_dict['right_lightsheet_used']
-				number_of_z_planes = channel_dict['number_of_z_planes']
-				rawdata_subfolder = channel_dict['rawdata_subfolder']
-				tiling_scheme = channel_dict['tiling_scheme']
-				n_rows = int(tiling_scheme.lower().split('x')[0])
-				n_columns = int(tiling_scheme.lower().split('x')[1])
-				""" First check that at least one of the 
-				light sheets (left or right) was selected """
-				if not (left_lightsheet_used or right_lightsheet_used):
-					raise ValidationError(f"Image resolution: {this_image_resolution}, Channel: {channel_name}: "
-										   "At least one light sheet needs to be selected")
-				""" Now handle the number of raw data files for this channel """
-
-				if rawdata_subfolder in subfolder_dict.keys():
-					subfolder_dict[rawdata_subfolder].append(channel_dict)
-				else:
-					subfolder_dict[rawdata_subfolder] = [channel_dict]
-				
-				channel_index = len(subfolder_dict[rawdata_subfolder]) - 1
-
-				rawdata_fullpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
-						self.username.data,self.request_name.data,self.sample_name.data,
-						f'imaging_request_{self.imaging_request_number.data}',
-						'rawdata',f'resolution_{this_image_resolution}',rawdata_subfolder) 
-				number_of_rawfiles_expected = number_of_z_planes*(left_lightsheet_used+right_lightsheet_used)*n_rows*n_columns
-				""" calculate the number we find. We have to be careful here
-				because the raw data filenames will include C00 if there
-				is only one light sheet used, regardless of whether it is
-				left or right. If both are used,
-				then the left lightsheet files always have C00 in filenames
-				and right lightsheet files always have C01 in filenames. """
-				number_of_rawfiles_found = 0
-				if left_lightsheet_used and right_lightsheet_used:
-					number_of_rawfiles_found_left_lightsheet = \
-						len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
-					number_of_rawfiles_found += number_of_rawfiles_found_left_lightsheet
-					number_of_rawfiles_found_right_lightsheet = \
-						len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C01_*Filter000{channel_index}*'))	
-					number_of_rawfiles_found += number_of_rawfiles_found_right_lightsheet
-				else:
-					# doesn't matter if its left or right lightsheet. Since there is only one, their glob patterns will be identical
-					number_of_rawfiles_found = \
-						len(glob.glob(rawdata_fullpath + f'/*RawDataStack*_C00_*Filter000{channel_index}*'))	
-
-				if number_of_rawfiles_found != number_of_rawfiles_expected:
-					error_str = (f"You entered that for channel: {channel_name} there should be {number_of_rawfiles_expected} files, "
-						  f"but found {number_of_rawfiles_found} in raw data folder: "
-						  f"{rawdata_fullpath}")
-					raise ValidationError(error_str)
-			
-			""" Now make sure imaging parameters are the same for all channels within the same subfolder """
-			common_key_list = ['image_orientation','left_lightsheet_used',
-				'right_lightsheet_used','tiling_scheme','tiling_overlap',
-				'z_step','number_of_z_planes']
-			all_tiling_schemes = [] # also keep track of tiling parameters for all subfolders at this resolution
-			all_tiling_overlaps = [] # also keep track of tiling parameters for all subfolders at this resolution
-			for subfolder in subfolder_dict.keys():
-				channel_dict_list = subfolder_dict[subfolder]
-				for d in channel_dict_list:
-					all_tiling_schemes.append(d['tiling_scheme'])
-					all_tiling_overlaps.append(d['tiling_overlap'])
-				if not all([list(map(d.get,common_key_list)) == \
-					list(map(channel_dict_list[0].get,common_key_list)) \
-						for d in channel_dict_list]):
-					
-					raise ValidationError(f"Subfolder: {subfolder}. "
-										  "Tiling and imaging parameters must be identical"
-										  " for all channels in the same subfolder. Check your entries.")
-
-			""" Now make sure tiling parameters are same for all channels at each resolution """
-			if (not all([x==all_tiling_overlaps[0] for x in all_tiling_overlaps]) 
-			or (not all([x==all_tiling_schemes[0] for x in all_tiling_schemes]))):
-				raise ValidationError("All tiling parameters must be the same for each channel of a given resolution")
 
 class ChannelBatchForm(FlaskForm):
 	""" A form that is used via a FormField Fieldlist

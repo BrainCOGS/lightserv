@@ -493,6 +493,9 @@ def test_lightsheet_pipeline_starts_dorsal_up_ventral_up(test_client,
 	'resolution_1.3x_ventral_up/param_dict.p')
 	with open(pickle_file,'rb') as pkl:
 		data = pickle.load(pkl)
+	print("HERE!")
+	print("")
+	print("")
 	print(data)
 	assert data['finalorientation'] == ("-2","1","-0")
 

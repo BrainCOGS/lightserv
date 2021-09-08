@@ -658,7 +658,10 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 			imaging_batch_number=1),
 		data=sample_data,
 		follow_redirects=True)
-	assert b"You entered that there should be 8 tiling column folders in each tiling row folder, but found 5" in sample_response.data
+	validation_str = ("You entered that there should be 8 tiling column folders"
+					  " in each tiling row folder, but found 5")
+
+	assert validation_str.encode('utf-8') in sample_response.data
 
 def test_changing_microscope_changes_channels(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
@@ -1983,6 +1986,21 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		data=data7,
 		follow_redirects=True)	
 	assert b"Imaging entry for sample sample-001 was successful" in response7.data
+	# Make sure imspector channel index was correctly assigned to the dorsal and ventral channels
+	restrict_dict_channel = {'username':username,
+		'request_name':request_name,
+		'imaging_request_number':imaging_request_number,
+		'image_resolution':"1.1x",
+		'channel_name':"488"}
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict_channel
+	assert len(imaging_channel_contents) == 2
+	dorsal_up_contents = imaging_channel_contents & {'ventral_up':0}
+	ventral_up_contents = imaging_channel_contents & {'ventral_up':1}
+
+	channel_index_dorsal = dorsal_up_contents.fetch1('imspector_channel_index')
+	channel_index_ventral = ventral_up_contents.fetch1('imspector_channel_index')
+	assert channel_index_dorsal == 0
+	assert channel_index_ventral == 0
 
 def test_imaging_batch_entry_form_new_imaging_request(test_client,
 	test_new_imaging_request_nonadmin,

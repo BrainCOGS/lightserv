@@ -834,7 +834,6 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 
 						connection =  db_lightsheet.Request.ImagingResolutionRequest.connection 
 						with connection.transaction:
-							sample_subfolder_dicts = {}
 							for form_resolution_dict in sample_form.image_resolution_forms.data:
 								image_resolution = form_resolution_dict['image_resolution']
 								imaging_request_restrict_dict = {'username':username,
@@ -850,7 +849,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 								imaging_resolution_update_dict['notes_from_imaging'] = notes_from_imaging
 								db_lightsheet.Request.ImagingResolutionRequest().update1(
 									imaging_resolution_update_dict)
-								subfolder_dict = {}
+								subfolder_dict = {'dorsal':{},'ventral':{}} 
 								for form_channel_dict in form_resolution_dict['channel_forms']:
 									channel_name = form_channel_dict['channel_name']
 									ventral_up = form_channel_dict['ventral_up']
@@ -867,11 +866,16 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 									z_step = form_channel_dict['z_step']
 									left_lightsheet_used = form_channel_dict['left_lightsheet_used']
 									right_lightsheet_used = form_channel_dict['right_lightsheet_used']
-									if rawdata_subfolder in subfolder_dict.keys():
-										subfolder_dict[rawdata_subfolder].append(channel_dict)
+									# Find the top level key of the subfolder dict
+									if ventral_up:
+										topkey = 'ventral'
 									else:
-										subfolder_dict[rawdata_subfolder] = [channel_dict]
-									channel_index = len(subfolder_dict[rawdata_subfolder]) - 1
+										topkey = 'dorsal'
+									if rawdata_subfolder in subfolder_dict[topkey].keys():
+										subfolder_dict[topkey][rawdata_subfolder].append(channel_dict)
+									else:
+										subfolder_dict[topkey][rawdata_subfolder] = [channel_dict]
+									channel_index = len(subfolder_dict[topkey][rawdata_subfolder]) - 1
 									''' Make a copy of the current row in a new dictionary which we will insert '''
 
 									channel_insert_dict = copy.deepcopy(channel_content_dict)

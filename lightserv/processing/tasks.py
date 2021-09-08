@@ -166,10 +166,13 @@ def run_lightsheet_pipeline(username,request_name,
 				""" Loop through the channels themselves to make the input dictionary
 				and grab the rest of the parameter dictionary keys """
 				
-				channel_contents_this_subfolder = channel_contents_this_resolution & \
-				 f'rawdata_subfolder="{rawdata_subfolder}"'
+				restrict_dict_subfolder = {'rawdata_subfolder':rawdata_subfolder,
+					'ventral_up':ventral_up}
+				channel_contents_this_subfolder = channel_contents_this_resolution & restrict_dict_subfolder
 				channel_contents_dict_list_this_subfolder = channel_contents_this_subfolder.fetch(as_dict=True)
 				for channel_dict in channel_contents_dict_list_this_subfolder:      
+					logger.debug("Channel dict:")
+					logger.debug(channel_dict)
 					channel_name = channel_dict['channel_name']
 					channel_index = channel_dict['imspector_channel_index'] 
 					processing_channel_insert_dict = {'username':username,'request_name':request_name,
@@ -182,13 +185,18 @@ def run_lightsheet_pipeline(username,request_name,
 					""" Figure out which imaging modes were selected for this channel, 
 					e.g. registration, injection detection """
 					channel_imaging_modes = [key for key in all_imaging_modes if channel_dict[key] == True]
-					this_channel_content = channel_contents_this_resolution & f'channel_name="{channel_name}"'
+					restrict_dict_channel = {'channel_name':channel_name,
+						'ventral_up':ventral_up}
+					this_channel_content = channel_contents_this_resolution & restrict_dict_channel
 		
 					""" grab the tiling, number of z planes info from the first entry
 					since the parameter dictionary only needs one value for 
 					xyz_scale, tiling_overlap, etc...
 					and it must be the same for each channel in each rawdata folder
 					for the code to run (currently) """
+					logger.debug("ii, channel_index:")
+					logger.debug(ii)
+					logger.debug(channel_index)
 					if ii == 0 and channel_index == 0: 
 						number_of_z_planes,tiling_scheme,tiling_overlap,z_step,image_orientation = \
 							this_channel_content.fetch1(
