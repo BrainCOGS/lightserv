@@ -522,7 +522,7 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 
 	assert b'Tiling scheme must not exceed 10x10 for this resolution' in batch_response.data
 	assert b'z_step must be a number' in batch_response.data
-	assert b'Tiling overlap must be a number between 0 and 1' in batch_response.data
+	assert b'Tiling overlap must be a number between 0.0 and 1.0' in batch_response.data
 
 	""" Now test the individual sample validation """
 	sample_data = {
@@ -819,8 +819,7 @@ def test_apply_batch_parameters(test_client,
 			imaging_batch_number=1),
 		data=data,
 		follow_redirects=True)
-	error_str = ("Issue with batch parameters for image resolution: 1.3x, "
-				 "channel: 488. Tiling scheme must not exceed 2x2 for this resolution")
+	error_str = ("Tiling scheme must not exceed 2x2 for this resolution")
 	assert error_str.encode('utf-8') in response.data
 	""" Check that the sample channel entries in the db were NOT updated """
 	restrict_dict_ch488 = dict(username='lightserv-test',

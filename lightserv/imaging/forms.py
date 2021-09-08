@@ -310,18 +310,20 @@ class ChannelBatchForm(FlaskForm):
 	delete_channel_button = SubmitField("Delete channel")
 	add_flipped_channel_button = SubmitField("Add ventral up channel")
 
+	def validate_right_lightsheet_used(self,right_lightsheet_used):
+		if not (self.left_lightsheet_used.data or self.right_lightsheet_used.data):
+			raise ValidationError(" At least one light sheet required.")
+
 	def validate_tiling_overlap(self,tiling_overlap):
 		try:
 			fl_val = float(tiling_overlap.data)
 		except:
 			raise ValidationError("Tiling overlap must be a number between 0.0 and 1.0")
-		if tiling_overlap.data < 0.0 or tiling_overlap.data >= 1.0:
+
+		if fl_val < 0.0 or fl_val >= 1.0:
 			raise ValidationError("Tiling overlap must be a number between 0.0 and 1.0")
 
 	def validate_tiling_scheme(self,tiling_scheme):
-		if len(tiling_scheme.data) != 3:
-			raise ValidationError("Tiling scheme is not in correct format."
-								  " Make sure it is like: 1x1 with no spaces.")
 		try:
 			n_rows = int(tiling_scheme.data.lower().split('x')[0])
 			n_columns = int(tiling_scheme.data.lower().split('x')[1])
@@ -334,6 +336,20 @@ class ChannelBatchForm(FlaskForm):
 		elif self.image_resolution.data in ['2x','4x']:
 			if n_rows > 4 or n_columns > 4:
 				raise ValidationError("Tiling scheme must not exceed 4x4 for this resolution")
+		elif self.image_resolution.data == '3.6x' and (n_rows > 10 or n_columns > 10):
+				raise ValidationError("Tiling scheme must not exceed 10x10 for this resolution")
+
+	def validate_z_step(self,z_step):
+		if not z_step.data:
+			raise ValidationError("z_step required")
+		try:
+			z_step = float(z_step.data)
+		except:
+			raise ValidationError("z_step must be a number")
+		if z_step < 2:
+			raise ValidationError("z_step must be a positive number larger than 2 microns")
+		elif z_step > 1000:
+			raise ValidationError("z_step greater than 1000 microns is not supported by the microscope.")
 
 class ImageBatchResolutionForm(FlaskForm):
 	""" A form for each image resolution that a user picks """

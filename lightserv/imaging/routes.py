@@ -195,105 +195,42 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 					batch_image_resolution_form = batch_image_resolution_forms[ii]
 					batch_image_resolution = batch_image_resolution_form.image_resolution.data
 					batch_channel_forms = batch_image_resolution_form.channel_forms
-					all_batch_channels_validated = True 
+					
 					for jj in range(len(batch_channel_forms)):
 						batch_channel_form = batch_channel_forms[jj]
-						
-						batch_validated=True # switch to false if any not validated
-						""" Left and right light sheets """
-						channel_name = batch_channel_form.channel_name.data
-						flash_str_prefix = (f"Issue with batch parameters for image resolution: {batch_image_resolution},"
-											f" channel: {channel_name}. ")
-						left_lightsheet_used = batch_channel_form.left_lightsheet_used.data
-						right_lightsheet_used = batch_channel_form.right_lightsheet_used.data
-						if not (left_lightsheet_used or right_lightsheet_used):
-							flash_str = flash_str_prefix + " At least one light sheet required."
-							batch_channel_form.left_lightsheet_used.errors = ['This field is required']
-							flash(flash_str,"danger")
-							batch_validated=False
-						""" tiling scheme """
-						tiling_scheme = batch_channel_form.tiling_scheme.data
-						if not tiling_scheme:
-							flash_str = flash_str_prefix + "Tiling scheme required"
-							batch_channel_form.tiling_scheme.errors = ['This field is required']
-							flash(flash_str,"danger")
-							batch_validated=False
-
+						batch_channel_name = batch_channel_form.channel_name.data
+						logger.debug("Batch channel name:")
+						logger.debug(batch_channel_name)
+						if batch_channel_form.validate_on_submit():
+							logger.debug("Batch channel form validated")
 						else:
-							try:
-								n_rows = int(tiling_scheme.lower().split('x')[0])
-								n_columns = int(tiling_scheme.lower().split('x')[1])
-								if batch_image_resolution in ['1.1x','1.3x'] and (n_rows > 2 or n_columns > 2):
-									flash_str = flash_str_prefix + ("Tiling scheme must not exceed 2x2 for this resolution")
-									batch_channel_form.tiling_scheme.errors = ['Tiling scheme must not exceed 2x2 for this resolution']
-									flash(flash_str,"danger")
-									batch_validated=False
-									
-								elif batch_image_resolution in ['2x','4x'] and (n_rows > 4 or n_columns > 4):
-									flash_str = flash_str_prefix + ("Tiling scheme must not exceed 4x4 for this resolution")
-									batch_channel_form.tiling_scheme.errors = ['Tiling scheme must not exceed 4x4 for this resolution']
-									flash(flash_str,"danger")
-									batch_validated=False
-								elif batch_image_resolution == '3.6x' and (n_rows > 10 or n_columns > 10):
-									flash_str = flash_str_prefix + ("Tiling scheme must not exceed 10x10 for this resolution")
-									batch_channel_form.tiling_scheme.errors = ['Tiling scheme must not exceed 10x10 for this resolution']
-									flash(flash_str,"danger")
-									batch_validated=False
-							except:
-								batch_channel_form.tiling_scheme.errors = ['Incorrect format']
-								flash_str = flash_str_prefix + ("Tiling scheme is not in correct format."
-												  " Make sure it is like: 3x4 with no spaces.")	
-								flash(flash_str,"danger")
-								batch_validated=False
-						""" tiling overlap """
-						tiling_overlap = batch_channel_form.tiling_overlap.data
-						try:
-							fl_val = float(tiling_overlap)
-							if fl_val < 0.0 or fl_val >= 1.0:
-								flash_str = flash_str_prefix + "Tiling overlap must be a number between 0 and 1"
-								batch_channel_form.tiling_overlap.errors = ['Tiling overlap must be a number between 0 and 1']
-								flash(flash_str,"danger")
-								batch_validated=False
-						except:
-							flash_str = flash_str_prefix + "Tiling overlap must be a number between 0 and 1"
-							batch_channel_form.tiling_overlap.errors = ['Tiling overlap must be a number between 0 and 1']
-							flash(flash_str,"danger")
-							batch_validated=False
-						""" z step """
-						z_step = batch_channel_form.z_step.data
-						if not z_step:
-							flash_str = flash_str_prefix + "z_step required"
-							batch_channel_form.z_step.errors = ['This field is required']
-							flash(flash_str,"danger")
-							batch_validated=False
-						else:
-							try:
-								fl_val = float(z_step)
-								if fl_val < 2 or fl_val > 1000:
-									flash_str = flash_str_prefix + "z_step must be a number between 2 and 1000 microns"
-									batch_channel_form.z_step.errors = ["z_step must be a number between 2 and 1000 microns"]
-									flash(flash_str,"danger")
-									batch_validated=False
-							except:
-								flash_str = flash_str_prefix + "z_step must be a number between 2 and 1000 microns"
-								batch_channel_form.z_step.errors = ["z_step must be a number between 2 and 1000 microns"]
-								flash(flash_str,"danger")
-								batch_validated=False
-						if not batch_validated:
-							all_batch_channels_validated = False
+							logger.debug("Batch channel form NOT validated")
+							logger.debug(batch_channel_form.errors)
+							column_name = f"batch_resolution_{batch_image_resolution}_channel_{batch_channel_name}_row"
 
-				""" If validation of all batch channels passed then
-				try to make db inserts. It is possible that 
+							return render_template('imaging/imaging_batch_entry.html',form=form,
+								rawdata_rootpath=rawdata_rootpath,imaging_table=imaging_table,
+								sample_dict_list=sample_dict_list,
+								samples_imaging_progress_dict=samples_imaging_progress_dict,
+								n_active_samples=n_active_samples,
+								imaging_request_number=imaging_request_number,
+								column_name=column_name)
+
+				""" If validation of all batch channels in all 
+				resolution forms passed then loop through 
+				all samples in the form and try to make db inserts.
+				It is possible that 
 				sample forms are not homogenous anymore (due to user
 				changing the individual imaging resolution of a single
-				sample). In this case, don't batch apply.
+				sample). In this case, the transaction might fail 
+				and the application of batch parameters 
+				will not be applied and the user will be notififed. 
 				"""
-				if all_batch_channels_validated:
-					logger.debug("All batch channels validated")
-					# logger.debug("Sample forms:")
-					logger.debug(form.sample_forms.data)
-					connection = db_lightsheet.Request.ImagingChannel.connection
-					issues_applying_batch_parameters=False
+			
+				logger.debug("All batch channels validated")
+				connection = db_lightsheet.Request.ImagingChannel.connection
+				issues_applying_batch_parameters=False
+				try: 
 					with connection.transaction:
 						for sample_form in form.sample_forms:
 							this_sample_name = sample_form.sample_name.data
@@ -308,7 +245,6 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 								sample_image_resolution_form = sample_form.image_resolution_forms[ii]
 								batch_channel_forms = batch_image_resolution_form.channel_forms
 								sample_channel_forms = sample_image_resolution_form.channel_forms
-								all_batch_channels_validated = True 
 								for jj in range(len(batch_channel_forms)):
 									batch_channel_form = batch_channel_forms[jj]
 									ventral_up = batch_channel_form.ventral_up.data
@@ -335,23 +271,18 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 									}
 									logger.debug("channel insert:")
 									logger.debug(channel_insert_dict)
-									# try:
+									
 									db_lightsheet.Request.ImagingChannel().insert1(channel_insert_dict,replace=True)
-									# except:
-									# 	issues_applying_batch_parameters=True
-									# 	logger.debug("Issue making channel insert: ")
-									# 	logger.debug(channel_insert_dict)
-									# 	flash_str = (f"Issue applying batch parameters from "
-									# 				 f"image resolution: {batch_image_resolution}, "
-									# 				 f"channel: {this_channel_name} "
-									# 				 f"to sample_name: {this_sample_name}")
-									# 	flash(flash_str,"warning")
-					if not issues_applying_batch_parameters:
-						flash("Batch parameters successfully applied to samples","success")
-					else:
-						flash("Otherwise parameters were applied OK ","warning")
-				else:
-					logger.debug("Batch channel validation failed. Not applying batch parameters to all samples")
+					logger.info("Batch parameters successfully applied to samples")
+					flash("Batch parameters successfully applied to samples","success")					
+				except:
+					logger.debug("Issues applying batch parameters to all samples")
+					flash_str = (f"Issue applying batch parameters to all samples. "
+								 "This is most likely because you modified "
+								 "the individual sample forms before applying batch parameters. "
+								 "Apply batch parameters BEFORE modifying sample forms.")
+					flash(flash_str,"danger")
+
 				return redirect(url_for('imaging.imaging_batch_entry',
 							username=username,request_name=request_name,
 							clearing_batch_number=clearing_batch_number,
@@ -1095,7 +1026,9 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 								logger.debug(new_image_resolution)
 								logger.debug("Using same microscope as before?")
 								logger.debug(same_microscope)
-								""" Update image resolution in all locations in the database """
+								""" Update image resolution in all locations in the database.
+								Cannot use update1() because image_resolution is a primary key. 
+								Need to delete entries and then reinsert them. """
 								connection = db_lightsheet.Request.ImagingResolutionRequest.connection
 								with connection.transaction:
 									image_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
@@ -1401,6 +1334,8 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 			
 			if imaging_progress == 'complete':
 				logger.info("Imaging is already complete so hitting the submit button again did nothing")
+				flash("Imaging is already complete so hitting the submit button again did nothing",
+					"warning")
 				return redirect(url_for('imaging.imaging_batch_entry',username=username,
 					request_name=request_name,
 					clearing_batch_number=clearing_batch_number,
