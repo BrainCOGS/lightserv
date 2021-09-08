@@ -133,9 +133,17 @@ def test_imaging_batch_entry_form_single_sample(test_client,
 	Then, test that the subform submits.
 
 	"""
+	username = 'lightserv-test'
+	request_name = 'nonadmin_manysamp_request'
+	imaging_request_number = 1
+
 	data_validation = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -145,20 +153,63 @@ def test_imaging_batch_entry_form_single_sample(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':'ab',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':680,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test 488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':10,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-z_step':10,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-z_step':10,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
 		'sample_forms-0-submit':True
 		}
+
 	response_validation = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data_validation,
 		follow_redirects=True)
+
 	assert b'Tiling scheme must not exceed 2x2 for this resolution' in response_validation.data
-	assert b'z_step must be a number between 2 and 1000 microns' in response_validation.data
-	assert b'Tiling overlap must be a number between 0 and 1' in response_validation.data
-	assert b'rawdata_subfolder must not contain spaces' in response_validation.data
+	assert b'z_step must be a number' in response_validation.data
+	assert b'Tiling overlap must be a number between 0.0 and 1.0' in response_validation.data
+	assert b'Rawdata subfolder must not contain spaces' in response_validation.data
 
 	""" Test that adding a new channel in an
 	individual sample section of the imaging batch form 
@@ -308,6 +359,10 @@ def test_imaging_batch_entry_form_single_sample(test_client,
 	data = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.1x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.1x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -318,6 +373,10 @@ def test_imaging_batch_entry_form_single_sample(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.1x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
@@ -330,6 +389,10 @@ def test_imaging_batch_entry_form_single_sample(test_client,
 		'sample_forms-1-sample_name':'sample-002',
 		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
@@ -339,6 +402,10 @@ def test_imaging_batch_entry_form_single_sample(test_client,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
@@ -416,9 +483,11 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 	test_cleared_request_3p6x_smartspim_nonadmin,
 	test_login_imager):
 	""" Test that both the batch entry and an individual sample entry of the 
-	imaging batch entry form validates against bad data for 
-	a SmartSPIM 3.6x request
+	imaging batch entry form 
 	"""
+	username = 'lightserv-test'
+	request_name = 'nonadmin_3p6x_smartspim_request'
+	imaging_request_number = 1
 
 	""" First test the batch validation """
 	batch_data = {
@@ -433,27 +502,36 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 		'image_resolution_batch_forms-0-channel_forms-0-z_step':'ab',
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
 		'apply_batch_parameters_button':True,
 		}
 		
 	batch_response = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_3p6x_smartspim_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=batch_data,
 		follow_redirects=True)
+
 	assert b'Tiling scheme must not exceed 10x10 for this resolution' in batch_response.data
-	assert b'z_step must be a number between 2 and 1000 microns' in batch_response.data
-	assert b'Tiling overlap must be a number between 0 and 1' in batch_response.data
+	assert b'z_step must be a number' in batch_response.data
+	assert b'Tiling overlap must be a number between 0.0 and 1.0' in batch_response.data
 
 	""" Now test the individual sample validation """
 	sample_data = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -466,16 +544,16 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 		'sample_forms-0-submit':True
 		}
 	sample_response = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_3p6x_smartspim_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=sample_data,
 		follow_redirects=True)
 	assert b'Tiling scheme must not exceed 10x10 for this resolution' in sample_response.data
-	assert b'z_step must be a number between 2 and 1000 microns' in sample_response.data
-	assert b'Tiling overlap must be a number between 0 and 1' in sample_response.data
+	assert b'z_step must be a number' in sample_response.data
+	assert b'Tiling overlap must be a number between 0.0 and 1.0' in sample_response.data
 
 	""" Test that the validation for counting expected versus
 	found z planes works for a SmartSPIM 3.6x request
@@ -483,6 +561,10 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 	sample_data = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -492,18 +574,22 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'3x5',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':2.0,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3300,
-		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488', # intentionally the wrong folder
 		'sample_forms-0-submit':True
 		}
 	sample_response = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_3p6x_smartspim_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=sample_data,
 		follow_redirects=True)
-	assert b'You entered that there should be 49500 raw files in rawdata folder' in sample_response.data
+	n_rows = 3
+	n_row_dirs = 0
+	validation_str = (f"You entered that there should be {n_rows} tiling row folders in rawdata folder, "
+					  f"but found {n_row_dirs}")
+	assert validation_str.encode('utf-8') in sample_response.data
 
 	""" Test that when the wrong number of rows in the tiling scheme is provided a validation error is raised.
 	Correct tiling scheme is 3x5
@@ -511,6 +597,10 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 	sample_data = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -524,15 +614,18 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 		'sample_forms-0-submit':True
 		}
 	sample_response = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_3p6x_smartspim_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=sample_data,
 		follow_redirects=True)
-	assert b'You entered that there should be 49500 raw files in rawdata folder' in sample_response.data
-	assert b"You entered that there should be 5 tiling row folders in rawdata folder, but found 3" in sample_response.data
+	n_rows = 5
+	n_row_dirs = 3
+	validation_str = (f"You entered that there should be {n_rows} tiling row folders in rawdata folder, "
+					  f"but found {n_row_dirs}")
+	assert validation_str.encode('utf-8') in sample_response.data
 
 	""" Test that when the correct number of rows but wrong number of columns in the tiling scheme
 	are provided a validation error is raised.
@@ -541,6 +634,10 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 	sample_data = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -554,15 +651,17 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 		'sample_forms-0-submit':True
 		}
 	sample_response = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_3p6x_smartspim_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=sample_data,
 		follow_redirects=True)
-	assert b'You entered that there should be 79200 raw files in rawdata folder' in sample_response.data
-	assert b"You entered that there should be 8 tiling column folders in each tiling row folder, but found 5" in sample_response.data
+	validation_str = ("You entered that there should be 8 tiling column folders"
+					  " in each tiling row folder, but found 5")
+
+	assert validation_str.encode('utf-8') in sample_response.data
 
 def test_changing_microscope_changes_channels(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
@@ -720,8 +819,7 @@ def test_apply_batch_parameters(test_client,
 			imaging_batch_number=1),
 		data=data,
 		follow_redirects=True)
-	error_str = ("Issue with batch parameters for image resolution: 1.3x, "
-				 "channel: 488. Tiling scheme must not exceed 2x2 for this resolution")
+	error_str = ("Tiling scheme must not exceed 2x2 for this resolution")
 	assert error_str.encode('utf-8') in response.data
 	""" Check that the sample channel entries in the db were NOT updated """
 	restrict_dict_ch488 = dict(username='lightserv-test',
@@ -979,9 +1077,16 @@ def test_imaging_batch_entry_entire_form_submits(test_client,
 	is updated in the db """
 
 	""" First need to submit sample 1 """
+	username = 'lightserv-test'
+	request_name = 'nonadmin_manysamp_request'
+	imaging_request_number = 1
 	data1 = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -991,6 +1096,10 @@ def test_imaging_batch_entry_entire_form_submits(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':10,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
@@ -1001,6 +1110,11 @@ def test_imaging_batch_entry_entire_form_submits(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
 		'sample_forms-1-sample_name':'sample-002',
 		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -1010,6 +1124,11 @@ def test_imaging_batch_entry_entire_form_submits(test_client,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-z_step':10,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
@@ -1021,20 +1140,21 @@ def test_imaging_batch_entry_entire_form_submits(test_client,
 		'sample_forms-0-submit':True
 		}
 	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data1,
 		follow_redirects=True)
 	assert b'Imaging Entry Form' in response1.data
-	restrict_dict = dict(username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+	restrict_dict = dict(username=username,
+			request_name=request_name,
 			sample_name='sample-001',
 			image_resolution='1.3x',
 			channel_name='488')
 	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict
+
 	number_of_z_planes = imaging_channel_contents.fetch1('number_of_z_planes')
 	assert number_of_z_planes == 657
 	rawdata_subfolder = imaging_channel_contents.fetch1('rawdata_subfolder')
@@ -1042,6 +1162,10 @@ def test_imaging_batch_entry_entire_form_submits(test_client,
 	data2 = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -1051,6 +1175,10 @@ def test_imaging_batch_entry_entire_form_submits(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':10,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
@@ -1061,6 +1189,10 @@ def test_imaging_batch_entry_entire_form_submits(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
 		'sample_forms-1-sample_name':'sample-002',
 		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -1070,6 +1202,10 @@ def test_imaging_batch_entry_entire_form_submits(test_client,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-z_step':10,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
@@ -1082,15 +1218,15 @@ def test_imaging_batch_entry_entire_form_submits(test_client,
 		}
 	
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1),
 		data=data2,
 		follow_redirects=True)
-	restrict_dict = dict(username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+	restrict_dict = dict(username=username,
+			request_name=request_name,
 			sample_name='sample-002',
 			image_resolution='1.3x',
 			channel_name='555')
@@ -1106,8 +1242,8 @@ def test_imaging_batch_entry_entire_form_submits(test_client,
 		}
 
 	response3 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1),
@@ -1116,8 +1252,8 @@ def test_imaging_batch_entry_entire_form_submits(test_client,
 	assert b'Imaging Entry Form' not in response3.data
 	assert b'Imaging management GUI'  in response3.data
 
-	restrict_dict = dict(username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+	restrict_dict = dict(username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
 			imaging_request_number=1,
 			imaging_batch_number=1)
@@ -1457,10 +1593,12 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 	individual sample section of the imaging batch form 
 	creates a duplicate channel row with a ventral up channel.
 	"""
-
+	username = 'lightserv-test'
+	request_name = 'nonadmin_manysamp_request'
+	imaging_request_number = 1
 	""" Check that originally there is only 1 db entry for channel 488 """
-	restrict_dict_sample1 = dict(username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+	restrict_dict_sample1 = dict(username=username,
+			request_name=request_name,
 			sample_name='sample-001',
 			image_resolution='1.3x',
 			channel_name='488')
@@ -1469,10 +1607,10 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 
 	""" Make sure the "add flipped channel" button appears in the sample table for channel 488 """
 	response1 = test_client.get(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		follow_redirects=True)
 	parsed_html = BeautifulSoup(response1.data,features="html.parser")
@@ -1492,23 +1630,35 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-add_flipped_channel_button':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',		
 		'sample_forms-1-sample_name':'sample-002',
 		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
 		}
 	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=data2,
 		follow_redirects=True)
@@ -1544,8 +1694,16 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-ventral_up':1,		
@@ -1553,32 +1711,36 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		'sample_forms-0-image_resolution_forms-0-update_resolution_button':True,
 		'sample_forms-1-sample_name':'sample-002',
 		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		}
 	response = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=data3,
 		follow_redirects=True)
 	assert b'Imaging Entry Form' in response.data
 	""" Check that the sample-001 image resolution was updated in the db 
 	and that sample-002 image resolution was NOT updated in the db"""
-	restrict_dict_sample1_dorsal_up = dict(username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+	restrict_dict_sample1_dorsal_up = dict(username=username,
+			request_name=request_name,
 			sample_name='sample-001',
 			channel_name='488',
 			ventral_up=0)
-	restrict_dict_sample1_ventral_up = dict(username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+	restrict_dict_sample1_ventral_up = dict(username=username,
+			request_name=request_name,
 			sample_name='sample-001',
 			channel_name='488',
 			ventral_up=1)
-	restrict_dict_sample2 = dict(username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+	restrict_dict_sample2 = dict(username=username,
+			request_name=request_name,
 			sample_name='sample-002',
 			channel_name='488')
 	imaging_channel_contents_sample1_dorsal_up = db_lightsheet.Request.ImagingChannel() & \
@@ -1597,31 +1759,51 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.1x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.1x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.1x',		
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-ventral_up':1,		
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-delete_channel_button':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-2-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-2-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-2-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-2-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-2-channel_name':'555',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-2-image_resolution':'1.1x',	
 		'sample_forms-1-sample_name':'sample-002',
 		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
 		}
 	response4 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=data4,
 		follow_redirects=True)
-	restrict_dict_sample1_ch488 = dict(username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+	restrict_dict_sample1_ch488 = dict(username=username,
+			request_name=request_name,
 			sample_name='sample-001',
 			channel_name='488')
 	imaging_channel_contents_sample1 = db_lightsheet.Request.ImagingChannel() & restrict_dict_sample1_ch488 
@@ -1638,24 +1820,40 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',	
 		'sample_forms-1-sample_name':'sample-002',
 		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_orientation':'sagittal',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-add_flipped_channel_button':True,
 		}
 	response5 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=data5,
 		follow_redirects=True)
@@ -1669,8 +1867,8 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 				 f"channel: {channel_name_to_flip}")
 	assert error_str.encode('utf-8') in response5.data
 	""" Make sure no db entry was made for this flipped 555 channel """
-	restrict_dict_sample2 = dict(username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+	restrict_dict_sample2 = dict(username=username,
+			request_name=request_name,
 			sample_name='sample-002',
 			image_resolution='1.3x',
 			channel_name='555')
@@ -1687,24 +1885,40 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'1.1x',
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.1x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.1x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-add_flipped_channel_button':True,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.1x',		
 		'sample_forms-1-sample_name':'sample-002',
 		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
 		}
 
 	response6 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=data6,
 		follow_redirects=True)
@@ -1712,6 +1926,10 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 	data7 = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.1x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.1x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -1721,6 +1939,10 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':10,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.1x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
@@ -1731,6 +1953,10 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':10,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-2-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-2-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-2-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-2-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-2-channel_name':'555',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-2-image_orientation':'horizontal',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-2-left_lightsheet_used':True,
@@ -1742,19 +1968,38 @@ def test_add_ventral_up_channel_individual_sample(test_client,
 		'sample_forms-0-notes_from_imaging':'some custom notes',
 		'sample_forms-1-sample_name':'sample-002',
 		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
 		'sample_forms-0-submit':True
 	}
 	response7 = test_client.post(url_for('imaging.imaging_batch_entry',
-			username='lightserv-test',
-			request_name='nonadmin_manysamp_request',
+			username=username,
+			request_name=request_name,
 			clearing_batch_number=1,
-			imaging_request_number=1,
+			imaging_request_number=imaging_request_number,
 			imaging_batch_number=1),
 		data=data7,
 		follow_redirects=True)	
 	assert b"Imaging entry for sample sample-001 was successful" in response7.data
+	# Make sure imspector channel index was correctly assigned to the dorsal and ventral channels
+	restrict_dict_channel = {'username':username,
+		'request_name':request_name,
+		'imaging_request_number':imaging_request_number,
+		'image_resolution':"1.1x",
+		'channel_name':"488"}
+	imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict_channel
+	assert len(imaging_channel_contents) == 2
+	dorsal_up_contents = imaging_channel_contents & {'ventral_up':0}
+	ventral_up_contents = imaging_channel_contents & {'ventral_up':1}
+
+	channel_index_dorsal = dorsal_up_contents.fetch1('imspector_channel_index')
+	channel_index_ventral = ventral_up_contents.fetch1('imspector_channel_index')
+	assert channel_index_dorsal == 0
+	assert channel_index_ventral == 0
 
 def test_imaging_batch_entry_form_new_imaging_request(test_client,
 	test_new_imaging_request_nonadmin,
@@ -1774,8 +2019,9 @@ def test_imaging_batch_entry_form_new_imaging_request(test_client,
 
 	with test_client.session_transaction() as sess:
 		sess['user'] = imager
-
+	username = 'lightserv-test'
 	request_name = 'nonadmin_manysamp_request'
+	imaging_request_number = 1
 	data_validation = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
@@ -1811,8 +2057,8 @@ def test_imaging_batch_entry_form_new_imaging_request(test_client,
 		data=data_validation,
 		follow_redirects=True)
 	assert b'Tiling scheme must not exceed 2x2 for this resolution' in response_validation.data
-	assert b'z_step must be a number between 2 and 1000 microns' in response_validation.data
-	assert b'Tiling overlap must be a number between 0 and 1' in response_validation.data
+	assert b'z_step must be a number' in response_validation.data
+	assert b'Tiling overlap must be a number between 0.0 and 1.0' in response_validation.data
 
 	""" Test that adding a new channel in an
 	individual sample section of the imaging batch form 
@@ -2006,6 +2252,10 @@ def test_imaging_batch_entry_form_new_imaging_request(test_client,
 	data = {
 		'sample_forms-0-sample_name':'sample-001',
 		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.1x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.1x',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
@@ -2016,6 +2266,10 @@ def test_imaging_batch_entry_form_new_imaging_request(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.1x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'647',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
