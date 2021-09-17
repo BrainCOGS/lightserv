@@ -98,7 +98,7 @@ def check_lightsheetdata_storage():
 	logger.info("Checking LightSheetData available storage capacity")
 	import subprocess
 	# Get the available storage using the "df -BG" command which reports the space always in GB so it is easy to parse
-	result = subprocess.run('df -BG | grep LightSheetData',shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
+	result = subprocess.run('df -BG | grep LightSheetData | grep cup',shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
 	error = False
 	try:
 		size_str = result.split()[1]
