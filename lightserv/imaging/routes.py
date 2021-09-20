@@ -140,7 +140,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 	logger.info(f"{current_user} accessed imaging_batch_entry")
 
 	form = ImagingBatchForm(request.form)
-	# logger.debug()
+	logger.debug(form.data)
 	rawdata_rootpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 		username,request_name)
 	imaging_batch_restrict_dict = dict(username=username,request_name=request_name,
@@ -714,12 +714,18 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 						for resolution_ii,image_resolution_form in enumerate(sample_form.image_resolution_forms):
 							image_resolution = image_resolution_form.image_resolution.data
 							logger.debug(f"Image resolution: {image_resolution}")
+							logger.debug("New channel dropdown choices")
+							logger.debug(image_resolution_form.new_channel_dropdown.choices)
+							logger.debug("New channel dropdown value")
+							logger.debug(image_resolution_form.new_channel_dropdown.data)
 							""" Loop through all channels subforms in this 
 							image resolution form and validate each one """
 							for channel_ii,channel_form in enumerate(image_resolution_form.channel_forms):
+								# set the new channel dropdown value to 
 								channel_dict = channel_form.data
 								channel_name = channel_dict['channel_name']
 								logger.debug(f"Channel: {channel_name}")
+
 								if channel_form.validate_on_submit():
 									logger.debug("Channel form validated")
 								else:
@@ -746,7 +752,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 								for key in image_resolution_form.errors:
 									errors = image_resolution_form.errors[key] 
 									for error in errors:
-										flash_str += error + "; "
+										flash_str += key + ": " + error + "; "
 								flash(flash_str,"danger")
 								return render_template('imaging/imaging_batch_entry.html',form=form,
 									rawdata_rootpath=rawdata_rootpath,imaging_table=imaging_table,
@@ -1579,6 +1585,8 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 				else:
 					all_imaging_channels = current_app.config['SMARTSPIM_IMAGING_CHANNELS']
 				available_channels = [x for x in all_imaging_channels if x not in used_channels]
+				logger.debug("Possible new channels to create are:")
+				logger.debug(available_channels)
 				this_resolution_form.new_channel_dropdown.choices = [(x,x) for x in available_channels]
 				available_imaging_modes = current_app.config['IMAGING_MODES']
 				if registration_channel_used:
