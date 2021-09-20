@@ -743,9 +743,10 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 								logger.debug(image_resolution_form.errors)
 								flash_str = (f"Issues with parameters for Sample: {this_sample_name},"
 											 f" image resolution: {image_resolution}, ")
-								errors = image_resolution_form.errors['channel_forms']
-								for error in errors:
-									flash_str += error
+								for key in image_resolution_form.errors:
+									errors = image_resolution_form.errors[key] 
+									for error in errors:
+										flash_str += error + "; "
 								flash(flash_str,"danger")
 								return render_template('imaging/imaging_batch_entry.html',form=form,
 									rawdata_rootpath=rawdata_rootpath,imaging_table=imaging_table,
