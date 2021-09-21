@@ -2309,6 +2309,107 @@ def test_imaged_multichannel_request_ahoag(test_client,test_cleared_multichannel
 	print('----------Teardown test_imaged_multichannel_request_ahoag fixture ----------')
 
 @pytest.fixture(scope='function') 
+def test_imaged_multichannel_request_nonadmin_skipped_sample(test_client,test_cleared_multisample_multichannel_request_nonadmin,
+	test_login_imager,test_delete_request_db_contents):
+	""" Images the multi-channel cleared request by lightserv-test, a nonadmin
+	with imager=imaging_admin """
+
+	print('----------Setup test_imaged_multichannel_request_nonadmin_skipped_sample fixture ----------')
+	username='lightserv-test'
+	request_name = 'nonadmin_multichannel_request'
+	imaging_request_number = 1
+	repeated_kwargs = {
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-z_step':10,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-z_step':10,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+	}
+	data_skip_sample = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
+		**repeated_kwargs,
+		'sample_forms-0-skip_sample_button':True
+		}
+
+	response_skip_sample = test_client.post(url_for('imaging.imaging_batch_entry',
+			username=username,
+			request_name=request_name,
+			clearing_batch_number=1,
+			imaging_request_number=1,
+			imaging_batch_number=1),
+		data=data_skip_sample,
+		follow_redirects=True)
+	
+	
+	""" Now submit the other sample """
+
+	data = {
+		**repeated_kwargs,
+		'sample_forms-1-submit':True
+		}
+	
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			clearing_batch_number=1,
+			imaging_request_number=1,
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+	
+	""" Now submit the whole form """
+	data_submit = {
+	'submit':True
+	}
+	response_submit = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			clearing_batch_number=1,
+			imaging_request_number=1,
+			imaging_batch_number=1),
+		data=data_submit,
+		follow_redirects=True)
+
+	yield test_client
+	print('----------Teardown test_imaged_multichannel_request_nonadmin_skipped_sample fixture ----------')
+
+@pytest.fixture(scope='function') 
 def test_imaged_request_viz_nonadmin(test_client,test_cleared_request_viz_nonadmin,
 	test_delete_request_db_contents,test_login_imager):
 	""" Images the cleared viz request by 'lightserv-test' (clearer='ll3')

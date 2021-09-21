@@ -282,6 +282,7 @@ class ImagingSampleForm(FlaskForm):
 	notes_from_imaging = TextAreaField("Note down anything additional about the imaging"
 									   " of this sample that you would like recorded:")
 	image_resolution_forms = FieldList(FormField(ImageResolutionForm),min_entries=0,max_entries=max_number_of_image_resolutions)
+	skip_sample_button = SubmitField('Click if you do not wish to image this sample')
 	submit = SubmitField('Click when imaging for this sample is complete and data are on bucket')
 
 class ChannelBatchForm(FlaskForm):
