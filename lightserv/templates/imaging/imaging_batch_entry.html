@@ -347,7 +347,9 @@
 					<h3> Sample {{kk+1}}/{{sample_dict_list|length}}: {{sample_name}} </h3>
 				</div>
 			</div>
-			
+			<div class="form-group" align="center">
+				{{ sample_form.skip_sample_button(class="btn btn-lg btn-info mt-2") }}
+			</div>
 			{% for ii in range(sample_form.image_resolution_forms|length) %}
 				{% set image_resolution_form = sample_form.image_resolution_forms[ii] %}
 				<!-- Render hiddenfield for image resolution -->

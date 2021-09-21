@@ -289,6 +289,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 			else:
 				""" A few possibilites: 
 				1) A sample submit button was pressed
+				2) A skip_sample_imaging button was pressed
 				2) A batch update resolution or add/delete image channel button was pressed
 				3) A sample update resolution or add/delete image channel button was pressed
 				"""
@@ -993,6 +994,35 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 									clearing_batch_number=clearing_batch_number,
 									imaging_request_number=imaging_request_number,
 									imaging_batch_number=imaging_batch_number))
+					elif sample_form.skip_sample_button.data:
+						""" Set imaging progress complete for this sample and 
+									update imaging performed date """
+						restrict_dict_imaging_request = {
+							'username':username,
+							'request_name':request_name,
+							'sample_name':this_sample_name,
+							'imaging_request_number':imaging_request_number}
+						imaging_request_contents_this_sample = db_lightsheet.Request.ImagingRequest() & \
+							restrict_dict_imaging_request
+						imaging_request_update_dict = imaging_request_contents_this_sample.fetch1()
+						imaging_request_update_dict['imaging_progress'] = 'complete'
+						imaging_request_update_dict['imaging_skipped'] = True
+						# today = datetime.now()
+						# today_proper_format = today.date().strftime('%Y-%m-%d')
+						# imaging_request_update_dict['imaging_performed_date'] = today_proper_format
+						logger.debug("Updating ImagingRequest() table with:")
+						logger.debug(imaging_request_update_dict)
+						db_lightsheet.Request.ImagingRequest().update1(imaging_request_update_dict)
+						logger.debug("Updated ImagingRequest()!")
+
+						flash(f"Imaging for sample {this_sample_name} was successfully skipped and marked as complete","success")
+					
+						return redirect(url_for('imaging.imaging_batch_entry',
+									username=username,request_name=request_name,
+									clearing_batch_number=clearing_batch_number,
+									imaging_request_number=imaging_request_number,
+									imaging_batch_number=imaging_batch_number))
+
 					else:
 						""" Either a sample update resolution or 
 						add/delete image channel button was pressed.
@@ -1393,6 +1423,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 				have_processing_requests = True
 			else:
 				have_processing_requests = False
+			
 			message_body = ('Hello!\n\nThis is an automated email sent from lightserv, '
 						'the Light Sheet Microscopy portal at the Histology and Brain Registration Core Facility. '
 						'The raw data your request:\n'
@@ -1401,11 +1432,21 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 			sample_names = set(imaging_request_contents.fetch('sample_name'))
 
 			for sample_name in sample_names:
+				imaging_request_restrict_dict = {
+				'sample_name':sample_name,
+				'imaging_request_number':imaging_request_number,
+					}
+				this_imaging_request_contents = imaging_request_contents & imaging_request_restrict_dict
+				imaging_skipped = this_imaging_request_contents.fetch1('imaging_skipped')
+
 				sample_basepath = os.path.join(data_rootpath,username,request_name,
 				sample_name,f'imaging_request_number_{imaging_request_number}',  
 				'rawdata')
 				channel_contents_this_sample = channel_contents_all_samples & f'sample_name="{sample_name}"' 
 				message_body += f'Sample name: {sample_name}:\n'
+				if imaging_skipped:
+					message_body += "No images taken.\n"
+					continue
 				for channel_dict in channel_contents_this_sample:
 					channel_name = channel_dict['channel_name']
 					image_resolution = channel_dict['image_resolution']
@@ -1426,6 +1467,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 							rawdata_subfolder)
 						message_body += f'\tchannel {channel_name}: {rawdata_fullpath}\n'
 				message_body += '\n'
+				
 			if have_processing_requests:
 				message_body += ('To start processing your data, '
 						f'go to the processing management GUI: {processing_manager_url} '

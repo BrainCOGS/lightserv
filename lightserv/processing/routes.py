@@ -45,7 +45,7 @@ processing = Blueprint('processing',__name__)
 @log_http_requests
 def processing_manager():
 	""" A user interface for handling past, present and future clearing batches.
-	Can be  used by a clearing admin to handle all clearing batches (except those claimed
+	Can be used by a clearing admin to handle all clearing batches (except those claimed
 	by the researcher) or by a researcher to handle their own clearing batches if they claimed 
 	them in their request form """
 	sort = request.args.get('sort', 'datetime_submitted') # first is the variable name, second is default value
@@ -62,9 +62,10 @@ def processing_manager():
 	processing_request_contents = (db_lightsheet.Request.ProcessingRequest() * \
 		clearing_batch_contents * request_contents * imaging_request_contents).\
 			proj('clearing_progress','processing_request_date_submitted','processing_request_time_submitted',
-			'imaging_progress','imager','species','processing_progress','processor',
+			'imaging_progress','imager',
+			'species','processing_progress','processor',
+			imaging_skipped='IF(imaging_skipped,1,0)',
 			datetime_submitted='TIMESTAMP(processing_request_date_submitted,processing_request_time_submitted)')
-
 	if current_user not in processing_admins:
 		processing_request_contents = processing_request_contents & f'username="{current_user}"'
 	
@@ -77,7 +78,8 @@ def processing_manager():
 		sort_by=sort,sort_reverse=reverse)
 	''' Next get all entities that are ready to be processed '''
 	contents_ready_to_process = processing_request_contents & 'imaging_progress="complete"' & \
-	'processing_progress="incomplete"'
+	'processing_progress="incomplete"' & 'imaging_skipped=0'
+	# contents_ready_to_process = contents_ready_to_process & 'imaging_skipped != NULL'
 	ready_to_process_table_id = 'horizontal_ready_to_process_table'
 	table_ready_to_process = dynamic_processing_management_table(contents_ready_to_process,
 		table_id=ready_to_process_table_id,

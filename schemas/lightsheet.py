@@ -16,9 +16,9 @@ elif os.environ.get('FLASK_MODE') == 'DEV':
 
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']
-    print("setting up DEV: ahoag_lightsheet_demo schema")
+    print("setting up DEV: ahoag_lightsheet_copy schema")
 
-    schema = dj.schema('ahoag_lightsheet_demo')
+    schema = dj.schema('ahoag_lightsheet_copy')
 elif os.environ.get('FLASK_MODE') == 'PROD':
     dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
     dj.config['database.port'] = 3306
@@ -128,6 +128,7 @@ class Request(dj.Manual):
         imaging_request_time_submitted            :   time # time that the user submitted the request for imaging
         imaging_performed_date = NULL             :   date # date that the imaging form was submitted by the imager
         imaging_progress                          :   enum("incomplete","in progress","complete")
+        imaging_skipped = NULL                    :   boolean # 1 if this sample skipped, 0 or NULL if not skipped
         """
 
     class ImagingResolutionRequest(dj.Part):

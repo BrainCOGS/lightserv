@@ -479,6 +479,147 @@ def test_imaging_batch_entry_form_single_sample(test_client,
 	assert imaging_progress == 'complete'
 	assert imaging_performed_date == datetime.now().date()
 
+
+def test_skip_single_sample(test_client,
+	test_cleared_multisample_multichannel_request_nonadmin,
+	test_login_imager):
+	""" Test that imager can choose not to image a sample
+
+	First, test that the skip sample button works as expected
+
+	Then, test that the subform submits with the remaining samples
+
+	"""
+	username = 'lightserv-test'
+	request_name = 'nonadmin_manysamp_request'
+	imaging_request_number = 1
+	repeated_kwargs = {
+		'sample_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-tiling_scheme':'1x1',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-z_step':10,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-number_of_z_planes':657,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-sample_name':'sample-002',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.2,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-tiling_scheme':'1x1',
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-z_step':10,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-number_of_z_planes':657,
+		'sample_forms-1-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'test555',
+	}
+
+	data_skip_sample = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'1.3x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'555',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'1.3x',
+		**repeated_kwargs,
+		'sample_forms-0-skip_sample_button':True
+		}
+
+	response_skip_sample = test_client.post(url_for('imaging.imaging_batch_entry',
+			username=username,
+			request_name=request_name,
+			clearing_batch_number=1,
+			imaging_request_number=1,
+			imaging_batch_number=1),
+		data=data_skip_sample,
+		follow_redirects=True)
+
+	assert b'Imaging Entry Form' in response_skip_sample.data
+	assert b'Sample has been imaged' in response_skip_sample.data
+	assert b'Imaging for sample sample-001 was successfully skipped and marked as complete' in response_skip_sample.data
+
+	imaging_request_restrict_dict = dict(username=username,
+				request_name=request_name,
+				sample_name='sample-001',
+				imaging_request_number=1)
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & imaging_request_restrict_dict
+	imaging_progress,imaging_skipped = imaging_request_contents.fetch1('imaging_progress','imaging_skipped')
+	assert imaging_progress == "complete"
+	assert imaging_skipped == True
+	
+	
+	# """ Now submit the other sample """
+
+	data = {
+		**repeated_kwargs,
+		'sample_forms-1-submit':True
+		}
+	
+	response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			clearing_batch_number=1,
+			imaging_request_number=1,
+			imaging_batch_number=1),
+		data=data,
+		follow_redirects=True)
+	assert b'Imaging Entry Form' in response.data
+	
+	""" Check contents of db were updated """
+	restrict_dict_sample2 = dict(username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			sample_name='sample-002',
+			image_resolution='1.3x',
+			channel_name='488')
+
+	imaging_channel_contents_sample2= db_lightsheet.Request.ImagingChannel() & \
+		restrict_dict_sample2
+	number_of_z_planes = imaging_channel_contents_sample2.fetch1('number_of_z_planes')
+	assert number_of_z_planes == 657
+	rawdata_subfolder = imaging_channel_contents_sample2.fetch1('rawdata_subfolder')
+	assert rawdata_subfolder == 'test488'
+	imaging_request_restrict_dict = dict(username=username,
+			request_name=request_name,
+			sample_name='sample-002',
+			imaging_request_number=1)
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & imaging_request_restrict_dict
+	assert imaging_request_contents.fetch1('imaging_progress') == "complete"
+	
+	""" Now submit the whole form """
+	data_submit = {
+	'submit':True
+	}
+	response_submit = test_client.post(url_for('imaging.imaging_batch_entry',
+			username='lightserv-test',
+			request_name='nonadmin_manysamp_request',
+			clearing_batch_number=1,
+			imaging_request_number=1,
+			imaging_batch_number=1),
+		data=data_submit,
+		follow_redirects=True)
+	assert b'Imaging Entry Form' not in response_submit.data
+	assert b'Imaging management GUI' in response_submit.data
+	assert b'Imaging for this batch is complete' in response_submit.data
+
+
 def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 	test_cleared_request_3p6x_smartspim_nonadmin,
 	test_login_imager):
