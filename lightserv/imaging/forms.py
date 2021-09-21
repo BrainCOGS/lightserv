@@ -129,9 +129,7 @@ class ImageResolutionForm(FlaskForm):
 	new_image_resolution = SelectField('Select the new image resolution you want to use:',
 		choices=[("1.3x","1.3x"),("1.1x","1.1x"),("2x","2x"),("4x","4x"),("3.6x","3.6x")],validators=[Optional()])
 	update_resolution_button = SubmitField('Update')
-	new_channel_dropdown = SelectField("Add additional channel?",choices=[('488','488'),
-		('555','555'),('561','561'),('642','642'),('647','647'),
-		('785','785'),('790','790')],validators=[Optional()])
+	new_channel_dropdown = SelectField("Add additional channel?",validators=[Optional()])
 	new_channel_purpose = SelectField("What type of imaging?",choices=[('registration','registration'),
 	('injection_detection','injection_detection'),('probe_detection','probe_detection'),
 	('cell_detection','cell_detection'),
@@ -151,11 +149,6 @@ class ImageResolutionForm(FlaskForm):
 			channel_name = channel_dict['channel_name']
 			logger.debug(f"Validating channel: {channel_name}")
 			logger.debug(f"Imaging request number: {imaging_request_number}")
-			# logger.debug("New channel dropdown choices")
-			# logger.debug(self.new_channel_dropdown.choices)
-			# logger.debug("New channel dropdown value")
-			# logger.debug(self.new_channel_dropdown.data)
-
 			number_of_z_planes = channel_dict['number_of_z_planes']
 			left_lightsheet_used = channel_dict['left_lightsheet_used']
 			right_lightsheet_used = channel_dict['right_lightsheet_used']
@@ -210,7 +203,6 @@ class ImageResolutionForm(FlaskForm):
 							f"You entered that there should be {n_columns} tiling column folders in each tiling row folder, "
 						  f"but found {len(col_dirs)}")
 					else:
-						logger.debug("have correct number of column tile folders")
 						all_subdirs = glob.glob(rawdata_fullpath + '/??????/??????_??????/')
 						total_counts = []
 						with concurrent.futures.ProcessPoolExecutor(max_workers=None) as executor:
@@ -371,8 +363,7 @@ class ImageBatchResolutionForm(FlaskForm):
 	('4x','4x'),('1.1x','1.1x'),('2x','2x')],validators=[Optional()])
 	update_resolution_button = SubmitField('Update')
 	new_channel_dropdown = SelectField("Add additional channel?",
-		choices=[('488','488'),
-	('555','555'),('647','647'),('790','790')],validators=[Optional()])
+		validators=[Optional()])
 	new_channel_purpose = SelectField("What type of imaging?",choices=[('registration','registration'),
 	('injection_detection','injection_detection'),('probe_detection','probe_detection'),
 	('cell_detection','cell_detection'),

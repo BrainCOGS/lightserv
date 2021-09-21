@@ -140,27 +140,25 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 	logger.info(f"{current_user} accessed imaging_batch_entry")
 
 	form = ImagingBatchForm(request.form)
-	logger.debug(form.data)
-	rawdata_rootpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+	rawdata_rootpath = os.path.join(
+		current_app.config['DATA_BUCKET_ROOTPATH'],
 		username,request_name)
-	imaging_batch_restrict_dict = dict(username=username,request_name=request_name,
+	imaging_batch_restrict_dict = dict(
+		username=username,request_name=request_name,
 		clearing_batch_number=clearing_batch_number,
 		imaging_batch_number=imaging_batch_number,
 		imaging_request_number=imaging_request_number)
+
 	sample_contents = db_lightsheet.Request.ImagingBatchSample() & imaging_batch_restrict_dict 
-	
 	sample_dict_list = sample_contents.fetch(as_dict=True)
 
 	""" Figure out how many samples in this imaging batch """
-	
 	imaging_batch_contents = db_lightsheet.Request.ImagingBatch() & imaging_batch_restrict_dict
 	number_in_batch = imaging_batch_contents.fetch1('number_in_imaging_batch')
-	
 	imaging_progress = imaging_batch_contents.fetch1('imaging_progress')
 
 	""" Figure out which samples are already imaged """
 	imaging_request_contents = (db_lightsheet.Request.ImagingRequest() * sample_contents)
-
 	samples_imaging_progress_dict = {x['sample_name']:x['imaging_progress'] for x in imaging_request_contents.fetch(
 		as_dict=True)}
 	n_active_samples = len([x for x in samples_imaging_progress_dict if samples_imaging_progress_dict[x] != 'complete'])
@@ -708,16 +706,41 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 
 						logger.debug("Sample form submit button pressed:")
 						logger.debug(this_sample_name)
+
+						# First reset the choices of the add channel button in batch forms
+						batch_image_resolution_forms = form.image_resolution_batch_forms
+						for batch_image_resolution_form in batch_image_resolution_forms:
+							batch_image_resolution = batch_image_resolution_form.image_resolution.data
+							batch_channels_this_resolution = [x.channel_name.data for x in batch_image_resolution_form.channel_forms]
+							if batch_image_resolution in current_app.config['LAVISION_RESOLUTIONS']:
+								all_imaging_channels = current_app.config['LAVISION_IMAGING_CHANNELS']
+							else:
+								all_imaging_channels = current_app.config['SMARTSPIM_IMAGING_CHANNELS']
+
+							batch_available_channels = [x for x in all_imaging_channels \
+								if x not in batch_channels_this_resolution]
+							batch_image_resolution_form.new_channel_dropdown.choices = \
+								[(x,x) for x in batch_available_channels]
 						""" Loop over image resolution subforms 
 						to find the channel subforms within -- those
 						need to be validated first """
+
 						for resolution_ii,image_resolution_form in enumerate(sample_form.image_resolution_forms):
 							image_resolution = image_resolution_form.image_resolution.data
+							channels_this_resolution = [x.channel_name.data for x in image_resolution_form.channel_forms]
+							# But first reset the choices for the new channels
+							if image_resolution in current_app.config['LAVISION_RESOLUTIONS']:
+								all_imaging_channels = current_app.config['LAVISION_IMAGING_CHANNELS']
+							else:
+								all_imaging_channels = current_app.config['SMARTSPIM_IMAGING_CHANNELS']
+
+							available_channels = [x for x in all_imaging_channels \
+								if x not in channels_this_resolution]
+							image_resolution_form.new_channel_dropdown.choices = \
+								[(x,x) for x in available_channels]
+							
 							logger.debug(f"Image resolution: {image_resolution}")
-							logger.debug("New channel dropdown choices")
-							logger.debug(image_resolution_form.new_channel_dropdown.choices)
-							logger.debug("New channel dropdown value")
-							logger.debug(image_resolution_form.new_channel_dropdown.data)
+							
 							""" Loop through all channels subforms in this 
 							image resolution form and validate each one """
 							for channel_ii,channel_form in enumerate(image_resolution_form.channel_forms):
@@ -742,6 +765,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 										column_name=column_name)
 							""" Now that all channel subforms are validated,
 							validate the image resolution form """
+							
 							if image_resolution_form.validate_on_submit():
 								logger.debug("Image resolution form validated")
 							else:
