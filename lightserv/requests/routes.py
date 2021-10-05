@@ -588,7 +588,8 @@ def new_request():
 					time = now.strftime("%H:%M:%S") 
 					request_insert_dict['date_submitted'] = date
 					request_insert_dict['time_submitted'] = time
-
+					logger.debug("Inserting into Request()")
+					logger.debug(request_insert_dict)
 					db_lightsheet.Request().insert1(request_insert_dict)
 
 					''' Sample section '''
@@ -975,14 +976,15 @@ def new_request():
 						logger.info(d)
 					db_lightsheet.Request.ImagingBatchSample().insert(imaging_batch_sample_insert_list,)
 					
-					# logger.info("ImagingRequest() insert:")
-					# logger.info(imaging_request_insert_list)
+					
 					logger.debug("Sample imaging dict:")
 					logger.debug(sample_imaging_dict)
 					
+					logger.info("ImagingRequest() insert:")
+					logger.info(imaging_request_insert_list)
 					db_lightsheet.Request.ImagingRequest().insert(imaging_request_insert_list)
-					# logger.info("ProcessingRequest() insert:")
-					# logger.info(processing_request_insert_list)
+					logger.info("ProcessingRequest() insert:")
+					logger.info(processing_request_insert_list)
 					""" If there were no processing resolution requests (because all were 2x imaging requests),
 					then don't make a processing request """
 					if len(processing_resolution_insert_list) > 0:

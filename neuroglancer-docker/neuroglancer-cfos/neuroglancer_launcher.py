@@ -20,7 +20,7 @@ logging.info("configuring neuroglancer defaults")
 #     url="https://neuromancer-seung-import.appspot.com"
 # )
 neuroglancer.set_static_content_source(
-    url="https://neuroglancer-braincogs.appspot.com"
+	url="https://neuroglancer-braincogs.appspot.com"
 )
 ## neuroglancer setup segment:	
 ## set the tornado server that is launched to talk on all ips and at port 8080
@@ -69,44 +69,45 @@ for ii in range(cv_count):
 		logging.debug("Loading in source: ")
 		logging.debug(f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}")
 		if layer_type == 'image':
-		    s.layers[cv_name] = neuroglancer.ImageLayer(
-		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}") # this needs to be visible outside of the container in the browser
+			logging.debug("have image layer")
+			s.layers[cv_name] = neuroglancer.ImageLayer(
+				source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}"
+			) # this needs to be visible outside of the container in the browser
 		elif layer_type == 'segmentation':
-			
 			s.layers[cv_name] = neuroglancer.SegmentationLayer(
-		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
-		    )
+				source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
+			)
 		elif layer_type == 'annotation':
 			s.layers[cv_name] = neuroglancer.AnnotationLayer(
-		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
-		    )
-		    
-with viewer.txn() as s:
-	s.layout = 'xy'
-	# s.crossSectionOrientation = [0.5,0.5,-0.5,0.5]
-	s.crossSectionScale = 0.00002
-	has_image = 0
-	has_atlas = 0
-	has_cells = 0
-	for ii,layer in enumerate(s.layers):
-		if 'atlas' in layer.name:
-			has_atlas = 1
-			atlas_layer_index = ii
-			break
-		if 'data' in layer.name:
-			has_image = 1
-			image_layer_index = ii
-		if 'cell' in layer.name:
-			has_cells = 1
-			cell_layer_index = ii
+				source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
+			)
+			
+# with viewer.txn() as s:
+# 	s.layout = 'xy'
+# 	# s.crossSectionOrientation = [0.5,0.5,-0.5,0.5]
+# 	s.crossSectionScale = 0.00002
+# 	has_image = 0
+# 	has_atlas = 0
+# 	has_cells = 0
+# 	for ii,layer in enumerate(s.layers):
+# 		if 'atlas' in layer.name:
+# 			has_atlas = 1
+# 			atlas_layer_index = ii
+# 			break
+# 		if 'data' in layer.name:
+# 			has_image = 1
+# 			image_layer_index = ii
+# 		if 'cell' in layer.name:
+# 			has_cells = 1
+# 			cell_layer_index = ii
 
-	if has_atlas:
-		atlas_layer = s.layers[atlas_layer_index]
-		atlas_layer.selectedAlpha = 0.2
-	if has_image:
-		image_layer = s.layers[image_layer_index]
-		image_layer.shader = """void main() {emitGrayscale(toNormalized(getDataValue())*20.0);}"""
-  	
+# 	if has_atlas:
+# 		atlas_layer = s.layers[atlas_layer_index]
+# 		atlas_layer.selectedAlpha = 0.2
+# 	if has_image:
+# 		image_layer = s.layers[image_layer_index]
+# 		image_layer.shader = """void main() {emitGrayscale(toNormalized(getDataValue())*20.0);}"""
+	
 logging.debug("neuroglancer viewer is now available")
 logging.debug("made it here!")
 
@@ -117,4 +118,4 @@ kv.hmset(session_name,{'viewer': viewer_json_str})
 
 # Keep the viewer running
 while 1:
-    sleep(0.1)
+	sleep(0.1)
