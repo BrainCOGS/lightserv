@@ -25,10 +25,10 @@ logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
 def table_sorter(dic,sort_key):
-    if type(dic[sort_key]) == str:
-        return (dic[sort_key] is None,dic[sort_key].lower())
-    else:
-	    return (dic[sort_key] is None, dic[sort_key])
+	if type(dic[sort_key]) == str:
+		return (dic[sort_key] is None,dic[sort_key].lower())
+	else:
+		return (dic[sort_key] is None, dic[sort_key])
 
 def log_http_requests(f):
 	@wraps(f)
@@ -72,7 +72,7 @@ def logged_in_as_admin(f):
 				return f(*args, **kwargs)
 			else:
 				logger.info(f"Current user: {current_user} is not an admin and tried to access the admin page. "
-				             "Denying them access")
+							 "Denying them access")
 				flash(f'''That page is restricted''','danger')
 				return redirect(url_for('main.welcome'))
 		else:
@@ -91,7 +91,7 @@ def logged_in_as_dash_admin(f):
 				return f(*args, **kwargs)
 			else:
 				logger.info(f"Current user: {current_user} is not an admin and tried to access the admin page. "
-				             "Denying them access")
+							 "Denying them access")
 				flash(f'''That page is restricted''','danger')
 				return redirect(url_for('main.welcome'))
 		else:
@@ -159,7 +159,7 @@ def logged_in_as_clearer(f):
 					return f(*args, **kwargs)
 				else:
 					logger.info(f"Current user: {current_user} is not the clearer, who has already been assigned."
-					             "Denying them access")
+								 "Denying them access")
 					flash(f'''The clearer has already been assigned for this entry and you, {current_user}, are not them.  
 						Please email us at lightservhelper@gmail.com if you think there has been a mistake.''','warning')
 					return redirect(url_for('main.welcome'))
@@ -181,15 +181,15 @@ def logged_in_as_processor(f):
 			processing_request_number = kwargs['processing_request_number']
 			
 			processing_request_contents = db_lightsheet.Request.ProcessingRequest() & f'request_name="{request_name}"' & \
-			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
-			 	f'imaging_request_number="{imaging_request_number}"' & \
-			 	f'processing_request_number="{processing_request_number}"'
+				f'username="{username}"' & f'sample_name="{sample_name}"' & \
+				f'imaging_request_number="{imaging_request_number}"' & \
+				f'processing_request_number="{processing_request_number}"'
 			processor = processing_request_contents.fetch1('processor')
 			# ''' check to see if user assigned themself as processor '''
 			if current_user != processor:
 				flash(("The processor has already been assigned for this entry "
 							  "and you are not them. Please email us at lightservhelper@gmail.com "  
-						      "if you think there has been a mistake."),'warning')
+							  "if you think there has been a mistake."),'warning')
 				return redirect(url_for('processing.processing_manager'))
 			else:
 				next_url = request.url
@@ -272,7 +272,7 @@ def logged_in_as_imager(f):
 					else:
 						flash(("The imager has already been assigned for this entry "
 							  "and you are not them. Please email us at lightservhelper@gmail.com "  
-						      "if you think there has been a mistake."),'warning')
+							  "if you think there has been a mistake."),'warning')
 						return redirect(url_for("requests.request_overview",
 							username=username,request_name=request_name))
 				elif imager == current_user:
@@ -282,7 +282,7 @@ def logged_in_as_imager(f):
 					logger.info(f"""Current user: {current_user} is not the imager. Denying them access""")
 					flash(("The imager has already been assigned for this entry "
 							  "and you are not them. Please email us at lightservhelper@gmail.com "  
-						      "if you think there has been a mistake."),'warning')
+							  "if you think there has been a mistake."),'warning')
 					return redirect(url_for('main.welcome'))
 		else:
 			next_url = request.url
@@ -320,9 +320,9 @@ def logged_in_as_processor(f):
 			imaging_request_number = kwargs['imaging_request_number']
 			processing_request_number = kwargs['processing_request_number']
 			processing_request_contents = db_lightsheet.Request.ProcessingRequest() & f'request_name="{request_name}"' & \
-			 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
-			 	f'imaging_request_number="{imaging_request_number}"' & \
-			 	f'processing_request_number="{processing_request_number}"'
+				f'username="{username}"' & f'sample_name="{sample_name}"' & \
+				f'imaging_request_number="{imaging_request_number}"' & \
+				f'processing_request_number="{processing_request_number}"'
 			if len(processing_request_contents) == 0:
 				flash("No processing request exists with those parameters. Please try again.","danger")
 				logger.debug("No processing request exists with those parameters. Redirecting to all requests page")
@@ -362,7 +362,7 @@ def logged_in_as_processor(f):
 					else:
 						flash(("The processor has already been assigned for this entry "
 							  "and you are not them. Please email us at lightservhelper@gmail.com "  
-						      "if you think there has been a mistake."),'warning')
+							  "if you think there has been a mistake."),'warning')
 				elif processor == current_user:
 					logger.info(f"Current user: {current_user} is the rightful processor and so is allowed access")
 					return f(*args, **kwargs)
@@ -370,7 +370,7 @@ def logged_in_as_processor(f):
 					logger.info(f"""Current user: {current_user} is not the processor. Denying them access""")
 					flash(("The processor has already been assigned for this entry "
 							  "and you are not them. Please email us at lightservhelper@gmail.com "  
-						      "if you think there has been a mistake."),'warning')
+							  "if you think there has been a mistake."),'warning')
 					return redirect(url_for('main.welcome'))
 		else:
 			next_url = request.url
@@ -409,9 +409,9 @@ def check_imaging_completed(f):
 		username = kwargs['username']
 		imaging_request_number = kwargs['imaging_request_number']
 		imaging_request_contents = db_lightsheet.Request.ImagingRequest() & \
-		 	f'request_name="{request_name}"' & \
-		 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
-		 	f'imaging_request_number="{imaging_request_number}"'
+			f'request_name="{request_name}"' & \
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			f'imaging_request_number="{imaging_request_number}"'
 		imaging_progress = imaging_request_contents.fetch1('imaging_progress')
 		if imaging_progress != 'complete':
 			flash(f"Imaging must be completed first for sample_name={sample_name}"
@@ -435,14 +435,14 @@ def check_some_precomputed_pipelines_completed(f):
 		imaging_request_number = kwargs['imaging_request_number']
 		processing_request_number = kwargs['processing_request_number']
 		imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & \
-		 	f'request_name="{request_name}"' & \
-		 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
-		 	f'imaging_request_number="{imaging_request_number}"'
+			f'request_name="{request_name}"' & \
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			f'imaging_request_number="{imaging_request_number}"'
 		processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & \
-		 	f'request_name="{request_name}"' & \
-		 	f'username="{username}"' & f'sample_name="{sample_name}"' & \
-		 	f'imaging_request_number="{imaging_request_number}"' & \
-		 	f'processing_request_number="{processing_request_number}"' 
+			f'request_name="{request_name}"' & \
+			f'username="{username}"' & f'sample_name="{sample_name}"' & \
+			f'imaging_request_number="{imaging_request_number}"' & \
+			f'processing_request_number="{processing_request_number}"' 
 		""" check for any of the channels whether left or right light sheet 
 		raw precomputed pipeline has been run """
 		left_raw_precomputed_array = \
@@ -631,3 +631,10 @@ def get_lightsheet_storage():
 	avail_str = result.split()[3]
 	avail_GB = int(avail_str[:-1])
 	return size_GB, used_GB, avail_GB
+
+def prettyprinter(d, indent=0):
+	"""Makes a string with nice formatting out of a dictionary"""
+	s = '\n'
+	for key, value in d.items():
+		s+='\t' * indent + str(key) + ':' + '\t' + str(value) + '\n'
+	return s
