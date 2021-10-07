@@ -1,7 +1,7 @@
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup, current_app,jsonify)
-from lightserv.main.utils import mymkdir
+from lightserv.main.utils import mymkdir,prettyprinter
 from lightserv.processing.utils import determine_status_code
 from lightserv import cel, db_lightsheet, db_spockadmin
 from lightserv.main.tasks import (send_email, send_admin_email,
@@ -522,6 +522,19 @@ def smartspim_stitch(**kwargs):
 	except paramiko.ssh_exception.AuthenticationException:
 		logger.info(f"Failed to connect to spock to start job. ")
 		stitching_channel_insert_dict['smartspim_stitching_spock_job_progress'] = 'NOT_SUBMITTED'
+		# Send email alerting processing admins
+		subject = 'Lightserv automated email: Smartspim stitching FAILED to start.'
+		body = ('The stitching pipeline failed to start for:\n\n'
+				f'username: {username}\n'
+				f'request_name: {request_name}\n\n'
+				f'rawdata_path: {rawdata_fullpath}\n\n'
+				f'This is likely due to a problem with Lightserv connecting to spock.'
+				)
+
+		recipients = [x+'@princeton.edu' for x in current_app.config['PROCESSING_ADMINS']]
+		if not os.environ['FLASK_MODE'] == 'TEST':
+			send_email.delay(subject=subject,body=body,recipients=recipients)
+
 		db_lightsheet.Request.SmartspimStitchedChannel().insert1(
 			stitching_channel_insert_dict) 
 		return "FAILED"
@@ -535,6 +548,19 @@ def smartspim_stitch(**kwargs):
 	if error_response:
 		logger.debug("Stderr Response:")
 		logger.debug(error_response)
+		subject = 'Lightserv automated email: Problem starting Smartspim stitching pipeline.'
+		body = ('The stitching pipeline failed to start for:\n\n'
+				f'username: {username}\n'
+				f'request_name: {request_name}\n\n'
+				f'rawdata_path: {rawdata_fullpath}\n\n'
+				f'Stdout from spock was: {response}\n\n'
+				f'Stderr from spock was: {error_response} '
+				)
+
+		recipients = [x+'@princeton.edu' for x in current_app.config['PROCESSING_ADMINS']]
+		if not os.environ['FLASK_MODE'] == 'TEST':
+			send_email.delay(subject=subject,body=body,recipients=recipients)
+
 	else:
 		logger.debug("No Stderr Response")
 	logger.debug("")
@@ -1835,6 +1861,33 @@ def smartspim_stitching_job_status_checker():
 			except:
 				logger.debug("Unable to update datetime_stitching_completed possibly due to an Integrity Error. If a pystripe child entry exists then you cannot replace the parent. ")
 
+		elif status_step3 in ["CANCELLED","FAILED"]:
+			data_bucket_rootpath = current_app.config["DATA_BUCKET_ROOTPATH"]
+			this_stitching_content = all_stitching_entries & \
+				f'smartspim_stitching_spock_jobid={jobid}'
+			this_stitching_dict = this_stitching_content.fetch1()
+			username = this_stitching_dict['username']
+			request_name = this_stitching_dict['request_name']
+			sample_name = this_stitching_dict['sample_name']
+			imaging_request_number = this_stitching_dict['imaging_request_number']
+			image_resolution = this_stitching_dict['image_resolution']
+			channel_name = this_stitching_dict['channel_name']
+			ventral_up = this_stitching_dict['ventral_up']
+			subject = 'Lightserv automated email: Smartspim stitching pipeline FAILED.'
+			body = ('The stitching pipeline failed to start for:\n\n'
+					f'username: {username}\n'
+					f'request_name: {request_name}\n\n'
+					f'sample_name: {sample_name}\n\n'
+					f'imaging_request_number: {imaging_request_number}\n\n'
+					f'image_resolution: {image_resolution}\n\n'
+					f'channel_name: {channel_name}\n\n'
+					f'ventral_up: {ventral_up}\n\n'
+					f'Spock job info: {prettyprinter(job_insert_dict)}'
+					)
+
+			recipients = [x+'@princeton.edu' for x in current_app.config['PROCESSING_ADMINS']]
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				send_email.delay(subject=subject,body=body,recipients=recipients)
 		job_insert_list.append(job_insert_dict)
 
 	logger.debug("Insert list:")
