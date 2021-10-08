@@ -140,11 +140,7 @@ def login():
 	insert_dict = {'browser_name':browser_name,'browser_version':browser_version,
 				   'event':logstr,'platform':platform}
 	db_admin.UserActionLog().insert1(insert_dict)
-	flash(f"The Miltenyi Biotec UltraMicroscope II (aka the 'LaVision' microscope) is currently out of service "
-		   "due to malfunctioning optics. Not all imaging modes are disabled, so if you have an urgent need to use it "
-		   "please contact us or leave a detailed note in your request form and we may be able to accommodate you. The SmartSPIM microscope "
-		   "is still fully functional. Thanks for bearing with us. "
-		   "If you have any questions please contact us at lightservhelper@gmail.com",'danger')
+	
 	return redirect(next_url)
 
 @main.route("/pre_handoff_instructions")
