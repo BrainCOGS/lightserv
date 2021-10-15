@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block content %}
+	<h1 class="mb-2" align="center">Visualization Setup Form for Requests: {{request_name1}}, {{request_name2}}</h1>
+
+	<hr class='class-2'>
+	
+	<div class="content-section">
+		<form method="POST" action="">
+			{{ form.hidden_tag() }}
+			<fieldset class="form-group">
+				<h3 class='border-bottom mb-4'>Setup</h3>
+				
+				<h4 > Select one animal you would like to display in Neuroglancer</h4>
+				<table class="table table-bordered table-striped text-center mb-4">
+			        <tr>
+			            <th>Sample name</th>
+			            <th>Visualize?</th>
+			        </tr>
+			        {% for ii in range(form.sample_forms|length) %}
+						{% set sample_form = form.sample_forms[ii] %}
+						<!-- render the hidden fields -->
+						{{ sample_form.sample_name() }}
+						{% set sample_name = sample_form.sample_name.data %}
+
+						<tr>   
+						    <td>{{sample_name}}</td>
+						    <td> 
+					    		<div>							    		
+					    			{{ sample_form.viz }}
+					    		</div>
+							</td>
+						</tr>
+				    {% endfor %} <!-- Loop over animal forms -->
+				</table>
+				
+			</fieldset>
+			<!-- Final submit button -->
+			<hr class='class-3'>
+			<div class="form-group">
+				{{ form.submit(class="btn btn-success mt-2") }}
+			</div>
+		</form>
+
+	</div>
+
+
+{% endblock content %}
