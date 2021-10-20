@@ -260,7 +260,7 @@ def test_mouse_request(test_client,test_login_nonadmin,
 	assert b"This is a demo request" in response.data
 	assert b"New Request Form" not in response.data
 
-	""" Ensure that entire new request form submits when good
+	""" Ensure that a 4x entire new request form submits when good
 	data are used.
 
 	DOES enter data into the db so it uses the fixture:
@@ -295,6 +295,7 @@ def test_mouse_request(test_client,test_login_nonadmin,
 	assert b"core facility requests" in response.data
 	assert b"This is a demo request" in response.data
 	assert b"New Request Form" not in response.data
+	
 
 	""" Ensure that trying to submit a request where
 	iDISCO+_immuno clearing protocol is used but 
@@ -867,6 +868,7 @@ def test_mouse_request(test_client,test_login_nonadmin,
 	antibody_history_contents = db_lightsheet.AntibodyHistory() & 'request_name="nonadmin_antibody_request"'
 	print(antibody_history_contents)
 	assert len(antibody_history_contents) == 1
+
 def test_rat_request(test_client,test_login_nonadmin,
 	test_delete_request_db_contents):
 	
@@ -1327,8 +1329,6 @@ def test_newlines_do_not_affect_clearing_batch_membership(test_client,
 	clearing_batch_results = db_lightsheet.Request().ClearingBatch() & 'request_name="test_request_newlines"'
 	assert len(clearing_batch_results) == 1
 
-
-
 def test_expected_handoff_date_required_for_non_self_clearing(
 	test_client,test_login_nonadmin,test_delete_request_db_contents):
 	""" Test that if lightserv-test tries to submit the new request and 
@@ -1406,6 +1406,52 @@ def test_submit_good_mouse_request_3p6x(test_client,
 	microscope,image_resolution = imaging_resolution_request_contents.fetch1('microscope','image_resolution')
 	assert microscope == 'SmartSPIM'
 	assert image_resolution == '3.6x'
+
+def test_submit_good_mouse_request_15x(test_client,
+	test_login_nonadmin,test_delete_request_db_contents):
+	""" Ensure that entire new request form submits when good
+	data are used.
+
+	DOES enter data into the db so it uses the fixture:
+	test_delete_request_db_contents, which simply deletes 
+	the Request() contents (and all dependent tables) after the test is run
+	so that other tests see blank contents 
+	""" 
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"nonadmin_15x_smartspim_request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'raw_data_retention_preference':"important",
+			'username':test_login_nonadmin['user'],
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'15x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-channel_name':'642',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	assert b"core facility requests" in response.data
+	assert b"This is a demo request" in response.data
+	assert b"New Request Form" not in response.data
+
+	# Verify that the microscope entered into the db is the correct one
+	imaging_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
+		'request_name="nonadmin_15x_smartspim_request"'
+	microscope,image_resolution = imaging_resolution_request_contents.fetch1('microscope','image_resolution')
+	assert microscope == 'SmartSPIM'
+	assert image_resolution == '15x'
 
 def test_submit_multisample_multichannel_request(test_client,test_login_nonadmin,
 	test_multisample_multichannel_request_nonadmin):

@@ -949,8 +949,9 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 										logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
 													 "Not creating precomputed data for neuroglancer visualization.")
 						
-										""" Start the stitching pipeline if SmartSPIM images """
-										if image_resolution in ["3.6x","15x"]:
+										""" Start the stitching pipeline if SmartSPIM 3.6x images """
+										""" TODO -- add 15x imaging once we have tested out the pipeline """
+										if image_resolution in ["3.6x"]:
 											logger.debug("This channel was imaged with the SmartSPIM")
 											logger.debug(image_resolution)
 											logger.debug(channel_name)
@@ -968,6 +969,12 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 												logger.debug(stitching_kwargs)
 											else:
 												logger.debug("Not running stitching pipeline because we are in TEST mode")
+										
+										elif image_resolution in ["15x"]:
+											logger.debug("This channel was imaged SmartSPIM 15x")
+											logger.debug(image_resolution)
+											logger.debug(channel_name)
+											logger.debug("The stitching for this channel must be done manually for now")
 						""" Set imaging progress complete for this sample and 
 									update imaging performed date """
 						restrict_dict_imaging_request = {

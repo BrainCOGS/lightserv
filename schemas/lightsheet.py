@@ -134,7 +134,7 @@ class Request(dj.Manual):
     class ImagingResolutionRequest(dj.Part):
         definition = """ # Imaging parameters for a channel, belonging to a sample
         -> master.ImagingRequest
-        image_resolution                          :   enum("1.3x","4x","1.1x","2x","3.6x")
+        image_resolution                          :   enum("1.3x","4x","1.1x","2x","3.6x","15x")
         ----        
         microscope = NULL                         :   enum("LaVision","SmartSPIM")
         notes_for_imager = ""                     :   varchar(1024)
@@ -187,7 +187,7 @@ class Request(dj.Manual):
     class ProcessingResolutionRequest(dj.Part):
         definition = """ # Processing parameters at the image resolution level for a given ProcessingRequest(). These represent spock jobs
         -> master.ProcessingRequest
-        image_resolution                          :   enum("1.3x","4x","1.1x","2x","3.6x")
+        image_resolution                          :   enum("1.3x","4x","1.1x","2x","3.6x","15x")
         ventral_up = 0                            :   boolean # whether brain was flipped upside down to be imaged
         ----        
         atlas_name                                :   enum("allen_2017","allen_2011","princeton_mouse_atlas","paxinos")

@@ -1152,6 +1152,48 @@ def test_request_3p6x_smartspim_nonadmin(test_client,
 	print('-------Teardown test_request_3p6x_smartspim_nonadmin fixture --------')
 
 @pytest.fixture(scope='function') 
+def test_request_15x_smartspim_nonadmin(test_client,
+	test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits a new request as 'lightserv-user' with a single sample requesting 
+	to use 15x resolution on the Smartspim
+	that can be used for various tests.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_request_15x_smartspim_nonadmin fixture ----------')
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"nonadmin_15x_smartspim_request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'raw_data_retention_preference':"important",
+			'username':test_login_nonadmin['user'],
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'15x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-channel_name':'642',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_request_15x_smartspim_nonadmin fixture --------')
+
+
+@pytest.fixture(scope='function') 
 def test_request_2x_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
 	""" Submits a new request as 'lightserv-user' with a single sample requesting 2x resolution
 	that can be used for various tests.
@@ -1791,7 +1833,7 @@ def test_cleared_request_3p6x_smartspim_nonadmin(test_client,
 	Uses the test_delete_request_db_contents fixture, which means that 
 	all db entries are deleted upon teardown of this fixture
 	"""
-	print('----------Setup test_cleared_request_4x_nonadmin fixture ----------')
+	print('----------Setup test_cleared_request_3p6x_nonadmin fixture ----------')
 	now = datetime.now()
 	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
 		pbs_wash1_notes='some notes',submit=True)
@@ -1806,7 +1848,34 @@ def test_cleared_request_3p6x_smartspim_nonadmin(test_client,
 		)	
 
 	yield test_client # this is where the testing happens
-	print('-------Teardown test_cleared_request_4x_nonadmin fixture --------')
+	print('-------Teardown test_cleared_request_3p6x_nonadmin fixture --------')
+
+@pytest.fixture(scope='function') 
+def test_cleared_request_15x_smartspim_nonadmin(test_client,
+	test_request_15x_smartspim_nonadmin,test_login_ll3,test_delete_request_db_contents):
+	""" Clears the single request by 'lightserv-test' (with clearer='ll3')
+	where 15x resolution was requested 
+
+	Uses the test_delete_request_db_contents fixture, which means that 
+	all db entries are deleted upon teardown of this fixture
+	"""
+	print('----------Setup test_cleared_request_15_nonadmin fixture ----------')
+	now = datetime.now()
+	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		pbs_wash1_notes='some notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
+			request_name="nonadmin_15x_smartspim_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_cleared_request_15_nonadmin fixture --------')
+
 
 @pytest.fixture(scope='function') 
 def test_cleared_request_2x_nonadmin(test_client,
