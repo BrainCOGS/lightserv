@@ -83,7 +83,7 @@ class ChannelForm(FlaskForm):
 		elif self.image_resolution.data in ['2x','4x']:
 			if n_rows > 4 or n_columns > 4:
 				raise ValidationError("Tiling scheme must not exceed 4x4 for this resolution")
-		elif self.image_resolution.data == '3.6x' and (n_rows > 10 or n_columns > 10):
+		elif (self.image_resolution.data == '3.6x' or self.image_resolution.data == '15x') and (n_rows > 10 or n_columns > 10):
 				raise ValidationError("Tiling scheme must not exceed 10x10 for this resolution")
 
 	def validate_z_step(self,z_step):
@@ -127,7 +127,9 @@ class ImageResolutionForm(FlaskForm):
 
 	change_resolution = BooleanField("Change image resolution?",default=False)
 	new_image_resolution = SelectField('Select the new image resolution you want to use:',
-		choices=[("1.3x","1.3x"),("1.1x","1.1x"),("2x","2x"),("4x","4x"),("3.6x","3.6x")],validators=[Optional()])
+		choices=[("1.3x","1.3x"),("1.1x","1.1x"),
+		("2x","2x"),("4x","4x"),
+		("3.6x","3.6x"),("15x","15x")],validators=[Optional()])
 	update_resolution_button = SubmitField('Update')
 	new_channel_dropdown = SelectField("Add additional channel?",validators=[Optional()])
 	new_channel_purpose = SelectField("What type of imaging?",choices=[('registration','registration'),
@@ -336,7 +338,7 @@ class ChannelBatchForm(FlaskForm):
 		elif self.image_resolution.data in ['2x','4x']:
 			if n_rows > 4 or n_columns > 4:
 				raise ValidationError("Tiling scheme must not exceed 4x4 for this resolution")
-		elif self.image_resolution.data == '3.6x' and (n_rows > 10 or n_columns > 10):
+		elif (self.image_resolution.data == '3.6x' or self.image_resolution.data == '15x') and (n_rows > 10 or n_columns > 10):
 				raise ValidationError("Tiling scheme must not exceed 10x10 for this resolution")
 
 	def validate_z_step(self,z_step):

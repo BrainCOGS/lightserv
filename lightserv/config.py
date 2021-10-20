@@ -16,7 +16,7 @@ class BaseConfig(object):
 	IMAGING_ADMINS = ['ahoag','ll3','lightserv','sg3271','pnilsadmin','sj0470']
 	PROCESSING_ADMINS = ['ahoag','sg3271','sj0470']
 	LAVISION_RESOLUTIONS = ["1.1x","1.3x","2x","4x"]
-	SMARTSPIM_RESOLUTIONS = ["3.6x"]
+	SMARTSPIM_RESOLUTIONS = ["3.6x","15x"]
 	RESOLUTIONS_NO_PROCESSING = ["2x","3.6x","15x"] # resolutions we are not able to process
 	IMAGING_MODES = ['registration','injection_detection','probe_detection','cell_detection','generic_imaging']
 	LAVISION_IMAGING_CHANNELS = ['488','555','647','790']

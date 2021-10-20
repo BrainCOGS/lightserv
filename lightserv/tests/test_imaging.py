@@ -619,7 +619,6 @@ def test_skip_single_sample(test_client,
 	assert b'Imaging management GUI' in response_submit.data
 	assert b'Imaging for this batch is complete' in response_submit.data
 
-
 def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 	test_cleared_request_3p6x_smartspim_nonadmin,
 	test_login_imager):
@@ -803,6 +802,320 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 					  " in each tiling row folder, but found 5")
 
 	assert validation_str.encode('utf-8') in sample_response.data
+
+def test_imaging_batch_entry_form_15x_smartspim(test_client,
+	test_cleared_request_15x_smartspim_nonadmin,
+	test_login_imager):
+	""" Test that both the batch entry and an individual sample entry of the 
+	imaging batch entry form 
+	"""
+	username = 'lightserv-test'
+	request_name = 'nonadmin_15x_smartspim_request'
+	imaging_request_number = 1
+
+	""" First test the batch validation """
+	batch_data = {
+		'image_resolution_batch_forms-0-image_resolution':'15x',
+		'image_resolution_batch_forms-0-channel_forms-0-channel_name':'488',
+		'image_resolution_batch_forms-0-channel_forms-0-image_resolution':'15x',
+		'image_resolution_batch_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'image_resolution_batch_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'image_resolution_batch_forms-0-channel_forms-0-right_lightsheet_used':True,
+		'image_resolution_batch_forms-0-channel_forms-0-tiling_overlap':10,
+		'image_resolution_batch_forms-0-channel_forms-0-tiling_scheme':'9x11',
+		'image_resolution_batch_forms-0-channel_forms-0-z_step':'ab',
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'15x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'15x',
+		'apply_batch_parameters_button':True,
+		}
+		
+	batch_response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username=username,
+			request_name=request_name,
+			clearing_batch_number=1,
+			imaging_request_number=imaging_request_number,
+			imaging_batch_number=1),
+		data=batch_data,
+		follow_redirects=True)
+
+	assert b'Tiling scheme must not exceed 10x10 for this resolution' in batch_response.data
+	assert b'z_step must be a number' in batch_response.data
+	assert b'Tiling overlap must be a number between 0.0 and 1.0' in batch_response.data
+
+	""" Now test the individual sample validation """
+	sample_data = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'15x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'15x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':99,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'9x11',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':'ab',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3600,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488',
+		'sample_forms-0-submit':True
+		}
+	sample_response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username=username,
+			request_name=request_name,
+			clearing_batch_number=1,
+			imaging_request_number=imaging_request_number,
+			imaging_batch_number=1),
+		data=sample_data,
+		follow_redirects=True)
+	assert b'Tiling scheme must not exceed 10x10 for this resolution' in sample_response.data
+	assert b'z_step must be a number' in sample_response.data
+	assert b'Tiling overlap must be a number between 0.0 and 1.0' in sample_response.data
+
+	""" Test that the validation for counting expected versus
+	found z planes works for a SmartSPIM 15x request
+	"""
+	sample_data = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'15x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'15x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-right_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'3x5',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':2.0,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3600,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'test488', # intentionally the wrong folder
+		'sample_forms-0-submit':True
+		}
+	sample_response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username=username,
+			request_name=request_name,	
+			clearing_batch_number=1,
+			imaging_request_number=imaging_request_number,
+			imaging_batch_number=1),
+		data=sample_data,
+		follow_redirects=True)
+	n_rows = 3
+	n_row_dirs = 0
+	validation_str = (f"You entered that there should be {n_rows} tiling row folders in rawdata folder, "
+					  f"but found {n_row_dirs}")
+	assert validation_str.encode('utf-8') in sample_response.data
+
+	""" Test that when the wrong number of rows in the tiling scheme is provided a validation error is raised.
+	Correct tiling scheme is 3x5
+	"""
+	sample_data = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'15x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'15x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-right_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.1,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'5x3',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':2.0,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3600,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'Ex_488_Em_0',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'15x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-right_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.1,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'5x3',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':2.0,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':3600,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'Ex_642_Em_2',
+		'sample_forms-0-submit':True
+		}
+	sample_response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username=username,
+			request_name=request_name,
+			clearing_batch_number=1,
+			imaging_request_number=imaging_request_number,
+			imaging_batch_number=1),
+		data=sample_data,
+		follow_redirects=True)
+	n_rows = 5
+	n_row_dirs = 3
+	validation_str = (f"You entered that there should be {n_rows} tiling row folders in rawdata folder, "
+					  f"but found {n_row_dirs}")
+	assert validation_str.encode('utf-8') in sample_response.data
+
+	""" Test that when the correct number of rows but wrong number of columns in the tiling scheme
+	are provided a validation error is raised.
+	Correct tiling scheme is 3x5
+	"""
+	sample_data = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'15x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'15x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-right_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'3x8',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':2.0,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3600,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'Ex_488_Em_0',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'15x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-right_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.1,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'3x8',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':2.0,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':3600,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'Ex_642_Em_2',
+		'sample_forms-0-submit':True
+		}
+	sample_response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username=username,
+			request_name=request_name,
+			clearing_batch_number=1,
+			imaging_request_number=imaging_request_number,
+			imaging_batch_number=1),
+		data=sample_data,
+		follow_redirects=True)
+	validation_str = ("You entered that there should be 8 tiling column folders"
+					  " in each tiling row folder, but found 5")
+
+	assert validation_str.encode('utf-8') in sample_response.data
+
+	""" Test that a correct submission is successful
+	"""
+	sample_data = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'15x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'15x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-right_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.1,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'3x5',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':2.0,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3600,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'Ex_488_Em_0',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'642',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'15x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-right_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.1,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'3x5',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':2.0,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':3600,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'Ex_642_Em_2',
+		'sample_forms-0-notes_from_imaging':'some notes about my 15x request!',
+		'sample_forms-0-submit':True
+		}
+	
+	sample_response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username=username,
+			request_name=request_name,
+			clearing_batch_number=1,
+			imaging_request_number=imaging_request_number,
+			imaging_batch_number=1),
+		data=sample_data,
+		follow_redirects=True)
+
+	""" Check contents of db were updated """
+	restrict_dict_ch488 = dict(username=username,
+			request_name=request_name,
+			sample_name='sample-001',
+			image_resolution='15x',
+			channel_name='488')
+
+	imaging_channel_contents_ch488 = db_lightsheet.Request.ImagingChannel() & restrict_dict_ch488
+	number_of_z_planes,image_resolution = imaging_channel_contents_ch488.fetch1(
+			'number_of_z_planes','image_resolution')
+	assert number_of_z_planes == 3600
+	assert image_resolution == '15x'
+
+	rawdata_subfolder = imaging_channel_contents_ch488.fetch1('rawdata_subfolder')
+	assert rawdata_subfolder == 'Ex_488_Em_0'
+	
+	imaging_request_restrict_dict = dict(username=username,
+			request_name=request_name,
+			sample_name='sample-001',
+			imaging_request_number=1)
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & imaging_request_restrict_dict
+	assert imaging_request_contents.fetch1('imaging_progress') == "complete"
+	
+	""" Check that the sample subform is no longer available in the form upon reaccessing"""
+	response2 = test_client.get(url_for('imaging.imaging_batch_entry',
+			username=username,
+			request_name=request_name,
+			clearing_batch_number=1,
+			imaging_request_number=imaging_request_number,
+			imaging_batch_number=1),
+		follow_redirects=True)
+
+	assert b'Sample has been imaged' in response2.data
+	restrict_dict_resolution = dict(username=username,
+			request_name=request_name,
+			sample_name='sample-001',
+			image_resolution='15x')
+	
+	""" Check that notes from imaging for that sample were recorded in db """
+	imaging_resolution_request_contents = db_lightsheet.Request.ImagingResolutionRequest() & \
+		restrict_dict_resolution
+	notes_from_imaging = imaging_resolution_request_contents.fetch1('notes_from_imaging')
+	assert notes_from_imaging == 'some notes about my 15x request!'
+	
+	""" Check that imaging progress and imaging performed date were updated """
+	imaging_request_restrict_dict = restrict_dict_resolution = dict(username=username,
+			request_name=request_name,
+			sample_name='sample-001',
+			imaging_request_number=imaging_request_number)
+	imaging_request_contents = db_lightsheet.Request.ImagingRequest() & \
+		imaging_request_restrict_dict
+	imaging_progress, imaging_performed_date = imaging_request_contents.fetch1(
+		'imaging_progress','imaging_performed_date')
+	assert imaging_progress == 'complete'
+	assert imaging_performed_date == datetime.now().date()
 
 def test_changing_microscope_changes_channels(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
