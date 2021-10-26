@@ -500,7 +500,7 @@ def smartspim_stitch(**kwargs):
 	processing_code_dir = os.path.join(
 		current_app.config['PROCESSING_CODE_DIR'],
 		'smartspim')
-	pipeline_shell_script = 'spim_stitching_pipeline.sh'
+	pipeline_shell_script = 'spim_stitching_pipeline_parallel.sh'
 	""" Set up the communication with spock """
 
 	""" First get the git commit from brainpipe """
