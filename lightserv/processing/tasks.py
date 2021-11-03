@@ -549,6 +549,7 @@ def smartspim_stitch(**kwargs):
 
 		entry_dict = {}
 		entry_dict['username'] = username
+
 		if ii == 0:
 			n_jobids = 4
 			spockadmin_table = db_spockadmin.SmartspimStitchingSpockJob
@@ -560,6 +561,7 @@ def smartspim_stitch(**kwargs):
 		for jj in range(n_jobids):	
 			entry_dict[f'jobid_step{jj}'] = jobids[jj]
 			entry_dict[f'status_step{jj}'] = status
+
 		# exclude jobids from list that were just used for next time through the loop
 		jobids_list = jobids_list[n_jobids:]
 
@@ -1692,202 +1694,6 @@ def processing_job_status_checker_noreg():
 
 
 	return "Checked processing job statuses"
-
-@cel.task()
-def smartspim_stitching_job_status_checker():
-	""" 
-	A celery task that will be run in a schedule
-
-	Checks all outstanding smartspim stitching job statuses on spock
-	and updates their status in the db_spockadmin.SmartspimStitchingSpockJob()
-	in db_spockadmin
-	and SmartspimStitchedChannel() in db_lightsheet.
-
-	When the stitching pipeline is done, check to 
-	see if all channels in this resolution request are 
-	done stitching. If so, send the email to user
-	saying their data are stitched.
-
-	When one channel is done start the  
-	stitching precomputed pipeline 
-
-	"""
-	all_stitching_entries = db_lightsheet.Request.SmartspimStitchedChannel()
-   
-	""" First get all rows with latest timestamps """
-	job_contents = db_spockadmin.SmartspimStitchingSpockJob()
-	unique_contents = dj.U('jobid_step0','username',).aggr(
-		job_contents,timestamp='max(timestamp)')*job_contents
-	
-	""" Get a list of all jobs we need to check up on, i.e.
-	those that could conceivably change. Also list the problematic_codes
-	which will be used later for error reporting to the user.
-	"""
-
-	# static_codes = ('COMPLETED','FAILED','BOOT_FAIL','CANCELLED','DEADLINE','OUT_OF_MEMORY','REVOKED')
-	ongoing_codes = ('SUBMITTED','RUNNING','PENDING','REQUEUED','RESIZING','SUSPENDED')
-	incomplete_contents = unique_contents & f'status_step3 in {ongoing_codes}'
-	jobids = list(incomplete_contents.fetch('jobid_step3'))
-	if jobids == []:
-		return "No jobs to check"
-	jobids_str = ','.join(str(jobid) for jobid in jobids)
-	logger.debug(f"Outstanding job ids are: {jobids}")
-	
-	client = connect_to_spock()
-	
-	logger.debug("connected to spock")
-	try:
-		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
-		stdin, stdout, stderr = client.exec_command(command)
-
-		stdout_str = stdout.read().decode("utf-8")
-		logger.debug("The response from spock is:")
-		logger.debug(stdout_str)
-		response_lines = stdout_str.strip('\n').split('\n')
-		jobids_received = [x.split('|')[0].split('_')[0] for x in response_lines] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
-		status_codes_received = [x.split('|')[1] for x in response_lines]
-		logger.debug("Job ids received")
-		logger.debug(jobids_received)
-		logger.debug("Status codes received")
-		logger.debug(status_codes_received)
-		job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
-		job_insert_list = []
-	except:
-		logger.debug("Something went wrong fetching job statuses from spock.")
-		client.close()
-		return "Error fetching job statuses from spock"
-
-	""" Loop through outstanding jobs and determine their statuses """
-	for jobid,indices_list in job_status_indices_dict.items():
-		logger.debug(f"Working on jobid={jobid}")
-		job_insert_dict = {'jobid_step3':jobid}
-		status_codes = [status_codes_received[ii] for ii in indices_list]
-		status_step3 = determine_status_code(status_codes)
-		logger.debug(f"Status code for this job is: {status_step3}")
-		job_insert_dict['status_step3'] = status_step3
-		""" Find the username, other jobids associated with this jobid """
-		(username_thisjob,jobid_step0,jobid_step1,
-			jobid_step2) = (unique_contents & f'jobid_step3={jobid}').fetch1(
-			'username','jobid_step0','jobid_step1','jobid_step2')
-		job_insert_dict['username']=username_thisjob
-		job_insert_dict['jobid_step0']=jobid_step0
-		job_insert_dict['jobid_step1']=jobid_step1
-		job_insert_dict['jobid_step2']=jobid_step2
-		jobid_step_dict = {'step0':jobid_step0,'step1':jobid_step1,'step2':jobid_step2}
-
-		""" Get the lightsheet SmartspimStitchedChannel() entry associated with this jobid
-		and update the progress """
-		this_stitching_content = all_stitching_entries & \
-			f'smartspim_stitching_spock_jobid={jobid}'
-		if len(this_stitching_content) == 0:
-			logger.debug("No entry found in SmartspimStitchedChannel() table")
-			continue
-		logger.debug("this stitching content:")
-		logger.debug(this_stitching_content)
-		this_stitching_dict = this_stitching_content.fetch1()
-		replace_stitching_dict =  this_stitching_dict.copy()
-		replace_stitching_dict['smartspim_stitching_spock_job_progress'] = status_step3
-		try:
-			db_lightsheet.Request.SmartspimStitchedChannel.insert1(replace_stitching_dict,replace=True)
-			logger.debug("Updated smartspim_stitching_spock_job_progress in SmartspimStitchedChannel() table ")
-		except Exception:
-			logger.debug("Unable to update spock job progress possibly due to an Integrity Error. If a pystripe child entry exists then you cannot replace the parent. ")
-		
-		""" Now figure out the status codes for the earlier dependency jobs """
-		this_run_earlier_jobids_str = ','.join([jobid_step0,jobid_step1,jobid_step2])
-		try:
-			command_earlier_steps = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(this_run_earlier_jobids_str)
-			stdin_earlier_steps, stdout_earlier_steps, stderr_earlier_steps = client.exec_command(command_earlier_steps)
-		except:
-			logger.debug("Something went wrong fetching steps 0-2 job statuses from spock.")
-			client.close()
-			return "Error fetching steps 0-2 job statuses from spock"
-		stdout_str_earlier_steps = stdout_earlier_steps.read().decode("utf-8")
-		try:
-			response_lines_earlier_steps = stdout_str_earlier_steps.strip('\n').split('\n')
-			jobids_received_earlier_steps = [x.split('|')[0].split('_')[0] for x in response_lines_earlier_steps] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
-			status_codes_received_earlier_steps = [x.split('|')[1] for x in response_lines_earlier_steps]
-		except:
-			logger.debug("Something went wrong parsing output of sacct query for steps 0-2 on spock")
-			client.close()
-			return "Error parsing sacct query of jobids for steps 0-2 on spock"
-
-		job_status_indices_dict_earlier_steps = {jobid:[i for i, x in enumerate(jobids_received_earlier_steps) \
-			if x == jobid] for jobid in set(jobids_received_earlier_steps)} 
-		""" Loop through the earlier steps and figure out their statuses """
-		logger.debug("looping through steps 0-2 to figure out statuses")
-		for step_counter in range(3):
-		# for jobid_earlier_step,indices_list_earlier_step in job_status_indices_dict_earlier_steps.items():
-			step = f'step{step_counter}'
-			jobid_earlier_step = jobid_step_dict[step]
-			indices_list_earlier_step = job_status_indices_dict_earlier_steps[jobid_earlier_step]
-			status_codes_earlier_step = [status_codes_received_earlier_steps[ii] for ii in indices_list_earlier_step]
-			status = determine_status_code(status_codes_earlier_step)
-			status_step_str = f'status_step{step_counter}'
-			job_insert_dict[status_step_str] = status
-			logger.debug(f"status of {step} is {status}")
-			step_counter +=1 
-		logger.debug("done with earlier steps")
-		""" If this pipeline run is now 100 percent complete,
-		figure out if all of the other pipeline runs 
-		that exist for this same processing request
-		are also complete.
-		If so, then update the processing progress 
-		and email the user"""
-		
-		if status_step3 == 'COMPLETED':
-			# update datetime stitching completed
-			this_stitching_content = all_stitching_entries & \
-				f'smartspim_stitching_spock_jobid={jobid}'
-			now = datetime.now()
-			this_stitching_dict = this_stitching_content.fetch1()
-			replace_stitching_dict =  this_stitching_dict.copy()
-			replace_stitching_dict['datetime_stitching_completed'] = now
-			try:
-				db_lightsheet.Request.SmartspimStitchedChannel.insert1(replace_stitching_dict,replace=True)
-				logger.debug("Updated datetime_stitching_completed in SmartspimStitchedChannel() table ")
-			except:
-				logger.debug("Unable to update datetime_stitching_completed possibly due to an Integrity Error. If a pystripe child entry exists then you cannot replace the parent. ")
-
-		elif status_step3 in ["CANCELLED","FAILED"]:
-			data_bucket_rootpath = current_app.config["DATA_BUCKET_ROOTPATH"]
-			this_stitching_content = all_stitching_entries & \
-				f'smartspim_stitching_spock_jobid={jobid}'
-			this_stitching_dict = this_stitching_content.fetch1()
-			username = this_stitching_dict['username']
-			request_name = this_stitching_dict['request_name']
-			sample_name = this_stitching_dict['sample_name']
-			imaging_request_number = this_stitching_dict['imaging_request_number']
-			image_resolution = this_stitching_dict['image_resolution']
-			channel_name = this_stitching_dict['channel_name']
-			ventral_up = this_stitching_dict['ventral_up']
-			subject = 'Lightserv automated email: Smartspim stitching pipeline FAILED.'
-			body = ('The stitching pipeline failed to start for:\n\n'
-					f'username: {username}\n'
-					f'request_name: {request_name}\n\n'
-					f'sample_name: {sample_name}\n\n'
-					f'imaging_request_number: {imaging_request_number}\n\n'
-					f'image_resolution: {image_resolution}\n\n'
-					f'channel_name: {channel_name}\n\n'
-					f'ventral_up: {ventral_up}\n\n'
-					f'Spock job info: {prettyprinter(job_insert_dict)}'
-					)
-
-			recipients = [x+'@princeton.edu' for x in current_app.config['PROCESSING_ADMINS']]
-			if not os.environ['FLASK_MODE'] == 'TEST':
-				send_email.delay(subject=subject,body=body,recipients=recipients)
-		job_insert_list.append(job_insert_dict)
-
-	logger.debug("Insert list:")
-	logger.debug(job_insert_list)
-	db_spockadmin.SmartspimStitchingSpockJob.insert(job_insert_list)
-	logger.debug("Entry in SmartspimStitchingSpockJob() admin table with latest status")
-
-	client.close()
-
-	# for each running process, find all jobids in the processing resolution request tables
-	return "Checked processing job statuses"
-
 
 @cel.task()
 def spock_job_status_checker(spock_dbtable_str,
