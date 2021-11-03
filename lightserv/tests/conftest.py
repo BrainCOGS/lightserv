@@ -2627,15 +2627,21 @@ def smartspim_stitched_request(test_client,
 	sample_name='sample-001'
 	imaging_request_number=1
 	image_resolution = '3.6x'
+	n_channels = 1
 	channel_name = '488'
 	ventral_up = 0
 	rawdata_subfolder = 'Ex_488_Em_0'
 	stitching_kwargs = dict(username=username,request_name=request_name,
 							sample_name=sample_name,imaging_request_number=imaging_request_number,
 							image_resolution=image_resolution,
-							channel_name=channel_name,
-							ventral_up=ventral_up,
-							rawdata_subfolder=rawdata_subfolder)
+							n_channels=n_channels,
+							channel_dict={
+								channel_name:{
+									'ventral_up':ventral_up,
+									'rawdata_subfolder':rawdata_subfolder
+									}
+								}
+							)
 	tasks.smartspim_stitch.run(**stitching_kwargs)
 	# Now update the stitching status
 	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel() & stitching_kwargs
