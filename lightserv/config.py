@@ -197,17 +197,35 @@ class ProdConfig(BaseConfig):
 		'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
 		'schedule': timedelta(minutes=12)
 		},
-		'smartspim_stitching_job_status_checker': {
-		'task': 'lightserv.processing.tasks.smartspim_stitching_job_status_checker',
-		'schedule': timedelta(minutes=10)
-		},
 		'smartspim_pystripe_job_status_checker': {
 		'task': 'lightserv.processing.tasks.smartspim_pystripe_job_status_checker',
 		'schedule': timedelta(minutes=20)
 		},
+		'smartspim_corrected_precomputed_job_status_checker': {
+		'task': 'lightserv.processing.tasks.smartspim_corrected_precomputed_job_status_checker',
+		'schedule': timedelta(minutes=10)
+		},
 		'LightSheetData_storage_capacity_checker': {
 		'task': 'lightserv.main.tasks.check_lightsheetdata_storage',
 		'schedule': crontab(hour=8, minute=30) # 8:30 AM every day
+		},
+		'smartspim_stitching_job_status_checker': {
+		'task': 'lightserv.processing.tasks.spock_job_status_checker',
+		'schedule': timedelta(minutes=15),
+		'kwargs':dict(
+			spock_dbtable_str='SmartspimStitchingSpockJob',
+			lightsheet_dbtable_str='Request.SmartspimStitchedChannel',
+			lightsheet_column_name='smartspim_stitching_spock_jobid',
+			max_step_index=3)
+		},
+		'smartspim_dependent_stitching_job_status_checker': {
+		'task': 'lightserv.processing.tasks.spock_job_status_checker',
+		'schedule': timedelta(minutes=20),
+		'kwargs':dict(
+			spock_dbtable_str='SmartspimDependentStitchingSpockJob',
+			lightsheet_dbtable_str='Request.SmartspimStitchedChannel',
+			lightsheet_column_name='smartspim_stitching_spock_jobid',
+			max_step_index=2)
 		},
 		
 	}
