@@ -1152,6 +1152,47 @@ def test_request_3p6x_smartspim_nonadmin(test_client,
 	print('-------Teardown test_request_3p6x_smartspim_nonadmin fixture --------')
 
 @pytest.fixture(scope='function') 
+def test_request_3p6x_smartspim_twochannels_nonadmin(test_client,
+	test_login_nonadmin,test_delete_request_db_contents):
+	""" Submits a new request as 'lightserv-user' with a single sample requesting 
+	to use 3.6x resolution on the Smartspim with 488 and 642
+	that can be used for various tests.
+
+	It uses the test_delete_request_db_contents fixture, which means that 
+	the entry is deleted as soon as the test has been run
+	"""
+	print('----------Setup test_request_3p6x_smartspim_twochannels_nonadmin fixture ----------')
+	with test_client.session_transaction() as sess:
+		current_user = sess['user']
+	response = test_client.post(
+		url_for('requests.new_request'),data={
+			'labname':"Wang",'correspondence_email':"test@demo.com",
+			'request_name':"nonadmin_3p6x_smartspim_twochannels_request",
+			'description':"This is a demo request",
+			'species':"mouse",'number_of_samples':1,
+			'raw_data_retention_preference':"important",
+			'username':test_login_nonadmin['user'],
+			'clearing_samples-0-expected_handoff_date':today_proper_format,
+			'clearing_samples-0-perfusion_date':today_proper_format,
+			'clearing_samples-0-clearing_protocol':'iDISCO abbreviated clearing',
+			'clearing_samples-0-sample_name':'sample-001',
+			'imaging_samples-0-image_resolution_forms-0-image_resolution':'3.6x',
+			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
+			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
+			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-cell_detection':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-channel_name':'642',
+			'submit':True
+			},content_type='multipart/form-data',
+			follow_redirects=True
+		)	
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_request_3p6x_smartspim_twochannels_nonadmin fixture --------')
+
+
+@pytest.fixture(scope='function') 
 def test_request_15x_smartspim_nonadmin(test_client,
 	test_login_nonadmin,test_delete_request_db_contents):
 	""" Submits a new request as 'lightserv-user' with a single sample requesting 
@@ -1191,7 +1232,6 @@ def test_request_15x_smartspim_nonadmin(test_client,
 
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_request_15x_smartspim_nonadmin fixture --------')
-
 
 @pytest.fixture(scope='function') 
 def test_request_2x_nonadmin(test_client,test_login_nonadmin,test_delete_request_db_contents):
@@ -1851,6 +1891,33 @@ def test_cleared_request_3p6x_smartspim_nonadmin(test_client,
 	print('-------Teardown test_cleared_request_3p6x_nonadmin fixture --------')
 
 @pytest.fixture(scope='function') 
+def test_cleared_request_3p6x_smartspim_twochannels_nonadmin(test_client,
+	test_request_3p6x_smartspim_twochannels_nonadmin,
+	test_login_ll3,test_delete_request_db_contents):
+	""" Clears the single request by 'lightserv-test' (with clearer='ll3')
+	where 3p6x resolution was requested with two channels
+
+	Uses the test_delete_request_db_contents fixture, which means that 
+	all db entries are deleted upon teardown of this fixture
+	"""
+	print('----------Setup test_cleared_request_3p6x_twochannels_nonadmin fixture ----------')
+	now = datetime.now()
+	data = dict(time_pbs_wash1=now.strftime('%Y-%m-%dT%H:%M'),
+		pbs_wash1_notes='some notes',submit=True)
+
+	response = test_client.post(url_for('clearing.clearing_entry',username="lightserv-test",
+			request_name="nonadmin_3p6x_smartspim_twochannels_request",
+			clearing_protocol="iDISCO abbreviated clearing",
+			antibody1="",antibody2="",
+			clearing_batch_number=1),
+		data = data,
+		follow_redirects=True,
+		)	
+
+	yield test_client # this is where the testing happens
+	print('-------Teardown test_cleared_request_3p6x_twochannels_nonadmin fixture --------')
+
+@pytest.fixture(scope='function') 
 def test_cleared_request_15x_smartspim_nonadmin(test_client,
 	test_request_15x_smartspim_nonadmin,test_login_ll3,test_delete_request_db_contents):
 	""" Clears the single request by 'lightserv-test' (with clearer='ll3')
@@ -1875,7 +1942,6 @@ def test_cleared_request_15x_smartspim_nonadmin(test_client,
 
 	yield test_client # this is where the testing happens
 	print('-------Teardown test_cleared_request_15_nonadmin fixture --------')
-
 
 @pytest.fixture(scope='function') 
 def test_cleared_request_2x_nonadmin(test_client,
@@ -2129,6 +2195,83 @@ def test_imaged_smartspim_request_nonadmin(test_client,
 		sess['user'] = 'lightserv-test'
 	yield test_client
 	print('----------Teardown test_imaged_smartspim_request_nonadmin fixture ----------')
+
+@pytest.fixture(scope='function') 
+def test_imaged_smartspim_request_twochannels_nonadmin(test_client,
+	test_cleared_request_3p6x_smartspim_twochannels_nonadmin,
+	test_delete_request_db_contents,test_login_imager):
+	""" Images the cleared request by 'lightserv-test' (clearer='ll3')
+	with imager=imaging admin """
+
+	print('----------Setup test_imaged_smartspim_request_twochannels_nonadmin fixture ----------')
+	username='lightserv-test'
+	request_name = 'nonadmin_3p6x_smartspim_twochannels_request'
+	imaging_request_number=1
+
+	imager = current_app.config['IMAGING_ADMINS'][-1] 
+	with test_client.session_transaction() as sess:
+		sess['user'] = imager
+
+	""" First submit sample 1 """
+	data1 = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-right_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.1,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'3x5',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3300,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'Ex_488_Em_0',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'642',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-right_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.1,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'3x5',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':2,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':3300,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'Ex_642_Em_2',
+		'sample_forms-0-submit':True
+		}
+	response1 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username=username,
+			request_name=request_name,
+			clearing_batch_number=1,
+			imaging_request_number=imaging_request_number,
+			imaging_batch_number=1),
+		data=data1,
+		follow_redirects=True)
+	
+	data2 = {
+		'submit':True
+		}
+
+	response2 = test_client.post(url_for('imaging.imaging_batch_entry',
+			username=username,
+			request_name=request_name,
+			clearing_batch_number=1,
+			imaging_request_number=imaging_request_number,
+			imaging_batch_number=1),
+		data=data2,
+		follow_redirects=True)
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
+	yield test_client
+	print('----------Teardown test_imaged_smartspim_request_twochannels_nonadmin fixture ----------')
+
 
 @pytest.fixture(scope='function') 
 def test_request_resolution_switched_nonadmin(test_client,test_cleared_request_nonadmin,
@@ -2627,15 +2770,21 @@ def smartspim_stitched_request(test_client,
 	sample_name='sample-001'
 	imaging_request_number=1
 	image_resolution = '3.6x'
+	n_channels = 1
 	channel_name = '488'
 	ventral_up = 0
 	rawdata_subfolder = 'Ex_488_Em_0'
 	stitching_kwargs = dict(username=username,request_name=request_name,
 							sample_name=sample_name,imaging_request_number=imaging_request_number,
 							image_resolution=image_resolution,
-							channel_name=channel_name,
-							ventral_up=ventral_up,
-							rawdata_subfolder=rawdata_subfolder)
+							n_channels=n_channels,
+							channel_dict={
+								channel_name:{
+									'ventral_up':ventral_up,
+									'rawdata_subfolder':rawdata_subfolder
+									}
+								}
+							)
 	tasks.smartspim_stitch.run(**stitching_kwargs)
 	# Now update the stitching status
 	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel() & stitching_kwargs
@@ -2647,6 +2796,55 @@ def smartspim_stitched_request(test_client,
 	yield test_client
 
 	print('----------Teardown smartspim_stitched_request fixture ----------')
+
+@pytest.fixture(scope='function')
+def smartspim_multichannel_stitched_request(test_client,
+	test_imaged_smartspim_request_twochannels_nonadmin):
+	""" A fixture that runs the stitching task synchronously.
+	Submits a test job to spock
+	and makes an entry into the spockadmin db to testing 
+	of job status checkers. """
+	print('----------Setup smartspim_multichannel_stitched_request fixture----------')
+
+	from lightserv.processing import tasks
+	username='lightserv-test'
+	request_name='nonadmin_3p6x_smartspim_twochannels_request'
+	sample_name='sample-001'
+	imaging_request_number=1
+	image_resolution = '3.6x'
+	ventral_up = 0
+	n_channels = 2
+	channel_name1 = '488'
+	rawdata_subfolder1 = 'Ex_488_Em_0'
+	channel_name2 = '642'
+	rawdata_subfolder2 = 'Ex_642_Em_2'
+	stitching_kwargs = dict(username=username,request_name=request_name,
+							sample_name=sample_name,imaging_request_number=imaging_request_number,
+							image_resolution=image_resolution,
+							n_channels=n_channels,
+							channel_dict={
+								channel_name1:{
+									'ventral_up':ventral_up,
+									'rawdata_subfolder':rawdata_subfolder1
+									},
+									channel_name2:{
+									'ventral_up':ventral_up,
+									'rawdata_subfolder':rawdata_subfolder2
+									}
+								}
+							)
+	tasks.smartspim_stitch.run(**stitching_kwargs)
+	# Now update the stitching status
+	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel() & stitching_kwargs
+
+	stitching_update_dict_list = stitching_contents.fetch(as_dict=True)
+	for stitching_update_dict in stitching_update_dict_list: 
+		stitching_update_dict['smartspim_stitching_spock_job_progress'] = "COMPLETED"
+		db_lightsheet.Request.SmartspimStitchedChannel().update1(stitching_update_dict)
+	yield test_client
+
+	print('----------Teardown smartspim_multichannel_stitched_request fixture ----------')
+
 
 ###############################
 """ Fixtures for processing """

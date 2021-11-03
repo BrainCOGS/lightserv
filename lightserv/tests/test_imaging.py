@@ -479,7 +479,6 @@ def test_imaging_batch_entry_form_single_sample(test_client,
 	assert imaging_progress == 'complete'
 	assert imaging_performed_date == datetime.now().date()
 
-
 def test_skip_single_sample(test_client,
 	test_cleared_multisample_multichannel_request_nonadmin,
 	test_login_imager):
@@ -802,6 +801,64 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 					  " in each tiling row folder, but found 5")
 
 	assert validation_str.encode('utf-8') in sample_response.data
+
+def test_imaging_batch_entry_form_3p6x_smartspim_twochannels(test_client,
+	test_cleared_request_3p6x_smartspim_twochannels_nonadmin,
+	test_login_imager):
+	
+	username = 'lightserv-test'
+	request_name = 'nonadmin_3p6x_smartspim_twochannels_request'
+	imaging_request_number = 1
+
+
+	""" Test that when the correct number of rows but wrong number of columns in the tiling scheme
+	are provided a validation error is raised.
+	Correct tiling scheme is 3x5
+	"""
+	sample_data = {
+		'sample_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-channel_name':'488',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-right_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.1,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'3x5',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':2.0,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3300,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'Ex_488_Em_0',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-sample_name':'sample-001',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-imaging_request_number':imaging_request_number,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-channel_name':'642',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_resolution':'3.6x',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-image_orientation':'horizontal',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-right_lightsheet_used':True,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.1,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'3x5',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':2.0,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':3300,
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'Ex_642_Em_2',
+		'sample_forms-0-submit':True
+		}
+	sample_response = test_client.post(url_for('imaging.imaging_batch_entry',
+			username=username,
+			request_name=request_name,
+			clearing_batch_number=1,
+			imaging_request_number=imaging_request_number,
+			imaging_batch_number=1),
+		data=sample_data,
+		follow_redirects=True)
+
+	assert b"Imaging entry for sample sample-001 was successful" in sample_response.data
+
 
 def test_imaging_batch_entry_form_15x_smartspim(test_client,
 	test_cleared_request_15x_smartspim_nonadmin,
@@ -3211,7 +3268,6 @@ def test_raw_precomputed_pipeline(test_imaged_request_ahoag,test_delete_spockadm
 		spock_table_contents,timestamp='max(timestamp)')*spock_table_contents
 	status_step2 = most_recent_contents.fetch1('status_step2')
 	assert status_step2 == 'COMPLETED'
-
 
 def test_raw_precomputed_pipeline_starts_ventral_up_imaging(test_client,
 	test_imaged_request_dorsal_up_and_ventral_up_nonadmin,

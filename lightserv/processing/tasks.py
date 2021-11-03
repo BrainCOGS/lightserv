@@ -1,7 +1,7 @@
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup, current_app,jsonify)
-from lightserv.main.utils import mymkdir,prettyprinter
+from lightserv.main.utils import mymkdir,prettyprinter,db_table_determiner
 from lightserv.processing.utils import determine_status_code
 from lightserv import cel, db_lightsheet, db_spockadmin
 from lightserv.main.tasks import (send_email, send_admin_email,
@@ -424,110 +424,79 @@ def run_lightsheet_pipeline(username,request_name,
 @cel.task()
 def smartspim_stitch(**kwargs):
 	""" An asynchronous celery task (runs in a background process) which
-	runs a script on spock to stitch smartspim images for a given 
-	imaging channel
+	runs a script on spock to stitch smartspim images for a single resolution
 	"""
 	username=kwargs['username']
 	request_name=kwargs['request_name']
 	sample_name=kwargs['sample_name']
-	channel_name=kwargs['channel_name']
 	imaging_request_number=kwargs['imaging_request_number']
-	ventral_up=kwargs['ventral_up']
 	image_resolution=kwargs['image_resolution']
-	rawdata_subfolder=kwargs['rawdata_subfolder']
+	n_channels = kwargs['n_channels']
 
-	stitching_channel_insert_dict = {
-		'username':username,
-		'request_name':request_name,
-		'sample_name':sample_name,
-		'imaging_request_number':imaging_request_number,
-		'image_resolution':image_resolution,
-		'channel_name':channel_name,
-		'ventral_up':ventral_up,
-	}
-	
-	if ventral_up:
-		rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
-				username,request_name,sample_name,
-				f"imaging_request_{imaging_request_number}",
-				'rawdata',
-				f"resolution_{image_resolution}_ventral_up",
-				rawdata_subfolder)
-		stitched_output_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
-				username,request_name,sample_name,
-				f"imaging_request_{imaging_request_number}",
-				'rawdata',
-				f"resolution_{image_resolution}_ventral_up",
-				rawdata_subfolder + '_stitched')
-	else:
-		rawdata_path = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
-				username,request_name,sample_name,
-				f"imaging_request_{imaging_request_number}",
-				'rawdata',
-				f"resolution_{image_resolution}",
-				rawdata_subfolder)
-		stitched_output_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
-				username,request_name,sample_name,
-				f"imaging_request_{imaging_request_number}",
-				'rawdata',
-				f"resolution_{image_resolution}",
-				rawdata_subfolder + '_stitched')
-	# Check to see if this directory already exists and has data in it. 
-	# If it already does, then we don't want to re-do the stitching
-	if os.path.exists(stitched_output_dir):
-		if os.listdir(stitched_output_dir) != []:
-			logger.info("Stitching was already started for this channel")
-			# See if there is an entry in the db for this stitched channel
-			stitching_contents_this_channel = db_lightsheet.Request.SmartspimStitchedChannel() & \
-				stitching_channel_insert_dict
-			# If there are contents already then leave them alone. 
-			# If not, create an entry with COMPLETED status 
-			if len(stitching_contents_this_channel) == 0:
-				now = datetime.now()
-				stitching_channel_insert_dict['datetime_stitching_started'] = now
-				stitching_channel_insert_dict['datetime_stitching_completed'] = now
-				stitching_channel_insert_dict['smartspim_stitching_spock_job_progress'] = 'COMPLETED'
-				db_lightsheet.Request.SmartspimStitchedChannel().insert1(stitching_channel_insert_dict)
-				logger.debug("Made a new entry into SmartspimStitchedChannel()")
-			else:
-				logger.debug("Entry already exists for this channel in SmartspimStitchedChannel()")
-			return "Stitching was already started for this channel"
-	# Make stitched output dir 
-	mymkdir(stitched_output_dir)
-	
-	""" Now run spim_stitch via paramiko """
+	command_str = f'spim_stitching_pipeline_multichannel.sh {n_channels}'
 
+	# Loop through channels in alphanumeric order (so that lower wavelength channels are first)
+	# and add rawdata_path and stitched_output_dir to command_str
+	for channel_name in sorted(kwargs['channel_dict'].keys()):
+		channel_dict = kwargs['channel_dict'][channel_name]
+		ventral_up=channel_dict['ventral_up']
+		rawdata_subfolder=channel_dict['rawdata_subfolder']
+
+		rawdata_rootpath = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
+					username,request_name,sample_name,
+					f"imaging_request_{imaging_request_number}",
+					'rawdata')
+		if ventral_up:
+					rawdata_path = os.path.join(rawdata_rootpath,
+						f"resolution_{image_resolution}_ventral_up",
+						rawdata_subfolder)
+					stitched_output_dir = os.path.join(rawdata_rootpath,
+							f"resolution_{image_resolution}_ventral_up",
+							rawdata_subfolder + '_stitched')
+		else:
+			rawdata_path = os.path.join(rawdata_rootpath,
+					f"resolution_{image_resolution}",
+					rawdata_subfolder)
+			stitched_output_dir = os.path.join(rawdata_rootpath,
+					f"resolution_{image_resolution}",
+					rawdata_subfolder + '_stitched')		
+				
+		command_str += f' {rawdata_path} {stitched_output_dir}'
+		# Make stitched output dir 
+		mymkdir(stitched_output_dir)
+	
+	# Now run stitching pipeline 
 	processing_code_dir = os.path.join(
 		current_app.config['PROCESSING_CODE_DIR'],
 		'smartspim')
-	pipeline_shell_script = 'spim_stitching_pipeline_parallel.sh'
-	""" Set up the communication with spock """
 
-	""" First get the git commit from brainpipe """
+	# First get the git commit from brainpipe 
 	command_get_commit = f'cd {processing_code_dir}; git rev-parse --short HEAD'
 	
 	if os.environ['FLASK_MODE'] == 'TEST' or os.environ['FLASK_MODE'] == 'DEV':        
-		command = f"""cd {processing_code_dir}/testing;./test_stitching.sh"""
+		command = f"""cd {processing_code_dir}/testing;./test_stitching.sh {n_channels}"""
 	else:
 		command = """cd %s;%s/%s %s %s""" % \
 		(
 			processing_code_dir,
 			processing_code_dir,
-			pipeline_shell_script,
-			rawdata_path,
-			stitched_output_dir,
+			command_str
 		)
+
+	logger.debug("Running command:")
+	logger.debug(command)
 	try:
 		client = connect_to_spock()
 	except paramiko.ssh_exception.AuthenticationException:
 		logger.info(f"Failed to connect to spock to start job. ")
-		stitching_channel_insert_dict['smartspim_stitching_spock_job_progress'] = 'NOT_SUBMITTED'
 		# Send email alerting processing admins
 		subject = 'Lightserv automated email: Smartspim stitching FAILED to start.'
 		body = ('The stitching pipeline failed to start for:\n\n'
 				f'username: {username}\n'
 				f'request_name: {request_name}\n\n'
-				f'rawdata_path: {rawdata_fullpath}\n\n'
+				f'sample_name: {sample_name}\n\n'
+				f'imaging_request: {imaging_request_number}\n\n'
+				f'image_resolution: {image_resolution}\n\n'
 				f'This is likely due to a problem with Lightserv connecting to spock.'
 				)
 
@@ -535,15 +504,22 @@ def smartspim_stitch(**kwargs):
 		if not os.environ['FLASK_MODE'] == 'TEST':
 			send_email.delay(subject=subject,body=body,recipients=recipients)
 
-		db_lightsheet.Request.SmartspimStitchedChannel().insert1(
-			stitching_channel_insert_dict) 
 		return "FAILED"
+
+	# Grab brainpipe commit
+	stdin_commit, stdout_commit, stderr_commit = client.exec_command(command_get_commit)
+	brainpipe_commit = str(stdout_commit.read().decode("utf-8").strip('\n'))
+	logger.debug("BRAINPIPE COMMIT")
+	logger.debug(brainpipe_commit)
+
 	logger.debug("Command:")
 	logger.debug(command)
+	
 	stdin, stdout, stderr = client.exec_command(command)
 	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
 	logger.debug("Stdout Response:")
 	logger.debug(response)
+	
 	error_response = str(stderr.read().decode("utf-8"))
 	if error_response:
 		logger.debug("Stderr Response:")
@@ -563,44 +539,56 @@ def smartspim_stitch(**kwargs):
 
 	else:
 		logger.debug("No Stderr Response")
-	logger.debug("")
-	status = 'SUBMITTED'
-	entry_dict = {}
-	jobid_step0, jobid_step1, jobid_step2, jobid_step3 = response.split('\n')
-	entry_dict['username'] = username
-	entry_dict['jobid_step3'] = jobid_step3
-	entry_dict['jobid_step2'] = jobid_step2
-	entry_dict['jobid_step1'] = jobid_step1
-	entry_dict['jobid_step0'] = jobid_step0
-	entry_dict['status_step0'] = status
-	entry_dict['status_step1'] = status
-	entry_dict['status_step2'] = status
-	entry_dict['status_step3'] = status 
-
-	""" Update the job status table in spockadmin schema """
-	logger.debug(entry_dict)
-	db_spockadmin.SmartspimStitchingSpockJob.insert1(entry_dict)    
-	logger.info(f"SmartspimStitchingSpockJob() entry successfully inserted, jobid (step 0): {jobid_step0}")
-
-	""" Update the request tables in lightsheet schema """ 
-	jobid_final_step = jobid_step3 
-
-	stitching_channel_insert_dict['smartspim_stitching_spock_jobid'] = jobid_final_step
-	stitching_channel_insert_dict['smartspim_stitching_spock_job_progress'] = 'SUBMITTED'
-
-	""" Get the brainpipe commit and add it to processing request contents table """
 	
-	stdin_commit, stdout_commit, stderr_commit = client.exec_command(command_get_commit)
-	brainpipe_commit = str(stdout_commit.read().decode("utf-8").strip('\n'))
-	logger.debug("BRAINPIPE COMMIT")
-	logger.debug(brainpipe_commit)
-	stitching_channel_insert_dict['brainpipe_commit'] = brainpipe_commit
-	now = datetime.now()
-	stitching_channel_insert_dict['datetime_stitching_started'] = now
-	logger.debug("inserting into SmartspimStitchedChannel():")
-	logger.debug(stitching_channel_insert_dict)
-	db_lightsheet.Request.SmartspimStitchedChannel().insert1(
-			stitching_channel_insert_dict) 
+	status = 'SUBMITTED'
+	jobids_list = response.split('\n')
+	
+	for ii,channel_name in enumerate(sorted(kwargs['channel_dict'].keys())):
+		channel_dict = kwargs['channel_dict'][channel_name]
+		ventral_up = channel_dict['ventral_up']
+
+		entry_dict = {}
+		entry_dict['username'] = username
+		if ii == 0:
+			n_jobids = 4
+			spockadmin_table = db_spockadmin.SmartspimStitchingSpockJob
+		else:
+			n_jobids=3
+			spockadmin_table = db_spockadmin.SmartspimDependentStitchingSpockJob
+
+		jobids = jobids_list[0:n_jobids]
+		for jj in range(n_jobids):	
+			entry_dict[f'jobid_step{jj}'] = jobids[jj]
+			entry_dict[f'status_step{jj}'] = status
+		# exclude jobids from list that were just used for next time through the loop
+		jobids_list = jobids_list[n_jobids:]
+
+		""" Update the job status table in spockadmin schema """
+		logger.debug(entry_dict)
+		spockadmin_table.insert1(entry_dict)    
+		logger.info(f"{spockadmin_table}() entry successfully inserted, jobid (step 0): {jobids[0]}")
+
+		""" Update the request tables in lightsheet schema """ 
+		jobid_final_step = jobids[-1] 
+		stitching_channel_insert_dict = {
+			'username':username,
+			'request_name':request_name,
+			'sample_name':sample_name,
+			'imaging_request_number':imaging_request_number,
+			'image_resolution':image_resolution,
+			'channel_name':channel_name,
+			'ventral_up':ventral_up,
+		}
+		stitching_channel_insert_dict['smartspim_stitching_spock_jobid'] = jobid_final_step
+		stitching_channel_insert_dict['smartspim_stitching_spock_job_progress'] = status	
+		stitching_channel_insert_dict['brainpipe_commit'] = brainpipe_commit
+		now = datetime.now()
+		stitching_channel_insert_dict['datetime_stitching_started'] = now
+
+		logger.debug("inserting into SmartspimStitchedChannel():")
+		logger.debug(stitching_channel_insert_dict)
+		db_lightsheet.Request.SmartspimStitchedChannel().insert1(
+				stitching_channel_insert_dict,skip_duplicates=True) 
 	client.close()
 	return "SUBMITTED spock job"
 
@@ -1900,6 +1888,217 @@ def smartspim_stitching_job_status_checker():
 	# for each running process, find all jobids in the processing resolution request tables
 	return "Checked processing job statuses"
 
+
+@cel.task()
+def spock_job_status_checker(spock_dbtable_str,
+	lightsheet_dbtable_str,
+	lightsheet_column_name,
+	max_step_index):
+	""" 
+	---PURPOSE---
+	A generalized celery task for checking job statuses on spock
+
+	This task that will be run on a periodic schedule
+
+	Checks all outstanding dependent smartspim stitching job
+	statuses on spock and updates their status in the
+	spock_dbtable and conditionally updates a lightsheet_dbtable
+	---INPUT---
+	spock_dbtable_str       - string name for the table in schemas/spockadmin.py
+	lightsheet_dbtable_str  - string name for the table in schemas/lightsheet.py
+	lightsheet_column_name  - string name of the column in the lightsheet table that contains the spock job id
+	max_step_index          - the step id of the last step, 0-indexed
+	"""
+	lightsheet_dbtable = db_table_determiner(schema_str='db_lightsheet',
+		dbtable_str=lightsheet_dbtable_str)
+	spock_dbtable = db_table_determiner(schema_str='db_admin',
+		dbtable_str=spock_dbtable_str)
+	all_lightsheet_entries = lightsheet_dbtable()
+   
+	""" First get all rows with latest timestamps from spock admin table"""
+	job_contents = spock_dbtable()
+	unique_contents = dj.U('jobid_step0','username',).aggr(
+		job_contents,timestamp='max(timestamp)')*job_contents
+	
+	# Get a list of all jobs we need to check up on
+	ongoing_codes = ('SUBMITTED','RUNNING','PENDING','REQUEUED','RESIZING','SUSPENDED')
+	incomplete_contents = unique_contents & f'status_step{max_step_index} in {ongoing_codes}'
+	jobids = list(incomplete_contents.fetch(f'jobid_step{max_step_index}'))
+	
+	if jobids == []:
+		return "No jobs to check"
+
+	jobids_str = ','.join(str(jobid) for jobid in jobids)
+	logger.debug(f"Outstanding job ids are: {jobids}")
+	
+	# connect via ssh
+	client = connect_to_spock()
+	
+	logger.debug("connected to spock")
+	try:
+		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
+		stdin, stdout, stderr = client.exec_command(command)
+
+		stdout_str = stdout.read().decode("utf-8")
+		logger.debug("The response from spock is:")
+		logger.debug(stdout_str)
+
+		response_lines = stdout_str.strip('\n').split('\n')
+		jobids_received = [x.split('|')[0].split('_')[0] for x in response_lines] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
+		status_codes_received = [x.split('|')[1] for x in response_lines]
+		logger.debug("Job ids received")
+		logger.debug(jobids_received)
+		logger.debug("Status codes received")
+		logger.debug(status_codes_received)
+		
+		# Make a dictionary keeping track of the statuses of array jobs of a given jobid
+		# like {'1234567':[0,1,2],'1234568':[0]} for a jobid that has 3 array jobs 
+		# and one that has no array jobs 
+		job_status_indices_dict = {
+			jobid:[i for i, x in enumerate(jobids_received) if x == jobid] \
+			for jobid in set(jobids_received)} 
+		job_insert_list = []
+	except:
+		logger.debug("Something went wrong fetching job statuses from spock.")
+		client.close()
+		return "Error fetching job statuses from spock"
+
+	# Loop through outstanding jobs and determine their statuses
+	# Use array jobs to make a "pooled" status if necessary 
+	for jobid,indices_list in job_status_indices_dict.items():
+		logger.debug(f"Working on jobid={jobid}")
+		# Start assembling an insert for the spock table
+		job_insert_dict = {f'jobid_step{max_step_index}':jobid}
+
+		status_codes = [status_codes_received[ii] for ii in indices_list]
+		status_maxstep = determine_status_code(status_codes)
+		logger.debug(f"Status code for this job is: {status_maxstep}")
+		job_insert_dict[f'status_step{max_step_index}'] = status_maxstep
+		
+		# Find the username, other jobids associated with this jobid 
+		jobids_to_fetch = [f'jobid_step{ii}' for ii in range(max_step_index)] 
+		fields_to_fetch = ['username'] + jobids_to_fetch
+
+		this_content = unique_contents & {f'jobid_step{max_step_index}':jobid}
+		fetched_contents=this_content.fetch(*fields_to_fetch,as_dict=True)[0]
+		for key,val in fetched_contents.items(): 
+			job_insert_dict[key]=val
+		jobid_step_dict = {f'step{ii}':job_insert_dict[f'jobid_step{ii}'] for ii in range(max_step_index)}
+
+		""" Get the lightsheet table entry associated with this jobid
+		and update the progress in that table"""
+		this_lightsheet_content = all_lightsheet_entries & {lightsheet_column_name:jobid}
+		if len(this_lightsheet_content) == 0:
+			logger.debug(f"No entry found in {lightsheet_dbtable_str} table")
+			continue
+		logger.debug("this lightsheet content:")
+		logger.debug(this_lightsheet_content)
+		this_lightsheet_dict = this_lightsheet_content.fetch1()
+		replace_lightsheet_dict =  this_lightsheet_dict.copy()
+		lightsheet_replace_key = lightsheet_column_name.replace('jobid','job_progress')
+		replace_lightsheet_dict[lightsheet_replace_key] = status_maxstep
+		lightsheet_dbtable.update1(replace_lightsheet_dict,)
+		logger.debug("Updated smartspim_stitching_spock_job_progress in SmartspimStitchedChannel() table ")
+		
+		# Figure out the status codes for the earlier dependency jobs
+		this_run_earlier_jobids_str = ','.join([job_insert_dict[f'jobid_step{ii}'] for ii in range(max_step_index)])
+		if not this_run_earlier_jobids_str:
+			logger.debug("Max step is step0 so no earlier steps to check")
+		else:
+			try:
+				command_earlier_steps = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(this_run_earlier_jobids_str)
+				stdin_earlier_steps, stdout_earlier_steps, stderr_earlier_steps = client.exec_command(command_earlier_steps)
+			except:
+				logger.debug("Something went wrong fetching job statuses from spock.")
+				client.close()
+				return "Error fetching job statuses from spock"
+			stdout_str_earlier_steps = stdout_earlier_steps.read().decode("utf-8")
+			try:
+				response_lines_earlier_steps = stdout_str_earlier_steps.strip('\n').split('\n')
+				jobids_received_earlier_steps = [x.split('|')[0].split('_')[0] for x in response_lines_earlier_steps] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
+				status_codes_received_earlier_steps = [x.split('|')[1] for x in response_lines_earlier_steps]
+			except:
+				logger.debug("Something went wrong parsing output of sacct query for earlier steps on spock")
+				client.close()
+				return "Error parsing sacct query of jobids for steps 0-2 on spock"
+
+			job_status_indices_dict_earlier_steps = {jobid:[i for i, x in enumerate(jobids_received_earlier_steps) \
+				if x == jobid] for jobid in set(jobids_received_earlier_steps)} 
+			""" Loop through the earlier steps and figure out their statuses """
+			logger.debug("looping through steps 0-2 to figure out statuses")
+			for step_counter in range(max_step_index):
+				step = f'step{step_counter}'
+				jobid_earlier_step = jobid_step_dict[step]
+				indices_list_earlier_step = job_status_indices_dict_earlier_steps[jobid_earlier_step]
+				status_codes_earlier_step = [status_codes_received_earlier_steps[ii] for ii in indices_list_earlier_step]
+				status = determine_status_code(status_codes_earlier_step)
+				status_step_str = f'status_step{step_counter}'
+				job_insert_dict[status_step_str] = status
+				logger.debug(f"status of {step} is {status}")
+				step_counter +=1 
+			logger.debug("done with earlier steps")
+		
+		# If pipeline completed then update the database
+		if status_maxstep == 'COMPLETED':
+			this_lightsheet_content = all_lightsheet_entries & {lightsheet_column_name:jobid}
+			# Update datetime this process completed 
+			now = datetime.now()
+			this_lightsheet_dict = this_lightsheet_content.fetch1()
+			replace_lightsheet_dict =  this_lightsheet_dict.copy()
+
+			if lightsheet_column_name == 'smartspim_stitching_spock_jobid':
+				replace_key = 'datetime_stitching_completed'
+			elif lightsheet_column_name == 'smartspim_pystripe_spock_jobid':
+				replace_key = 'datetime_pystripe_completed' 
+			replace_lightsheet_dict[replace_key] = now
+			lightsheet_dbtable.update1(replace_lightsheet_dict)
+			logger.debug(f"Updated {replace_key} in {lightsheet_dbtable_str} table ")
+
+		elif status_maxstep in ["CANCELLED","FAILED"]:
+			data_bucket_rootpath = current_app.config["DATA_BUCKET_ROOTPATH"]
+			this_lightsheet_content = all_lightsheet_entries & {lightsheet_column_name:jobid}
+			this_lightsheet_dict = this_lightsheet_content.fetch1()
+			
+			username = this_lightsheet_dict['username']
+			request_name = this_lightsheet_dict['request_name']
+			sample_name = this_lightsheet_dict['sample_name']
+			imaging_request_number = this_lightsheet_dict['imaging_request_number']
+			image_resolution = this_lightsheet_dict['image_resolution']
+			channel_name = this_lightsheet_dict['channel_name']
+			ventral_up = this_lightsheet_dict['ventral_up']
+			if lightsheet_column_name == 'smartspim_stitching_spock_jobid':
+				pipeline_name = 'stitching'
+			elif lightsheet_column_name == 'smartspim_pystripe_spock_jobid':
+				pipeline_name = 'pystripe'
+
+			subject = f'Lightserv automated email: Smartspim {pipeline_name} pipeline FAILED.'
+			body = (f'The {pipeline_name} pipeline FAILED for:\n\n'
+					f'username: {username}\n'
+					f'request_name: {request_name}\n\n'
+					f'sample_name: {sample_name}\n\n'
+					f'imaging_request_number: {imaging_request_number}\n\n'
+					f'image_resolution: {image_resolution}\n\n'
+					f'channel_name: {channel_name}\n\n'
+					f'ventral_up: {ventral_up}\n\n'
+					f'Spock job info: {prettyprinter(job_insert_dict)}'
+					)
+
+			recipients = [x+'@princeton.edu' for x in current_app.config['PROCESSING_ADMINS']]
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				send_email.delay(subject=subject,body=body,recipients=recipients)
+		job_insert_list.append(job_insert_dict)
+
+	logger.debug(f"Inserting job list into {spock_dbtable_str}")
+	logger.debug(job_insert_list)
+	spock_dbtable.insert(job_insert_list)
+	logger.debug(f"Entry in {spock_dbtable_str} admin table with latest status")
+
+	client.close()
+
+	# for each running process, find all jobids in the processing resolution request tables
+	return f"Checked job statuses from table {spock_dbtable_str}"
+
+
 @cel.task()
 def smartspim_pystripe_job_status_checker():
 	""" 
@@ -1915,7 +2114,6 @@ def smartspim_pystripe_job_status_checker():
 	done stitching. If so, send the email to user/admins
 	saying the data are pystriped.
  
-
 	"""
 	all_pystripe_entries = db_lightsheet.Request.SmartspimPystripeChannel()
    

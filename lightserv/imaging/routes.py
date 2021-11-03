@@ -812,169 +812,188 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 								imaging_resolution_update_dict['notes_from_imaging'] = notes_from_imaging
 								db_lightsheet.Request.ImagingResolutionRequest().update1(
 									imaging_resolution_update_dict)
-								subfolder_dict = {'dorsal':{},'ventral':{}} 
-								for form_channel_dict in form_resolution_dict['channel_forms']:
-									channel_name = form_channel_dict['channel_name']
-									ventral_up = form_channel_dict['ventral_up']
-									channel_content = channel_contents_all_samples & \
-										f'sample_name="{this_sample_name}"' & \
-										f'image_resolution="{image_resolution}"' & \
-										f'imaging_request_number={imaging_request_number}' & \
-										f'channel_name="{channel_name}"' & \
-										f'ventral_up="{ventral_up}"' 
-									channel_content_dict = channel_content.fetch1()
-									rawdata_subfolder = form_channel_dict['rawdata_subfolder']
-									number_of_z_planes = form_channel_dict['number_of_z_planes']
-									tiling_scheme = form_channel_dict['tiling_scheme']
-									z_step = form_channel_dict['z_step']
-									left_lightsheet_used = form_channel_dict['left_lightsheet_used']
-									right_lightsheet_used = form_channel_dict['right_lightsheet_used']
-									# Find the top level key of the subfolder dict
-									if ventral_up:
-										topkey = 'ventral'
-									else:
-										topkey = 'dorsal'
-									if rawdata_subfolder in subfolder_dict[topkey].keys():
-										subfolder_dict[topkey][rawdata_subfolder].append(channel_dict)
-									else:
-										subfolder_dict[topkey][rawdata_subfolder] = [channel_dict]
-									channel_index = len(subfolder_dict[topkey][rawdata_subfolder]) - 1
-									''' Make a copy of the current row in a new dictionary which we will insert '''
 
-									channel_insert_dict = copy.deepcopy(channel_content_dict)
-								
-									''' Now replace (some of) the values in the dict from what we 
-									got from the form '''
-									keys_to_ignore = ['channel_name','image_resolution','imaging_request_number']
-									for key,val in form_channel_dict.items():
-										if key in channel_content_dict.keys() and key not in keys_to_ignore:
-											channel_insert_dict[key] = val
-									channel_insert_dict['imspector_channel_index'] = channel_index
+								if image_resolution in ["3.6x","15x"] :
 									
-									db_lightsheet.Request.ImagingChannel().update1(channel_insert_dict)
+									logger.debug(f"Have SmartSPIM {image_resolution} imaging")
 									
-									""" Kick off celery task for creating precomputed data from this
-									raw data image dataset if there is stitching is not necessary.
+									stitching_kwargs = dict(username=username,request_name=request_name,
+											sample_name=this_sample_name,imaging_request_number=imaging_request_number,
+											image_resolution=image_resolution,
+											n_channels=0,
+											channel_dict={})
 
-									Otherwise, initiate the stitching job
-									"""
+									for form_channel_dict in form_resolution_dict['channel_forms']:
+										channel_name = form_channel_dict['channel_name']
+										ventral_up = form_channel_dict['ventral_up']
+										rawdata_subfolder = form_channel_dict['rawdata_subfolder']
+										stitching_kwargs['channel_dict'][channel_name] = {
+											'ventral_up':ventral_up,
+											'rawdata_subfolder':rawdata_subfolder}
+										stitching_kwargs['n_channels'] += 1
 
-									if tiling_scheme == '1x1':
-										logger.info("Only one tile. "
-											"Creating precomputed data for neuroglancer visualization. ")
-										precomputed_kwargs = dict(username=username,request_name=request_name,
-																sample_name=this_sample_name,imaging_request_number=imaging_request_number,
-																image_resolution=image_resolution,channel_name=channel_name,
-																channel_index=channel_index,number_of_z_planes=number_of_z_planes,
-																left_lightsheet_used=left_lightsheet_used,
-																right_lightsheet_used=right_lightsheet_used,
-																ventral_up=ventral_up,
-																z_step=z_step,rawdata_subfolder=rawdata_subfolder)
-
+										# Update ImagingChannel() to capture form submitted data
+										channel_content = channel_contents_all_samples & \
+												f'sample_name="{this_sample_name}"' & \
+												f'image_resolution="{image_resolution}"' & \
+												f'imaging_request_number={imaging_request_number}' & \
+												f'channel_name="{channel_name}"' & \
+												f'ventral_up="{ventral_up}"' 
+										channel_content_dict = channel_content.fetch1()
+										channel_insert_dict = copy.deepcopy(channel_content_dict)
 										
-										raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
-												 f"{request_name}/{this_sample_name}/"
-												 f"imaging_request_{imaging_request_number}/viz/raw")
+										''' Now replace (some of) the values in the dict from what we 
+										got from the form '''
+										keys_to_ignore = ['channel_name','image_resolution','imaging_request_number']
+										for key,val in form_channel_dict.items():
+											if key in channel_content_dict.keys() and key not in keys_to_ignore:
+												channel_insert_dict[key] = val
+										
+										db_lightsheet.Request.ImagingChannel().update1(channel_insert_dict)
 
-										mymkdir(raw_viz_dir)
+									if not os.environ['FLASK_MODE'] == 'TEST': 
+										smartspim_stitch.delay(**stitching_kwargs)
+										logger.debug("Smartspim stitching task sent with these kwargs:")
+										logger.debug(stitching_kwargs)
+									else:
+										logger.debug("Not running stitching pipeline because we are in TEST mode")
+									
+									
+
+								else: # lavision imaging
+									subfolder_dict = {'dorsal':{},'ventral':{}} 
+									for form_channel_dict in form_resolution_dict['channel_forms']:
+										channel_name = form_channel_dict['channel_name']
+										ventral_up = form_channel_dict['ventral_up']
+										channel_content = channel_contents_all_samples & \
+											f'sample_name="{this_sample_name}"' & \
+											f'image_resolution="{image_resolution}"' & \
+											f'imaging_request_number={imaging_request_number}' & \
+											f'channel_name="{channel_name}"' & \
+											f'ventral_up="{ventral_up}"' 
+										channel_content_dict = channel_content.fetch1()
+										rawdata_subfolder = form_channel_dict['rawdata_subfolder']
+										number_of_z_planes = form_channel_dict['number_of_z_planes']
+										tiling_scheme = form_channel_dict['tiling_scheme']
+										z_step = form_channel_dict['z_step']
+										left_lightsheet_used = form_channel_dict['left_lightsheet_used']
+										right_lightsheet_used = form_channel_dict['right_lightsheet_used']
+										# Find the top level key of the subfolder dict
 										if ventral_up:
-											imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-														 request_name,this_sample_name,f"imaging_request_{imaging_request_number}",
-														 "rawdata",f"resolution_{image_resolution}_ventral_up")
-											channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}_ventral_up')
+											topkey = 'ventral'
 										else:
-											imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
-														 request_name,this_sample_name,f"imaging_request_{imaging_request_number}",
-														 "rawdata",f"resolution_{image_resolution}")
-											channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
-										mymkdir(channel_viz_dir)
-										raw_data_dir = os.path.join(imaging_dir,rawdata_subfolder)
-										logger.debug("raw data dir:")
-										logger.debug(raw_data_dir)
-										if left_lightsheet_used:
-											this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
-											mymkdir(this_viz_dir)
-											precomputed_kwargs['lightsheet'] = 'left'
-											precomputed_kwargs['viz_dir'] = this_viz_dir
-											layer_name = f'channel{channel_name}_raw_left_lightsheet'
-											precomputed_kwargs['layer_name'] = layer_name
-											layer_dir = os.path.join(this_viz_dir,layer_name)
-											mymkdir(layer_dir)
-											# Figure out what x and y dimensions are
-											lightsheet_index_code = 'C00' # always for left lightsheet
-											precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
-											all_slices = glob.glob(
-												f"{raw_data_dir}/*RawDataStack*{lightsheet_index_code}*Filter000{channel_index}*tif")
-											first_slice = all_slices[0]
-											first_im = Image.open(first_slice)
-											x_dim,y_dim = first_im.size
-											precomputed_kwargs['x_dim'] = x_dim
-											precomputed_kwargs['y_dim'] = y_dim
-											first_im.close() 
-											if not os.environ['FLASK_MODE'] == 'TEST': 
-												logger.debug("submitting left lightsheet raw precomputed pipeline for kwargs:")
-												logger.debug(precomputed_kwargs)
-												tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
-										if right_lightsheet_used:
-											this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
-											mymkdir(this_viz_dir)
-											precomputed_kwargs['lightsheet'] = 'right'
-											precomputed_kwargs['viz_dir'] = this_viz_dir
-											layer_name = f'channel{channel_name}_raw_right_lightsheet'
-											precomputed_kwargs['layer_name'] = layer_name
-											layer_dir = os.path.join(this_viz_dir,layer_name)
-											mymkdir(layer_dir)
-											
-											# figure out whether to look for C00 or C01 files
-											if left_lightsheet_used:
-												lightsheet_index_code = 'C01'
-											else: 
-												# right light sheet was the only one used so looking for C00 files
-												lightsheet_index_code = 'C00'
-											precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
-											# Figure out what x and y dimensions are
-											all_slices = glob.glob(f"{raw_data_dir}/*RawDataStack*{lightsheet_index_code}*Filter000{channel_index}*tif")
-											first_slice = all_slices[0]
-											first_im = Image.open(first_slice)
-											x_dim,y_dim = first_im.size
-											precomputed_kwargs['x_dim'] = x_dim
-											precomputed_kwargs['y_dim'] = y_dim
-											first_im.close()
-											if not os.environ['FLASK_MODE'] == 'TEST': 
-												logger.debug("submitting right lightsheet raw precomputed pipeline for kwargs:")
-												logger.debug(precomputed_kwargs)
-												tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
-									else:
-										# Not 1x1 tiling - stitching needs to be done
-										logger.info(f"Tiling scheme: {tiling_scheme} means there is more than one tile. "
-													 "Not creating precomputed data for neuroglancer visualization.")
-						
-										""" Start the stitching pipeline if SmartSPIM 3.6x images """
-										""" TODO -- add 15x imaging once we have tested out the pipeline """
-										if image_resolution in ["3.6x"]:
-											logger.debug("This channel was imaged with the SmartSPIM")
-											logger.debug(image_resolution)
-											logger.debug(channel_name)
-											logger.debug("Starting the stitching for this channel")
-											
-											stitching_kwargs = dict(username=username,request_name=request_name,
-													sample_name=this_sample_name,imaging_request_number=imaging_request_number,
-													image_resolution=image_resolution,
-													channel_name=channel_name,
-													ventral_up=ventral_up,
-													rawdata_subfolder=rawdata_subfolder)
-											if not os.environ['FLASK_MODE'] == 'TEST': 
-												smartspim_stitch.delay(**stitching_kwargs)
-												logger.debug("Smartspim stitching task sent with these kwargs:")
-												logger.debug(stitching_kwargs)
-											else:
-												logger.debug("Not running stitching pipeline because we are in TEST mode")
+											topkey = 'dorsal'
+										if rawdata_subfolder in subfolder_dict[topkey].keys():
+											subfolder_dict[topkey][rawdata_subfolder].append(channel_dict)
+										else:
+											subfolder_dict[topkey][rawdata_subfolder] = [channel_dict]
+										channel_index = len(subfolder_dict[topkey][rawdata_subfolder]) - 1
+										''' Make a copy of the current row in a new dictionary which we will insert '''
+
+										channel_insert_dict = copy.deepcopy(channel_content_dict)
+									
+										''' Now replace (some of) the values in the dict from what we 
+										got from the form '''
+										keys_to_ignore = ['channel_name','image_resolution','imaging_request_number']
+										for key,val in form_channel_dict.items():
+											if key in channel_content_dict.keys() and key not in keys_to_ignore:
+												channel_insert_dict[key] = val
+										channel_insert_dict['imspector_channel_index'] = channel_index
 										
-										elif image_resolution in ["15x"]:
-											logger.debug("This channel was imaged SmartSPIM 15x")
-											logger.debug(image_resolution)
-											logger.debug(channel_name)
-											logger.debug("The stitching for this channel must be done manually for now")
+										db_lightsheet.Request.ImagingChannel().update1(channel_insert_dict)
+										
+										""" Kick off celery task for creating precomputed data from this
+										raw data image dataset if there is stitching is not necessary.
+
+										Otherwise, initiate the stitching job
+										"""
+
+										if tiling_scheme == '1x1':
+											logger.info("Only one tile. "
+												"Creating precomputed data for neuroglancer visualization. ")
+											precomputed_kwargs = dict(username=username,request_name=request_name,
+																	sample_name=this_sample_name,imaging_request_number=imaging_request_number,
+																	image_resolution=image_resolution,channel_name=channel_name,
+																	channel_index=channel_index,number_of_z_planes=number_of_z_planes,
+																	left_lightsheet_used=left_lightsheet_used,
+																	right_lightsheet_used=right_lightsheet_used,
+																	ventral_up=ventral_up,
+																	z_step=z_step,rawdata_subfolder=rawdata_subfolder)
+
+											
+											raw_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
+													 f"{request_name}/{this_sample_name}/"
+													 f"imaging_request_{imaging_request_number}/viz/raw")
+
+											mymkdir(raw_viz_dir)
+											if ventral_up:
+												imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+															 request_name,this_sample_name,f"imaging_request_{imaging_request_number}",
+															 "rawdata",f"resolution_{image_resolution}_ventral_up")
+												channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}_ventral_up')
+											else:
+												imaging_dir = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],username,
+															 request_name,this_sample_name,f"imaging_request_{imaging_request_number}",
+															 "rawdata",f"resolution_{image_resolution}")
+												channel_viz_dir = os.path.join(raw_viz_dir,f'channel_{channel_name}')
+											mymkdir(channel_viz_dir)
+											raw_data_dir = os.path.join(imaging_dir,rawdata_subfolder)
+											logger.debug("raw data dir:")
+											logger.debug(raw_data_dir)
+											if left_lightsheet_used:
+												this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
+												mymkdir(this_viz_dir)
+												precomputed_kwargs['lightsheet'] = 'left'
+												precomputed_kwargs['viz_dir'] = this_viz_dir
+												layer_name = f'channel{channel_name}_raw_left_lightsheet'
+												precomputed_kwargs['layer_name'] = layer_name
+												layer_dir = os.path.join(this_viz_dir,layer_name)
+												mymkdir(layer_dir)
+												# Figure out what x and y dimensions are
+												lightsheet_index_code = 'C00' # always for left lightsheet
+												precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
+												all_slices = glob.glob(
+													f"{raw_data_dir}/*RawDataStack*{lightsheet_index_code}*Filter000{channel_index}*tif")
+												first_slice = all_slices[0]
+												first_im = Image.open(first_slice)
+												x_dim,y_dim = first_im.size
+												precomputed_kwargs['x_dim'] = x_dim
+												precomputed_kwargs['y_dim'] = y_dim
+												first_im.close() 
+												if not os.environ['FLASK_MODE'] == 'TEST': 
+													logger.debug("submitting left lightsheet raw precomputed pipeline for kwargs:")
+													logger.debug(precomputed_kwargs)
+													tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
+											if right_lightsheet_used:
+												this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
+												mymkdir(this_viz_dir)
+												precomputed_kwargs['lightsheet'] = 'right'
+												precomputed_kwargs['viz_dir'] = this_viz_dir
+												layer_name = f'channel{channel_name}_raw_right_lightsheet'
+												precomputed_kwargs['layer_name'] = layer_name
+												layer_dir = os.path.join(this_viz_dir,layer_name)
+												mymkdir(layer_dir)
+												
+												# figure out whether to look for C00 or C01 files
+												if left_lightsheet_used:
+													lightsheet_index_code = 'C01'
+												else: 
+													# right light sheet was the only one used so looking for C00 files
+													lightsheet_index_code = 'C00'
+												precomputed_kwargs['lightsheet_index_code'] = lightsheet_index_code
+												# Figure out what x and y dimensions are
+												all_slices = glob.glob(f"{raw_data_dir}/*RawDataStack*{lightsheet_index_code}*Filter000{channel_index}*tif")
+												first_slice = all_slices[0]
+												first_im = Image.open(first_slice)
+												x_dim,y_dim = first_im.size
+												precomputed_kwargs['x_dim'] = x_dim
+												precomputed_kwargs['y_dim'] = y_dim
+												first_im.close()
+												if not os.environ['FLASK_MODE'] == 'TEST': 
+													logger.debug("submitting right lightsheet raw precomputed pipeline for kwargs:")
+													logger.debug(precomputed_kwargs)
+													tasks.make_precomputed_rawdata.delay(**precomputed_kwargs) # pragma: no cover - used to exclude this line from calculating test coverage 
+										
 						""" Set imaging progress complete for this sample and 
 									update imaging performed date """
 						restrict_dict_imaging_request = {
@@ -1455,6 +1474,8 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 					message_body += "No images taken.\n"
 					continue
 				for channel_dict in channel_contents_this_sample:
+					logger.debug("Channel dict:")
+					logger.debug(channel_dict)
 					channel_name = channel_dict['channel_name']
 					image_resolution = channel_dict['image_resolution']
 					ventral_up = channel_dict['ventral_up']

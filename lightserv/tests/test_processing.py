@@ -288,6 +288,31 @@ def test_smartspim_stitching_works(test_client,
 	assert stitching_results['request_name'] == 'nonadmin_3p6x_smartspim_request'
 	assert stitching_results['smartspim_stitching_spock_job_progress'] == 'COMPLETED'
 
+def test_smartspim_stitching_twochannels_works(test_client,
+	smartspim_multichannel_stitched_request):
+	""" Test that stitching task runs and db is updated """
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
+
+	# Make sure lightsheet table now has both of our channels
+	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel()
+	stitching_results = stitching_contents.fetch(as_dict=True)
+	assert len(stitching_contents) == 2
+	assert stitching_results[0]['request_name'] == 'nonadmin_3p6x_smartspim_twochannels_request'
+	assert stitching_results[0]['smartspim_stitching_spock_job_progress'] == 'COMPLETED'
+	assert stitching_results[0]['channel_name'] == '488'
+	assert stitching_results[0]['request_name'] == 'nonadmin_3p6x_smartspim_twochannels_request'
+	assert stitching_results[0]['smartspim_stitching_spock_job_progress'] == 'COMPLETED'
+	jobid_step3_ch1 = stitching_results[0]['smartspim_stitching_spock_jobid']
+	jobid_step2_ch2 = stitching_results[1]['smartspim_stitching_spock_jobid']
+
+
+	# Make sure spockadmin tables show entries
+	spockadmin_stitching_contents_ch1 = db_spockadmin.SmartspimStitchingSpockJob() &  {'jobid_step3':jobid_step3_ch1}
+	assert len(spockadmin_stitching_contents_ch1) == 1
+	spockadmin_stitching_contents_ch2 = db_spockadmin.SmartspimDependentStitchingSpockJob() &  {'jobid_step2':jobid_step2_ch2}
+	assert len(spockadmin_stitching_contents_ch2) == 1
+
 """ Tests for pystripe manager """
 
 def test_access_pystripe_manager(test_client,
@@ -487,7 +512,7 @@ def test_lightsheet_pipeline_starts_dorsal_up_ventral_up(test_client,
 	table_contents = db_spockadmin.ProcessingPipelineSpockJob() 
 	print(table_contents)
 	assert len(table_contents) > 0
-	pickle_file = os.path.join('/jukebox/LightSheetData/lightserv_testing',
+	pickle_file = os.path.join(current_app.config['DATA_BUCKET_ROOTPATH'],
 		username,request_name,sample_name,f'imaging_request_{imaging_request_number}',
 	'output',f'processing_request_{processing_request_number}',
 	'resolution_1.3x_ventral_up/param_dict.p')
@@ -713,6 +738,55 @@ def test_registered_precomputed_pipeline_starts(test_client,
 
 	tasks.make_precomputed_registered_data.run(**precomputed_kwargs)
 	table_contents = db_spockadmin.RegisteredPrecomputedSpockJob() 
+	print(table_contents)
+	assert len(table_contents) > 0
+
+def test_smartspim_multichannel_stitching_pipeline_starts(test_client,
+	test_delete_spockadmin_db_contents):
+	""" Test that the multi-channel stitched pipeline task runs through,
+	given the correct input. Uses a test script on spock which just returns
+	job ids. Runs a celery task """
+	from lightserv.processing import tasks
+	import time
+	username='lightserv-test'
+	request_name='tracing_test'
+	sample_name='tracing_test-001'
+	imaging_request_number=1
+	processing_request_number=1
+	image_resolution='4x'
+	channel_name='647'
+	ventral_up=0
+	channel_index=0
+	number_of_z_planes=682
+	lightsheet='left'
+	left_lightsheet_used=True
+	right_lightsheet_used=False
+	z_step=2
+	rawdata_subfolder='test647'
+	processing_pipeline_jobid_step0=12345678 # just some dummy number
+	stitched_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
+							 f"{request_name}/{sample_name}/"
+							 f"imaging_request_{imaging_request_number}/viz/"
+							 f"processing_request_{processing_request_number}/"
+							 f"stitched_raw")
+	channel_viz_dir = os.path.join(stitched_viz_dir,f'channel_{channel_name}')
+	this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
+
+	precomputed_kwargs = dict(
+				username=username,request_name=request_name,
+				sample_name=sample_name,imaging_request_number=imaging_request_number,
+				processing_request_number=processing_request_number,
+				image_resolution=image_resolution,channel_name=channel_name,
+				channel_index=channel_index,
+				ventral_up=ventral_up,
+				rawdata_subfolder=rawdata_subfolder,
+				left_lightsheet_used=left_lightsheet_used,
+				right_lightsheet_used=right_lightsheet_used,
+				processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
+				z_step=z_step,lightsheet='left',viz_dir=this_viz_dir)
+	
+	tasks.make_precomputed_stitched_data.run(**precomputed_kwargs) 
+	table_contents = db_spockadmin.StitchedPrecomputedSpockJob() 
 	print(table_contents)
 	assert len(table_contents) > 0
 

@@ -638,3 +638,17 @@ def prettyprinter(d, indent=0):
 	for key, value in d.items():
 		s+='\t' * indent + str(key) + ':' + '\t' + str(value) + '\n'
 	return s
+
+def db_table_determiner(schema_str,dbtable_str):
+	""" 
+	---PURPOSE---
+	Given the string name of a schema and database table name 
+	in that schema, return the db table object for that table 
+	---INPUT---
+	schema_str              -- e.g. 'db_lightsheet'
+	dbtable_str  -- e.g. 'Request.SmartspimStitchedChannel'
+	---OUTPUT---
+	dbtable    - the datajoint table object ready to use for queries, etc..
+	"""
+	dbtable = eval(f'{schema_str}.{dbtable_str}')
+	return dbtable
