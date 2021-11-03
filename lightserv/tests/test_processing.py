@@ -288,6 +288,31 @@ def test_smartspim_stitching_works(test_client,
 	assert stitching_results['request_name'] == 'nonadmin_3p6x_smartspim_request'
 	assert stitching_results['smartspim_stitching_spock_job_progress'] == 'COMPLETED'
 
+def test_smartspim_stitching_twochannels_works(test_client,
+	smartspim_multichannel_stitched_request):
+	""" Test that stitching task runs and db is updated """
+	with test_client.session_transaction() as sess:
+		sess['user'] = 'lightserv-test'
+
+	# Make sure lightsheet table now has both of our channels
+	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel()
+	stitching_results = stitching_contents.fetch(as_dict=True)
+	assert len(stitching_contents) == 2
+	assert stitching_results[0]['request_name'] == 'nonadmin_3p6x_smartspim_twochannels_request'
+	assert stitching_results[0]['smartspim_stitching_spock_job_progress'] == 'COMPLETED'
+	assert stitching_results[0]['channel_name'] == '488'
+	assert stitching_results[0]['request_name'] == 'nonadmin_3p6x_smartspim_twochannels_request'
+	assert stitching_results[0]['smartspim_stitching_spock_job_progress'] == 'COMPLETED'
+	jobid_step3_ch1 = stitching_results[0]['smartspim_stitching_spock_jobid']
+	jobid_step2_ch2 = stitching_results[1]['smartspim_stitching_spock_jobid']
+
+
+	# Make sure spockadmin tables show entries
+	spockadmin_stitching_contents_ch1 = db_spockadmin.SmartspimStitchingSpockJob() &  {'jobid_step3':jobid_step3_ch1}
+	assert len(spockadmin_stitching_contents_ch1) == 1
+	spockadmin_stitching_contents_ch2 = db_spockadmin.SmartspimDependentStitchingSpockJob() &  {'jobid_step2':jobid_step2_ch2}
+	assert len(spockadmin_stitching_contents_ch2) == 1
+
 """ Tests for pystripe manager """
 
 def test_access_pystripe_manager(test_client,
