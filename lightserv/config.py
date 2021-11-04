@@ -197,10 +197,6 @@ class ProdConfig(BaseConfig):
 		'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
 		'schedule': timedelta(minutes=12)
 		},
-		'smartspim_pystripe_job_status_checker': {
-		'task': 'lightserv.processing.tasks.smartspim_pystripe_job_status_checker',
-		'schedule': timedelta(minutes=20)
-		},
 		'smartspim_corrected_precomputed_job_status_checker': {
 		'task': 'lightserv.processing.tasks.smartspim_corrected_precomputed_job_status_checker',
 		'schedule': timedelta(minutes=10)
@@ -225,6 +221,15 @@ class ProdConfig(BaseConfig):
 			spock_dbtable_str='SmartspimDependentStitchingSpockJob',
 			lightsheet_dbtable_str='Request.SmartspimStitchedChannel',
 			lightsheet_column_name='smartspim_stitching_spock_jobid',
+			max_step_index=2)
+		},
+		'smartspim_pystripe_job_status_checker': {
+		'task': 'lightserv.processing.tasks.spock_job_status_checker',
+		'schedule': timedelta(minutes=20),
+		'kwargs':dict(
+			spock_dbtable_str='SmartspimPystripeSpockJob',
+			lightsheet_dbtable_str='Request.SmartspimPystripeChannel',
+			lightsheet_column_name='smartspim_pystripe_spock_jobid',
 			max_step_index=2)
 		},
 		

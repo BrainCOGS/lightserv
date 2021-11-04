@@ -2,7 +2,7 @@ from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
 				   Markup, current_app,jsonify)
 from lightserv.main.utils import mymkdir,prettyprinter,db_table_determiner
-from lightserv.processing.utils import determine_status_code
+from lightserv.processing.utils import determine_status_code,get_job_statuses
 from lightserv import cel, db_lightsheet, db_spockadmin
 from lightserv.main.tasks import (send_email, send_admin_email,
 	connect_to_spock)
@@ -1726,143 +1726,43 @@ def spock_job_status_checker(spock_dbtable_str,
 	unique_contents = dj.U('jobid_step0','username',).aggr(
 		job_contents,timestamp='max(timestamp)')*job_contents
 	
-	# Get a list of all jobs we need to check up on
-	ongoing_codes = ('SUBMITTED','RUNNING','PENDING','REQUEUED','RESIZING','SUSPENDED')
-	incomplete_contents = unique_contents & f'status_step{max_step_index} in {ongoing_codes}'
-	jobids = list(incomplete_contents.fetch(f'jobid_step{max_step_index}'))
+	job_insert_list = get_job_statuses(
+		unique_contents,
+		max_step_index,
+		lightsheet_dbtable,
+		lightsheet_column_name)
+	if not job_insert_list:
+		return "No spock jobs need checking"
+
+	# insert into spockadmin table  
+	logger.debug(f"Inserting job list into {spock_dbtable_str}")
+	logger.debug(job_insert_list)
+	spock_dbtable.insert(job_insert_list)
 	
-	if jobids == []:
-		return "No jobs to check"
-
-	jobids_str = ','.join(str(jobid) for jobid in jobids)
-	logger.debug(f"Outstanding job ids are: {jobids}")
-	
-	# connect via ssh
-	client = connect_to_spock()
-	
-	logger.debug("connected to spock")
-	try:
-		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
-		stdin, stdout, stderr = client.exec_command(command)
-
-		stdout_str = stdout.read().decode("utf-8")
-		logger.debug("The response from spock is:")
-		logger.debug(stdout_str)
-
-		response_lines = stdout_str.strip('\n').split('\n')
-		jobids_received = [x.split('|')[0].split('_')[0] for x in response_lines] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
-		status_codes_received = [x.split('|')[1] for x in response_lines]
-		logger.debug("Job ids received")
-		logger.debug(jobids_received)
-		logger.debug("Status codes received")
-		logger.debug(status_codes_received)
-		
-		# Make a dictionary keeping track of the statuses of array jobs of a given jobid
-		# like {'1234567':[0,1,2],'1234568':[0]} for a jobid that has 3 array jobs 
-		# and one that has no array jobs 
-		job_status_indices_dict = {
-			jobid:[i for i, x in enumerate(jobids_received) if x == jobid] \
-			for jobid in set(jobids_received)} 
-		job_insert_list = []
-	except:
-		logger.debug("Something went wrong fetching job statuses from spock.")
-		client.close()
-		return "Error fetching job statuses from spock"
-
-	# Loop through outstanding jobs and determine their statuses
-	# Use array jobs to make a "pooled" status if necessary 
-	for jobid,indices_list in job_status_indices_dict.items():
-		logger.debug(f"Working on jobid={jobid}")
-		# Start assembling an insert for the spock table
-		job_insert_dict = {f'jobid_step{max_step_index}':jobid}
-
-		status_codes = [status_codes_received[ii] for ii in indices_list]
-		status_maxstep = determine_status_code(status_codes)
-		logger.debug(f"Status code for this job is: {status_maxstep}")
-		job_insert_dict[f'status_step{max_step_index}'] = status_maxstep
-		
-		# Find the username, other jobids associated with this jobid 
-		jobids_to_fetch = [f'jobid_step{ii}' for ii in range(max_step_index)] 
-		fields_to_fetch = ['username'] + jobids_to_fetch
-
-		this_content = unique_contents & {f'jobid_step{max_step_index}':jobid}
-		fetched_contents=this_content.fetch(*fields_to_fetch,as_dict=True)[0]
-		for key,val in fetched_contents.items(): 
-			job_insert_dict[key]=val
-		jobid_step_dict = {f'step{ii}':job_insert_dict[f'jobid_step{ii}'] for ii in range(max_step_index)}
-
-		""" Get the lightsheet table entry associated with this jobid
-		and update the progress in that table"""
-		this_lightsheet_content = all_lightsheet_entries & {lightsheet_column_name:jobid}
-		if len(this_lightsheet_content) == 0:
-			logger.debug(f"No entry found in {lightsheet_dbtable_str} table")
-			continue
-		logger.debug("this lightsheet content:")
-		logger.debug(this_lightsheet_content)
-		this_lightsheet_dict = this_lightsheet_content.fetch1()
-		replace_lightsheet_dict =  this_lightsheet_dict.copy()
-		lightsheet_replace_key = lightsheet_column_name.replace('jobid','job_progress')
-		replace_lightsheet_dict[lightsheet_replace_key] = status_maxstep
-		lightsheet_dbtable.update1(replace_lightsheet_dict,)
-		logger.debug("Updated smartspim_stitching_spock_job_progress in SmartspimStitchedChannel() table ")
-		
-		# Figure out the status codes for the earlier dependency jobs
-		this_run_earlier_jobids_str = ','.join([job_insert_dict[f'jobid_step{ii}'] for ii in range(max_step_index)])
-		if not this_run_earlier_jobids_str:
-			logger.debug("Max step is step0 so no earlier steps to check")
-		else:
-			try:
-				command_earlier_steps = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(this_run_earlier_jobids_str)
-				stdin_earlier_steps, stdout_earlier_steps, stderr_earlier_steps = client.exec_command(command_earlier_steps)
-			except:
-				logger.debug("Something went wrong fetching job statuses from spock.")
-				client.close()
-				return "Error fetching job statuses from spock"
-			stdout_str_earlier_steps = stdout_earlier_steps.read().decode("utf-8")
-			try:
-				response_lines_earlier_steps = stdout_str_earlier_steps.strip('\n').split('\n')
-				jobids_received_earlier_steps = [x.split('|')[0].split('_')[0] for x in response_lines_earlier_steps] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
-				status_codes_received_earlier_steps = [x.split('|')[1] for x in response_lines_earlier_steps]
-			except:
-				logger.debug("Something went wrong parsing output of sacct query for earlier steps on spock")
-				client.close()
-				return "Error parsing sacct query of jobids for steps 0-2 on spock"
-
-			job_status_indices_dict_earlier_steps = {jobid:[i for i, x in enumerate(jobids_received_earlier_steps) \
-				if x == jobid] for jobid in set(jobids_received_earlier_steps)} 
-			""" Loop through the earlier steps and figure out their statuses """
-			logger.debug("looping through steps 0-2 to figure out statuses")
-			for step_counter in range(max_step_index):
-				step = f'step{step_counter}'
-				jobid_earlier_step = jobid_step_dict[step]
-				indices_list_earlier_step = job_status_indices_dict_earlier_steps[jobid_earlier_step]
-				status_codes_earlier_step = [status_codes_received_earlier_steps[ii] for ii in indices_list_earlier_step]
-				status = determine_status_code(status_codes_earlier_step)
-				status_step_str = f'status_step{step_counter}'
-				job_insert_dict[status_step_str] = status
-				logger.debug(f"status of {step} is {status}")
-				step_counter +=1 
-			logger.debug("done with earlier steps")
-		
-		# If pipeline completed then update the database
+	# Now loop over jobs we checked and perform an action if they completed or failed	
+	for job_status_dict in job_insert_list:
+		status_maxstep = job_status_dict[f'status_step{max_step_index}']
+		jobid_maxstep = job_status_dict[f'jobid_step{max_step_index}']
 		if status_maxstep == 'COMPLETED':
-			this_lightsheet_content = all_lightsheet_entries & {lightsheet_column_name:jobid}
-			# Update datetime this process completed 
+			# Update datetime this process completed. job status already updated in job status checker above 
+			this_lightsheet_content = all_lightsheet_entries & {lightsheet_column_name:jobid_maxstep}
 			now = datetime.now()
-			this_lightsheet_dict = this_lightsheet_content.fetch1()
-			replace_lightsheet_dict =  this_lightsheet_dict.copy()
+			replace_lightsheet_dict = this_lightsheet_content.fetch1().copy()
 
 			if lightsheet_column_name == 'smartspim_stitching_spock_jobid':
 				replace_key = 'datetime_stitching_completed'
 			elif lightsheet_column_name == 'smartspim_pystripe_spock_jobid':
 				replace_key = 'datetime_pystripe_completed' 
+
 			replace_lightsheet_dict[replace_key] = now
+
 			lightsheet_dbtable.update1(replace_lightsheet_dict)
 			logger.debug(f"Updated {replace_key} in {lightsheet_dbtable_str} table ")
 
 		elif status_maxstep in ["CANCELLED","FAILED"]:
+			# Send an email to processing admins alerting them of the failure
 			data_bucket_rootpath = current_app.config["DATA_BUCKET_ROOTPATH"]
-			this_lightsheet_content = all_lightsheet_entries & {lightsheet_column_name:jobid}
+			this_lightsheet_content = all_lightsheet_entries & {lightsheet_column_name:jobid_maxstep}
 			this_lightsheet_dict = this_lightsheet_content.fetch1()
 			
 			username = this_lightsheet_dict['username']
@@ -1872,12 +1772,14 @@ def spock_job_status_checker(spock_dbtable_str,
 			image_resolution = this_lightsheet_dict['image_resolution']
 			channel_name = this_lightsheet_dict['channel_name']
 			ventral_up = this_lightsheet_dict['ventral_up']
+
 			if lightsheet_column_name == 'smartspim_stitching_spock_jobid':
 				pipeline_name = 'stitching'
 			elif lightsheet_column_name == 'smartspim_pystripe_spock_jobid':
 				pipeline_name = 'pystripe'
 
 			subject = f'Lightserv automated email: Smartspim {pipeline_name} pipeline FAILED.'
+			
 			body = (f'The {pipeline_name} pipeline FAILED for:\n\n'
 					f'username: {username}\n'
 					f'request_name: {request_name}\n\n'
@@ -1886,23 +1788,20 @@ def spock_job_status_checker(spock_dbtable_str,
 					f'image_resolution: {image_resolution}\n\n'
 					f'channel_name: {channel_name}\n\n'
 					f'ventral_up: {ventral_up}\n\n'
-					f'Spock job info: {prettyprinter(job_insert_dict)}'
+					f'Spock job info: {prettyprinter(job_status_dict)}'
 					)
 
 			recipients = [x+'@princeton.edu' for x in current_app.config['PROCESSING_ADMINS']]
+			
 			if not os.environ['FLASK_MODE'] == 'TEST':
 				send_email.delay(subject=subject,body=body,recipients=recipients)
-		job_insert_list.append(job_insert_dict)
 
-	logger.debug(f"Inserting job list into {spock_dbtable_str}")
-	logger.debug(job_insert_list)
-	spock_dbtable.insert(job_insert_list)
-	logger.debug(f"Entry in {spock_dbtable_str} admin table with latest status")
+	
 
-	client.close()
 
 	# for each running process, find all jobids in the processing resolution request tables
-	return f"Checked job statuses from table {spock_dbtable_str}"
+	logger.debug(f"Checked job statuses from table {spock_dbtable_str}")
+	return "Checked job statuses"
 
 
 @cel.task()

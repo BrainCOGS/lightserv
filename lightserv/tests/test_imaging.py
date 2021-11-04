@@ -830,7 +830,7 @@ def test_imaging_batch_entry_form_3p6x_smartspim_twochannels(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.1,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'3x5',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':2.0,
-		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3300,
+		'sample_forms-0-image_resol ution_forms-0-channel_forms-0-number_of_z_planes':3300,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'Ex_488_Em_0',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-username':username,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-request_name':request_name,
@@ -858,7 +858,6 @@ def test_imaging_batch_entry_form_3p6x_smartspim_twochannels(test_client,
 		follow_redirects=True)
 
 	assert b"Imaging entry for sample sample-001 was successful" in sample_response.data
-
 
 def test_imaging_batch_entry_form_15x_smartspim(test_client,
 	test_cleared_request_15x_smartspim_nonadmin,

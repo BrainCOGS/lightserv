@@ -561,6 +561,10 @@ def test_job_status_checker():
 	# lightsheet_dbtable_str='Request.SmartspimPystripeChannel'
 	# lightsheet_column_name='smartspim_pystripe_spock_jobid'
 	# max_step_index=0
+	# spock_dbtable_str = 'ProcessingPipelineSpockJob'
+	# lightsheet_dbtable_str = 'Request.ProcessingRequest'
+	# lightsheet_column_name = 'lightsheet_pipeline_spock_jobid'
+	# max_step_index=2
 	return spock_job_status_checker.run(spock_dbtable_str,
 		lightsheet_dbtable_str,
 		lightsheet_column_name,
