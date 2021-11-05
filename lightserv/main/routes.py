@@ -566,7 +566,7 @@ def test_job_status_checker():
 	# lightsheet_column_name = 'lightsheet_pipeline_spock_jobid'
 	# max_step_index=2
 
-	return processing_job_status_checker.run(reg=False)
+	return processing_spock_job_status_checker.run(reg=False)
 	# return spock_job_status_checker.run(spock_dbtable_str,
 	# 	lightsheet_dbtable_str,
 	# 	lightsheet_column_name,
