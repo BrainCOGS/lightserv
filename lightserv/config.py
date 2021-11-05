@@ -150,12 +150,14 @@ class ProdConfig(BaseConfig):
 
 	CELERYBEAT_SCHEDULE = {
 		'processing_job_status_checker': {
-		'task': 'lightserv.processing.tasks.processing_job_status_checker',
-		'schedule': timedelta(minutes=10)
+		'task': 'lightserv.processing.tasks.processing_spock_job_status_checker',
+		'schedule': timedelta(minutes=10),
+		'kwargs':{'reg':True}
 		},
-		'processing_job_status_checker_noreg': {
-		'task': 'lightserv.processing.tasks.processing_job_status_checker_noreg',
-		'schedule': timedelta(minutes=30)
+		'processing_job_status_checker': {
+		'task': 'lightserv.processing.tasks.processing_spock_job_status_checker',
+		'schedule': timedelta(minutes=60),
+		'kwargs':{'reg':False}
 		},
 		'stitchedprecomp_job_ready_checker': {
 		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_stitched_data',
@@ -206,7 +208,7 @@ class ProdConfig(BaseConfig):
 		'schedule': crontab(hour=8, minute=30) # 8:30 AM every day
 		},
 		'smartspim_stitching_job_status_checker': {
-		'task': 'lightserv.processing.tasks.spock_job_status_checker',
+		'task': 'lightserv.processing.tasks.smartspim_spock_job_status_checker',
 		'schedule': timedelta(minutes=15),
 		'kwargs':dict(
 			spock_dbtable_str='SmartspimStitchingSpockJob',
@@ -215,7 +217,7 @@ class ProdConfig(BaseConfig):
 			max_step_index=3)
 		},
 		'smartspim_dependent_stitching_job_status_checker': {
-		'task': 'lightserv.processing.tasks.spock_job_status_checker',
+		'task': 'lightserv.processing.tasks.smartspim_spock_job_status_checker',
 		'schedule': timedelta(minutes=20),
 		'kwargs':dict(
 			spock_dbtable_str='SmartspimDependentStitchingSpockJob',
@@ -224,7 +226,7 @@ class ProdConfig(BaseConfig):
 			max_step_index=2)
 		},
 		'smartspim_pystripe_job_status_checker': {
-		'task': 'lightserv.processing.tasks.spock_job_status_checker',
+		'task': 'lightserv.processing.tasks.smartspim_spock_job_status_checker',
 		'schedule': timedelta(minutes=20),
 		'kwargs':dict(
 			spock_dbtable_str='SmartspimPystripeSpockJob',
