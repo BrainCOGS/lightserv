@@ -7,7 +7,7 @@ from lightserv.main.utils import (logged_in, table_sorter,
 	 logged_in_as_dash_admin, get_lightsheet_storage)
 from lightserv.main.forms import SpockConnectionTesterForm, FeedbackForm
 from lightserv.main.tables import RequestTable, AdminTable
-from lightserv.processing.tasks import spock_job_status_checker
+from lightserv.processing.tasks import spock_job_status_checker,processing_job_status_checker
 import datajoint as dj
 import pandas as pd
 import numpy as np
@@ -552,16 +552,22 @@ def test_job_status_checker():
 	# lightsheet_dbtable_str = 'Request.SmartspimStitchedChannel'
 	# lightsheet_column_name = 'smartspim_stitching_spock_jobid'
 	# max_step_index=3
-	spock_dbtable_str = 'SmartspimDependentStitchingSpockJob'
-	lightsheet_dbtable_str = 'Request.SmartspimStitchedChannel'
-	lightsheet_column_name = 'smartspim_stitching_spock_jobid'
-	max_step_index=2
+	# spock_dbtable_str = 'SmartspimDependentStitchingSpockJob'
+	# lightsheet_dbtable_str = 'Request.SmartspimStitchedChannel'
+	# lightsheet_column_name = 'smartspim_stitching_spock_jobid'
+	# max_step_index=2
 
 	# spock_dbtable_str='SmartspimPystripeSpockJob'
 	# lightsheet_dbtable_str='Request.SmartspimPystripeChannel'
 	# lightsheet_column_name='smartspim_pystripe_spock_jobid'
 	# max_step_index=0
-	return spock_job_status_checker.run(spock_dbtable_str,
-		lightsheet_dbtable_str,
-		lightsheet_column_name,
-		max_step_index)
+	# spock_dbtable_str = 'ProcessingPipelineSpockJob'
+	# lightsheet_dbtable_str = 'Request.ProcessingRequest'
+	# lightsheet_column_name = 'lightsheet_pipeline_spock_jobid'
+	# max_step_index=2
+
+	return processing_job_status_checker.run(reg=False)
+	# return spock_job_status_checker.run(spock_dbtable_str,
+	# 	lightsheet_dbtable_str,
+	# 	lightsheet_column_name,
+	# 	max_step_index)
