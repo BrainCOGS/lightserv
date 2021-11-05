@@ -7,7 +7,7 @@ from lightserv.main.utils import (logged_in, table_sorter,
 	 logged_in_as_dash_admin, get_lightsheet_storage)
 from lightserv.main.forms import SpockConnectionTesterForm, FeedbackForm
 from lightserv.main.tables import RequestTable, AdminTable
-from lightserv.processing.tasks import spock_job_status_checker,processing_job_status_checker
+from lightserv.processing.tasks import smartspim_spock_job_status_checker,processing_spock_job_status_checker
 import datajoint as dj
 import pandas as pd
 import numpy as np
