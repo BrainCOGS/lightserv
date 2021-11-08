@@ -844,7 +844,7 @@ def test_job_status_checker_sends_email(test_client,
 	processing_resolution_update_dict['lightsheet_pipeline_spock_jobid'] = 20915095   
 	db_lightsheet.Request.ProcessingResolutionRequest().update1(processing_resolution_update_dict)
 	""" Now do job status checker and make sure it gets updated to COMPLETED """
-	tasks.processing_job_status_checker.run()
+	tasks.processing_spock_job_status_checker.run()
 	spock_table_contents = db_spockadmin.ProcessingPipelineSpockJob() & \
 		{'username':'lightserv-test'}
 	most_recent_contents = dj.U('jobid_step0','username',).aggr(

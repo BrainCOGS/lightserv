@@ -749,6 +749,7 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 								channel_dict = channel_form.data
 								channel_name = channel_dict['channel_name']
 								logger.debug(f"Channel: {channel_name}")
+								logger.debug(channel_dict)
 
 								if channel_form.validate_on_submit():
 									logger.debug("Channel form validated")

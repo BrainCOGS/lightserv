@@ -35,6 +35,8 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 
+problematic_codes = ("FAILED","BOOT_FAIL","CANCELLED","DEADLINE","OUT_OF_MEMORY","REVOKED")
+
 ##################################################
 ##### Tasks run individually (not scheduled) #####
 ##################################################
@@ -1398,7 +1400,8 @@ def processing_spock_job_status_checker(reg=True):
 	return "Checked processing job statuses"
 
 @cel.task()
-def smartspim_spock_job_status_checker(spock_dbtable_str,
+def smartspim_spock_job_status_checker(
+	spock_dbtable_str,
 	lightsheet_dbtable_str,
 	lightsheet_column_name,
 	max_step_index):
@@ -1504,6 +1507,105 @@ def smartspim_spock_job_status_checker(spock_dbtable_str,
 	# for each running process, find all jobids in the processing resolution request tables
 	logger.debug(f"Checked job statuses from table {spock_dbtable_str}")
 	return "Checked job statuses"
+
+
+@cel.task()
+def precomputed_spock_job_status_checker(
+	spock_dbtable_str,
+	lightsheet_dbtable_str,
+	lightsheet_column_name,
+	max_step_index):
+	""" 
+	A celery task that will be run in a schedule
+
+	Checks all outstanding job statuses on spock
+	for a given precomputed pipeline
+	and updates statuses in the 
+	in the corresponding db_spockadmin table and in ProcessingChannel() in db_lightsheet 
+
+	"""
+	if 'downsized' in lightsheet_column_name:
+		precomputed_pipeline = 'downsized'
+	elif 'blended' in lightsheet_column_name:
+		precomputed_pipeline = 'blended'
+	elif 'stitched' in lightsheet_column_name:
+		precomputed_pipeline = 'stitched'
+	elif 'registered' in lightsheet_column_name:
+		precomputed_pipeline = 'registered'  
+
+	logger.info(f"Running job status checker for {precomputed_pipeline} precomputed pipeline")
+
+	lightsheet_dbtable = db_table_determiner(schema_str='db_lightsheet',
+		dbtable_str=lightsheet_dbtable_str)
+	spock_dbtable = db_table_determiner(schema_str='db_admin',
+		dbtable_str=spock_dbtable_str)
+
+	# Get all rows with latest timestamps 
+	job_contents = spock_dbtable()
+	unique_contents = dj.U('jobid_step0','username').aggr(
+		job_contents,timestamp='max(timestamp)')*job_contents
+	
+	# Check statuses of outstanding jobs
+	job_insert_list = get_job_statuses(
+		unique_contents=unique_contents,
+		max_step_index=max_step_index,
+		lightsheet_dbtable=lightsheet_dbtable,
+		lightsheet_column_name=lightsheet_column_name,
+		is_precomputed_task=True)
+
+	for job_status_dict in job_insert_list:
+
+		jobid_maxstep = job_status_dict[f'jobid_step{max_step_index}']
+		status_maxstep = job_status_dict[f'status_step{max_step_index}']
+		
+		if 'stitched' in lightsheet_column_name:
+			lightsheet_thisjob = job_status_dict['lightsheet']
+		if lightsheet_thisjob == 'left':
+			lightsheet_column_name = "left_lightsheet_" + lightsheet_column_name
+		else:
+			lightsheet_column_name = "right_lightsheet_" + lightsheet_column_name
+
+		this_lightsheet_table_content = lightsheet_dbtable() & {lightsheet_column_name:jobid_maxstep}
+		
+		if len(this_lightsheet_table_content) == 0:
+			logger.debug(f"No {lightsheet_dbtable_str}() entry associated with this jobid. Skipping")
+			continue
+		logger.debug("this processing channel content:")
+		logger.debug(this_lightsheet_table_content)
+
+		# If pipeline failed for this job, alert processing admins via email		
+		if status_maxstep in problematic_codes:
+			(username,request_name,sample_name,imaging_request_number,
+				processing_request_number,channel_name) = this_lightsheet_table_content.fetch1(
+				'username','request_name','sample_name',
+				'imaging_request_number','processing_request_number',
+				'channel_name')
+
+			# Set up email
+			
+			subject = f'Lightserv automated email: {precomputed_pipeline} data visualization FAILED'
+	
+			admin_body = (f'The visualization of the {precomputed_pipeline} data for sample:\n\n'
+					f'request_name: {request_name}\n'
+					f'sample_name: {sample_name}\n'
+					f'imaging_request_number: {imaging_request_number}\n'
+					f'processing_request_number: {processing_request_number}\n'
+					f'channel_name: {channel_name}\n\n'
+					'failed. ')
+
+			if not os.environ['FLASK_MODE'] == 'TEST':
+				send_admin_email.delay(subject=subject,body=admin_body)
+
+	if job_insert_list:
+		logger.debug("Insert list:")
+		logger.debug(job_insert_list)
+		spock_dbtable.insert(job_insert_list)
+		logger.debug(f"Entry in {spock_dbtable_str} spockadmin table with latest status")
+	else:
+		logger.debug("No jobs to insert")
+
+	return f"Checked {precomputed_pipeline} precomputed job statuses"
+
 
 """ Stitched precomputed pipeline """
 
@@ -1637,252 +1739,6 @@ def check_for_spock_jobs_ready_for_making_precomputed_stitched_data():
 					logger.info("Sent precomputed task for tiling right lightsheet")
 
 	return "Checked for light sheet pipeline jobs whose data have been stitched"
-
-@cel.task()
-def stitched_precomputed_job_status_checker():
-	""" 
-	A celery task that will be run in a schedule
-
-	Checks all outstanding job statuses on spock
-	for the precomputed stitched (stitched) pipeline
-	and updates their status in the StitchedPrecomputedSpockJob()
-	in db_spockadmin
-	and ProcessingChannel() in db_lightsheet 
-
-	"""
-   
-	""" First get all rows with latest timestamps """
-	job_contents = db_spockadmin.StitchedPrecomputedSpockJob()
-	unique_contents = dj.U('jobid_step2','username',).aggr(
-		job_contents,timestamp='max(timestamp)')*job_contents
-	
-	""" Get a list of all jobs we need to check up on, i.e.
-	those that could conceivably change. """
-
-	ongoing_codes = ('SUBMITTED','RUNNING','PENDING','REQUEUED','RESIZING','SUSPENDED')
-	incomplete_contents = unique_contents & f'status_step2 in {ongoing_codes}'
-	jobids = list(incomplete_contents.fetch('jobid_step2'))
-	if jobids == []:
-		return "No jobs to check"
-	jobids_str = ','.join(str(jobid) for jobid in jobids)
-	logger.debug(f"Outstanding job ids are: {jobids}")
-	
-	client = connect_to_spock()
-	logger.debug("connected to spock")
-	try:
-		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
-		stdin, stdout, stderr = client.exec_command(command)
-
-		stdout_str = stdout.read().decode("utf-8")
-		logger.debug("The response from spock is:")
-		logger.debug(stdout_str)
-		response_lines = stdout_str.strip('\n').split('\n')
-		jobids_received = [x.split('|')[0].split('_')[0] for x in response_lines] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
-		status_codes_received = [x.split('|')[1] for x in response_lines]
-		logger.debug("Job ids received")
-		logger.debug(jobids_received)
-		logger.debug("Status codes received")
-		logger.debug(status_codes_received)
-		job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
-		job_insert_list = []
-	except:
-		logger.debug("Something went wrong fetching job statuses from spock.")
-		client.close()
-		return "Error fetching job statuses from spock"
-
-	""" Loop through the jobids and determine 
-	their status from the list of statuses for each of their array jobs"""
-	for jobid,indices_list in job_status_indices_dict.items():
-		logger.debug(f"Working on jobid={jobid}")
-		job_insert_dict = {'jobid_step2':jobid}
-		status_codes = [status_codes_received[ii] for ii in indices_list]
-		status_step2 = determine_status_code(status_codes)
-		logger.debug(f"Status code for this job is: {status_step2}")
-		job_insert_dict['status_step2'] = status_step2
-		""" Find the username, other jobids associated with this jobid """
-		(username_thisjob,lightsheet_thisjob,
-			processing_pipeline_jobid_step0_thisjob,
-			jobid_step0,jobid_step1) = (
-				unique_contents & f'jobid_step2={jobid}').fetch1(
-				'username','lightsheet',
-				'processing_pipeline_jobid_step0','jobid_step0','jobid_step1')
-		job_insert_dict['username']=username_thisjob
-		job_insert_dict['lightsheet']=lightsheet_thisjob
-		job_insert_dict['processing_pipeline_jobid_step0']=processing_pipeline_jobid_step0_thisjob
-		job_insert_dict['jobid_step0']=jobid_step0
-		job_insert_dict['jobid_step1']=jobid_step1
-		jobid_step_dict = {'step0':jobid_step0,'step1':jobid_step1}
-		
-		""" Similarly, figure out the status codes for the earlier dependency jobs """
-		this_run_earlier_jobids_str = ','.join([jobid_step0,jobid_step1])
-		try:
-			command_earlier_steps = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(this_run_earlier_jobids_str)
-			stdin_earlier_steps, stdout_earlier_steps, stderr_earlier_steps = client.exec_command(command_earlier_steps)
-		except:
-			logger.debug("Something went wrong fetching steps 0-1 job statuses from spock.")
-			client.close()
-			return "Error fetching steps 0-1 job statuses from spock"
-		stdout_str_earlier_steps = stdout_earlier_steps.read().decode("utf-8")
-		try:
-			response_lines_earlier_steps = stdout_str_earlier_steps.strip('\n').split('\n')
-			jobids_received_earlier_steps = [x.split('|')[0].split('_')[0] for x in response_lines_earlier_steps] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
-			status_codes_received_earlier_steps = [x.split('|')[1] for x in response_lines_earlier_steps]
-		except:
-			logger.debug("Something went wrong parsing output of sacct query for steps 0-2 on spock")
-			client.close()
-			return "Error parsing sacct query of jobids for steps 0-2 on spock"
-
-		job_status_indices_dict_earlier_steps = {jobid:[i for i, x in enumerate(jobids_received_earlier_steps) \
-			if x == jobid] for jobid in set(jobids_received_earlier_steps)} 
-		
-		""" Loop through the jobids from the earlier steps
-		and figure out their statuses from their array job statuses"""
-		for step_counter in range(2):
-			step = f'step{step_counter}'
-			jobid_earlier_step = jobid_step_dict[step]
-			indices_list_earlier_step = job_status_indices_dict_earlier_steps[jobid_earlier_step]
-			status_codes_earlier_step = [status_codes_received_earlier_steps[ii] for ii in indices_list_earlier_step]
-			status = determine_status_code(status_codes_earlier_step)
-			status_step_str = f'status_step{step_counter}'
-			job_insert_dict[status_step_str] = status
-			step_counter +=1 
-
-		job_insert_list.append(job_insert_dict)
-
-		""" Get the processing channel entry associated with this jobid
-		and update the progress """
-		if lightsheet_thisjob == 'left':
-			restrict_dict = dict(left_lightsheet_stitched_precomputed_spock_jobid=jobid)
-			replace_key = 'left_lightsheet_stitched_precomputed_spock_job_progress'
-		elif lightsheet_thisjob == 'right':
-			restrict_dict = dict(right_lightsheet_stitched_precomputed_spock_jobid=jobid)
-			replace_key = 'right_lightsheet_stitched_precomputed_spock_job_progress'
-		this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict
-		if len(this_processing_channel_content) == 0:
-			logger.debug("No ProcessingChannel() entry associated with this precomputed stitched jobid. Skipping")
-			continue
-		logger.debug("this processing channel content:")
-		logger.debug(this_processing_channel_content)
-
-		processing_channel_update_dict = this_processing_channel_content.fetch1()
-		processing_channel_update_dict[replace_key] = status_step2
-		db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
-
-		logger.info(f"Updated {replace_key} in ProcessingChannel() table ")
-
-		""" If this pipeline run is now 100 percent complete,
-		figure out if all of the other stitched precomputed
-		pipelines that exist in this same processing request
-		and see if they are also complete.
-		If so, then email the user that their stitched images
-		are ready to be visualized"""
-
-		if status_step2 == 'COMPLETED':
-			""" Find all processing channels from this same processing request """
-			username,request_name,sample_name,imaging_request_number,processing_request_number = this_processing_channel_content.fetch1(
-				'username','request_name','sample_name','imaging_request_number','processing_request_number')
-			restrict_dict_imaging = dict(username=username,request_name=request_name,
-				sample_name=sample_name,imaging_request_number=imaging_request_number)
-			imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict_imaging
-			restrict_dict_processing = dict(username=username,request_name=request_name,
-				sample_name=sample_name,imaging_request_number=imaging_request_number,
-				processing_request_number=processing_request_number)
-			processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & restrict_dict_processing
-			# logger.debug(processing_channel_contents)
-			""" Loop through and pool all of the job statuses """
-			processing_request_job_statuses = []
-			for processing_channel_dict in processing_channel_contents:
-				""" get the imaging channel contents for this channel
-				so that I can figure out which light sheets were used """
-				channel_name = processing_channel_dict['channel_name']
-				ventral_up = processing_channel_dict['ventral_up']
-				restrict_dict = {'channel_name':channel_name,'ventral_up':ventral_up}
-				this_imaging_channel_contents = imaging_channel_contents & restrict_dict
-				left_lightsheet_used = this_imaging_channel_contents.fetch1('left_lightsheet_used')
-				right_lightsheet_used = this_imaging_channel_contents.fetch1('right_lightsheet_used')
-				if left_lightsheet_used:
-					job_status = processing_channel_dict['left_lightsheet_stitched_precomputed_spock_job_progress']
-					processing_request_job_statuses.append(job_status)
-				if right_lightsheet_used:
-					job_status = processing_channel_dict['right_lightsheet_stitched_precomputed_spock_job_progress']
-					processing_request_job_statuses.append(job_status)
-			logger.debug("job statuses for this processing request:")
-			# print(username,)
-			logger.debug(username)
-			logger.debug(request_name)
-			logger.debug(sample_name)
-			logger.debug(imaging_request_number)
-			logger.debug(processing_request_number)
-			# logger.debug(processing_request_job_statuses)
-			# logger.debug(username,request_name,sample_name,imaging_request_number,processing_request_number)
-			neuroglancer_form_relative_url = os.path.join(
-				'/neuroglancer',
-				'general_data_setup',
-				username,
-				request_name,
-				sample_name,
-				str(imaging_request_number),
-				str(processing_request_number))
-			neuroglancer_form_full_url = 'https://' + os.environ['HOSTURL'] + neuroglancer_form_relative_url
-			if all(x=='COMPLETED' for x in processing_request_job_statuses):
-				logger.debug("all processing channels in this processing request"
-							 " completely converted to precomputed format!")
-				subject = 'Lightserv automated email: Stitched data ready to be visualized'
-				body = ('Your stitched data for sample:\n\n'
-						f'request_name: {request_name}\n'
-						f'sample_name: {sample_name}\n'
-						f'imaging_request_number: {imaging_request_number}\n'
-						f'processing_request_number: {processing_request_number}\n\n'
-						'are now ready to be visualized. '
-						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
-				restrict_dict_request = {'username':username,'request_name':request_name}
-				request_contents = db_lightsheet.Request() & restrict_dict_request
-				correspondence_email = request_contents.fetch1('correspondence_email')
-				recipients = [correspondence_email]
-				# if not os.environ['FLASK_MODE'] == 'TEST':
-				# 	send_email.delay(subject=subject,body=body,recipients=recipients)
-			else:
-				logger.debug("Not all processing channels in this request"
-							 " are completely converted to precomputed format")
-		elif status_step2 == 'CANCELLED' or status_step2 == 'FAILED':
-			logger.debug('stitched precomputed pipeline failed. Alerting user and admins')
-			(username,request_name,sample_name,imaging_request_number,
-				processing_request_number,channel_name) = this_processing_channel_content.fetch1(
-				'username','request_name','sample_name',
-				'imaging_request_number','processing_request_number',
-				'channel_name')
-			subject = 'Lightserv automated email: Raw data visualization FAILED'
-			body = ('The visualization of your stitched data for sample:\n\n'
-					f'request_name: {request_name}\n'
-					f'sample_name: {sample_name}\n\n'
-					f'imaging_request_number: {imaging_request_number}\n'
-					f'processing_request_number: {processing_request_number}\n'
-					f'channel_name: {channel_name}\n\n'
-					'failed. We are investigating why this happened and will contact you shortly. '
-					f'If you have any questions or know why this might have happened, '
-					'feel free to respond to this email.')
-			admin_body = ('The visualization of the stitched data for sample:\n\n'
-					f'request_name: {request_name}\n'
-					f'sample_name: {sample_name}\n'
-					f'imaging_request_number: {imaging_request_number}\n'
-					f'processing_request_number: {processing_request_number}\n'
-					f'channel_name: {channel_name}\n\n'
-					'failed. Email sent to user. ')
-			request_contents = db_lightsheet.Request() & \
-								{'username':username,'request_name':request_name}
-			correspondence_email = request_contents.fetch1('correspondence_email')
-			recipients = [correspondence_email]
-			if not os.environ['FLASK_MODE'] == 'TEST':
-				# send_email.delay(subject=subject,body=body,recipients=recipients)
-				send_admin_email.delay(subject=subject,body=admin_body)
-	logger.debug("Insert list:")
-	logger.debug(job_insert_list)
-	db_spockadmin.StitchedPrecomputedSpockJob.insert(job_insert_list)
-	logger.debug("Entry in StitchedPrecomputedSpockJob() spockadmin table with latest status")
-
-	client.close()
-
-	return "Checked stitched precomptued job statuses"
 
 """ Blended precomputed pipeline """
 
@@ -2023,241 +1879,6 @@ def check_for_spock_jobs_ready_for_making_precomputed_blended_data():
 
 	return "Checked for light sheet pipeline jobs whose data have been blended"
 
-@cel.task()
-def blended_precomputed_job_status_checker():
-	""" 
-	A celery task that will be run in a schedule
-
-	Checks all outstanding job statuses on spock
-	for the precomputed blended pipeline
-	and updates their status in the BlendedPrecomputedSpockJob()
-	in db_spockadmin
-	and ProcessingChannel() in db_lightsheet 
-
-	"""
-   
-	""" First get all rows with latest timestamps """
-	job_contents = db_spockadmin.BlendedPrecomputedSpockJob()
-	unique_contents = dj.U('jobid_step2','username',).aggr(
-		job_contents,timestamp='max(timestamp)')*job_contents
-	
-	""" Get a list of all jobs we need to check up on, i.e.
-	those that could conceivably change. """
-
-	ongoing_codes = ('SUBMITTED','RUNNING','PENDING','REQUEUED','RESIZING','SUSPENDED')
-	incomplete_contents = unique_contents & f'status_step2 in {ongoing_codes}'
-	jobids = list(incomplete_contents.fetch('jobid_step2'))
-	if jobids == []:
-		return "No jobs to check"
-	jobids_str = ','.join(str(jobid) for jobid in jobids)
-	logger.debug(f"Outstanding job ids are: {jobids}")
-	
-	client = connect_to_spock()
-	logger.debug("connected to spock")
-	try:
-		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
-		stdin, stdout, stderr = client.exec_command(command)
-
-		stdout_str = stdout.read().decode("utf-8")
-		logger.debug("The response from spock is:")
-		logger.debug(stdout_str)
-		response_lines = stdout_str.strip('\n').split('\n')
-		jobids_received = [x.split('|')[0].split('_')[0] for x in response_lines] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
-		status_codes_received = [x.split('|')[1] for x in response_lines]
-		logger.debug("Job ids received")
-		logger.debug(jobids_received)
-		logger.debug("Status codes received")
-		logger.debug(status_codes_received)
-		job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
-		job_insert_list = []
-	except:
-		logger.debug("Something went wrong fetching job statuses from spock.")
-		client.close()
-		return "Error fetching job statuses from spock"
-
-	""" Loop through the jobids and determine 
-	their status from the list of statuses for each of their array jobs"""
-	for jobid,indices_list in job_status_indices_dict.items():
-		logger.debug(f"Working on jobid={jobid}")
-		job_insert_dict = {'jobid_step2':jobid}
-		status_codes = [status_codes_received[ii] for ii in indices_list]
-		status_step2 = determine_status_code(status_codes)
-		logger.debug(f"Status code for this job is: {status_step2}")
-		job_insert_dict['status_step2'] = status_step2
-		""" Find the username, other jobids associated with this jobid """
-		(username_thisjob,processing_pipeline_jobid_step0_thisjob,
-			jobid_step0,jobid_step1) = (
-			unique_contents & f'jobid_step2={jobid}').fetch1(
-			'username','processing_pipeline_jobid_step0','jobid_step0','jobid_step1')
-		job_insert_dict['username']=username_thisjob
-		job_insert_dict['processing_pipeline_jobid_step0']=processing_pipeline_jobid_step0_thisjob
-		job_insert_dict['jobid_step0']=jobid_step0
-		job_insert_dict['jobid_step1']=jobid_step1
-		
-		jobid_step_dict = {'step0':jobid_step0,'step1':jobid_step1}
-		""" Similarly, figure out the status codes for the earlier dependency jobs """
-		this_run_earlier_jobids_str = ','.join([jobid_step0,jobid_step1])
-		try:
-			command_earlier_steps = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(this_run_earlier_jobids_str)
-			stdin_earlier_steps, stdout_earlier_steps, stderr_earlier_steps = client.exec_command(command_earlier_steps)
-		except:
-			logger.debug("Something went wrong fetching steps 0-1 job statuses from spock.")
-			client.close()
-			return "Error fetching steps 0-1 job statuses from spock"
-		stdout_str_earlier_steps = stdout_earlier_steps.read().decode("utf-8")
-		try:
-			response_lines_earlier_steps = stdout_str_earlier_steps.strip('\n').split('\n')
-			jobids_received_earlier_steps = [x.split('|')[0].split('_')[0] for x in response_lines_earlier_steps] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
-			status_codes_received_earlier_steps = [x.split('|')[1] for x in response_lines_earlier_steps]
-		except:
-			logger.debug("Something went wrong parsing output of sacct query for steps 0-2 on spock")
-			client.close()
-			return "Error parsing sacct query of jobids for steps 0-2 on spock"
-
-		job_status_indices_dict_earlier_steps = {jobid:[i for i, x in enumerate(jobids_received_earlier_steps) \
-			if x == jobid] for jobid in set(jobids_received_earlier_steps)} 
-		
-		""" Loop through the jobids from the earlier steps
-		and figure out their statuses from their array job statuses"""
-		logger.debug("Looping over earlier steps")
-		for step_counter in range(2):
-			step = f'step{step_counter}'
-			jobid_earlier_step = jobid_step_dict[step]
-			indices_list_earlier_step = job_status_indices_dict_earlier_steps[jobid_earlier_step]
-			status_codes_earlier_step = [status_codes_received_earlier_steps[ii] for ii in indices_list_earlier_step]
-			status = determine_status_code(status_codes_earlier_step)
-			status_step_str = f'status_step{step_counter}'
-			logger.debug(f"{step} with status: {status}")
-			job_insert_dict[status_step_str] = status
-			step_counter +=1 
-
-		job_insert_list.append(job_insert_dict)
-
-		""" Get the processing channel entry associated with this jobid
-		and update the progress """
-		restrict_dict = dict(blended_precomputed_spock_jobid=jobid)
-		replace_key = 'blended_precomputed_spock_job_progress'
-		this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict
-		if len(this_processing_channel_content) == 0:
-			logger.debug("No ProcessingChannel() entry associated with this precomputed blended jobid. Skipping")
-			continue
-		logger.debug("this processing channel content:")
-		logger.debug(this_processing_channel_content)
-
-
-		processing_channel_update_dict = this_processing_channel_content.fetch1()
-		processing_channel_update_dict[replace_key] = status_step2
-		db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
-
-		logger.info(f"Updated {replace_key} in ProcessingChannel() table ")
-
-		""" If this pipeline run is now 100 percent complete,
-		figure out if all of the other blended precomputed
-		pipelines that exist in this same processing request
-		and see if they are also complete.
-		If so, then email the user that their blended images
-		are ready to be visualized"""
-
-		if status_step2 == 'COMPLETED':
-			""" Find all processing channels from this same processing request """
-			username,request_name,sample_name,imaging_request_number,processing_request_number = this_processing_channel_content.fetch1(
-				'username','request_name','sample_name','imaging_request_number','processing_request_number')
-			restrict_dict_imaging = dict(username=username,request_name=request_name,
-				sample_name=sample_name,imaging_request_number=imaging_request_number)
-			imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict_imaging
-			restrict_dict_processing = dict(username=username,request_name=request_name,
-				sample_name=sample_name,imaging_request_number=imaging_request_number,
-				processing_request_number=processing_request_number)
-			processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & restrict_dict_processing
-			# logger.debug(processing_channel_contents)
-			""" Loop through and pool all of the job statuses """
-			processing_request_job_statuses = []
-			for processing_channel_dict in processing_channel_contents:
-				""" get the imaging channel contents for this channel
-				so that I can figure out which light sheets were used """
-				channel_name = processing_channel_dict['channel_name']
-				ventral_up = processing_channel_dict['ventral_up']
-				restrict_dict = {'channel_name':channel_name,'ventral_up':ventral_up}
-				this_imaging_channel_contents = imaging_channel_contents & restrict_dict
-				job_status = processing_channel_dict['blended_precomputed_spock_job_progress']
-				processing_request_job_statuses.append(job_status)
-			logger.debug("job statuses for this processing request:")
-			# print(username,)
-			logger.debug(username)
-			logger.debug(request_name)
-			logger.debug(sample_name)
-			logger.debug(imaging_request_number)
-			logger.debug(processing_request_number)
-			
-			if all(x=='COMPLETED' for x in processing_request_job_statuses):
-				neuroglancer_form_relative_url = os.path.join(
-					'/neuroglancer',
-					'general_data_setup',
-					username,
-					request_name,
-					sample_name,
-					str(imaging_request_number),
-					str(processing_request_number)
-					)
-				neuroglancer_form_full_url = 'https://' + os.environ['HOSTURL'] + neuroglancer_form_relative_url
-				logger.debug("all blended channel data in this processing request"
-							 " completely converted to precomputed format!")
-				subject = 'Lightserv automated email: Blended data ready to be visualized'
-				body = ('Your blended data for sample:\n\n'
-						f'request_name: {request_name}\n'
-						f'sample_name: {sample_name}\n\n'
-						'are now ready to be visualized. '
-						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
-				request_contents = db_lightsheet.Request() & \
-								{'username':username,'request_name':request_name}
-				correspondence_email = request_contents.fetch1('correspondence_email')
-				recipients = [correspondence_email]
-				# if not os.environ['FLASK_MODE'] == 'TEST':
-				# 	send_email.delay(subject=subject,body=body,recipients=recipients)
-			else:
-				logger.debug("Not all blended channels in this request"
-							 " are completely converted to precomputed format")
-
-		elif status_step2 == 'CANCELLED' or status_step2 == 'FAILED':
-			logger.debug('Blended precomputed pipeline failed. Alerting user and admins')
-			(username,request_name,sample_name,imaging_request_number,
-				processing_request_number,channel_name) = this_processing_channel_content.fetch1(
-				'username','request_name','sample_name',
-				'imaging_request_number','processing_request_number',
-				'channel_name')
-			subject = 'Lightserv automated email: Blended data visualization FAILED'
-			body = ('The visualization of your blended data for sample:\n\n'
-					f'request_name: {request_name}\n'
-					f'sample_name: {sample_name}\n\n'
-					f'imaging_request_number: {imaging_request_number}\n'
-					f'processing_request_number: {processing_request_number}\n'
-					f'channel_name: {channel_name}\n\n'
-					'failed. We are investigating why this happened and will contact you shortly. '
-					f'If you have any questions or know why this might have happened, '
-					'feel free to respond to this email.')
-			admin_body = ('The visualization of the blended data for sample:\n\n'
-					f'request_name: {request_name}\n'
-					f'sample_name: {sample_name}\n'
-					f'imaging_request_number: {imaging_request_number}\n'
-					f'processing_request_number: {processing_request_number}\n'
-					f'channel_name: {channel_name}\n\n'
-					'failed. Email sent to user.')
-			request_contents = db_lightsheet.Request() & \
-								{'username':username,'request_name':request_name}
-			correspondence_email = request_contents.fetch1('correspondence_email')
-			recipients = [correspondence_email]
-			if not os.environ['FLASK_MODE'] == 'TEST':
-				# send_email.delay(subject=subject,body=body,recipients=recipients)
-				send_admin_email.delay(subject=subject,body=admin_body)
-	logger.debug("Insert list:")
-	logger.debug(job_insert_list)
-	db_spockadmin.BlendedPrecomputedSpockJob.insert(job_insert_list)
-	logger.debug("Entry in BlendedPrecomputedSpockJob() spockadmin table with latest status")
-
-	client.close()
-
-	return "Checked blended precomptued job statuses"
-
 """ Downsized precomputed pipeline """
 
 @cel.task()
@@ -2397,237 +2018,6 @@ def check_for_spock_jobs_ready_for_making_precomputed_downsized_data():
 				logger.info("Sent precomputed task for making downsized data")
 
 	return "Checked for light sheet pipeline jobs whose data have been downsized"
-
-@cel.task()
-def downsized_precomputed_job_status_checker():
-	""" 
-	A celery task that will be run in a schedule
-
-	Checks all outstanding job statuses on spock
-	for the precomputed downsized pipeline
-	and updates their status in the DownsizedPrecomputedSpockJob()
-	in db_spockadmin
-	and ProcessingChannel() in db_lightsheet 
-
-	"""
-	""" First get all rows with latest timestamps """
-	job_contents = db_spockadmin.DownsizedPrecomputedSpockJob()
-	unique_contents = dj.U('jobid_step1','username').aggr(
-		job_contents,timestamp='max(timestamp)')*job_contents
-	
-	""" Get a list of all jobs we need to check up on, i.e.
-	those that could conceivably change. """
-
-	ongoing_codes = ('SUBMITTED','RUNNING','PENDING','REQUEUED','RESIZING','SUSPENDED')
-	incomplete_contents = unique_contents & f'status_step1 in {ongoing_codes}'
-	jobids = list(incomplete_contents.fetch('jobid_step1'))
-	if jobids == []:
-		return "No jobs to check"
-	jobids_str = ','.join(str(jobid) for jobid in jobids)
-	logger.debug(f"Outstanding job ids are: {jobids}")
-	
-	client = connect_to_spock()
-	try:
-		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
-		stdin, stdout, stderr = client.exec_command(command)
-
-		stdout_str = stdout.read().decode("utf-8")
-		logger.debug("The response from spock is:")
-		logger.debug(stdout_str)
-		response_lines = stdout_str.strip('\n').split('\n')
-		jobids_received = [x.split('|')[0].split('_')[0] for x in response_lines] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
-		status_codes_received = [x.split('|')[1] for x in response_lines]
-		logger.debug("Job ids received")
-		logger.debug(jobids_received)
-		logger.debug("Status codes received")
-		logger.debug(status_codes_received)
-		job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
-		job_insert_list = []
-	except:
-		logger.debug("Something went wrong fetching job statuses from spock.")
-		client.close()
-		return "Error fetching job statuses from spock"
-
-	""" Loop through the jobids and determine 
-	their status from the list of statuses for each of their array jobs"""
-	for jobid,indices_list in job_status_indices_dict.items():
-		logger.debug(f"Working on jobid={jobid}")
-		job_insert_dict = {'jobid_step1':jobid}
-		status_codes = [status_codes_received[ii] for ii in indices_list]
-		status_step1 = determine_status_code(status_codes)
-		logger.debug(f"Status code for this job is: {status_step1}")
-		job_insert_dict['status_step1'] = status_step1
-		""" Find the username, other jobids associated with this jobid """
-		username_thisjob,processing_pipeline_jobid_step0_thisjob,jobid_step0 = (
-			unique_contents & f'jobid_step1={jobid}').fetch1(
-			'username','processing_pipeline_jobid_step0','jobid_step0')
-		job_insert_dict['username']=username_thisjob
-		job_insert_dict['processing_pipeline_jobid_step0']=processing_pipeline_jobid_step0_thisjob
-		job_insert_dict['jobid_step0']=jobid_step0
-		
-		jobid_step_dict = {'step0':jobid_step0}
-		""" Similarly, figure out the status codes for the earlier dependency jobs """
-		this_run_earlier_jobids_str = ','.join([jobid_step0])
-		try:
-			command_earlier_steps = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(this_run_earlier_jobids_str)
-			stdin_earlier_steps, stdout_earlier_steps, stderr_earlier_steps = client.exec_command(command_earlier_steps)
-		except:
-			logger.debug("Something went wrong fetching step 0 job statuses from spock.")
-			client.close()
-			return "Error fetching steps 0-1 job statuses from spock"
-		stdout_str_earlier_steps = stdout_earlier_steps.read().decode("utf-8")
-		try:
-			response_lines_earlier_steps = stdout_str_earlier_steps.strip('\n').split('\n')
-			jobids_received_earlier_steps = [x.split('|')[0].split('_')[0] for x in response_lines_earlier_steps] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
-			status_codes_received_earlier_steps = [x.split('|')[1] for x in response_lines_earlier_steps]
-		except:
-			logger.debug("Something went wrong parsing output of sacct query for steps 0-2 on spock")
-			client.close()
-			return "Error parsing sacct query of jobids for steps 0-2 on spock"
-
-		job_status_indices_dict_earlier_steps = {jobid:[i for i, x in enumerate(jobids_received_earlier_steps) \
-			if x == jobid] for jobid in set(jobids_received_earlier_steps)} 
-		
-		""" Loop through the jobids from the earlier steps
-		and figure out their statuses from their array job statuses"""
-		for step_counter in range(1):
-			step = f'step{step_counter}'
-			jobid_earlier_step = jobid_step_dict[step]
-			indices_list_earlier_step = job_status_indices_dict_earlier_steps[jobid_earlier_step]
-			status_codes_earlier_step = [status_codes_received_earlier_steps[ii] for ii in indices_list_earlier_step]
-			status = determine_status_code(status_codes_earlier_step)
-			status_step_str = f'status_step{step_counter}'
-			job_insert_dict[status_step_str] = status
-			step_counter +=1 
-
-		job_insert_list.append(job_insert_dict)
-
-		""" Get the processing channel entry associated with this jobid
-		and update the progress """
-		restrict_dict = dict(downsized_precomputed_spock_jobid=jobid)
-		replace_key = 'downsized_precomputed_spock_job_progress'
-		this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict
-		if len(this_processing_channel_content) == 0:
-			logger.debug("No ProcessingChannel() entry associated with this downsized registered jobid. Skipping")
-			continue
-		logger.debug("this processing channel content:")
-		logger.debug(this_processing_channel_content)
-
-		processing_channel_update_dict = this_processing_channel_content.fetch1()
-		processing_channel_update_dict[replace_key] = status_step1
-		db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
-
-		logger.info(f"Updated {replace_key} in ProcessingChannel() table ")
-
-		""" If this pipeline run is now 100 percent complete,
-		figure out if all of the other downsized precomputed
-		pipelines that exist in this same processing request
-		and see if they are also complete.
-		If so, then email the user that their downsized images
-		are ready to be visualized"""
-
-		if status_step1 == 'COMPLETED':
-			""" Find all processing channels from this same processing request """
-			username,request_name,sample_name,imaging_request_number,processing_request_number = this_processing_channel_content.fetch1(
-				'username','request_name','sample_name','imaging_request_number','processing_request_number')
-			
-			restrict_dict_imaging = dict(username=username,request_name=request_name,
-				sample_name=sample_name,imaging_request_number=imaging_request_number)
-			
-			imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict_imaging
-			
-			restrict_dict_processing = dict(username=username,request_name=request_name,
-				sample_name=sample_name,imaging_request_number=imaging_request_number,
-				processing_request_number=processing_request_number)
-			
-			processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & restrict_dict_processing
-
-			""" Loop through and pool all of the job statuses """
-			processing_request_job_statuses = []
-			for processing_channel_dict in processing_channel_contents:
-				""" get the imaging channel contents for this channel
-				so that I can figure out which light sheets were used """
-				channel_name = processing_channel_dict['channel_name']
-				ventral_up = processing_channel_dict['ventral_up']
-				restrict_dict = {'channel_name':channel_name,'ventral_up':ventral_up}
-				this_imaging_channel_contents = imaging_channel_contents & restrict_dict
-				job_status = processing_channel_dict['downsized_precomputed_spock_job_progress']
-				processing_request_job_statuses.append(job_status)
-			logger.debug("job statuses for this processing request:")
-			# print(username,)
-			logger.debug(username)
-			logger.debug(request_name)
-			logger.debug(sample_name)
-			logger.debug(imaging_request_number)
-			logger.debug(processing_request_number)
-			
-			if all(x=='COMPLETED' for x in processing_request_job_statuses):
-				neuroglancer_form_relative_url = os.path.join(
-					'/neuroglancer',
-					'general_data_setup',
-					username,
-					request_name,
-					sample_name,
-					str(imaging_request_number),
-					str(processing_request_number)
-					)
-				neuroglancer_form_full_url = 'https://' + os.environ['HOSTURL'] + neuroglancer_form_relative_url
-				logger.debug("all downsized channel data in this processing request"
-							 " completely converted to precomputed format!")
-				subject = 'Lightserv automated email: downsized data ready to be visualized'
-				body = ('Your downsized data for sample:\n\n'
-						f'request_name: {request_name}\n'
-						f'sample_name: {sample_name}\n\n'
-						'are now ready to be visualized. '
-						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
-				request_contents = db_lightsheet.Request() & \
-								{'username':username,'request_name':request_name}
-				correspondence_email = request_contents.fetch1('correspondence_email')
-				recipients = [correspondence_email]
-				# if not os.environ['FLASK_MODE'] == 'TEST':
-				# 	send_email.delay(subject=subject,body=body,recipients=recipients)
-			else:
-				logger.debug("Not all downsized channels in this request"
-							 " are completely converted to precomputed format")
-		elif status_step1 == 'CANCELLED' or status_step1 == 'FAILED':
-			logger.debug('Downsized precomputed pipeline failed. Alerting user and admins')
-			(username,request_name,sample_name,imaging_request_number,
-				processing_request_number,channel_name) = this_processing_channel_content.fetch1(
-				'username','request_name','sample_name',
-				'imaging_request_number','processing_request_number',
-				'channel_name')
-			subject = 'Lightserv automated email: Downsized data visualization FAILED'
-			body = ('The visualization of your downsized data for sample:\n\n'
-					f'request_name: {request_name}\n'
-					f'sample_name: {sample_name}\n\n'
-					f'imaging_request_number: {imaging_request_number}\n'
-					f'processing_request_number: {processing_request_number}\n'
-					f'channel_name: {channel_name}\n\n'
-					'failed. We are investigating why this happened and will contact you shortly. '
-					f'If you have any questions or know why this might have happened, '
-					'feel free to respond to this email.')
-			admin_body = ('The visualization of the downsized data for sample:\n\n'
-					f'request_name: {request_name}\n'
-					f'sample_name: {sample_name}\n'
-					f'imaging_request_number: {imaging_request_number}\n'
-					f'processing_request_number: {processing_request_number}\n'
-					f'channel_name: {channel_name}\n\n'
-					'failed. Email sent to user.')
-			request_contents = db_lightsheet.Request() & \
-								{'username':username,'request_name':request_name}
-			correspondence_email = request_contents.fetch1('correspondence_email')
-			recipients = [correspondence_email]
-			if not os.environ['FLASK_MODE'] == 'TEST':
-				# send_email.delay(subject=subject,body=body,recipients=recipients)
-				send_admin_email.delay(subject=subject,body=admin_body)
-	logger.debug("Insert list:")
-	logger.debug(job_insert_list)
-	db_spockadmin.DownsizedPrecomputedSpockJob.insert(job_insert_list)
-	logger.debug("Entry in DownsizedPrecomputedSpockJob() spockadmin table with latest status")
-
-	client.close()
-
-	return "Checked downsized precomputed job statuses"
 
 """ Registered precomputed pipeline """
 
@@ -2783,238 +2173,6 @@ def check_for_spock_jobs_ready_for_making_precomputed_registered_data():
 				logger.info("Sent precomputed task for tiling registered data")
 
 	return "Checked for light sheet pipeline jobs whose data have been registered"
-
-@cel.task()
-def registered_precomputed_job_status_checker():
-	""" 
-	A celery task that will be run in a schedule
-
-	Checks all outstanding job statuses on spock
-	for the precomputed registered pipeline
-	and updates their status in the RegisteredPrecomputedSpockJob()
-	in db_spockadmin
-	and ProcessingChannel() in db_lightsheet 
-
-	"""
-	""" First get all rows with latest timestamps """
-	job_contents = db_spockadmin.RegisteredPrecomputedSpockJob()
-	unique_contents = dj.U('jobid_step1','username').aggr(
-		job_contents,timestamp='max(timestamp)')*job_contents
-	""" Get a list of all jobs we need to check up on, i.e.
-	those that could conceivably change. """
-
-	ongoing_codes = ('SUBMITTED','RUNNING','PENDING','REQUEUED','RESIZING','SUSPENDED')
-	incomplete_contents = unique_contents & f'status_step1 in {ongoing_codes}'
-	jobids = list(incomplete_contents.fetch('jobid_step1'))
-	if jobids == []:
-		return "No jobs to check"
-	jobids_str = ','.join(str(jobid) for jobid in jobids)
-	logger.debug(f"Outstanding job ids are: {jobids}")
-	
-	client = connect_to_spock()
-
-	logger.debug("connected to spock")
-	try:
-		command = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(jobids_str)
-		stdin, stdout, stderr = client.exec_command(command)
-
-		stdout_str = stdout.read().decode("utf-8")
-		logger.debug("The response from spock is:")
-		logger.debug(stdout_str)
-		response_lines = stdout_str.strip('\n').split('\n')
-		jobids_received = [x.split('|')[0].split('_')[0] for x in response_lines] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
-		status_codes_received = [x.split('|')[1] for x in response_lines]
-		logger.debug("Job ids received")
-		logger.debug(jobids_received)
-		logger.debug("Status codes received")
-		logger.debug(status_codes_received)
-		job_status_indices_dict = {jobid:[i for i, x in enumerate(jobids_received) if x == jobid] for jobid in set(jobids_received)} 
-		job_insert_list = []
-	except:
-		logger.debug("Something went wrong fetching job statuses from spock.")
-		client.close()
-		return "Error fetching job statuses from spock"
-
-	""" Loop through the jobids and determine 
-	their status from the list of statuses for each of their array jobs"""
-	for jobid,indices_list in job_status_indices_dict.items():
-		logger.debug(f"Working on jobid={jobid}")
-		job_insert_dict = {'jobid_step1':jobid}
-		status_codes = [status_codes_received[ii] for ii in indices_list]
-		status_step1 = determine_status_code(status_codes)
-		logger.debug(f"Status code for this job is: {status_step1}")
-		job_insert_dict['status_step1'] = status_step1
-		""" Find the username, other jobids associated with this jobid """
-		username_thisjob,processing_pipeline_jobid_step0_thisjob,jobid_step0 = (
-			unique_contents & f'jobid_step1={jobid}').fetch1(
-			'username','processing_pipeline_jobid_step0','jobid_step0')
-		job_insert_dict['username']=username_thisjob
-		job_insert_dict['processing_pipeline_jobid_step0']=processing_pipeline_jobid_step0_thisjob
-		job_insert_dict['jobid_step0']=jobid_step0
-		
-		jobid_step_dict = {'step0':jobid_step0}
-		""" Similarly, figure out the status codes for the earlier dependency jobs """
-		this_run_earlier_jobids_str = ','.join([jobid_step0])
-		try:
-			command_earlier_steps = """sacct -X -b -P -n -a  -j {} | cut -d "|" -f1,2""".format(this_run_earlier_jobids_str)
-			stdin_earlier_steps, stdout_earlier_steps, stderr_earlier_steps = client.exec_command(command_earlier_steps)
-		except:
-			logger.debug("Something went wrong fetching step 0 job statuses from spock.")
-			client.close()
-			return "Error fetching steps 0-1 job statuses from spock"
-		stdout_str_earlier_steps = stdout_earlier_steps.read().decode("utf-8")
-		try:
-			response_lines_earlier_steps = stdout_str_earlier_steps.strip('\n').split('\n')
-			jobids_received_earlier_steps = [x.split('|')[0].split('_')[0] for x in response_lines_earlier_steps] # They will be listed as array jobs, e.g. 18521829_[0-5], 18521829_1 depending on their status
-			status_codes_received_earlier_steps = [x.split('|')[1] for x in response_lines_earlier_steps]
-		except:
-			logger.debug("Something went wrong parsing output of sacct query for steps 0-2 on spock")
-			client.close()
-			return "Error parsing sacct query of jobids for steps 0-2 on spock"
-
-		job_status_indices_dict_earlier_steps = {jobid:[i for i, x in enumerate(jobids_received_earlier_steps) \
-			if x == jobid] for jobid in set(jobids_received_earlier_steps)} 
-		
-		""" Loop through the jobids from the earlier steps
-		and figure out their statuses from their array job statuses"""
-		for step_counter in range(1):
-			step = f'step{step_counter}'
-			jobid_earlier_step = jobid_step_dict[step]
-			indices_list_earlier_step = job_status_indices_dict_earlier_steps[jobid_earlier_step]
-			status_codes_earlier_step = [status_codes_received_earlier_steps[ii] for ii in indices_list_earlier_step]
-			status = determine_status_code(status_codes_earlier_step)
-			status_step_str = f'status_step{step_counter}'
-			job_insert_dict[status_step_str] = status
-			step_counter +=1 
-
-		job_insert_list.append(job_insert_dict)
-
-		""" Get the processing channel entry associated with this jobid
-		and update the progress """
-		restrict_dict = dict(registered_precomputed_spock_jobid=jobid)
-		replace_key = 'registered_precomputed_spock_job_progress'
-		this_processing_channel_content = db_lightsheet.Request.ProcessingChannel() & restrict_dict
-		if len(this_processing_channel_content) == 0:
-			logger.debug("No ProcessingChannel() entry associated with this precomputed registered jobid. Skipping")
-			continue
-		logger.debug("this processing channel content:")
-		logger.debug(this_processing_channel_content)
-
-		processing_channel_update_dict = this_processing_channel_content.fetch1()
-		processing_channel_update_dict[replace_key] = status_step1
-		db_lightsheet.Request.ProcessingChannel().update1(processing_channel_update_dict)
-
-		logger.info(f"Updated {replace_key} in ProcessingChannel() table ")
-
-		""" If this pipeline run is now 100 percent complete,
-		figure out if all of the other registered precomputed
-		pipelines that exist in this same processing request
-		and see if they are also complete.
-		If so, then email the user that their registered images
-		are ready to be visualized"""
-
-		if status_step1 == 'COMPLETED':
-			""" Find all processing channels from this same processing request """
-			username,request_name,sample_name,imaging_request_number,processing_request_number = this_processing_channel_content.fetch1(
-				'username','request_name','sample_name','imaging_request_number','processing_request_number')
-			
-			restrict_dict_imaging = dict(username=username,request_name=request_name,
-				sample_name=sample_name,imaging_request_number=imaging_request_number)
-			
-			imaging_channel_contents = db_lightsheet.Request.ImagingChannel() & restrict_dict_imaging
-			
-			restrict_dict_processing = dict(username=username,request_name=request_name,
-				sample_name=sample_name,imaging_request_number=imaging_request_number,
-				processing_request_number=processing_request_number)
-			
-			processing_channel_contents = db_lightsheet.Request.ProcessingChannel() & restrict_dict_processing
-
-			""" Loop through and pool all of the job statuses """
-			processing_request_job_statuses = []
-			for processing_channel_dict in processing_channel_contents:
-				""" get the imaging channel contents for this channel
-				so that I can figure out which light sheets were used """
-				channel_name = processing_channel_dict['channel_name']
-				ventral_up = processing_channel_dict['ventral_up']
-				restrict_dict = {'channel_name':channel_name,'ventral_up':ventral_up}
-				this_imaging_channel_contents = imaging_channel_contents & restrict_dict
-				job_status = processing_channel_dict['registered_precomputed_spock_job_progress']
-				processing_request_job_statuses.append(job_status)
-			logger.debug("job statuses for this processing request:")
-			# print(username,)
-			logger.debug(username)
-			logger.debug(request_name)
-			logger.debug(sample_name)
-			logger.debug(imaging_request_number)
-			logger.debug(processing_request_number)
-			
-			if all(x=='COMPLETED' for x in processing_request_job_statuses):
-				neuroglancer_form_relative_url = os.path.join(
-					'/neuroglancer',
-					'general_data_setup',
-					username,
-					request_name,
-					sample_name,
-					str(imaging_request_number),
-					str(processing_request_number)
-					)
-				neuroglancer_form_full_url = 'https://' + os.environ['HOSTURL'] + neuroglancer_form_relative_url
-				logger.debug("all registered channel data in this processing request"
-							 " completely converted to precomputed format!")
-				subject = 'Lightserv automated email: registered data ready to be visualized'
-				body = ('Your registered data for sample:\n\n'
-						f'request_name: {request_name}\n'
-						f'sample_name: {sample_name}\n\n'
-						'are now ready to be visualized. '
-						f'To visualize your data, visit this link: {neuroglancer_form_full_url}')
-				request_contents = db_lightsheet.Request() & \
-								{'username':username,'request_name':request_name}
-				correspondence_email = request_contents.fetch1('correspondence_email')
-				recipients = [correspondence_email]
-				if not os.environ['FLASK_MODE'] == 'TEST':
-					send_email.delay(subject=subject,body=body,recipients=recipients)
-			else:
-				logger.debug("Not all registered channels in this request"
-							 " are completely converted to precomputed format")
-		elif status_step1 == 'CANCELLED' or status_step1 == 'FAILED':
-			logger.debug('Registered precomputed pipeline failed. Alerting user and admins')
-			(username,request_name,sample_name,imaging_request_number,
-				processing_request_number,channel_name) = this_processing_channel_content.fetch1(
-				'username','request_name','sample_name',
-				'imaging_request_number','processing_request_number',
-				'channel_name')
-			subject = 'Lightserv automated email: Registered data visualization FAILED'
-			body = ('The visualization of your registered data for:\n\n'
-					f'request_name: {request_name}\n'
-					f'sample_name: {sample_name}\n\n'
-					f'imaging_request_number: {imaging_request_number}\n'
-					f'processing_request_number: {processing_request_number}\n'
-					f'channel_name: {channel_name}\n\n'
-					'failed. We are investigating why this happened and will contact you shortly. '
-					f'If you have any questions or know why this might have happened, '
-					'feel free to respond to this email.')
-			admin_body = ('The visualization of the registered data for sample:\n\n'
-					f'request_name: {request_name}\n'
-					f'sample_name: {sample_name}\n'
-					f'imaging_request_number: {imaging_request_number}\n'
-					f'processing_request_number: {processing_request_number}\n'
-					f'channel_name: {channel_name}\n\n'
-					'failed. Email sent to user.')
-			request_contents = db_lightsheet.Request() & \
-								{'username':username,'request_name':request_name}
-			correspondence_email = request_contents.fetch1('correspondence_email')
-			recipients = [correspondence_email]
-			if not os.environ['FLASK_MODE'] == 'TEST':
-				# send_email.delay(subject=subject,body=body,recipients=recipients)
-				send_admin_email.delay(subject=subject,body=admin_body)
-	logger.debug("Insert list:")
-	logger.debug(job_insert_list)
-	db_spockadmin.RegisteredPrecomputedSpockJob.insert(job_insert_list)
-	logger.debug("Entry in RegisteredPrecomputedSpockJob() spockadmin table with latest status")
-
-	client.close()
-
-	return "Checked registered precomputed job statuses"
 
 """ Smartspim corrected precomputed pipeline """
 @cel.task()
