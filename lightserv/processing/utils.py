@@ -46,7 +46,12 @@ def determine_status_code(status_codes):
 		status = 'CANCELLED'
 	return status
 
-def get_job_statuses(unique_contents,max_step_index,lightsheet_dbtable,lightsheet_column_name):
+def get_job_statuses(
+	unique_contents,
+	max_step_index,
+	lightsheet_dbtable,
+	lightsheet_column_name,
+	is_precomputed_task=False):
 	# Get a list of all jobs we need to check up on
 	incomplete_contents = unique_contents & f'status_step{max_step_index} in {ongoing_codes}'
 	jobids = list(incomplete_contents.fetch(f'jobid_step{max_step_index}'))
@@ -108,6 +113,10 @@ def get_job_statuses(unique_contents,max_step_index,lightsheet_dbtable,lightshee
 		# Find the username, other jobids associated with this jobid 
 		jobids_to_fetch = [f'jobid_step{ii}' for ii in range(max_step_index)] 
 		fields_to_fetch = ['username'] + jobids_to_fetch
+		if is_precomputed_task:
+			fields_to_fetch += ['processing_pipeline_jobid_step0']
+			if 'stitched' in lightsheet_column_name:
+				fields_to_fetch += ['lightsheet'] 
 
 		this_content = unique_contents & {f'jobid_step{max_step_index}':jobid}
 		fetched_contents=this_content.fetch(*fields_to_fetch,as_dict=True)[0]
@@ -116,9 +125,16 @@ def get_job_statuses(unique_contents,max_step_index,lightsheet_dbtable,lightshee
 		jobid_step_dict = {f'step{ii}':job_insert_dict[f'jobid_step{ii}'] for ii in range(max_step_index)}
 
 		# update spock job progress in lightsheet table
+		if 'stitched' in lightsheet_column_name:
+			lightsheet_thisjob = job_status_dict['lightsheet']
+			if lightsheet_thisjob == 'left':
+				lightsheet_column_name = "left_lightsheet_" + lightsheet_column_name
+			else:
+				lightsheet_column_name = "right_lightsheet_" + lightsheet_column_name
 		this_lightsheet_content = lightsheet_dbtable() & {lightsheet_column_name:jobid}
+
 		if len(this_lightsheet_content) == 0:
-			logger.debug(f"No entry found in lightsheet table")
+			logger.debug(f"No entry found in lightsheet table: {lightsheet_dbtable}")
 			continue
 		logger.debug("this lightsheet content:")
 		logger.debug(this_lightsheet_content)
@@ -158,7 +174,7 @@ def get_job_statuses(unique_contents,max_step_index,lightsheet_dbtable,lightshee
 				if x == jobid] for jobid in set(jobids_received_earlier_steps)} 
 			
 			# Loop through the earlier steps and figure out their statuses 
-			logger.debug("looping through steps 0-2 to figure out statuses")
+			logger.debug("looping through earlier steps (if any) to figure out statuses")
 
 			for step_counter in range(max_step_index):
 				step = f'step{step_counter}'

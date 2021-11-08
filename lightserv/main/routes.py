@@ -7,7 +7,8 @@ from lightserv.main.utils import (logged_in, table_sorter,
 	 logged_in_as_dash_admin, get_lightsheet_storage)
 from lightserv.main.forms import SpockConnectionTesterForm, FeedbackForm
 from lightserv.main.tables import RequestTable, AdminTable
-from lightserv.processing.tasks import smartspim_spock_job_status_checker,processing_spock_job_status_checker
+from lightserv.processing.tasks import (smartspim_spock_job_status_checker,
+	processing_spock_job_status_checker,precomputed_spock_job_status_checker)
 import datajoint as dj
 import pandas as pd
 import numpy as np
@@ -565,8 +566,15 @@ def test_job_status_checker():
 	# lightsheet_dbtable_str = 'Request.ProcessingRequest'
 	# lightsheet_column_name = 'lightsheet_pipeline_spock_jobid'
 	# max_step_index=2
-
-	return processing_spock_job_status_checker.run(reg=False)
+	max_step_index = 2
+	spock_dbtable_str='StitchedPrecomputedSpockJob'
+	lightsheet_dbtable_str = 'Request.ProcessingChannel'
+	lightsheet_column_name='stitched_precomputed_spock_jobid'
+	# return processing_spock_job_status_checker.run(reg=False)
+	return precomputed_spock_job_status_checker.run(spock_dbtable_str,
+		lightsheet_dbtable_str,
+		lightsheet_column_name,
+		max_step_index)
 	# return spock_job_status_checker.run(spock_dbtable_str,
 	# 	lightsheet_dbtable_str,
 	# 	lightsheet_column_name,
