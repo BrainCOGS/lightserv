@@ -8,7 +8,8 @@ from lightserv.main.utils import (logged_in, table_sorter,
 from lightserv.main.forms import SpockConnectionTesterForm, FeedbackForm
 from lightserv.main.tables import RequestTable, AdminTable
 from lightserv.processing.tasks import (smartspim_spock_job_status_checker,
-	processing_spock_job_status_checker,precomputed_spock_job_status_checker)
+	processing_spock_job_status_checker,precomputed_spock_job_status_checker,
+	check_for_spock_jobs_ready_for_making_precomputed_data)
 import datajoint as dj
 import pandas as pd
 import numpy as np
@@ -579,3 +580,10 @@ def test_job_status_checker():
 	# 	lightsheet_dbtable_str,
 	# 	lightsheet_column_name,
 	# 	max_step_index)
+
+
+@main.route("/test_job_ready_checker")
+def test_job_ready_checker():
+	
+	return check_for_spock_jobs_ready_for_making_precomputed_data.run()
+	

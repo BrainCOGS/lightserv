@@ -478,7 +478,7 @@ def smartspim_stitch(**kwargs):
 	if os.environ['FLASK_MODE'] == 'TEST' or os.environ['FLASK_MODE'] == 'DEV':        
 		command = f"""cd {processing_code_dir}/testing;./test_stitching.sh {n_channels}"""
 	else:
-		command = """cd %s;%s/%s %s %s""" % \
+		command = """cd %s;%s/%s """ % \
 		(
 			processing_code_dir,
 			processing_code_dir,
@@ -728,9 +728,9 @@ def smartspim_pystripe(**kwargs):
 
 @cel.task()
 def make_precomputed_stitched_data(**kwargs):
-	""" Celery task for making precomputed dataset
-	(i.e. one that can be read by cloudvolume) from 
-	stitched image data after it has been stitched.  
+	""" Celery task for making precomputed layer
+	for LaVision (aka Miltenyi Biotec UltraMicroscopeII) 
+	stitched image data  
 
 	Spawns a series of spock jobs for handling
 	the actual computation
@@ -912,9 +912,7 @@ def make_precomputed_blended_data(**kwargs):
 	kwargs['x_dim'] = x_dim
 	kwargs['y_dim'] = y_dim
 	first_im.close()
-	
-	kwargs['layer_name'] = f'channel{channel_name}_blended'
-	
+		
 	slurmjobfactor = 20 # the number of processes to run per core
 	kwargs['slurmjobfactor'] = slurmjobfactor
 	pickle_fullpath = viz_dir + '/precomputed_params.p'
@@ -1508,7 +1506,6 @@ def smartspim_spock_job_status_checker(
 	logger.debug(f"Checked job statuses from table {spock_dbtable_str}")
 	return "Checked job statuses"
 
-
 @cel.task()
 def precomputed_spock_job_status_checker(
 	spock_dbtable_str,
@@ -1560,10 +1557,10 @@ def precomputed_spock_job_status_checker(
 		
 		if 'stitched' in lightsheet_column_name:
 			lightsheet_thisjob = job_status_dict['lightsheet']
-		if lightsheet_thisjob == 'left':
-			lightsheet_column_name = "left_lightsheet_" + lightsheet_column_name
-		else:
-			lightsheet_column_name = "right_lightsheet_" + lightsheet_column_name
+			if lightsheet_thisjob == 'left':
+				lightsheet_column_name = "left_lightsheet_" + lightsheet_column_name
+			else:
+				lightsheet_column_name = "right_lightsheet_" + lightsheet_column_name
 
 		this_lightsheet_table_content = lightsheet_dbtable() & {lightsheet_column_name:jobid_maxstep}
 		
@@ -1606,575 +1603,215 @@ def precomputed_spock_job_status_checker(
 
 	return f"Checked {precomputed_pipeline} precomputed job statuses"
 
-
-""" Stitched precomputed pipeline """
-
 @cel.task()
-def check_for_spock_jobs_ready_for_making_precomputed_stitched_data():
+def check_for_spock_jobs_ready_for_making_precomputed_data():
 	""" 
 	A celery task that will be run in a schedule
 
-	Checks for spock jobs for the light sheet pipeline 
-	that use stitching_method='terastitcher' (i.e. stitched)
-	for which step 1 (the stitching) is complete AND
-	whose precomputed pipeline for visualizing the stitched
-	data products is not yet started.
+	Checks the status of spock jobs that ran 
+	the light sheet pipeline  for which the various 
+	steps are complete but whose various precomputed pipelines
+	are not yet started.
 
 	For each spock job that satisfies those criteria,
-	start the precomputed pipeline for stitched data 
-	corresponding to that imaging resolution request
+	start the precomputed pipeline(s) that are ready
+	to be started given that that step in the pipeline is complete. 
 	"""
-   
-	""" First get all rows from the light sheet 
-	pipeline where stitching_method='terastitcher'
-	and step1='COMPLETED', finding the entries 
-	with the latest timestamps """
-	job_contents = db_spockadmin.ProcessingPipelineSpockJob() & \
-		'stitching_method="terastitcher"' & 'status_step1="COMPLETED"'
-	unique_contents = dj.U('jobid_step0','username',).aggr(
-		job_contents,timestamp='max(timestamp)')*job_contents
-
-	processing_pipeline_jobids_step0 = unique_contents.fetch('jobid_step0') 
-	logger.debug('These are the step 0 jobids of the processing pipeline '
-				 'with stitching_method="terastitcher" and a COMPLETED step 1:')
-	logger.debug(processing_pipeline_jobids_step0)
-	logger.debug("")
 	
-	""" For each of these jobs, figure out the ones for which the
-	stitched precomputed pipeline has not already been started """
+	all_spock_job_contents = db_spockadmin.ProcessingPipelineSpockJob()
 	
-	for processing_pipeline_jobid_step0 in processing_pipeline_jobids_step0:
-		logger.debug(f"Checking out jobid: {processing_pipeline_jobid_step0} ")
-		
-		""" Check whether the stitched precomputed pipeline has been started for this 
-		processing resolution request """
+	step_dict = {
+		'blending':1,
+		'registered':3
+		}
 
-		stitched_precomputed_spock_job_contents = db_spockadmin.StitchedPrecomputedSpockJob() & \
-			f'processing_pipeline_jobid_step0="{processing_pipeline_jobid_step0}"'
-		if len(stitched_precomputed_spock_job_contents) > 0:
-			logger.info("Precomputed pipeline already started for this job")
-			continue
-		""" Kick off a stitched precomputed spock job 
-		First need to get the kwarg dictionary for 
-		this processing resolution request.
-		To get that need to cross-reference the
-		ProcessingResolutionRequest()
-		table"""
-		
-		""" First figure out if this is a spock job that ran steps 0-2 
-		or 0-3 (i.e. used registration) """
-		processing_pipeline_db_contents = unique_contents & \
-			f'jobid_step0="{processing_pipeline_jobid_step0}"'
-		(processing_pipeline_jobid_step2,
-			processing_pipeline_jobid_step3) = processing_pipeline_db_contents.fetch1(
-			'jobid_step2','jobid_step3')
-
-		if processing_pipeline_jobid_step3:
-			logger.debug("Only steps 0-2 were run in this pipeline")
-			this_processing_resolution_request = db_lightsheet.Request.ProcessingResolutionRequest() & \
-				f'lightsheet_pipeline_spock_jobid="{processing_pipeline_jobid_step3}"'
-		else:
-			logger.debug("Steps 0-3 were run in this pipeline")
-			this_processing_resolution_request = db_lightsheet.Request.ProcessingResolutionRequest() & \
-				f'lightsheet_pipeline_spock_jobid="{processing_pipeline_jobid_step2}"'
-		""" Now find all of the ProcessingChannel() entries 
-		corresponding to this processing resolution request """
-		
-		joined_processing_channel_contents = this_processing_resolution_request * \
-			db_lightsheet.Request.ProcessingChannel() * \
-			db_lightsheet.Request.ImagingChannel()
-		
-		for this_processing_channel_contents in joined_processing_channel_contents:
-			username=this_processing_channel_contents['username']
-			request_name = this_processing_channel_contents['request_name']
-			sample_name = this_processing_channel_contents['sample_name']
-			imaging_request_number = this_processing_channel_contents['imaging_request_number']
-			processing_request_number = this_processing_channel_contents['processing_request_number']
-			image_resolution = this_processing_channel_contents['image_resolution']
-			channel_name = this_processing_channel_contents['channel_name']
-			channel_index = this_processing_channel_contents['imspector_channel_index']
-			rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder']
-			left_lightsheet_used = this_processing_channel_contents['left_lightsheet_used']
-			right_lightsheet_used = this_processing_channel_contents['right_lightsheet_used']
-			z_step = this_processing_channel_contents['z_step'] # not altered during stitching
-
-			precomputed_kwargs = dict(
-				username=username,request_name=request_name,
-				sample_name=sample_name,imaging_request_number=imaging_request_number,
-				processing_request_number=processing_request_number,
-				image_resolution=image_resolution,channel_name=channel_name,
-				channel_index=channel_index,
-				rawdata_subfolder=rawdata_subfolder,
-				left_lightsheet_used=left_lightsheet_used,
-				right_lightsheet_used=right_lightsheet_used,
-				processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
-				z_step=z_step)
-			stitched_viz_dir = (f"{current_app.config['DATA_BUCKET_ROOTPATH']}/{username}/"
-							 f"{request_name}/{sample_name}/"
-							 f"imaging_request_{imaging_request_number}/viz/"
-							 f"processing_request_{processing_request_number}/"
-							 f"stitched_raw")
-			mymkdir(stitched_viz_dir)
-			logger.debug(f"Created directory {stitched_viz_dir}")
-			channel_viz_dir = os.path.join(stitched_viz_dir,f'channel_{channel_name}')
-			mymkdir(channel_viz_dir)
-			logger.debug(f"Created directory {channel_viz_dir}")
-			if left_lightsheet_used:
-				this_viz_dir = os.path.join(channel_viz_dir,'left_lightsheet')
-				mymkdir(this_viz_dir)
-				logger.debug(f"Created directory {this_viz_dir}")
-				precomputed_kwargs['lightsheet'] = 'left'
-				precomputed_kwargs['viz_dir'] = this_viz_dir
-				if not os.environ['FLASK_MODE'] == 'TEST':
-					make_precomputed_stitched_data.delay(**precomputed_kwargs)
-					logger.info("Sent precomputed task for tiling left lightsheet")
-			if right_lightsheet_used:
-				this_viz_dir = os.path.join(channel_viz_dir,'right_lightsheet')
-				mymkdir(this_viz_dir)
-				logger.debug(f"Created directory {this_viz_dir}")
-				precomputed_kwargs['lightsheet'] = 'right'
-				precomputed_kwargs['viz_dir'] = this_viz_dir
-				if not os.environ['FLASK_MODE'] == 'TEST':
-					make_precomputed_stitched_data.delay(**precomputed_kwargs)
-					logger.info("Sent precomputed task for tiling right lightsheet")
-
-	return "Checked for light sheet pipeline jobs whose data have been stitched"
-
-""" Blended precomputed pipeline """
-
-@cel.task()
-def check_for_spock_jobs_ready_for_making_precomputed_blended_data():
-	""" 
-	A celery task that will be run in a schedule
-
-	Checks for spock jobs for the light sheet pipeline 
-	for which step 1 (specifically the blending) is complete AND
-	whose precomputed pipeline for visualizing the blended
-	data products is not yet started.
-
-	For each spock job that satisfies those criteria,
-	start the precomputed pipeline for blended data 
-	corresponding to that imaging resolution request
-	"""
-   
-	""" First get all rows from the light sheet 
-	pipeline where status_step1='COMPLETED', finding the entries 
-	with the latest timestamps """
-	job_contents = db_spockadmin.ProcessingPipelineSpockJob() & \
-		'status_step1="COMPLETED"'
-	unique_contents = dj.U('jobid_step0','username',).aggr(
-		job_contents,timestamp='max(timestamp)')*job_contents
-
-	processing_pipeline_jobids_step0 = unique_contents.fetch('jobid_step0') 
-	logger.debug('These are the step 0 jobids of the processing pipeline '
-				 'with a COMPLETED step 1:')
-	logger.debug(processing_pipeline_jobids_step0)
-	logger.debug("")
+	spock_table_dict = {
+		'blending':db_spockadmin.BlendedPrecomputedSpockJob,
+		'registered':db_spockadmin.RegisteredPrecomputedSpockJob
+	}
 	
-	""" For each of these jobs, figure out the ones for which the
-	blended precomputed pipeline has not already been started """
-	
-	for processing_pipeline_jobid_step0 in processing_pipeline_jobids_step0:
-		logger.debug(f"Checking out jobid: {processing_pipeline_jobid_step0} ")
+	for precomputed_pipeline in ['blending','registered']:
+		logger.info(f"Checking for jobs ready for {precomputed_pipeline} precomputed pipeline")
 		
-		""" Check whether the blended precomputed pipeline has been started for this 
-		processing resolution request """
-		
-		blended_precomputed_spock_job_contents = db_spockadmin.BlendedPrecomputedSpockJob() & \
-			f'processing_pipeline_jobid_step0="{processing_pipeline_jobid_step0}"'
-		
-		if len(blended_precomputed_spock_job_contents) > 0:
-			logger.info("Precomputed pipeline already started for this job")
-			continue
+		step = step_dict[precomputed_pipeline]
+		spock_dbtable = spock_table_dict[precomputed_pipeline]
 
-		""" First figure out if this is a spock job that ran steps 0-2 
-		or 0-3 (i.e. used registration) """
-		processing_pipeline_db_contents = unique_contents & \
-			f'jobid_step0="{processing_pipeline_jobid_step0}"'
-		processing_pipeline_jobid_step2,processing_pipeline_jobid_step3 = processing_pipeline_db_contents.fetch1(
-			'jobid_step2','jobid_step3')
-	
-		if processing_pipeline_jobid_step3:
-			logger.debug("This is a job that ran steps 0-3 of the light sheet pipeline")
-			this_processing_resolution_request = db_lightsheet.Request.ProcessingResolutionRequest() & \
-				f'lightsheet_pipeline_spock_jobid="{processing_pipeline_jobid_step3}"'
-		else:
-			logger.debug("This is a job that ran steps 0-2 of the light sheet pipeline")
-			this_processing_resolution_request = db_lightsheet.Request.ProcessingResolutionRequest() & \
-				f'lightsheet_pipeline_spock_jobid="{processing_pipeline_jobid_step2}"'
+		job_contents = all_spock_job_contents & {
+			f'status_step{step}':'COMPLETED'
+			}
+
+		unique_contents = dj.U('jobid_step0','username',).aggr(
+			job_contents,timestamp='max(timestamp)')*job_contents
+
+		processing_pipeline_jobids_step0 = unique_contents.fetch('jobid_step0') 
 		
-		""" Now find all of the ProcessingChannel() entries 
-		corresponding to this processing resolution request """
-		logger.debug("this processing resolution request")
-		logger.debug(this_processing_resolution_request)
-		joined_processing_channel_contents = this_processing_resolution_request * \
-			db_lightsheet.Request.ProcessingChannel() * \
-			db_lightsheet.Request.ImagingChannel()
-		# logger.debug("processing channel contents")
-		# logger.debug(joined_processing_channel_contents)
-		for this_processing_channel_contents in joined_processing_channel_contents:
-			username=this_processing_channel_contents['username']
-			request_name = this_processing_channel_contents['request_name']
-			sample_name = this_processing_channel_contents['sample_name']
-			imaging_request_number = this_processing_channel_contents['imaging_request_number']
-			processing_request_number = this_processing_channel_contents['processing_request_number']
-			image_resolution = this_processing_channel_contents['image_resolution']
-			ventral_up = this_processing_channel_contents['ventral_up']
-			channel_name = this_processing_channel_contents['channel_name']
-			channel_index = this_processing_channel_contents['imspector_channel_index']
-			rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder']
-			data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
-			channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
-			if ventral_up:
-				blended_data_path = os.path.join(data_bucket_rootpath,username,
-							 request_name,sample_name,
-							 f"imaging_request_{imaging_request_number}",
-							 "output",
-							 f"processing_request_{processing_request_number}",
-							 f"resolution_{image_resolution}_ventral_up",
-							 "full_sizedatafld",
-							 f"{rawdata_subfolder}_ch{channel_index_padded}")
+		""" For each of these jobs, figure out the ones for which the
+		precomputed pipeline has not already been started """
+		
+		for processing_pipeline_jobid_step0 in processing_pipeline_jobids_step0:
+			logger.debug(f"Checking out jobid: {processing_pipeline_jobid_step0} ")
+			
+			stitched_precomputed_spock_job_contents = spock_dbtable() & {
+				'processing_pipeline_jobid_step0':processing_pipeline_jobid_step0
+			}
+
+			if len(stitched_precomputed_spock_job_contents) > 0:
+				logger.info("Precomputed pipeline already started for this job")
+				continue
+			
+			# Get the kwarg dictionary for 
+			# this processing resolution request.
+			
+			# Is this a spock job that ran steps 0-2 
+			# or 0-3 (i.e. used registration) 
+			processing_pipeline_db_contents = unique_contents & \
+				f'jobid_step0="{processing_pipeline_jobid_step0}"'
+			(processing_pipeline_jobid_step2,
+				processing_pipeline_jobid_step3) = processing_pipeline_db_contents.fetch1(
+				'jobid_step2','jobid_step3')
+
+			if processing_pipeline_jobid_step3:
+				this_processing_resolution_request = db_lightsheet.Request.ProcessingResolutionRequest() & {
+					'lightsheet_pipeline_spock_jobid':processing_pipeline_jobid_step3
+				}
 			else:
-				blended_data_path = os.path.join(data_bucket_rootpath,username,
-							 request_name,sample_name,
-							 f"imaging_request_{imaging_request_number}",
-							 "output",
-							 f"processing_request_{processing_request_number}",
-							 f"resolution_{image_resolution}",
-							 "full_sizedatafld",
-							 f"{rawdata_subfolder}_ch{channel_index_padded}")
+				this_processing_resolution_request = db_lightsheet.Request.ProcessingResolutionRequest() & {
+					'lightsheet_pipeline_spock_jobid':processing_pipeline_jobid_step2
+				}
 
-			# rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder']
-			z_step = this_processing_channel_contents['z_step'] # not altered during blending
-			""" number of z planes could be altered in the case of tiling due to terastitcher 
-			so we will calculate it on the fly when doing the precomputed steps """
-			precomputed_kwargs = dict(
-				username=username,request_name=request_name,
-				sample_name=sample_name,imaging_request_number=imaging_request_number,
-				processing_request_number=processing_request_number,
-				image_resolution=image_resolution,channel_name=channel_name,
-				ventral_up=ventral_up,
-				channel_index=channel_index,
-				processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
-				z_step=z_step,blended_data_path=blended_data_path)
+			# Find the ProcessingChannel() entries 
+			# for this processing resolution request
+			
+			joined_processing_channel_contents = this_processing_resolution_request * \
+				db_lightsheet.Request.ProcessingChannel() * \
+				db_lightsheet.Request.ImagingChannel()
+			
+			# for each of these channels, start the precomputed pipeline
+			for this_processing_channel_contents in joined_processing_channel_contents:
+				username=this_processing_channel_contents['username']
+				request_name = this_processing_channel_contents['request_name']
+				sample_name = this_processing_channel_contents['sample_name']
+				imaging_request_number = this_processing_channel_contents['imaging_request_number']
+				processing_request_number = this_processing_channel_contents['processing_request_number']
+				image_resolution = this_processing_channel_contents['image_resolution']
+				channel_name = this_processing_channel_contents['channel_name']
+				ventral_up = this_processing_channel_contents['ventral_up']
+				channel_index = this_processing_channel_contents['imspector_channel_index']
+				rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder']
+				left_lightsheet_used = this_processing_channel_contents['left_lightsheet_used']
+				right_lightsheet_used = this_processing_channel_contents['right_lightsheet_used']
+				z_step = this_processing_channel_contents['z_step'] 
+				lightsheet_channel_str = this_processing_channel_contents['lightsheet_channel_str']
+				
+				# Set up kwarg dict of common keys 
+				precomputed_kwargs = dict(
+					username=username,
+					request_name=request_name,
+					sample_name=sample_name,
+					imaging_request_number=imaging_request_number,
+					processing_request_number=processing_request_number,
+					image_resolution=image_resolution,channel_name=channel_name,
+					ventral_up=ventral_up,
+					channel_index=channel_index,
+					z_step=z_step,
+					processing_pipeline_jobid_step0=processing_pipeline_jobid_step0)
 
-			blended_viz_dir = os.path.join(data_bucket_rootpath,username,
+				# Handle specific things for blending vs. registered pipelines
+				if precomputed_pipeline == 'blending':
+
+					blended_data_rootpath = os.path.join(
+						data_bucket_rootpath,
+						username,
+						request_name,sample_name,
+						f"imaging_request_{imaging_request_number}",
+						"output",
+						f"processing_request_{processing_request_number}")
+
+					viz_dir = os.path.join(data_bucket_rootpath,username,
 							 request_name,sample_name,
 							 f"imaging_request_{imaging_request_number}",
 							 "viz",
 							 f"processing_request_{processing_request_number}",
 							 "blended")
-			mymkdir(blended_viz_dir)
-			logger.debug(f"Created directory {blended_viz_dir}")
-			if ventral_up:
-				channel_viz_dir = os.path.join(blended_viz_dir,f'channel_{channel_name}_ventral_up')
-			else:
-				channel_viz_dir = os.path.join(blended_viz_dir,f'channel_{channel_name}')
-			mymkdir(channel_viz_dir)
-			logger.debug(f"Created directory {channel_viz_dir}")
-			precomputed_kwargs['viz_dir'] = channel_viz_dir
-			if not os.environ['FLASK_MODE'] == 'TEST':
-				make_precomputed_blended_data.delay(**precomputed_kwargs)
-				logger.info("Sent precomputed task for blended data")
 
-	return "Checked for light sheet pipeline jobs whose data have been blended"
+					if ventral_up:
 
-""" Downsized precomputed pipeline """
-
-@cel.task()
-def check_for_spock_jobs_ready_for_making_precomputed_downsized_data():
-	""" 
-	A celery task that will be run in a schedule
-
-	Checks for spock jobs for the light sheet pipeline 
-	for which all steps (specifically the final step, step 3)
-	is complete AND whose precomputed pipeline for visualizing
-	the downsized data products is not yet started.
-
-	For each spock job that satisfies those criteria,
-	start the precomputed pipeline for downsized data 
-	corresponding to that processing resolution request
-	"""
-   
-	""" First get all rows from the light sheet 
-	pipeline where status_step3='COMPLETED', finding the entries 
-	with the latest timestamps """
-	job_contents = db_spockadmin.ProcessingPipelineSpockJob() & \
-		'status_step3="COMPLETED"'
-	unique_contents = dj.U('jobid_step0','username',).aggr(
-		job_contents,timestamp='max(timestamp)')*job_contents
-
-	processing_pipeline_jobids_step0 = unique_contents.fetch('jobid_step0') 
-	logger.debug('These are the step 0 jobids of the processing pipeline '
-				 'where the entire pipeline is COMPLETED:')
-	logger.debug(processing_pipeline_jobids_step0)
-	logger.debug("")
-	
-	""" For each of these jobs, figure out the ones for which the
-	blended precomputed pipeline has not already been started """
-	
-	for processing_pipeline_jobid_step0 in processing_pipeline_jobids_step0:
-		logger.debug(f"Checking out jobid: {processing_pipeline_jobid_step0} ")
-		
-		""" Check whether the blended precomputed pipeline has been started for this 
-		processing resolution request """
-		
-		downsized_precomputed_spock_job_contents = db_spockadmin.DownsizedPrecomputedSpockJob() & \
-			f'processing_pipeline_jobid_step0="{processing_pipeline_jobid_step0}"'
-		if len(downsized_precomputed_spock_job_contents) > 0:
-			logger.info("Precomputed pipeline already started for this job")
-			continue
-
-		""" Kick off a downsized precomputed spock job 
-		First need to get the kwarg dictionary for 
-		this processing resolution request.
-		To get that need to cross-reference the
-		ProcessingResolutionRequest()
-		table"""
-		
-
-		""" First figure out if this is a spock job that ran steps 0-2 
-		or 0-3 (i.e. used registration) """
-		processing_pipeline_db_contents = unique_contents & \
-			f'jobid_step0="{processing_pipeline_jobid_step0}"'
-		processing_pipeline_jobid_step2,processing_pipeline_jobid_step3 = processing_pipeline_db_contents.fetch1(
-			'jobid_step2','jobid_step3')
-	
-		if processing_pipeline_jobid_step3:
-			logger.debug("This is a job that ran steps 0-3 of the light sheet pipeline")
-			this_processing_resolution_request = db_lightsheet.Request.ProcessingResolutionRequest() & \
-				f'lightsheet_pipeline_spock_jobid="{processing_pipeline_jobid_step3}"'
-		else:
-			logger.debug("This is a job that ran steps 0-2 of the light sheet pipeline")
-			this_processing_resolution_request = db_lightsheet.Request.ProcessingResolutionRequest() & \
-				f'lightsheet_pipeline_spock_jobid="{processing_pipeline_jobid_step2}"'
-		
-		""" Now find all of the ProcessingChannel() entries 
-		corresponding to this processing resolution request """
-		
-		joined_processing_channel_contents = this_processing_resolution_request * \
-			db_lightsheet.Request.ProcessingChannel() * \
-			db_lightsheet.Request.ImagingChannel()
-		
-		for this_processing_channel_contents in joined_processing_channel_contents:
-			username=this_processing_channel_contents['username']
-			request_name = this_processing_channel_contents['request_name']
-			sample_name = this_processing_channel_contents['sample_name']
-			imaging_request_number = this_processing_channel_contents['imaging_request_number']
-			processing_request_number = this_processing_channel_contents['processing_request_number']
-			image_resolution = this_processing_channel_contents['image_resolution']
-			channel_name = this_processing_channel_contents['channel_name']
-			ventral_up = this_processing_channel_contents['ventral_up']
-			channel_index = this_processing_channel_contents['imspector_channel_index']
-			rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder']
-			atlas_name = this_processing_channel_contents['atlas_name']
-			data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
-			channel_index_padded = '0'*(2-len(str(channel_index)))+str(channel_index) # "01", e.g.
-			if ventral_up:
-				downsized_data_path = os.path.join(data_bucket_rootpath,username,
-								 request_name,sample_name,
-								 f"imaging_request_{imaging_request_number}",
-								 "output",
-								 f"processing_request_{processing_request_number}",
-								 f"resolution_{image_resolution}_ventral_up")
-			else: 
-				downsized_data_path = os.path.join(data_bucket_rootpath,username,
-							 request_name,sample_name,
-							 f"imaging_request_{imaging_request_number}",
-							 "output",
-							 f"processing_request_{processing_request_number}",
-							 f"resolution_{image_resolution}")
-			# rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder'
-			""" number of z planes could be altered in the case of tiling due to terastitcher 
-			so we will calculate it on the fly when doing the precomputed steps """
-			precomputed_kwargs = dict(
-				username=username,request_name=request_name,
-				sample_name=sample_name,imaging_request_number=imaging_request_number,
-				processing_request_number=processing_request_number,
-				image_resolution=image_resolution,channel_name=channel_name,
-				ventral_up=ventral_up,
-				channel_index=channel_index,rawdata_subfolder=rawdata_subfolder,
-				processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
-				downsized_data_path=downsized_data_path,atlas_name=atlas_name)
-			downsized_viz_dir = os.path.join(data_bucket_rootpath,username,
-							 request_name,sample_name,
-							 f"imaging_request_{imaging_request_number}",
-							 "viz",
-							 f"processing_request_{processing_request_number}",
-							 "downsized")
-			mymkdir(downsized_viz_dir)
-			logger.debug(f"Created directory {downsized_viz_dir}")
-			if ventral_up:
-				channel_viz_dir = os.path.join(downsized_viz_dir,
-					f'channel_{channel_name}_ventral_up')
-			else:
-				channel_viz_dir = os.path.join(downsized_viz_dir,
-					f'channel_{channel_name}')
-			mymkdir(channel_viz_dir)
-			logger.debug(f"Created directory {channel_viz_dir}")
-			precomputed_kwargs['viz_dir'] = channel_viz_dir
-			if not os.environ['FLASK_MODE'] == 'TEST':
-				make_precomputed_downsized_data.delay(**precomputed_kwargs)
-				logger.info("Sent precomputed task for making downsized data")
-
-	return "Checked for light sheet pipeline jobs whose data have been downsized"
-
-""" Registered precomputed pipeline """
-
-@cel.task()
-def check_for_spock_jobs_ready_for_making_precomputed_registered_data():
-	""" 
-	A celery task that will be run in a schedule
-
-	Checks for spock jobs for the light sheet pipeline 
-	for which all steps (specifically the final step, step 3)
-	is complete AND whose precomputed pipeline for visualizing
-	the registered data products is not yet started.
-
-	For each spock job that satisfies those criteria,
-	start the precomputed pipeline for each channel
-	in this processing resolution request
-	"""
-   
-	""" First get all rows from the light sheet 
-	pipeline where status_step1='COMPLETED', finding the entries 
-	with the latest timestamps """
-	job_contents = db_spockadmin.ProcessingPipelineSpockJob() & \
-		'status_step3="COMPLETED"'
-	unique_contents = dj.U('jobid_step0','username',).aggr(
-		job_contents,timestamp='max(timestamp)')*job_contents
-
-	processing_pipeline_jobids_step0 = unique_contents.fetch('jobid_step0') 
-	logger.debug('These are the step 0 jobids of the processing pipeline '
-				 'where the entire pipeline is COMPLETED:')
-	logger.debug(processing_pipeline_jobids_step0)
-	logger.debug("")
-	
-	""" For each of these jobs, figure out the ones for which the
-	blended precomputed pipeline has not already been started """
-	
-	for processing_pipeline_jobid_step0 in processing_pipeline_jobids_step0:
-		logger.debug(f"Checking out jobid: {processing_pipeline_jobid_step0} ")
-		
-		""" Check whether the registered precomputed pipeline has been started for this 
-		processing resolution request """
-		
-		registered_precomputed_spock_job_contents = db_spockadmin.RegisteredPrecomputedSpockJob() & \
-			f'processing_pipeline_jobid_step0="{processing_pipeline_jobid_step0}"'
-		if len(registered_precomputed_spock_job_contents) > 0:
-			logger.info("Precomputed pipeline already started for this job")
-			continue
-
-		""" Kick off a registered precomputed spock job 
-		for each channel in this run
-		of the processing pipeline (could be 1-4)
-
-		First need to get the kwarg dictionary for 
-		this processing resolution request.
-		To get that need to cross-reference the
-		ProcessingResolutionRequest()
-		table. In this case we know the pipeline has a step 3
-		so we don't need to do the check whether step 2 or step 3
-		is the final step in the pipeline."""
-
-		processing_pipeline_db_contents = unique_contents & \
-			f'jobid_step0="{processing_pipeline_jobid_step0}"'
-		logger.debug("made it here")
-		logger.debug(processing_pipeline_db_contents)
-		processing_pipeline_jobid_step3 = processing_pipeline_db_contents.fetch1(
-			'jobid_step3')
-
-		logger.debug("jobid_step3:")
-		logger.debug(processing_pipeline_jobid_step3)
-		this_processing_resolution_request = db_lightsheet.Request.ProcessingResolutionRequest() & \
-			f'lightsheet_pipeline_spock_jobid={processing_pipeline_jobid_step3}'
-		logger.debug('Processing resolution request:')
-		logger.debug(this_processing_resolution_request)
-		atlas_name = this_processing_resolution_request.fetch1('atlas_name')
-		""" Now find all of the ProcessingChannel() entries 
-		corresponding to this processing resolution request """
-		
-		joined_processing_channel_contents = this_processing_resolution_request * \
-			db_lightsheet.Request.ProcessingChannel() * \
-			db_lightsheet.Request.ImagingChannel()
-		
-		for this_processing_channel_contents in joined_processing_channel_contents:
-			username=this_processing_channel_contents['username']
-			request_name = this_processing_channel_contents['request_name']
-			sample_name = this_processing_channel_contents['sample_name']
-			imaging_request_number = this_processing_channel_contents['imaging_request_number']
-			processing_request_number = this_processing_channel_contents['processing_request_number']
-			image_resolution = this_processing_channel_contents['image_resolution']
-			channel_name = this_processing_channel_contents['channel_name']
-			ventral_up = this_processing_channel_contents['ventral_up']
-			channel_index = this_processing_channel_contents['imspector_channel_index']
-			rawdata_subfolder = this_processing_channel_contents['rawdata_subfolder']
-			lightsheet_channel_str = this_processing_channel_contents['lightsheet_channel_str']
-			data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
-			if ventral_up:
-				registered_data_path = os.path.join(data_bucket_rootpath,username,
-							 request_name,sample_name,
-							 f"imaging_request_{imaging_request_number}",
-							 "output",
-							 f"processing_request_{processing_request_number}",
+						blended_data_path = os.path.join(blended_data_rootpath, 
 							 f"resolution_{image_resolution}_ventral_up",
-							 "elastix")
-			else:
-				registered_data_path = os.path.join(data_bucket_rootpath,username,
-							 request_name,sample_name,
-							 f"imaging_request_{imaging_request_number}",
-							 "output",
-							 f"processing_request_{processing_request_number}",
+							 "full_sizedatafld",
+							 f"{rawdata_subfolder}_ch{channel_index_padded}")
+
+						channel_viz_dir = os.path.join(blended_viz_dir,f'channel_{channel_name}_ventral_up')
+
+					else:
+						blended_data_path = os.path.join(blended_data_rootpath,
 							 f"resolution_{image_resolution}",
-							 "elastix")
+							 "full_sizedatafld",
+							 f"{rawdata_subfolder}_ch{channel_index_padded}")
+					
+						channel_viz_dir = os.path.join(blended_viz_dir,f'channel_{channel_name}')
 
-			""" number of z planes could be altered in the case of tiling due to terastitcher 
-			so we will calculate it on the fly when doing the precomputed steps """
-			precomputed_kwargs = dict(
-				username=username,request_name=request_name,
-				sample_name=sample_name,imaging_request_number=imaging_request_number,
-				processing_request_number=processing_request_number,
-				image_resolution=image_resolution,channel_name=channel_name,
-				ventral_up=ventral_up,
-				channel_index=channel_index,
-				lightsheet_channel_str=lightsheet_channel_str,
-				rawdata_subfolder=rawdata_subfolder,
-				atlas_name=atlas_name,
-				processing_pipeline_jobid_step0=processing_pipeline_jobid_step0,
-				registered_data_path=registered_data_path)
+					precomputed_kwargs['blended_data_path'] = blended_data_path
+					layer_name = f'channel{channel_name}_blended'
+					
+				elif precomputed_pipeline == 'registered':
 
-			registered_viz_dir = os.path.join(data_bucket_rootpath,username,
+					registered_data_rootpath = os.path.join(
+						data_bucket_rootpath,username,
+						request_name,sample_name,
+						f"imaging_request_{imaging_request_number}",
+						"output",
+						 f"processing_request_{processing_request_number}")
+
+					viz_dir = os.path.join(data_bucket_rootpath,username,
 							 request_name,sample_name,
 							 f"imaging_request_{imaging_request_number}",
 							 "viz",
 							 f"processing_request_{processing_request_number}",
 							 "registered")
-			mymkdir(registered_viz_dir)
-			logger.debug(f"Created directory {registered_viz_dir}")
-			if ventral_up:
-				channel_viz_dir = os.path.join(registered_viz_dir,
-					f'channel_{channel_name}_{lightsheet_channel_str}_ventral_up')
-			else:
-				channel_viz_dir = os.path.join(registered_viz_dir,
-					f'channel_{channel_name}_{lightsheet_channel_str}')
-			mymkdir(channel_viz_dir)
-			logger.debug(f"Created directory {channel_viz_dir}")
-			precomputed_kwargs['viz_dir'] = channel_viz_dir
-			if ventral_up:
-				layer_name = f'channel{channel_name}_registered_ventral_up'
-			else:
-				layer_name = f'channel{channel_name}_registered'
-			layer_dir = os.path.join(channel_viz_dir,layer_name)
-			mymkdir(layer_dir)
-			logger.debug(f"Created directory {layer_dir}")
-			precomputed_kwargs['layer_name'] = layer_name
-			if not os.environ['FLASK_MODE'] == 'TEST':
-				make_precomputed_registered_data.delay(**precomputed_kwargs)
-				logger.info("Sent precomputed task for tiling registered data")
 
-	return "Checked for light sheet pipeline jobs whose data have been registered"
+					if ventral_up:
 
-""" Smartspim corrected precomputed pipeline """
+						registered_data_path = os.path.join(registered_data_rootpath, 
+									 f"resolution_{image_resolution}_ventral_up",
+									 "elastix")
+
+						channel_viz_dir = os.path.join(registered_viz_dir,
+							f'channel_{channel_name}_{lightsheet_channel_str}_ventral_up')
+
+						layer_name = f'channel{channel_name}_registered_ventral_up'
+					else:
+						
+						registered_data_path = os.path.join(registered_data_rootpath,
+									 f"resolution_{image_resolution}",
+									 "elastix")
+
+						channel_viz_dir = os.path.join(registered_viz_dir,
+							f'channel_{channel_name}_{lightsheet_channel_str}')
+
+						layer_name = f'channel{channel_name}_registered'
+
+					precomputed_kwargs['registered_data_path'] = registered_data_path
+					precomputed_kwargs['lightsheet_channel_str'] = lightsheet_channel_str
+					precomputed_kwargs['rawdata_subfolder'] = rawdata_subfolder
+					precomputed_kwargs['atlas_name'] = atlas_name
+
+				# Make precomputed layer directory
+				layer_dir = os.path.join(channel_viz_dir,layer_name)
+				mymkdir(layer_dir)
+				logger.debug(f"Created directory {layer_dir}")
+				precomputed_kwargs['layer_name'] = layer_name
+				
+
+				if not os.environ['FLASK_MODE'] == 'TEST':
+					if precomputed_pipeline == 'blending':
+						make_precomputed_blended_data.delay(**precomputed_kwargs)
+					elif precomputed_pipeline == 'registered':
+						make_precomputed_registered_data.delay(**precomputed_kwargs)
+					logger.info("Sent task to start the {precomputed_pipeline} pipeline")
+
+	return "Checked for light sheet pipeline jobs which are ready for precomputed pipelines"
+
 @cel.task()
 def smartspim_corrected_precomputed_job_status_checker():
 	""" 
