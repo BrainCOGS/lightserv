@@ -167,22 +167,9 @@ class ProdConfig(BaseConfig):
 		'task': 'lightserv.imaging.tasks.check_raw_precomputed_statuses',
 		'schedule': timedelta(minutes=10)
 		},
-		'stitchedprecomp_job_ready_checker': {
-		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_stitched_data',
-		'schedule': timedelta(minutes=11)
-		},
-		'stitched_precomp_job_status_checker': {
-		'task': 'lightserv.processing.tasks.precomputed_spock_job_status_checker',
-		'schedule': timedelta(minutes=15),
-		'kwargs':dict(
-			spock_dbtable_str='StitchedPrecomputedSpockJob',
-			lightsheet_dbtable_str='Request.ProcessingChannel',
-			lightsheet_column_name='stitched_precomputed_spock_jobid',
-			max_step_index=2)
-		},
-		'blended_precomp_job_ready_checker': {
-		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_blended_data',
-		'schedule': timedelta(minutes=11)
+		'precomputed_job_ready_checker': {
+		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_data',
+		'schedule': timedelta(minutes=30)
 		},
 		'blended_precomp_job_status_checker': {
 		'task': 'lightserv.processing.tasks.precomputed_spock_job_status_checker',
@@ -192,10 +179,6 @@ class ProdConfig(BaseConfig):
 			lightsheet_dbtable_str='Request.ProcessingChannel',
 			lightsheet_column_name='blended_precomputed_spock_jobid',
 			max_step_index=2)
-		},
-		'registered_precomp_job_ready_checker': {
-		'task': 'lightserv.processing.tasks.check_for_spock_jobs_ready_for_making_precomputed_registered_data',
-		'schedule': timedelta(minutes=11)
 		},
 		'registered_precomp_job_status_checker': {
 		'task': 'lightserv.processing.tasks.precomputed_spock_job_status_checker',
