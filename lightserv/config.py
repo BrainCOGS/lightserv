@@ -189,10 +189,6 @@ class ProdConfig(BaseConfig):
 			lightsheet_column_name='registered_precomputed_spock_jobid',
 			max_step_index=1)
 		},
-		'registeredprecomp_job_status_checker': {
-		'task': 'lightserv.processing.tasks.registered_precomputed_job_status_checker',
-		'schedule': timedelta(minutes=12)
-		},
 		'smartspim_corrected_precomputed_job_status_checker': {
 		'task': 'lightserv.processing.tasks.smartspim_corrected_precomputed_job_status_checker',
 		'schedule': timedelta(minutes=10)
