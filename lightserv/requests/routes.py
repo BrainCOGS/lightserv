@@ -960,7 +960,7 @@ def new_request():
 							antibody_history_insert_dict['notes'] = ''
 							logger.info("AntibodyHistory() insert")
 							logger.info(antibody_history_insert_dict)
-							db_lightsheet.AntibodyHistory().insert1(antibody_history_insert_dict)
+							db_lightsheet.AntibodyHistory().insert1(antibody_history_insert_dict,skip_duplicates=True)
 
 					logger.info("ClearingBatchSample() insert ")
 					for d in clearing_batch_sample_insert_list:
