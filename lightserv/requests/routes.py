@@ -1051,8 +1051,8 @@ def new_request():
 						send_email.delay(subject=subject,body=message_body,recipients=recipients) 
 					""" If username is not already part of the g_lightsheet_data group,
 					send an email to pnihelp requesting that they are added """
-					user_in_lightsheet_data_group = check_user_in_g_lightsheet_data(username)
-					if not user_in_lightsheet_data_group:
+					user_in_lightsheet_data_group = check_user_in_g_lightsheet_data(username) # returns None if there is an error connecting to spock
+					if user_in_lightsheet_data_group == False:
 						logger.debug(f"Username: {username} is not in g_lightsheet_data")
 						logger.debug("sending email to pnihelp")
 						subject = 'New lightsheet user bucket permissions'
