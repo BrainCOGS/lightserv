@@ -154,7 +154,7 @@ class ProdConfig(BaseConfig):
 		'schedule': timedelta(minutes=10),
 		'kwargs':{'reg':True}
 		},
-		'processing_job_status_checker': {
+		'processing_job_status_checker_noreg': {
 		'task': 'lightserv.processing.tasks.processing_spock_job_status_checker',
 		'schedule': timedelta(minutes=60),
 		'kwargs':{'reg':False}
