@@ -1617,7 +1617,8 @@ def check_for_spock_jobs_ready_for_making_precomputed_data():
 	start the precomputed pipeline(s) that are ready
 	to be started given that that step in the pipeline is complete. 
 	"""
-	
+	data_bucket_rootpath = current_app.config['DATA_BUCKET_ROOTPATH']
+
 	all_spock_job_contents = db_spockadmin.ProcessingPipelineSpockJob()
 	
 	step_dict = {
@@ -1734,6 +1735,8 @@ def check_for_spock_jobs_ready_for_making_precomputed_data():
 							 f"processing_request_{processing_request_number}",
 							 "blended")
 
+					channel_index_padded = str(channel_index).zfill(2)
+					
 					if ventral_up:
 
 						blended_data_path = os.path.join(blended_data_rootpath, 
@@ -1741,7 +1744,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_data():
 							 "full_sizedatafld",
 							 f"{rawdata_subfolder}_ch{channel_index_padded}")
 
-						channel_viz_dir = os.path.join(blended_viz_dir,f'channel_{channel_name}_ventral_up')
+						channel_viz_dir = os.path.join(viz_dir,f'channel_{channel_name}_ventral_up')
 
 					else:
 						blended_data_path = os.path.join(blended_data_rootpath,
@@ -1749,7 +1752,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_data():
 							 "full_sizedatafld",
 							 f"{rawdata_subfolder}_ch{channel_index_padded}")
 					
-						channel_viz_dir = os.path.join(blended_viz_dir,f'channel_{channel_name}')
+						channel_viz_dir = os.path.join(viz_dir,f'channel_{channel_name}')
 
 					precomputed_kwargs['blended_data_path'] = blended_data_path
 					layer_name = f'channel{channel_name}_blended'
@@ -1776,7 +1779,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_data():
 									 f"resolution_{image_resolution}_ventral_up",
 									 "elastix")
 
-						channel_viz_dir = os.path.join(registered_viz_dir,
+						channel_viz_dir = os.path.join(viz_dir,
 							f'channel_{channel_name}_{lightsheet_channel_str}_ventral_up')
 
 						layer_name = f'channel{channel_name}_registered_ventral_up'
@@ -1786,7 +1789,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_data():
 									 f"resolution_{image_resolution}",
 									 "elastix")
 
-						channel_viz_dir = os.path.join(registered_viz_dir,
+						channel_viz_dir = os.path.join(viz_dir,
 							f'channel_{channel_name}_{lightsheet_channel_str}')
 
 						layer_name = f'channel{channel_name}_registered'
@@ -1796,6 +1799,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_data():
 					precomputed_kwargs['rawdata_subfolder'] = rawdata_subfolder
 					precomputed_kwargs['atlas_name'] = atlas_name
 
+				precomputed_kwargs['viz_dir'] = channel_viz_dir
 				# Make precomputed layer directory
 				layer_dir = os.path.join(channel_viz_dir,layer_name)
 				mymkdir(layer_dir)
