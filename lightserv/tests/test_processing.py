@@ -360,7 +360,7 @@ def test_post_pystripe_entry(test_client,
 	with test_client.session_transaction() as sess:
 		sess['user'] = 'sg3271'
 	username='lightserv-test'
-	request_name = 'nonadmin_3p6x_smartspim_request'
+	request_name = 'nonadmin_3p6x_smartspim_twochannels_request'
 	sample_name = 'sample-001'
 	imaging_request_number=1
 	kwargs = dict(username=username,

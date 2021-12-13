@@ -439,7 +439,10 @@ def smartspim_stitch(**kwargs):
 
 	# Loop through channels in alphanumeric order (so that lower wavelength channels are first)
 	# and add rawdata_path and stitched_output_dir to command_str
-	for channel_name in sorted(kwargs['channel_dict'].keys()):
+	for channel_name in ['785','642','561','488']: # use longest available wavelength channel as the channel to find the displacements  
+		if channel_name not in kwargs['channel_dict']:
+			continue 
+		logger.debug(f"Adding channel: {channel_name} to stitching command")
 		channel_dict = kwargs['channel_dict'][channel_name]
 		ventral_up=channel_dict['ventral_up']
 		rawdata_subfolder=channel_dict['rawdata_subfolder']
@@ -466,7 +469,8 @@ def smartspim_stitch(**kwargs):
 		command_str += f' {rawdata_path} {stitched_output_dir}'
 		# Make stitched output dir 
 		mymkdir(stitched_output_dir)
-	
+	logger.debug("Complete stitching command str: ")
+	logger.debug(command_str)
 	# Now run stitching pipeline 
 	processing_code_dir = os.path.join(
 		current_app.config['PROCESSING_CODE_DIR'],
@@ -485,8 +489,7 @@ def smartspim_stitch(**kwargs):
 			command_str
 		)
 
-	logger.debug("Running command:")
-	logger.debug(command)
+	
 	try:
 		client = connect_to_spock()
 	except paramiko.ssh_exception.AuthenticationException:
@@ -513,10 +516,10 @@ def smartspim_stitch(**kwargs):
 	brainpipe_commit = str(stdout_commit.read().decode("utf-8").strip('\n'))
 	logger.debug("BRAINPIPE COMMIT")
 	logger.debug(brainpipe_commit)
-
-	logger.debug("Command:")
-	logger.debug(command)
 	
+	# Run the stitching command
+	logger.debug("Running command:")
+	logger.debug(command)
 	stdin, stdout, stderr = client.exec_command(command)
 	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
 	logger.debug("Stdout Response:")
