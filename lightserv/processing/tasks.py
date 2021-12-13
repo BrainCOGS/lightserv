@@ -439,7 +439,10 @@ def smartspim_stitch(**kwargs):
 
 	# Loop through channels in alphanumeric order (so that lower wavelength channels are first)
 	# and add rawdata_path and stitched_output_dir to command_str
-	for channel_name in sorted(kwargs['channel_dict'].keys()):
+	for channel_name in ['785','642','561','488']: # use longest available wavelength channel as the channel to find the displacements  
+		if channel_name not in kwargs['channel_dict']:
+			continue 
+		logger.debug(f"Adding channel: {channel_name} to stitching command")
 		channel_dict = kwargs['channel_dict'][channel_name]
 		ventral_up=channel_dict['ventral_up']
 		rawdata_subfolder=channel_dict['rawdata_subfolder']
@@ -466,7 +469,8 @@ def smartspim_stitch(**kwargs):
 		command_str += f' {rawdata_path} {stitched_output_dir}'
 		# Make stitched output dir 
 		mymkdir(stitched_output_dir)
-	
+	logger.debug("Complete stitching command str: ")
+	logger.debug(command_str)
 	# Now run stitching pipeline 
 	processing_code_dir = os.path.join(
 		current_app.config['PROCESSING_CODE_DIR'],
@@ -485,8 +489,7 @@ def smartspim_stitch(**kwargs):
 			command_str
 		)
 
-	logger.debug("Running command:")
-	logger.debug(command)
+	
 	try:
 		client = connect_to_spock()
 	except paramiko.ssh_exception.AuthenticationException:
@@ -513,10 +516,10 @@ def smartspim_stitch(**kwargs):
 	brainpipe_commit = str(stdout_commit.read().decode("utf-8").strip('\n'))
 	logger.debug("BRAINPIPE COMMIT")
 	logger.debug(brainpipe_commit)
-
-	logger.debug("Command:")
-	logger.debug(command)
 	
+	# Run the stitching command
+	logger.debug("Running command:")
+	logger.debug(command)
 	stdin, stdout, stderr = client.exec_command(command)
 	response = str(stdout.read().decode("utf-8").strip('\n')) # strips off the final newline
 	logger.debug("Stdout Response:")
@@ -1758,6 +1761,15 @@ def check_for_spock_jobs_ready_for_making_precomputed_data():
 					layer_name = f'channel{channel_name}_blended'
 					
 				elif precomputed_pipeline == 'registered':
+					this_processing_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & \
+	                       {
+	                       'username':username,
+	                       'sample_name':sample_name,
+	                       'imaging_request_number':imaging_request_number,
+	                       'processing_request_number':processing_request_number,
+	                       'image_resolution':image_resolution,
+	                       'ventral_up':ventral_up}
+	               atlas_name = this_processing_resolution_content.fetch1('atlas_name')
 
 					registered_data_rootpath = os.path.join(
 						data_bucket_rootpath,username,
@@ -1804,6 +1816,13 @@ def check_for_spock_jobs_ready_for_making_precomputed_data():
 				layer_dir = os.path.join(channel_viz_dir,layer_name)
 				mymkdir(layer_dir)
 				logger.debug(f"Created directory {layer_dir}")
+				st = os.stat(layer_dir)
+				logger.info(f"wrote direcotry: {layer_dir}")
+				logger.debug("Permissions on dir are originally:")
+				logger.debug(st.st_mode)
+				# Add group write permissions so that lightserv-test can write to it 
+				os.chmod(layer_dir,st.st_mode | stat.S_IWGRP)
+
 				precomputed_kwargs['layer_name'] = layer_name
 				
 
