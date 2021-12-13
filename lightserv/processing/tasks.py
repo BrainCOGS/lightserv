@@ -1769,7 +1769,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_data():
 	                       'processing_request_number':processing_request_number,
 	                       'image_resolution':image_resolution,
 	                       'ventral_up':ventral_up}
-	               atlas_name = this_processing_resolution_content.fetch1('atlas_name')
+					atlas_name = this_processing_resolution_content.fetch1('atlas_name')
 
 					registered_data_rootpath = os.path.join(
 						data_bucket_rootpath,username,
