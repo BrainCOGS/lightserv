@@ -1761,6 +1761,15 @@ def check_for_spock_jobs_ready_for_making_precomputed_data():
 					layer_name = f'channel{channel_name}_blended'
 					
 				elif precomputed_pipeline == 'registered':
+					this_processing_resolution_content = db_lightsheet.Request.ProcessingResolutionRequest() & \
+	                       {
+	                       'username':username,
+	                       'sample_name':sample_name,
+	                       'imaging_request_number':imaging_request_number,
+	                       'processing_request_number':processing_request_number,
+	                       'image_resolution':image_resolution,
+	                       'ventral_up':ventral_up}
+	               atlas_name = this_processing_resolution_content.fetch1('atlas_name')
 
 					registered_data_rootpath = os.path.join(
 						data_bucket_rootpath,username,
@@ -1807,6 +1816,13 @@ def check_for_spock_jobs_ready_for_making_precomputed_data():
 				layer_dir = os.path.join(channel_viz_dir,layer_name)
 				mymkdir(layer_dir)
 				logger.debug(f"Created directory {layer_dir}")
+				st = os.stat(layer_dir)
+				logger.info(f"wrote direcotry: {layer_dir}")
+				logger.debug("Permissions on dir are originally:")
+				logger.debug(st.st_mode)
+				# Add group write permissions so that lightserv-test can write to it 
+				os.chmod(layer_dir,st.st_mode | stat.S_IWGRP)
+
 				precomputed_kwargs['layer_name'] = layer_name
 				
 
