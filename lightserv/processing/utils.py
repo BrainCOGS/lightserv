@@ -119,7 +119,7 @@ def get_job_statuses(
 				fields_to_fetch += ['lightsheet'] 
 		
 		if lightsheet_column_name == "lightsheet_pipeline_spock_jobid":
-			fields_to_fetch += ['stiching_method']
+			fields_to_fetch += ['stitching_method']
 
 		this_content = unique_contents & {f'jobid_step{max_step_index}':jobid}
 		fetched_contents=this_content.fetch(*fields_to_fetch,as_dict=True)[0]
