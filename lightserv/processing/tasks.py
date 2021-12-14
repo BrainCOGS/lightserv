@@ -1820,7 +1820,8 @@ def check_for_spock_jobs_ready_for_making_precomputed_data():
 				logger.info(f"wrote direcotry: {layer_dir}")
 				logger.debug("Permissions on dir are originally:")
 				logger.debug(st.st_mode)
-				# Add group write permissions so that lightserv-test can write to it 
+				# Add group write permissions to both parent dir and layer dir so that lightserv-test can write the progress dir and layer data to it 
+				os.chmod(channel_viz_dir,st.st_mode | stat.S_IWGRP)
 				os.chmod(layer_dir,st.st_mode | stat.S_IWGRP)
 
 				precomputed_kwargs['layer_name'] = layer_name
@@ -1831,7 +1832,7 @@ def check_for_spock_jobs_ready_for_making_precomputed_data():
 						make_precomputed_blended_data.delay(**precomputed_kwargs)
 					elif precomputed_pipeline == 'registered':
 						make_precomputed_registered_data.delay(**precomputed_kwargs)
-					logger.info("Sent task to start the {precomputed_pipeline} pipeline")
+					logger.info(f"Sent task to start the {precomputed_pipeline} pipeline")
 
 	return "Checked for light sheet pipeline jobs which are ready for precomputed pipelines"
 
