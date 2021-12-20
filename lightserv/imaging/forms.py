@@ -179,8 +179,8 @@ class ImageResolutionForm(FlaskForm):
 				subfolder_dict[topkey][rawdata_subfolder] = [channel_dict]
 			channel_index = len(subfolder_dict[topkey][rawdata_subfolder]) - 1
 			logger.debug(f"Channel index: {channel_index}")
-			n_rows = int(tiling_scheme.lower().split('x')[0])
-			n_columns = int(tiling_scheme.lower().split('x')[1])
+			n_columns = int(tiling_scheme.lower().split('x')[0])
+			n_rows = int(tiling_scheme.lower().split('x')[1])
 			logger.debug("tiling scheme:")
 			logger.debug(tiling_scheme)
 			if self.image_resolution.data in ['3.6x','15x']:
@@ -188,22 +188,22 @@ class ImageResolutionForm(FlaskForm):
 				""" For SmartSPIM, make sure the number of folders 
 				represents the tiling scheme, should be row/col.
 				Also count files in the deepest directories to get total file count"""
-				row_dirs = glob.glob(rawdata_fullpath + '/??????/')
-				logger.debug(f"found {len(row_dirs)} row directories")
-				logger.debug(f"expected {n_rows} row directories")
-				if len(row_dirs) != n_rows:
+				col_dirs = glob.glob(rawdata_fullpath + '/' + '[0-9]'*6 + '/')
+				logger.debug(f"found {len(col_dirs)} column directories")
+				logger.debug(f"expected {n_columns} column directories")
+				if len(col_dirs) != n_columns:
 					raise ValidationError(
-						f"You entered that there should be {n_rows} tiling row folders in rawdata folder, "
-					  f"but found {len(row_dirs)}")
+						f"You entered that there should be {n_columns} tiling column folders in rawdata folder, "
+					  f"but found {len(col_dirs)}")
 				else:
-					logger.debug("have correct number of row tile folders")
-					first_row_dir = row_dirs[0]
-					col_dirs = glob.glob(first_row_dir + '/??????_??????/')
+					logger.debug("have correct number of column tile folders")
+					first_col_dir = col_dirs[0]
+					row_dirs = glob.glob(first_col_dir + '/??????_??????/')
 
-					if len(col_dirs) != n_columns:
+					if len(row_dirs) != n_rows:
 						raise ValidationError(
-							f"You entered that there should be {n_columns} tiling column folders in each tiling row folder, "
-						  f"but found {len(col_dirs)}")
+							f"You entered that there should be {n_rows} tiling row folders in each tiling column folder, "
+						  f"but found {len(row_dirs)}")
 					else:
 						all_subdirs = glob.glob(rawdata_fullpath + '/??????/??????_??????/')
 						total_counts = []
