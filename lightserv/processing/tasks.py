@@ -439,9 +439,12 @@ def smartspim_stitch(**kwargs):
 
 	# Loop through channels in alphanumeric order (so that lower wavelength channels are first)
 	# and add rawdata_path and stitched_output_dir to command_str
+	align_channel = '' # assign this to first channel we encounter in loop
 	for channel_name in ['785','642','561','488']: # use longest available wavelength channel as the channel to find the displacements  
 		if channel_name not in kwargs['channel_dict']:
 			continue 
+		if not align_channel:
+			align_channel = channel_name
 		logger.debug(f"Adding channel: {channel_name} to stitching command")
 		channel_dict = kwargs['channel_dict'][channel_name]
 		ventral_up=channel_dict['ventral_up']
@@ -548,14 +551,16 @@ def smartspim_stitch(**kwargs):
 	status = 'SUBMITTED'
 	jobids_list = response.split('\n')
 	
-	for ii,channel_name in enumerate(sorted(kwargs['channel_dict'].keys())):
+	for ii,channel_name in enumerate(['785','642','561','488']): # use longest available wavelength channel as the channel to find the displacements  
+		if channel_name not in kwargs['channel_dict']:
+			continue 
 		channel_dict = kwargs['channel_dict'][channel_name]
 		ventral_up = channel_dict['ventral_up']
 
 		entry_dict = {}
 		entry_dict['username'] = username
-
-		if ii == 0:
+		if channel_name == align_channel:
+			logger.debug(f"{channel_name} was the alignment channel")
 			n_jobids = 4
 			spockadmin_table = db_spockadmin.SmartspimStitchingSpockJob
 		else:
