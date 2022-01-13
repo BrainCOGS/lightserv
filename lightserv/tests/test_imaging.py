@@ -724,10 +724,10 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 			imaging_batch_number=1),
 		data=sample_data,
 		follow_redirects=True)
-	n_rows = 3
-	n_row_dirs = 0
-	validation_str = (f"You entered that there should be {n_rows} tiling row folders in rawdata folder, "
-					  f"but found {n_row_dirs}")
+	n_columns = 3
+	n_col_dirs = 0
+	validation_str = (f"You entered that there should be {n_columns} tiling column folders in rawdata folder, "
+					  f"but found {n_col_dirs}")
 	assert validation_str.encode('utf-8') in sample_response.data
 
 	""" Test that when the wrong number of rows in the tiling scheme is provided a validation error is raised.
@@ -746,7 +746,7 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-right_lightsheet_used':True,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.2,
-		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'5x3',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'3x4',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':2.0,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3300,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'Ex_785_Em_3',
@@ -760,15 +760,15 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 			imaging_batch_number=1),
 		data=sample_data,
 		follow_redirects=True)
-	n_rows = 5
-	n_row_dirs = 3
-	validation_str = (f"You entered that there should be {n_rows} tiling row folders in rawdata folder, "
+	n_rows = 4
+	n_row_dirs = 5
+	validation_str = (f"You entered that there should be {n_rows} tiling row folders in each tiling column folder, "
 					  f"but found {n_row_dirs}")
 	assert validation_str.encode('utf-8') in sample_response.data
 
-	""" Test that when the correct number of rows but wrong number of columns in the tiling scheme
+	""" Test that when the correct number of columns but wrong number of rows in the tiling scheme
 	are provided a validation error is raised.
-	Correct tiling scheme is 3x5
+	Correct tiling scheme is 3x5 (3 columns and 5 rows)
 	"""
 	sample_data = {
 		'sample_forms-0-sample_name':'sample-001',
@@ -797,8 +797,8 @@ def test_imaging_batch_entry_form_3p6x_smartspim(test_client,
 			imaging_batch_number=1),
 		data=sample_data,
 		follow_redirects=True)
-	validation_str = ("You entered that there should be 8 tiling column folders"
-					  " in each tiling row folder, but found 5")
+	validation_str = ("You entered that there should be 8 tiling row folders"
+					  " in each tiling column folder, but found 5")
 
 	assert validation_str.encode('utf-8') in sample_response.data
 
@@ -810,9 +810,8 @@ def test_imaging_batch_entry_form_3p6x_smartspim_twochannels(test_client,
 	request_name = 'nonadmin_3p6x_smartspim_twochannels_request'
 	imaging_request_number = 1
 
-	""" Test that when the correct number of rows but wrong number of columns in the tiling scheme
-	are provided a validation error is raised.
-	Correct tiling scheme is 3x5
+	""" Test successful submission
+	Correct tiling scheme is 3x5 (3 columns x 5 rows)
 	"""
 	sample_data = {
 		'sample_forms-0-sample_name':'sample-001',
@@ -964,14 +963,14 @@ def test_imaging_batch_entry_form_15x_smartspim(test_client,
 			imaging_batch_number=1),
 		data=sample_data,
 		follow_redirects=True)
-	n_rows = 3
-	n_row_dirs = 0
-	validation_str = (f"You entered that there should be {n_rows} tiling row folders in rawdata folder, "
-					  f"but found {n_row_dirs}")
+	n_columns = 3
+	n_col_dirs = 0
+	validation_str = (f"You entered that there should be {n_columns} tiling column folders in rawdata folder, "
+					  f"but found {n_col_dirs}")
 	assert validation_str.encode('utf-8') in sample_response.data
 
-	""" Test that when the wrong number of rows in the tiling scheme is provided a validation error is raised.
-	Correct tiling scheme is 3x5
+	""" Test that when the wrong number of columns in the tiling scheme is provided a validation error is raised.
+	Correct tiling scheme is 3x5 (3 columns x 5 rows)
 	"""
 	sample_data = {
 		'sample_forms-0-sample_name':'sample-001',
@@ -986,7 +985,7 @@ def test_imaging_batch_entry_form_15x_smartspim(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-left_lightsheet_used':True,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-right_lightsheet_used':True,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_overlap':0.1,
-		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'5x3',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-0-tiling_scheme':'4x5',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-z_step':2.0,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-number_of_z_planes':3600,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-0-rawdata_subfolder':'Ex_488_Em_0',
@@ -1000,7 +999,7 @@ def test_imaging_batch_entry_form_15x_smartspim(test_client,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-left_lightsheet_used':True,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-right_lightsheet_used':True,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_overlap':0.1,
-		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'5x3',
+		'sample_forms-0-image_resolution_forms-0-channel_forms-1-tiling_scheme':'4x5',
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-z_step':2.0,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-number_of_z_planes':3600,
 		'sample_forms-0-image_resolution_forms-0-channel_forms-1-rawdata_subfolder':'Ex_642_Em_2',
@@ -1014,15 +1013,15 @@ def test_imaging_batch_entry_form_15x_smartspim(test_client,
 			imaging_batch_number=1),
 		data=sample_data,
 		follow_redirects=True)
-	n_rows = 5
-	n_row_dirs = 3
-	validation_str = (f"You entered that there should be {n_rows} tiling row folders in rawdata folder, "
-					  f"but found {n_row_dirs}")
+	n_columns = 4
+	n_col_dirs = 3
+	validation_str = (f"You entered that there should be {n_columns} tiling column folders in rawdata folder, "
+					  f"but found {n_col_dirs}")
 	assert validation_str.encode('utf-8') in sample_response.data
 
 	""" Test that when the correct number of rows but wrong number of columns in the tiling scheme
 	are provided a validation error is raised.
-	Correct tiling scheme is 3x5
+	Correct tiling scheme is 3x5 (3 columns x 5 rows)
 	"""
 	sample_data = {
 		'sample_forms-0-sample_name':'sample-001',
@@ -1065,8 +1064,8 @@ def test_imaging_batch_entry_form_15x_smartspim(test_client,
 			imaging_batch_number=1),
 		data=sample_data,
 		follow_redirects=True)
-	validation_str = ("You entered that there should be 8 tiling column folders"
-					  " in each tiling row folder, but found 5")
+	validation_str = ("You entered that there should be 8 tiling row folders in each "
+					  "tiling column folder, but found 5")
 
 	assert validation_str.encode('utf-8') in sample_response.data
 

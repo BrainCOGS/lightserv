@@ -298,20 +298,23 @@ def test_smartspim_stitching_twochannels_works(test_client,
 	stitching_contents = db_lightsheet.Request.SmartspimStitchedChannel()
 	stitching_results = stitching_contents.fetch(as_dict=True)
 	assert len(stitching_contents) == 2
+	print(stitching_results)
 	assert stitching_results[0]['request_name'] == 'nonadmin_3p6x_smartspim_twochannels_request'
 	assert stitching_results[0]['smartspim_stitching_spock_job_progress'] == 'COMPLETED'
 	assert stitching_results[0]['channel_name'] == '488'
 	assert stitching_results[0]['request_name'] == 'nonadmin_3p6x_smartspim_twochannels_request'
 	assert stitching_results[0]['smartspim_stitching_spock_job_progress'] == 'COMPLETED'
-	jobid_step3_ch1 = stitching_results[0]['smartspim_stitching_spock_jobid']
-	jobid_step2_ch2 = stitching_results[1]['smartspim_stitching_spock_jobid']
+	jobid_step2_ch1 = stitching_results[0]['smartspim_stitching_spock_jobid']
+	jobid_step3_ch2 = stitching_results[1]['smartspim_stitching_spock_jobid']
 
 
 	# Make sure spockadmin tables show entries
-	spockadmin_stitching_contents_ch1 = db_spockadmin.SmartspimStitchingSpockJob() &  {'jobid_step3':jobid_step3_ch1}
+	# Ch642 is the main stitching job. Ch488 is the dependent stitching job.
+	spockadmin_stitching_contents_ch1 = db_spockadmin.SmartspimDependentStitchingSpockJob() &  {'jobid_step2':jobid_step2_ch1}
 	assert len(spockadmin_stitching_contents_ch1) == 1
-	spockadmin_stitching_contents_ch2 = db_spockadmin.SmartspimDependentStitchingSpockJob() &  {'jobid_step2':jobid_step2_ch2}
+	spockadmin_stitching_contents_ch2 = db_spockadmin.SmartspimStitchingSpockJob() &  {'jobid_step3':jobid_step3_ch2}
 	assert len(spockadmin_stitching_contents_ch2) == 1
+	
 
 """ Tests for pystripe manager """
 
