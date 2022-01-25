@@ -870,12 +870,17 @@ def imaging_batch_entry(username,request_name,clearing_batch_number,
 									for form_channel_dict in form_resolution_dict['channel_forms']:
 										channel_name = form_channel_dict['channel_name']
 										ventral_up = form_channel_dict['ventral_up']
-										channel_content = channel_contents_all_samples & \
-											f'sample_name="{this_sample_name}"' & \
-											f'image_resolution="{image_resolution}"' & \
-											f'imaging_request_number={imaging_request_number}' & \
-											f'channel_name="{channel_name}"' & \
-											f'ventral_up="{ventral_up}"' 
+										channel_dict = {
+											'sample_name':this_sample_name,
+											'image_resolution':image_resolution,
+											'imaging_request_number':imaging_request_number,
+											'channel_name':channel_name,
+											'ventral_up':ventral_up
+										}
+										channel_content = channel_contents_all_samples & channel_dict
+										logger.debug("Channel content:")
+										logger.debug(channel_content)
+										
 										channel_content_dict = channel_content.fetch1()
 										rawdata_subfolder = form_channel_dict['rawdata_subfolder']
 										number_of_z_planes = form_channel_dict['number_of_z_planes']
