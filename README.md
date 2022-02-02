@@ -16,15 +16,13 @@ The service is hosted at [https://braincogs00.pni.princeton.edu](https://brainco
 
 ## Explanation of folder contents
 
-- **cloudvolume/**: docker container for spawning cloudvolumes -- these are used for hosting light sheet data so that it can be viewed in Neuroglancer
+- **cloudvolume-docker/**: docker files for spawning cloudvolumes -- these are used for hosting light sheet data so that it can be viewed in Neuroglancer
 
 - **lib/**: homemade python libraries  
 
 - **lightserv/**: the main flask application
 
-- **neuroglancer-registration/**: docker container for spawning neuroglancer viewer links, specifically for viewing data registered to a brain atlas
-
-- **neuroglancer/**: docker container for spawning neuroglancer viewer links, for viewing all data besides data registered to a brain atlas
+- **neuroglancer-docker/**: docker files for spawning neuroglancer viewer links
 
 - **schemas/**: the database and table structure
 
@@ -32,15 +30,19 @@ The service is hosted at [https://braincogs00.pni.princeton.edu](https://brainco
 
 ## Explanation of important files:
 
-- **docker-compose-dev.yml**: the instructions file for running the development version of the flask app and its associated services. 
+- **startup_scripts/docker-compose-dev.yml**: the instructions file for running the development version of the flask app and its associated services. 
 
-- **docker-compose-prod.yml**: the instructions file for running the production version of the flask app and its associated services.
+- **startup_scripts/docker-compose-prod.yml**: the instructions file for running the production version of the flask app and its associated services.
+
+- **startup_scripts/docker-compose-test.yml**: the instructions file for running the tests and its associated services.
 
 - **flaskcelery.Dockerfile**: The dockerfile used to build the image that is used by the main flask app and the celery worker and celery beat scheduler. 
 
 - **requirements.txt** the requirements file for the flaskcelery image. 
 
-- **run.py** The python script for starting the main flask app (it is run inside of a docker container)
+- **run.py** The python script for starting the main flask app (it is run inside of a docker container).
+
+- **lightserv/config.py** Contains environmental variables used by Lightserv. Also contains the config for the scheduled celery tasks.
 
 
 This project is supported by the NIH Brain Research through Advancing Innovative Neurotechnologies (BRAIN) Initiative U19 grant.
