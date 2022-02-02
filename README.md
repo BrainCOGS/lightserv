@@ -44,5 +44,7 @@ The service is hosted at [https://braincogs00.pni.princeton.edu](https://brainco
 
 - **lightserv/config.py** Contains environmental variables used by Lightserv. Also contains the config for the scheduled celery tasks.
 
+- **lightserv/__init__.py** Makes the connection to the datajoint00 database server and creates the app and all of its blueprints. 
+
 
 This project is supported by the NIH Brain Research through Advancing Innovative Neurotechnologies (BRAIN) Initiative U19 grant.
