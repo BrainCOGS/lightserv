@@ -26,6 +26,7 @@ def send_message_conditional(self,message):
 		print("sending email")
 		smtplib.SMTP.send_message(self,message) 
 		print("sent email")
+
 funcType = types.MethodType
 def smtp_connect():
 	# Instantiate a connection object...
@@ -68,6 +69,8 @@ them to a single app in the create_app() function below '''
 
 
 def set_schema():
+	## Set the schemas to be used depending on whether this is DEV, PROD or TEST environment
+	## The microscope schema is not currently used, so it is set to a dummy database
 	if os.environ['FLASK_MODE'] == 'PROD':
 		dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
 		dj.config['database.user'] = os.environ['DJ_DB_USER']
@@ -102,11 +105,11 @@ def set_schema():
 		dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
 		dj.config['database.user'] = os.environ['DJ_DB_TEST_USER']
 		dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']
-		db_lightsheet = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
-		db_microscope = dj.create_virtual_module('ahoag_microscope_test','ahoag_microscope_test',create_schema=True)
-		db_admin = dj.create_virtual_module('ahoag_admin_test','ahoag_admin_test',create_schema=True)
-		db_spockadmin = dj.create_virtual_module('ahoag_spockadmin_test','ahoag_spockadmin_test',create_schema=True)
-		db_subject = dj.create_virtual_module('ahoag_subject_test','ahoag_subject_test',create_schema=True)
+		db_lightsheet = dj.create_virtual_module('lightsrv_lightsheet_test','lightsrv_lightsheet_test',create_schema=True)
+		db_microscope = dj.create_virtual_module('lightsrv_microscope_test','lightsrv_microscope_test',create_schema=True)
+		db_admin = dj.create_virtual_module('lightsrv_spockadmin_test','lightsrv_appcore_test',create_schema=True)
+		db_spockadmin = dj.create_virtual_module('lightsrv_spockadmin_test','lightsrv_appcore_test',create_schema=True)
+		db_subject = dj.create_virtual_module('lightsrv_subject_test','lightsrv_subject_test',create_schema=True)
 
 	return db_lightsheet,db_microscope,db_admin,db_spockadmin,db_subject
 
