@@ -14,6 +14,7 @@ screenshots
 .coverage
 **/*pem
 scripts
+!/.github/scripts
 **/id_rsa.pub
 **/id_rsa
 sshconfig
