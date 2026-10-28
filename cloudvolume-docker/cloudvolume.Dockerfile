@@ -1,4 +1,4 @@
-FROM python:3.6.9-slim-buster
+FROM python:3.14-slim
 
 RUN mkdir -p /opt/repos && mkdir -p /tmp/cloudvolume/test-skeletons
 
@@ -9,7 +9,7 @@ RUN apt-get update && apt-get upgrade -y && \
 
 #RUN git clone https://github.com/seung-lab/cloud-volume.git && cd cloud-volume && \
 
-RUN pip install redis cloud-volume && pip install cloud-volume[boss,test,all_viewers]
+RUN pip install redis cloud-volume
 
 VOLUME ["/mnt/data"]
 
