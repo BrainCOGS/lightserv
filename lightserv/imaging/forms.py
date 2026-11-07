@@ -5,7 +5,7 @@ from wtforms import (SubmitField, TextAreaField, SelectField, FieldList, FormFie
 	FloatField)
 from wtforms.validators import (DataRequired, Length, InputRequired, ValidationError, 
 	Optional)
-from wtforms.widgets import html5
+from wtforms import widgets as html5
 import os, glob
 import concurrent
 from . import utils

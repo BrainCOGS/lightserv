@@ -1,4 +1,4 @@
-from flask_table import Table, Col, LinkCol, ButtonCol
+from lightserv.vendor.flask_table import Table, Col, LinkCol, ButtonCol
 
 
 class MicroscopeCalibrationTable(Table):

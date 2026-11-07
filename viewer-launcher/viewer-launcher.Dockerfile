@@ -1,4 +1,4 @@
-FROM python:3.7.6-slim-buster
+FROM python:3.14-slim-trixie
 
 COPY requirements.txt /app/requirements.txt
 
@@ -8,4 +8,4 @@ RUN pip install -r requirements.txt
 
 COPY . /app
 
-CMD python run.py
+CMD ["python", "run.py"]

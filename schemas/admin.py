@@ -3,7 +3,7 @@ import socket
 import os
 
 if os.environ.get('FLASK_MODE') == 'TEST':
-    dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+    dj.config['database.host'] = os.environ.get('DJ_DB_HOST', 'datajoint00.pni.princeton.edu')
     dj.config['database.port'] = 3306
     dj.config['database.user'] = os.environ['DJ_DB_TEST_USER']
     dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']
@@ -11,14 +11,14 @@ if os.environ.get('FLASK_MODE') == 'TEST':
     schema = dj.schema('ahoag_admin_test')
 
 elif os.environ.get('FLASK_MODE') == 'DEV':
-    dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+    dj.config['database.host'] = os.environ.get('DJ_DB_HOST', 'datajoint00.pni.princeton.edu')
     dj.config['database.port'] = 3306
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']
     print("setting up DEV: ahoag_appcore_copy schema")
     schema = dj.schema('ahoag_appcore_copy')
 elif os.environ.get('FLASK_MODE') == 'PROD':
-    dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+    dj.config['database.host'] = os.environ.get('DJ_DB_HOST', 'datajoint00.pni.princeton.edu')
     dj.config['database.port'] = 3306
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']

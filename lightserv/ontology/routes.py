@@ -1,4 +1,5 @@
-from flask import render_template, request, redirect, Blueprint, session, url_for, flash, Markup
+from markupsafe import Markup
+from flask import render_template, request, redirect, Blueprint, session, url_for, flash
 # from lightserv.models import Experiment
 from lightserv import db_lightsheet
 import pandas as pd

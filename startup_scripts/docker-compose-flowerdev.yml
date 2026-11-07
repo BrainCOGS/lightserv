@@ -4,10 +4,7 @@ services:
   flower:
     env_file: ../.dockerenv
     image: flaskcelery:latest
-    command: ["celery",
-              "flower",
-              "-A",
-              "celery_worker.cel",
+    command: ["celery", "-A", "celery_worker.cel", "flower",
               "--address=0.0.0.0",
               "--port=5555",
               "--loglevel=info"]

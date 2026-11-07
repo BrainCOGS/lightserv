@@ -2,7 +2,6 @@ import os,sys
 from flask import Flask, session, flash, request, redirect, url_for, render_template
 from flask_wtf.csrf import CSRFProtect
 import datajoint as dj
-from datajoint.table import Log
 import socket
 from celery import Celery
 from flask_wtf.csrf import CSRFError
@@ -59,6 +58,11 @@ def set_celery_db():
 			backend=backend_connection_str)
 		# cel = Celery(__name__,broker='redis://redis:6379/0',
 		# 	backend='redis://redis:6379/0')
+	# Explicit overrides support isolated services without changing deployment defaults.
+	if os.environ.get('CELERY_BROKER_URL'):
+		cel.conf.broker_url = os.environ['CELERY_BROKER_URL']
+	if os.environ.get('CELERY_RESULT_BACKEND'):
+		cel.conf.result_backend = os.environ['CELERY_RESULT_BACKEND']
 	return cel
 cel = set_celery_db()
 
@@ -69,7 +73,7 @@ them to a single app in the create_app() function below '''
 
 def set_schema():
 	if os.environ['FLASK_MODE'] == 'PROD':
-		dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+		dj.config['database.host'] = os.environ.get('DJ_DB_HOST', 'datajoint00.pni.princeton.edu')
 		dj.config['database.user'] = os.environ['DJ_DB_USER']
 		dj.config['database.password'] = os.environ['DJ_DB_PASS']
 		db_lightsheet = dj.create_virtual_module('lightsheet','u19lightserv_lightsheet',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
@@ -81,7 +85,7 @@ def set_schema():
 		# db_admin = dj.create_virtual_module('admin','u19lightserv_appcore',create_schema=True)
 		# db_logger = Log(dj.conn(), database='ahoag_lightsheet_demo') # Initialize logger
 	if os.environ['FLASK_MODE'] == 'DEV':
-		dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+		dj.config['database.host'] = os.environ.get('DJ_DB_HOST', 'datajoint00.pni.princeton.edu')
 		dj.config['database.user'] = os.environ['DJ_DB_USER']
 		dj.config['database.password'] = os.environ['DJ_DB_PASS']
 		# db_lightsheet = dj.create_virtual_module('lightsheet','u19lightserv_lightsheet',create_schema=True) # creates the schema if it does not already exist. Can't add tables from within the app because create_schema=False
@@ -98,8 +102,8 @@ def set_schema():
 	elif os.environ['FLASK_MODE'] == 'TEST':
 		print("Setting up schemas in TEST mode")
 		# test_schema = create_test_schema() 
-		from schemas import admin,lightsheet,subject,spockadmin
-		dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+		from schemas import admin,lightsheet,subject,spockadmin,microscope
+		dj.config['database.host'] = os.environ.get('DJ_DB_HOST', 'datajoint00.pni.princeton.edu')
 		dj.config['database.user'] = os.environ['DJ_DB_TEST_USER']
 		dj.config['database.password'] = os.environ['DJ_DB_TEST_PASS']
 		db_lightsheet = dj.create_virtual_module('ahoag_lightsheet_test','ahoag_lightsheet_test')
@@ -122,7 +126,9 @@ def create_app(config_class):
 	# Initialize external libs
 	csrf = CSRFProtect(app)
 	app.config.from_object(config_class)
-	cel.conf.update(app.config)
+	cel.conf.update({key: getattr(config_class, key) for key in
+		('enable_utc', 'timezone', 'task_acks_late', 'beat_schedule', 'task_always_eager')
+		if hasattr(config_class, key)})
 
 	# Blueprints
 	from lightserv.requests.routes import requests

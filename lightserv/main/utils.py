@@ -1,3 +1,4 @@
+from lightserv.user_agent import browser_details
 from flask import session,request,url_for,redirect, flash, current_app
 from functools import wraps
 import os,time
@@ -40,9 +41,7 @@ def log_http_requests(f):
 		logstr = '{0} {1} request to route: "{2}()" in {3}'.\
 			format(current_user,request.method,f.__name__,f.__module__)
 		user_agent = request.user_agent
-		browser_name = user_agent.browser # e.g. chrome
-		browser_version = user_agent.version # e.g. '78.0.3904.108'
-		platform = user_agent.platform # e.g. linux
+		browser_name, browser_version, platform = browser_details(user_agent.string)
 		
 		insert_dict = {'browser_name':browser_name,'browser_version':browser_version,
 					   'event':logstr,'platform':platform}

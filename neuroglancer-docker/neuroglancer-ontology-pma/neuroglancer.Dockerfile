@@ -1,17 +1,8 @@
-FROM python:3.6.9-slim-buster
-
-RUN mkdir -p /opt/repos && mkdir -p /mnt/exchange
-
-##not actually in use anymore, removal of igneous outmodes the need.
+FROM python:3.14-slim-trixie
 WORKDIR /opt/repos
-
-RUN apt-get update -y && apt-get upgrade -y && \
-    apt-get install bash git gcc 'g++' musl-dev -y
-
-RUN  pip install neuroglancer==2.10 redis graphviz
-
+RUN mkdir -p /mnt/exchange
+COPY requirements.txt /opt/requirements.txt
+RUN pip install --no-cache-dir -r /opt/requirements.txt
 COPY neuroglancer_launcher.py /opt/neuroglancer_launcher.py
-
 COPY PMA_ontology.json /opt/PMA_ontology.json
-
 CMD ["python","/opt/neuroglancer_launcher.py"]

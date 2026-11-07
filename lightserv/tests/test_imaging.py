@@ -1,4 +1,5 @@
-from flask import url_for, current_app,Markup	
+from markupsafe import Markup
+from flask import url_for, current_app
 import os, shutil, glob
 from PIL import Image
 import tempfile

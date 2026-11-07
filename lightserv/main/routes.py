@@ -1,6 +1,8 @@
+from lightserv.user_agent import browser_details
+from markupsafe import Markup
 from flask import (render_template, request, redirect,
 				   Blueprint, session, url_for, flash,
-				   Markup, Request, Response,abort)
+				    Request, Response,abort)
 from lightserv import db_lightsheet, db_admin, db_spockadmin
 from lightserv.main.utils import (logged_in, table_sorter,
 	 log_http_requests, logged_in_as_admin,
@@ -116,9 +118,7 @@ def login():
 	logger.info("Logging you in first!")
 	user_agent = request.user_agent
 	logger.debug(user_agent)
-	browser_name = user_agent.browser # e.g. chrome
-	browser_version = user_agent.version # e.g. '78.0.3904.108'
-	platform = user_agent.platform # e.g. linux
+	browser_name, browser_version, platform = browser_details(user_agent.string)
 	
 	if browser_name.lower() != 'chrome':
 		logger.info(f"User is using browser {browser_name}")
@@ -246,7 +246,7 @@ def dash():
 		'In progress': len(contents_being_cleared),
 		'Cleared': len(contents_already_cleared),
 	}
-	data_clearing = pd.Series(x_clearing).reset_index(name='value').rename(columns={'index':'status'})
+	data_clearing = pd.Series(x_clearing, dtype=float).reset_index(name='value').rename(columns={'index':'status'})
 	empty_mask = data_clearing.value == 0
 	data_clearing.loc[empty_mask,'value'] = 0.001 # a hack to get tooltip to show up even for zero entries
 	data_clearing['angle'] = data_clearing['value']/data_clearing['value'].sum() * 2*np.pi
@@ -312,7 +312,7 @@ def dash():
 		'In progress': len(contents_being_imaged),
 		'Imaged': len(contents_already_imaged),
 	}
-	data_imaging = pd.Series(x_imaging).reset_index(name='value').rename(columns={'index':'status'})
+	data_imaging = pd.Series(x_imaging, dtype=float).reset_index(name='value').rename(columns={'index':'status'})
 	empty_mask = data_imaging.value == 0
 	data_imaging.loc[empty_mask,'value'] = 0.001 # a hack to get tooltip to show up even for zero entries
 	data_imaging['angle'] = data_imaging['value']/data_imaging['value'].sum() * 2*np.pi
@@ -414,8 +414,8 @@ def dash():
 		 top='smartspim', width=0.2, source=source_microscopes,
 		   color="#e84d60",name='smartspim')
 	
-	hover_lavision = HoverTool(tooltips=[("LaVision","@lavision")],names=['lavision'])
-	hover_smartspim = HoverTool(tooltips=[("SmartSPIM","@smartspim")],names=['smartspim'])
+	hover_lavision = HoverTool(tooltips=[("LaVision","@lavision")],renderers=[lavision_usage])
+	hover_smartspim = HoverTool(tooltips=[("SmartSPIM","@smartspim")],renderers=[smartspim_usage])
 	microscope_usage_plot.add_tools(hover_lavision)
 	microscope_usage_plot.add_tools(hover_smartspim)
 	legend = Legend(items=[
@@ -510,10 +510,10 @@ def dash():
 
 
 	storage_time_plot.xaxis.formatter=DatetimeTickFormatter(
-        hours=["%d %B %Y"],
-        days=["%d %B %Y"],
-        months=["%d %B %Y"],
-        years=["%d %B %Y"],
+        hours="%d %B %Y",
+        days="%d %B %Y",
+        months="%d %B %Y",
+        years="%d %B %Y",
     )
 
 	script_storage_time, div_storage_time = components(storage_time_plot)

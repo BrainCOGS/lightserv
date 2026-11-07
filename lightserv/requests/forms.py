@@ -3,9 +3,10 @@ from flask_wtf import FlaskForm
 from wtforms import (StringField, SubmitField, TextAreaField,
 					 SelectField, BooleanField, IntegerField,
 					 DecimalField, FieldList,FormField,HiddenField)
-# from wtforms.fields.html5 import DateField
+# from wtforms.fields import DateField
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email, Optional
-from wtforms.widgets import html5, HiddenInput
+from wtforms import widgets as html5
+from wtforms.widgets import HiddenInput
 import os
 import glob
 from lightserv import db_lightsheet,db_subject
@@ -45,7 +46,7 @@ class ClearingForm(FlaskForm):
 	def validate_antibody1(self,antibody1):
 		''' Makes sure that primary antibody is not blank if immunostaining clearing protocol
 		is chosen  '''
-		if self.clearing_protocol.data == 'iDISCO+_immuno' and antibody1.data == '':
+		if self.clearing_protocol.data == 'iDISCO+_immuno' and not antibody1.data:
 			raise ValidationError('Antibody must be specified because you selected \
 				an immunostaining clearing protocol')
 

@@ -1,6 +1,7 @@
+from markupsafe import Markup
 from flask import (render_template, request, redirect,
 				   Blueprint, session, url_for, flash,
-				   Markup, Request, Response,jsonify,
+				    Request, Response,jsonify,
                    current_app)
 from lightserv import db_lightsheet, db_admin, db_spockadmin, cel, smtp_connect
 from lightserv.main.utils import logged_in, table_sorter, log_http_requests

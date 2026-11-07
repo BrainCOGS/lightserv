@@ -1,0 +1,41 @@
+# Disposable services only. No host ports, credentials, sockets or production mounts.
+services:
+  db:
+    image: mysql:8.0
+    command: ["--character-set-server=latin1", "--collation-server=latin1_swedish_ci"]
+    environment:
+      MYSQL_ROOT_PASSWORD: isolated-only
+      MYSQL_ROOT_HOST: "%"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  redis:
+    image: redis:7.4-alpine
+    networks:
+      default:
+        aliases: [testredis]
+  smoke:
+    image: lightserv-port:test
+    hostname: docker_lightserv
+    tmpfs:
+      - /jukebox:uid=2354,gid=9038,mode=0770
+    environment:
+      FLASK_MODE: TEST
+      DJ_DB_HOST: db
+      DJ_DB_TEST_USER: root
+      DJ_DB_TEST_PASS: isolated-only
+      TZ: America/New_York
+      SECRET_KEY: isolated-only
+      CONFIGPROXY_AUTH_TOKEN: isolated-only
+      HOSTURL: localhost
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: ["python", "-m", "container_tests.smoke"]
+networks:
+  default:
+    internal: true

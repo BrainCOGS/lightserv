@@ -1,0 +1,5 @@
+neuroglancer>=2.37
+redis>=5.1
+numpy
+pandas
+graphviz

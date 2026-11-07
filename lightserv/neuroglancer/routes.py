@@ -1,6 +1,7 @@
+from markupsafe import Markup
 from flask import (render_template, request, redirect,
                    Blueprint, session, url_for, flash,
-                   Markup, Request, Response,abort, current_app)
+                    Request, Response,abort, current_app)
 import redis
 import logging
 import time
