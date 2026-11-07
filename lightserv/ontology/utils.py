@@ -1,11 +1,11 @@
-import pkg_resources
+from pathlib import Path
 import json
 
 from flask import url_for
 import numpy as np
 import graphviz
 
-DATA_PATH = pkg_resources.resource_filename('lightserv', 'data') # package name first then subdirectory next
+DATA_PATH = str(Path(__file__).resolve().parents[1] / 'data') # package name first then subdirectory next
 
 test_ontology_file = DATA_PATH + '/test_ontology.json'
 with open(test_ontology_file) as json_file:

@@ -136,7 +136,9 @@ def test_mouse_request(test_client,test_login_nonadmin,
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-channel_name': '555', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-injection_detection':True,
 			'imaging_samples-1-image_resolution_forsetup':'1.3x',
 			'uniform_imaging_submit_button':True
@@ -324,6 +326,7 @@ def test_mouse_request(test_client,test_login_nonadmin,
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',
@@ -400,6 +403,7 @@ def test_mouse_request(test_client,test_login_nonadmin,
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',
@@ -477,6 +481,7 @@ def test_mouse_request(test_client,test_login_nonadmin,
 			'imaging_samples-0-image_resolution_forms-0-notes_for_imager':'image horizontally please!',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'clearing_samples-1-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-1-sample_name':'sample-001',
@@ -484,6 +489,7 @@ def test_mouse_request(test_client,test_login_nonadmin,
 			'imaging_samples-1-image_resolution_forms-0-notes_for_imager':'image horizontally please!',
 			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-1-image_resolution_forsetup':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',
@@ -542,6 +548,7 @@ def test_mouse_request(test_client,test_login_nonadmin,
 			'imaging_samples-0-image_resolution_forms-0-notes_for_imager':'image horizontally please!',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'imaging_samples-0-image_resolution_forsetup':"1.3x",
 			'imaging_samples-0-new_image_resolution_form_submit':True
@@ -604,6 +611,7 @@ def test_mouse_request(test_client,test_login_nonadmin,
 			'imaging_samples-0-image_resolution_forms-0-notes_for_imager':'image horizontally please!',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-injection_detection':True,
 			'submit':True
 			},content_type='multipart/form-data',
@@ -636,6 +644,7 @@ def test_mouse_request(test_client,test_login_nonadmin,
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'clearing_samples-1-clearing_protocol':'iDISCO abbreviated clearing',
 			'clearing_samples-1-sample_name':'sample-002',
@@ -646,6 +655,7 @@ def test_mouse_request(test_client,test_login_nonadmin,
 			'imaging_samples-1-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-1-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-1-image_resolution_forsetup':'1.3x',
+			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-1-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',
@@ -841,7 +851,9 @@ def test_mouse_request(test_client,test_login_nonadmin,
 			'imaging_samples-0-image_resolution_forms-0-notes_for_imager':'image horizontally please!',
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-channel_name': '555', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-registration':True,
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-1-injection_detection':True,
 			'imaging_samples-0-image_resolution_forsetup':"1.3x",
@@ -915,6 +927,7 @@ def test_rat_request(test_client,test_login_nonadmin,
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			}
@@ -1042,6 +1055,7 @@ def test_rat_request(test_client,test_login_nonadmin,
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
 			'submit':True
 			},content_type='multipart/form-data',
@@ -1075,6 +1089,7 @@ def test_rat_request(test_client,test_login_nonadmin,
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
 			'submit':True
 			},content_type='multipart/form-data',
@@ -1106,6 +1121,7 @@ def test_rat_request(test_client,test_login_nonadmin,
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-generic_imaging':True,
 			'submit':True
 			},content_type='multipart/form-data',
@@ -1144,6 +1160,7 @@ def test_submit_mouse_self_clearing_self_imaging_request(test_client,test_login_
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',
@@ -1175,6 +1192,7 @@ def test_submit_mouse_self_clearing_self_imaging_request(test_client,test_login_
 			'imaging_samples-0-image_resolution_forms-0-atlas_name':'allen_2017',
 			'imaging_samples-0-image_resolution_forms-0-final_orientation':'sagittal',
 			'imaging_samples-0-image_resolution_forsetup':'1.3x',
+			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-channel_name': '488', # Hidden field sent by the browser
 			'imaging_samples-0-image_resolution_forms-0-channel_forms-0-registration':True,
 			'submit':True
 			},content_type='multipart/form-data',

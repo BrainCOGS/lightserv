@@ -1,6 +1,7 @@
+from markupsafe import Markup
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
-				   Markup, current_app,jsonify)
+				    current_app,jsonify)
 from lightserv.main.utils import mymkdir,prettyprinter,db_table_determiner
 from lightserv.processing.utils import determine_status_code,get_job_statuses
 from lightserv import cel, db_lightsheet, db_spockadmin

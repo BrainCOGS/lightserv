@@ -40,8 +40,11 @@ class BaseConfig(object):
 	PROCESSING_CODE_DIR = '/jukebox/wang/ahoag/brainpipe'
 	DJ_SAFEMODE = True
 	dj.config['safemode'] = DJ_SAFEMODE
-	CELERY_ENABLE_UTC = False
-	CELERY_TIMEZONE = os.environ['TZ']
+	beat_schedule = {}
+	task_always_eager = False
+	task_acks_late = False
+	enable_utc = False
+	timezone = os.environ['TZ']
 
 
 class DevConfig(BaseConfig):
@@ -51,8 +54,8 @@ class DevConfig(BaseConfig):
 	DATA_BUCKET_ROOTPATH = '/jukebox/LightSheetData/lightserv_pnilsadmin_testing'
 	NG_VIEWER_EXPIRE_SECONDS = 5*60 # seconds time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
 	SPOCK_LSADMIN_USERNAME = 'lightserv-test'
-	CELERY_ACKS_LATE = True
-	CELERYBEAT_SCHEDULE = {
+	task_acks_late = True
+	beat_schedule = {
 		# 'processing_job_status_checker': {
 		# 'task': 'lightserv.processing.tasks.processing_job_status_checker',
 		# 'schedule': timedelta(seconds=5)
@@ -148,7 +151,7 @@ class ProdConfig(BaseConfig):
 	NG_VIEWER_EXPIRE_SECONDS = 43200 # 6 hours - time that a neuroglancer viewer and its cloudvolumes are allowed to stay up 
 	SPOCK_LSADMIN_USERNAME = 'lightserv-test'
 
-	CELERYBEAT_SCHEDULE = {
+	beat_schedule = {
 		'processing_job_status_checker': {
 		'task': 'lightserv.processing.tasks.processing_spock_job_status_checker',
 		'schedule': timedelta(minutes=10),
@@ -239,4 +242,4 @@ class TestConfig(BaseConfig):
 	# CELERY_RESULT_BACKEND=f'db+mysql+pymysql://ahoag:p@sswd@localhost:3307/ahoag_celery_test'
 	MAIL_USERNAME = os.environ.get('EMAIL_USER')
 	MAIL_PASSWORD = os.environ.get('EMAIL_PASS')
-	CELERY_ALWAYS_EAGER = True # Forces celery tasks to be run synchronously -- will not spawn a separate process
+	task_always_eager = True # Forces celery tasks to be run synchronously -- will not spawn a separate process

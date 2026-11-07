@@ -1,5 +1,6 @@
-from flask import url_for,flash,redirect, request, Markup
-from flask_table import Table, Col, LinkCol, ButtonCol, create_table, NestedTableCol
+from markupsafe import Markup
+from flask import url_for,flash,redirect, request
+from lightserv.vendor.flask_table import Table, Col, LinkCol, ButtonCol, create_table, NestedTableCol
 from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import (DateTimeCol, ImagingRequestLinkCol,

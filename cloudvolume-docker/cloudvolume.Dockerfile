@@ -1,18 +1,10 @@
-FROM python:3.6.9-slim-buster
+FROM nginxinc/nginx-unprivileged:1.31-alpine@sha256:b5047b9b76845eac124358373c6852377c52e4b05834a47647e955dd91cb8f1e
 
-RUN mkdir -p /opt/repos && mkdir -p /tmp/cloudvolume/test-skeletons
-
-WORKDIR /opt/repos
-
-RUN apt-get update && apt-get upgrade -y && \
-    apt-get install bash git build-essential musl-dev curl htop psmisc net-tools -y
-
-#RUN git clone https://github.com/seung-lab/cloud-volume.git && cd cloud-volume && \
-
-RUN pip install redis cloud-volume && pip install cloud-volume[boss,test,all_viewers]
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY --chmod=755 check-volume.sh /docker-entrypoint.d/05-check-volume.sh
 
 VOLUME ["/mnt/data"]
+EXPOSE 1337
 
-COPY cloudvolume_launcher.py /opt/cloudvolume_launcher.py
-
-CMD ["python","/opt/cloudvolume_launcher.py"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
+  CMD wget -q --spider http://127.0.0.1:1337/info || exit 1

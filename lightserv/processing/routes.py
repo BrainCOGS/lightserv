@@ -1,6 +1,7 @@
+from markupsafe import Markup
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
-				   Markup, current_app)
+				    current_app)
 from lightserv.processing.forms import StartProcessingForm,PystripeEntryForm
 from lightserv.processing.tables import (create_dynamic_processing_overview_table,
 	dynamic_processing_management_table,ImagingOverviewTable,ExistingProcessingTable,

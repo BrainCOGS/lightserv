@@ -4,10 +4,7 @@ services:
   worker:
     env_file: ../.dockerenv
     image: flaskcelery:prod
-    command: ["celery",
-              "worker",
-              "-A",
-              "celery_worker.cel",
+    command: ["celery", "-A", "celery_worker.cel", "worker",
               "--loglevel=info"]
     volumes:
       - ..:/app
@@ -19,10 +16,7 @@ services:
   scheduler:
     env_file: ../.dockerenv
     image: flaskcelery:prod
-    command: ["celery",
-              "beat",
-              "-A",
-              "celery_worker.cel",
+    command: ["celery", "-A", "celery_worker.cel", "beat",
               "--schedule=/tmp/celerybeat-schedule",
               "--loglevel=info",
               "--pidfile=/tmp/celerybeat.pid"]

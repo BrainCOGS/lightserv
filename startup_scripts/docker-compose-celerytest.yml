@@ -4,7 +4,7 @@ services:
   testworker:
     env_file: ../.testworkerdockerenv
     image: flaskcelery:latest
-    command: "celery worker -A celery_worker.cel --loglevel=info"
+    command: "celery -A celery_worker.cel worker --loglevel=info"
     volumes:
       - ..:/app
       - ../lib:/opt/libraries

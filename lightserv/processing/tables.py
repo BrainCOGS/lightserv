@@ -1,5 +1,5 @@
 from flask import request
-from flask_table import Table, Col, LinkCol, ButtonCol, create_table
+from lightserv.vendor.flask_table import Table, Col, LinkCol, ButtonCol, create_table
 from functools import partial
 from lightserv.main.utils import table_sorter
 from lightserv.main.tables import (DateTimeCol, DesignatedRoleCol,

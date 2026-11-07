@@ -3,9 +3,10 @@ from wtforms import (StringField, SubmitField, TextAreaField,
 					 SelectField, BooleanField, IntegerField,
 					 DecimalField, FieldList,FormField,HiddenField,
 					 RadioField)
-from wtforms.fields.html5 import DateField
+from wtforms.fields import DateField
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Email, Optional
-from wtforms.widgets import html5, HiddenInput
+from wtforms import widgets as html5
+from wtforms.widgets import HiddenInput
 
 class SpockConnectionTesterForm(FlaskForm):
 	submit = SubmitField("Test connection")

@@ -1,0 +1,39 @@
+[project]
+name = "lightserv"
+version = "0.1.0"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+  "bokeh>=3.3",
+  "beautifulsoup4",
+  "celery[redis]>=5.5",
+  "datajoint==0.14.10",
+  "docker>=7",
+  "email-validator",
+  "Flask>=3.1",
+  "Flask-Babel>=4",
+  "Flask-WTF>=1.2",
+  "WTForms>=3",
+  "flower>=2.1",
+  "google-api-python-client>=2",
+  "google-auth-httplib2",
+  "google-auth-oauthlib",
+  "graphviz",
+  "gunicorn>=23",
+  "humanize",
+  "lorem",
+  "paramiko>=4",
+  "PyMySQL>=1.1",
+  "redis>=5.1",
+  "requests>=2.32",
+  "SQLAlchemy>=2",
+  "tifffile",
+  "ua-parser>=1",
+  "numpy",
+  "pandas"
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "pytest-cov"]
+
+[tool.uv]
+package = false

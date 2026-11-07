@@ -77,7 +77,7 @@ for ii in range(cv_count):
 		        source=f"precomputed://https://{hosturl}/cv/{session_name}/{cv_name}" # this needs to be visible outside of the container in the browser
 		    )
 with viewer.txn() as s:
-	s.navigation.zoomFactor = 40000
+	s.cross_section_scale = 40000
 
 """ Make the layout such that each
 channel is a separate column and has the atlas

@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 
 from flask import session,current_app
-from flask_table import Col,LinkCol,NestedTableCol, Table
+from lightserv.vendor.flask_table import Col,LinkCol,NestedTableCol, Table
 # from datetime import strftime
 from functools import partial
-from flask import Markup
+from markupsafe import Markup
 from lightserv import db_lightsheet
 
 channel_str_dict = {'regch':'registration','injch':'injection/probe detection',

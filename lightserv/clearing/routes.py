@@ -1,6 +1,7 @@
+from markupsafe import Markup
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
-				   Markup,current_app)
+				   current_app)
 from lightserv.clearing.forms import (iDiscoPlusImmunoForm, iDiscoAbbreviatedForm,
 		  iDiscoAbbreviatedRatForm, uDiscoForm,  iDiscoEduForm,
 		  NewAntibodyForm, EditAntibodyForm )

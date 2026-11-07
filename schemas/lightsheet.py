@@ -2,7 +2,7 @@ import datajoint as dj
 import os
 
 if os.environ.get('FLASK_MODE') == 'TEST':
-    dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+    dj.config['database.host'] = os.environ.get('DJ_DB_HOST', 'datajoint00.pni.princeton.edu')
     dj.config['database.port'] = 3306
 
     dj.config['database.user'] = os.environ['DJ_DB_TEST_USER']
@@ -11,7 +11,7 @@ if os.environ.get('FLASK_MODE') == 'TEST':
     schema = dj.schema('ahoag_lightsheet_test')
     
 elif os.environ.get('FLASK_MODE') == 'DEV':
-    dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+    dj.config['database.host'] = os.environ.get('DJ_DB_HOST', 'datajoint00.pni.princeton.edu')
     dj.config['database.port'] = 3306
 
     dj.config['database.user'] = os.environ['DJ_DB_USER']
@@ -20,7 +20,7 @@ elif os.environ.get('FLASK_MODE') == 'DEV':
 
     schema = dj.schema('ahoag_lightsheet_copy')
 elif os.environ.get('FLASK_MODE') == 'PROD':
-    dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+    dj.config['database.host'] = os.environ.get('DJ_DB_HOST', 'datajoint00.pni.princeton.edu')
     dj.config['database.port'] = 3306
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']

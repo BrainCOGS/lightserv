@@ -1,7 +1,8 @@
+from markupsafe import Markup
 from flask import (render_template, url_for, flash,
 				   redirect, request, abort, Blueprint,session,
-				   Markup, current_app)
-from werkzeug import MultiDict
+				    current_app)
+from werkzeug.datastructures import MultiDict
 from lightserv import db_lightsheet, cel, smtp_connect
 
 from lightserv.main.utils import (logged_in, logged_in_as_clearer,

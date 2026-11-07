@@ -3,7 +3,7 @@ import socket
 import os
 
 if os.environ.get('FLASK_MODE') == 'TEST':
-    dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+    dj.config['database.host'] = os.environ.get('DJ_DB_HOST', 'datajoint00.pni.princeton.edu')
     dj.config['database.port'] = 3306
 
     dj.config['database.user'] = os.environ['DJ_DB_TEST_USER']
@@ -17,7 +17,7 @@ if os.environ.get('FLASK_MODE') == 'TEST':
     #     schema.drop(force=True)
     #     schema = dj.schema('ahoag_microscope_test')
 else: # Still don't have a real db on datajoint00 for microscope yet
-    dj.config['database.host'] = 'datajoint00.pni.princeton.edu'
+    dj.config['database.host'] = os.environ.get('DJ_DB_HOST', 'datajoint00.pni.princeton.edu')
     dj.config['database.port'] = 3306
     dj.config['database.user'] = os.environ['DJ_DB_USER']
     dj.config['database.password'] = os.environ['DJ_DB_PASS']

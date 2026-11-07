@@ -1,9 +1,9 @@
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, TextAreaField, StringField
-from wtforms.fields.html5 import (DateField,
+from wtforms.fields import (DateField,
 	DateTimeLocalField)
 from wtforms.validators import DataRequired, Length, InputRequired, ValidationError, Optional
-from flask import Markup
+from markupsafe import Markup
 
 datetimeformat='%Y-%m-%dT%H:%M' # To get form.field.data to work. Does not work with the default (bug)
 
